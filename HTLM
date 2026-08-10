@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#1e2722">
+
+  <title>Achel POS</title>
+
+  <link rel="manifest" href="manifest.json">
+
+  <style>
+    :root {
+      --bg: #f4f2ed;
+      --card: #ffffff;
+      --dark: #1e2722;
+      --gold: #8b662e;
+      --gold-light: #c9aa73;
+      --border: #ddd8ce;
+      --muted: #777;
+      --green: #2e6944;
+      --red: #a94442;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+      background: var(--bg);
+      color: var(--dark);
+    }
+
+    header {
+      background: var(--dark);
+      color: white;
+      padding: 26px 20px;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 28px;
+    }
+
+    header p {
+      margin: 6px 0 0;
+      opacity: 0.8;
+    }
+
+    main {
+      max-width: 720px;
+      margin: auto;
+      padding: 16px;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 18px;
+      margin-bottom: 16px;
+      box-shadow: 0 3px 10px rgba(0,0,0,.04);
+    }
+
+    h2 {
+      margin-top: 0;
+    }
+
+    label {
+      display: block;
+      font-weight: 700;
+      margin-top: 15px;
+      margin-bottom: 7px;
+    }
+
+    input,
+    textarea {
+      width: 100%;
+      padding: 13px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      font-size: 16px;
+    }
+
+    textarea {
+      min-height: 90px;
+    }
+
+    .info {
+      margin-top: 10px;
+      padding: 12px;
+      border-radius: 12px;
+      background: #f7efdf;
+      color: #6b4d24;
+      font-size: 14px;
+    }
+
+    .info.ok {
+      background: #e9f3ec;
+      color: var(--green);
+    }
+
+    .info.error {
+      background: #f7e8e8;
+      color: var(--red);
+    }
+
+    .category {
+      margin-top: 22px;
+      margin-bottom: 10px;
+      color: var(--gold);
+      font-size: 13px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+    }
+
+    .product {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 13px;
+      margin-bottom: 10px;
+    }
+
+    .product-name {
+      font-weight: 700;
+      flex: 1;
+    }
+
+    .qty {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .qty button {
+      width: 42px;
+      height: 42px;
+      border-radius: 11px;
+      border: 1px solid var(--border);
+      background: #f8f7f4;
+      color: var(--dark);
+      font-size: 24px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .qty span {
+      width: 34px;
+      text-align: center;
+      font-size: 18px;
+      font-weight: 800;
+    }
+
+    .primary {
+      width: 100%;
+      padding: 16px;
+      border: none;
+      border-radius: 14px;
+      background: var(--gold);
+      color: white;
+      font-size: 17px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .secondary {
+      width: 100%;
+      padding: 14px;
+      margin-top: 10px;
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      background: white;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    .summary-line {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 9px 0;
+      border-bottom: 1px solid #eee;
+    }
+
+    .success {
+      text-align: center;
+      padding: 25px 10px;
+    }
+
+    .success-icon {
+      font-size: 50px;
+    }
+  </style>
+</head>
+
+<body>
+
+<header>
+  <h1>Achel POS</h1>
+  <p>Interne bestelling POS & promotiemateriaal</p>
+</header>
+
+<main>
+
+  <section id="orderScreen">
+
+    <div class="card">
+
+      <h2>Nieuwe aanvraag</h2>
+
+      <label for="customer">Horecazaak / klant</label>
+      <input
+        id="customer"
+        type="text"
+        placeholder="Bijv. Café De Markt, Genk"
+      >
+
+      <label for="pickup">Gewenste afhaaldatum</label>
+      <input
+        id="pickup"
+        type="date"
+      >
+
+      <div id="dateInfo" class="info">
+        De aanvraag moet minstens 2 dagen vóór afhaling gebeuren.
+      </div>
+
+      <label for="note">Opmerking</label>
+      <textarea
+        id="note"
+        placeholder="Bijv. materiaal voor nieuwe plaatsing of promotieactie"
+      ></textarea>
+
+    </div>
+
+    <div class="card">
+
+      <h2>Materialen</h2>
+
+      <div class="category">Achel bier</div>
+
+      <div class="product">
+        <div class="product-name">Achel Tripel 33cl</div>
+        <div class="qty">
+          <button onclick="changeQty('tripel33', -1)">−</button>
+          <span id="tripel33">0</span>
+          <button onclick="changeQty('tripel33', 1)">+</button>
+        </div>
+      </div>
+
+      <div class="product">
+        <div class="product-name">Achel Tripel 20L</div>
+        <div class="qty">
+          <button onclick="changeQty('tripel20', -1)">−</button>
+          <span id="tripel20">0</span>
+          <button onclick="changeQty('tripel20', 1)">+</button>
+        </div>
+      </div>
+
+      <div class="product">
+        <div class="product-name">Achel Dubbel 33cl</div>
+        <div class="qty">
+          <button onclick="changeQty('dubbel33', -1)">−</button>
+          <span id="dubbel33">0</span>
+          <button onclick="changeQty('dubbel33', 1)">+</button>
+        </div>
+      </div>
+
+      <div class="product">
+        <div class="product-name">Achel Dubbel 20L</div>
+        <div class="qty">
+          <button onclick="changeQty('dubbel20', -1)">−</button>
+          <span id="dubbel20">0</span>
+          <button onclick="changeQty('dubbel20', 1)">+</button>
+        </div>
+      </div>
+
+      <div class="category">POS-materiaal</div>
+
+      <div class="product">
+        <div class="product-name">Bierviltjes</div>
+        <div class="qty">
+          <button onclick="changeQty('bierviltjes', -1)">−</button>
+          <span id="bierviltjes">0</span>
+          <button onclick="changeQty('bierviltjes', 1)">+</button>
+        </div>
+      </div>
+
+      <div class="product">
+        <div class="product-name">Glazen</div>
+        <div class="qty">
+          <button onclick="changeQty('glazen', -1)">−</button>
+          <span id="glazen">0</span>
+          <button onclick="changeQty('glazen', 1)">+</button>
+        </div>
+      </div>
+
+      <div class="product">
+        <div class="product-name">Taplens</div>
+        <div class="qty">
+          <button onclick="changeQty('taplens', -1)">−</button>
+          <span id="taplens">0</span>
+          <button onclick="changeQty('taplens', 1)">+</button>
+        </div>
+      </div>
+
+      <div class="product">
+        <div class="product-name">Wandbord</div>
+        <div class="qty">
+          <button onclick="changeQty('wandbord', -1)">−</button>
+          <span id="wandbord">0</span>
+          <button onclick="changeQty('wandbord', 1)">+</button>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="card">
+
+      <button class="primary" onclick="showSummary()">
+        Aanvraag controleren
+      </button>
+
+    </div>
+
+  </section>
+
+  <section id="summaryScreen" class="hidden">
+
+    <div class="card">
+
+      <h2>Controleer aanvraag</h2>
+
+      <p>
+        <strong>Klant:</strong>
+        <span id="summaryCustomer"></span>
+      </p>
+
+      <p>
+        <strong>Afhalen:</strong>
+        <span id="summaryPickup"></span>
+      </p>
+
+      <div id="summaryProducts"></div>
+
+      <p id="summaryNote"></p>
+
+      <button class="primary" onclick="submitOrder()">
+        Aanvraag verzenden
+      </button>
+
+      <button class="secondary" onclick="backToOrder()">
+        Terug aanpassen
+      </button>
+
+    </div>
+
+  </section>
+
+  <section id="successScreen" class="hidden">
+
+    <div class="card success">
+
+      <div class="success-icon">✓</div>
+
+      <h2>Aanvraag geregistreerd</h2>
+
+      <p>
+        De POS-aanvraag is succesvol aangemaakt.
+      </p>
+
+      <button class="primary" onclick="newOrder()">
+        Nieuwe aanvraag
+      </button>
+
+    </div>
+
+  </section>
+
+</main>
+
+<script>
+
+const products = {
+  tripel33: {
+    name: "Achel Tripel 33cl",
+    qty: 0
+  },
+  tripel20: {
+    name: "Achel Tripel 20L",
+    qty: 0
+  },
+  dubbel33: {
+    name: "Achel Dubbel 33cl",
+    qty: 0
+  },
+  dubbel20: {
+    name: "Achel Dubbel 20L",
+    qty: 0
+  },
+  bierviltjes: {
+    name: "Bierviltjes",
+    qty: 0
+  },
+  glazen: {
+    name: "Glazen",
+    qty: 0
+  },
+  taplens: {
+    name: "Taplens",
+    qty: 0
+  },
+  wandbord: {
+    name: "Wandbord",
+    qty: 0
+  }
+};
+
+
+function changeQty(id, amount) {
+
+  products[id].qty += amount;
+
+  if (products[id].qty < 0) {
+    products[id].qty = 0;
+  }
+
+  document.getElementById(id).innerText =
+    products[id].qty;
+}
+
+
+function getMinimumPickupDate() {
+
+  const date = new Date();
+
+  date.setHours(0,0,0,0);
+
+  date.setDate(
+    date.getDate() + 2
+  );
+
+  return date;
+}
+
+
+function formatISO(date) {
+
+  const year = date.getFullYear();
+
+  const month =
+    String(date.getMonth() + 1)
+    .padStart(2, "0");
+
+  const day =
+    String(date.getDate())
+    .padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
+}
+
+
+const pickupInput =
+  document.getElementById("pickup");
+
+pickupInput.min =
+  formatISO(getMinimumPickupDate());
+
+
+pickupInput.addEventListener(
+  "change",
+  validatePickupDate
+);
+
+
+function validatePickupDate() {
+
+  const info =
+    document.getElementById("dateInfo");
+
+  if (!pickupInput.value) {
+
+    info.className = "info";
+
+    info.innerText =
+      "De aanvraag moet minstens 2 dagen vóór afhaling gebeuren.";
+
+    return false;
+  }
+
+
+  const selected =
+    new Date(
+      pickupInput.value + "T00:00:00"
+    );
+
+
+  const minimum =
+    getMinimumPickupDate();
+
+
+  if (selected < minimum) {
+
+    info.className =
+      "info error";
+
+    info.innerText =
+      "Deze afhaaldatum is te vroeg.";
+
+    return false;
+  }
+
+
+  info.className =
+    "info ok";
+
+  info.innerText =
+    "Afhaaldatum is geldig.";
+
+  return true;
+}
+
+
+function showSummary() {
+
+  const customer =
+    document.getElementById("customer")
+    .value
+    .trim();
+
+
+  if (!customer) {
+
+    alert(
+      "Vul eerst de horecazaak of klant in."
+    );
+
+    return;
+  }
+
+
+  if (!validatePickupDate()) {
+
+    alert(
+      "Kies een geldige afhaaldatum."
+    );
+
+    return;
+  }
+
+
+  const selected =
+    Object.values(products)
+    .filter(
+      product => product.qty > 0
+    );
+
+
+  if (selected.length === 0) {
+
+    alert(
+      "Selecteer minstens één materiaal."
+    );
+
+    return;
+  }
+
+
+  document.getElementById(
+    "summaryCustomer"
+  ).innerText = customer;
+
+
+  document.getElementById(
+    "summaryPickup"
+  ).innerText =
+    pickupInput.value;
+
+
+  const container =
+    document.getElementById(
+      "summaryProducts"
+    );
+
+
+  container.innerHTML = "";
+
+
+  selected.forEach(
+    product => {
+
+      const row =
+        document.createElement("div");
+
+      row.className =
+        "summary-line";
+
+      row.innerHTML =
+        `<span>${product.name}</span>
+         <strong>${product.qty}</strong>`;
+
+      container.appendChild(row);
+
+    }
+  );
+
+
+  const note =
+    document.getElementById("note")
+    .value
+    .trim();
+
+
+  document.getElementById(
+    "summaryNote"
+  ).innerText =
+    note
+      ? "Opmerking: " + note
+      : "";
+
+
+  document.getElementById(
+    "orderScreen"
+  ).classList.add("hidden");
+
+
+  document.getElementById(
+    "summaryScreen"
+  ).classList.remove("hidden");
+}
+
+
+function backToOrder() {
+
+  document.getElementById(
+    "summaryScreen"
+  ).classList.add("hidden");
+
+
+  document.getElementById(
+    "orderScreen"
+  ).classList.remove("hidden");
+}
+
+
+function submitOrder() {
+
+  /*
+    Later koppelen we hier:
+    - database
+    - Outlook
+    - Teams
+    - aanvraagnummer
+  */
+
+  document.getElementById(
+    "summaryScreen"
+  ).classList.add("hidden");
+
+
+  document.getElementById(
+    "successScreen"
+  ).classList.remove("hidden");
+}
+
+
+function newOrder() {
+
+  document.getElementById(
+    "customer"
+  ).value = "";
+
+
+  document.getElementById(
+    "pickup"
+  ).value = "";
+
+
+  document.getElementById(
+    "note"
+  ).value = "";
+
+
+  Object.keys(products)
+  .forEach(id => {
+
+    products[id].qty = 0;
+
+    document.getElementById(id)
+      .innerText = "0";
+
+  });
+
+
+  document.getElementById(
+    "successScreen"
+  ).classList.add("hidden");
+
+
+  document.getElementById(
+    "orderScreen"
+  ).classList.remove("hidden");
+
+
+  validatePickupDate();
+}
+
+
+if ("serviceWorker" in navigator) {
+
+  window.addEventListener(
+    "load",
+    () => {
+
+      navigator.serviceWorker
+        .register(
+          "./service-worker.js"
+        );
+
+    }
+  );
+
+}
+
+</script>
+
+</body>
+</html>
