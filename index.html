@@ -815,8 +815,7 @@ function generateOrderId() {
 
 
 function submitOrder() {
-  const orderId =
-    generateOrderId();
+  const orderId = generateOrderId();
 
   const selectedProducts =
     Object.values(products)
@@ -830,19 +829,30 @@ function submitOrder() {
     id: orderId,
     representative:
       document.getElementById("rep").value,
+
     customer:
       document.getElementById("customer").value.trim(),
+
     pickup:
       document.getElementById("pickup").value,
+
     note:
       document.getElementById("note").value.trim(),
+
     products:
       selectedProducts,
+
     status:
       "Aangevraagd",
+
     createdAt:
       new Date().toLocaleString("nl-BE")
   };
+
+
+  // =========================
+  // AANVRAAG LOKAAL OPSLAAN
+  // =========================
 
   const orders =
     JSON.parse(
@@ -856,11 +866,91 @@ function submitOrder() {
     JSON.stringify(orders)
   );
 
+
+  // =========================
+  // MAIL OPBOUWEN
+  // =========================
+
+  const ontvanger =
+    "fabiovenaruzzo@hotmail.com";
+
+
+  const onderwerp =
+    `Achel POS aanvraag ${orderId} - ${order.customer}`;
+
+
+  let productenTekst = "";
+
+  selectedProducts.forEach(product => {
+
+    productenTekst +=
+      `${product.qty} x ${product.name}\n`;
+
+  });
+
+
+  const body = `
+ACHEL POS AANVRAAG
+
+Aanvraagnummer:
+${orderId}
+
+Vertegenwoordiger:
+${order.representative}
+
+Horecazaak / klant:
+${order.customer}
+
+Gewenste afhaaldatum:
+${order.pickup}
+
+MATERIALEN
+--------------------
+
+${productenTekst}
+
+OPMERKING
+--------------------
+
+${order.note || "Geen opmerkingen"}
+
+--------------------
+
+Aanvraag aangemaakt:
+${order.createdAt}
+  `;
+
+
+  // =========================
+  // MAILAPP OPENEN
+  // =========================
+
+  const mailto =
+    `mailto:${ontvanger}` +
+    `?subject=${encodeURIComponent(onderwerp)}` +
+    `&body=${encodeURIComponent(body)}`;
+
+
+  // Aanvraagnummer tonen
   document.getElementById(
     "successOrderId"
   ).innerText = orderId;
 
+
+  // Formulier resetten
+  resetForm();
+
+
+  // Bevestigingsscherm tonen
   showOnly("successScreen");
+
+
+  // Mailapp openen
+  setTimeout(() => {
+
+    window.location.href = mailto;
+
+  }, 500);
 }
 
 
