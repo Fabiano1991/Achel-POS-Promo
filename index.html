@@ -15,7 +15,7 @@
       --card: #ffffff;
       --dark: #1e2722;
       --gold: #8b662e;
-      --gold-light: #c9aa73;
+      --gold-soft: #f3eadb;
       --border: #ddd8ce;
       --muted: #777;
       --green: #2e6944;
@@ -36,7 +36,7 @@
     header {
       background: var(--dark);
       color: white;
-      padding: 26px 20px;
+      padding: 24px 20px;
     }
 
     header h1 {
@@ -53,6 +53,7 @@
       max-width: 720px;
       margin: auto;
       padding: 16px;
+      padding-bottom: 100px;
     }
 
     .card {
@@ -76,12 +77,14 @@
     }
 
     input,
-    textarea {
+    textarea,
+    select {
       width: 100%;
       padding: 13px;
       border: 1px solid var(--border);
       border-radius: 12px;
       font-size: 16px;
+      background: white;
     }
 
     textarea {
@@ -177,13 +180,33 @@
       border-radius: 14px;
       border: 1px solid var(--border);
       background: white;
+      color: var(--dark);
       font-size: 16px;
       font-weight: 700;
       cursor: pointer;
     }
 
-    .hidden {
-      display: none;
+    .home-button {
+      width: 100%;
+      text-align: left;
+      border: none;
+      background: white;
+      padding: 20px;
+      border-radius: 18px;
+      border: 1px solid var(--border);
+      margin-bottom: 14px;
+      cursor: pointer;
+    }
+
+    .home-button strong {
+      display: block;
+      font-size: 19px;
+      margin-bottom: 5px;
+    }
+
+    .home-button span {
+      color: var(--muted);
+      font-size: 14px;
     }
 
     .summary-line {
@@ -194,13 +217,101 @@
       border-bottom: 1px solid #eee;
     }
 
+    .order-card {
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 15px;
+      margin-bottom: 12px;
+    }
+
+    .order-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .order-id {
+      font-weight: 800;
+      color: var(--gold);
+    }
+
+    .status {
+      background: var(--gold-soft);
+      color: var(--gold);
+      padding: 5px 9px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .order-meta {
+      margin-top: 6px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .order-items {
+      margin-top: 10px;
+      line-height: 1.5;
+      font-size: 14px;
+    }
+
+    .empty {
+      text-align: center;
+      color: var(--muted);
+      padding: 30px 10px;
+    }
+
     .success {
       text-align: center;
-      padding: 25px 10px;
+      padding: 28px 10px;
     }
 
     .success-icon {
-      font-size: 50px;
+      font-size: 52px;
+      color: var(--green);
+      margin-bottom: 10px;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    .top-back {
+      border: none;
+      background: transparent;
+      color: var(--gold);
+      font-weight: 800;
+      font-size: 15px;
+      padding: 0;
+      margin-bottom: 15px;
+      cursor: pointer;
+    }
+
+    .footer-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: white;
+      border-top: 1px solid var(--border);
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      z-index: 20;
+    }
+
+    .footer-nav button {
+      border: none;
+      background: white;
+      padding: 15px 8px;
+      font-weight: 800;
+      color: var(--muted);
+    }
+
+    .footer-nav button.active {
+      color: var(--gold);
     }
   </style>
 </head>
@@ -209,16 +320,44 @@
 
 <header>
   <h1>Achel POS</h1>
-  <p>Interne bestelling POS & promotiemateriaal</p>
+  <p>Interne POS & promo bestelapp</p>
 </header>
 
 <main>
 
-  <section id="orderScreen">
+  <section id="homeScreen">
 
     <div class="card">
+      <h2>Welkom</h2>
+      <p>Kies wat je wilt doen.</p>
+    </div>
 
+    <button class="home-button" onclick="openNewOrder()">
+      <strong>Nieuwe aanvraag</strong>
+      <span>POS-materiaal of bier aanvragen</span>
+    </button>
+
+    <button class="home-button" onclick="openOrders()">
+      <strong>Mijn aanvragen</strong>
+      <span>Bekijk eerdere aanvragen op dit toestel</span>
+    </button>
+
+  </section>
+
+
+  <section id="orderScreen" class="hidden">
+
+    <button class="top-back" onclick="goHome()">← Terug</button>
+
+    <div class="card">
       <h2>Nieuwe aanvraag</h2>
+
+      <label for="rep">Vertegenwoordiger</label>
+      <select id="rep">
+        <option value="Fabiano">Fabiano</option>
+        <option value="Vertegenwoordiger 2">Vertegenwoordiger 2</option>
+        <option value="Vertegenwoordiger 3">Vertegenwoordiger 3</option>
+      </select>
 
       <label for="customer">Horecazaak / klant</label>
       <input
@@ -242,11 +381,9 @@
         id="note"
         placeholder="Bijv. materiaal voor nieuwe plaatsing of promotieactie"
       ></textarea>
-
     </div>
 
     <div class="card">
-
       <h2>Materialen</h2>
 
       <div class="category">Achel bier</div>
@@ -254,36 +391,36 @@
       <div class="product">
         <div class="product-name">Achel Tripel 33cl</div>
         <div class="qty">
-          <button onclick="changeQty('tripel33', -1)">−</button>
+          <button type="button" onclick="changeQty('tripel33', -1)">−</button>
           <span id="tripel33">0</span>
-          <button onclick="changeQty('tripel33', 1)">+</button>
+          <button type="button" onclick="changeQty('tripel33', 1)">+</button>
         </div>
       </div>
 
       <div class="product">
         <div class="product-name">Achel Tripel 20L</div>
         <div class="qty">
-          <button onclick="changeQty('tripel20', -1)">−</button>
+          <button type="button" onclick="changeQty('tripel20', -1)">−</button>
           <span id="tripel20">0</span>
-          <button onclick="changeQty('tripel20', 1)">+</button>
+          <button type="button" onclick="changeQty('tripel20', 1)">+</button>
         </div>
       </div>
 
       <div class="product">
         <div class="product-name">Achel Dubbel 33cl</div>
         <div class="qty">
-          <button onclick="changeQty('dubbel33', -1)">−</button>
+          <button type="button" onclick="changeQty('dubbel33', -1)">−</button>
           <span id="dubbel33">0</span>
-          <button onclick="changeQty('dubbel33', 1)">+</button>
+          <button type="button" onclick="changeQty('dubbel33', 1)">+</button>
         </div>
       </div>
 
       <div class="product">
         <div class="product-name">Achel Dubbel 20L</div>
         <div class="qty">
-          <button onclick="changeQty('dubbel20', -1)">−</button>
+          <button type="button" onclick="changeQty('dubbel20', -1)">−</button>
           <span id="dubbel20">0</span>
-          <button onclick="changeQty('dubbel20', 1)">+</button>
+          <button type="button" onclick="changeQty('dubbel20', 1)">+</button>
         </div>
       </div>
 
@@ -292,64 +429,68 @@
       <div class="product">
         <div class="product-name">Bierviltjes</div>
         <div class="qty">
-          <button onclick="changeQty('bierviltjes', -1)">−</button>
+          <button type="button" onclick="changeQty('bierviltjes', -1)">−</button>
           <span id="bierviltjes">0</span>
-          <button onclick="changeQty('bierviltjes', 1)">+</button>
+          <button type="button" onclick="changeQty('bierviltjes', 1)">+</button>
         </div>
       </div>
 
       <div class="product">
         <div class="product-name">Glazen</div>
         <div class="qty">
-          <button onclick="changeQty('glazen', -1)">−</button>
+          <button type="button" onclick="changeQty('glazen', -1)">−</button>
           <span id="glazen">0</span>
-          <button onclick="changeQty('glazen', 1)">+</button>
+          <button type="button" onclick="changeQty('glazen', 1)">+</button>
         </div>
       </div>
 
       <div class="product">
         <div class="product-name">Taplens</div>
         <div class="qty">
-          <button onclick="changeQty('taplens', -1)">−</button>
+          <button type="button" onclick="changeQty('taplens', -1)">−</button>
           <span id="taplens">0</span>
-          <button onclick="changeQty('taplens', 1)">+</button>
+          <button type="button" onclick="changeQty('taplens', 1)">+</button>
         </div>
       </div>
 
       <div class="product">
         <div class="product-name">Wandbord</div>
         <div class="qty">
-          <button onclick="changeQty('wandbord', -1)">−</button>
+          <button type="button" onclick="changeQty('wandbord', -1)">−</button>
           <span id="wandbord">0</span>
-          <button onclick="changeQty('wandbord', 1)">+</button>
+          <button type="button" onclick="changeQty('wandbord', 1)">+</button>
         </div>
       </div>
-
     </div>
 
     <div class="card">
-
       <button class="primary" onclick="showSummary()">
         Aanvraag controleren
       </button>
-
     </div>
 
   </section>
 
+
   <section id="summaryScreen" class="hidden">
 
-    <div class="card">
+    <button class="top-back" onclick="backToOrder()">← Terug aanpassen</button>
 
+    <div class="card">
       <h2>Controleer aanvraag</h2>
 
       <p>
-        <strong>Klant:</strong>
+        <strong>Vertegenwoordiger:</strong><br>
+        <span id="summaryRep"></span>
+      </p>
+
+      <p>
+        <strong>Klant:</strong><br>
         <span id="summaryCustomer"></span>
       </p>
 
       <p>
-        <strong>Afhalen:</strong>
+        <strong>Afhalen:</strong><br>
         <span id="summaryPickup"></span>
       </p>
 
@@ -358,38 +499,60 @@
       <p id="summaryNote"></p>
 
       <button class="primary" onclick="submitOrder()">
-        Aanvraag verzenden
+        Aanvraag opslaan
       </button>
-
-      <button class="secondary" onclick="backToOrder()">
-        Terug aanpassen
-      </button>
-
     </div>
 
   </section>
 
+
   <section id="successScreen" class="hidden">
 
     <div class="card success">
-
       <div class="success-icon">✓</div>
 
-      <h2>Aanvraag geregistreerd</h2>
+      <h2>Aanvraag opgeslagen</h2>
 
       <p>
-        De POS-aanvraag is succesvol aangemaakt.
+        Aanvraagnummer:
+        <strong id="successOrderId"></strong>
       </p>
 
-      <button class="primary" onclick="newOrder()">
-        Nieuwe aanvraag
+      <p>
+        De aanvraag staat nu in Mijn aanvragen.
+      </p>
+
+      <button class="primary" onclick="openOrders()">
+        Mijn aanvragen bekijken
       </button>
 
+      <button class="secondary" onclick="newOrder()">
+        Nieuwe aanvraag
+      </button>
+    </div>
+
+  </section>
+
+
+  <section id="ordersScreen" class="hidden">
+
+    <button class="top-back" onclick="goHome()">← Terug</button>
+
+    <div class="card">
+      <h2>Mijn aanvragen</h2>
+      <div id="ordersList"></div>
     </div>
 
   </section>
 
 </main>
+
+
+<nav class="footer-nav">
+  <button id="navHome" class="active" onclick="goHome()">Home</button>
+  <button id="navOrders" onclick="openOrders()">Aanvragen</button>
+</nav>
+
 
 <script>
 
@@ -429,35 +592,70 @@ const products = {
 };
 
 
-function changeQty(id, amount) {
+function showOnly(screenId) {
+  const screens = [
+    "homeScreen",
+    "orderScreen",
+    "summaryScreen",
+    "successScreen",
+    "ordersScreen"
+  ];
 
+  screens.forEach(id => {
+    document.getElementById(id).classList.add("hidden");
+  });
+
+  document.getElementById(screenId).classList.remove("hidden");
+}
+
+
+function goHome() {
+  showOnly("homeScreen");
+
+  document.getElementById("navHome").classList.add("active");
+  document.getElementById("navOrders").classList.remove("active");
+}
+
+
+function openNewOrder() {
+  showOnly("orderScreen");
+
+  document.getElementById("navHome").classList.add("active");
+  document.getElementById("navOrders").classList.remove("active");
+}
+
+
+function openOrders() {
+  renderOrders();
+  showOnly("ordersScreen");
+
+  document.getElementById("navHome").classList.remove("active");
+  document.getElementById("navOrders").classList.add("active");
+}
+
+
+function changeQty(id, amount) {
   products[id].qty += amount;
 
   if (products[id].qty < 0) {
     products[id].qty = 0;
   }
 
-  document.getElementById(id).innerText =
-    products[id].qty;
+  document.getElementById(id).innerText = products[id].qty;
 }
 
 
 function getMinimumPickupDate() {
-
   const date = new Date();
 
   date.setHours(0,0,0,0);
-
-  date.setDate(
-    date.getDate() + 2
-  );
+  date.setDate(date.getDate() + 2);
 
   return date;
 }
 
 
 function formatISO(date) {
-
   const year = date.getFullYear();
 
   const month =
@@ -472,12 +670,9 @@ function formatISO(date) {
 }
 
 
-const pickupInput =
-  document.getElementById("pickup");
+const pickupInput = document.getElementById("pickup");
 
-pickupInput.min =
-  formatISO(getMinimumPickupDate());
-
+pickupInput.min = formatISO(getMinimumPickupDate());
 
 pickupInput.addEventListener(
   "change",
@@ -486,12 +681,9 @@ pickupInput.addEventListener(
 
 
 function validatePickupDate() {
-
-  const info =
-    document.getElementById("dateInfo");
+  const info = document.getElementById("dateInfo");
 
   if (!pickupInput.value) {
-
     info.className = "info";
 
     info.innerText =
@@ -500,21 +692,14 @@ function validatePickupDate() {
     return false;
   }
 
-
   const selected =
-    new Date(
-      pickupInput.value + "T00:00:00"
-    );
-
+    new Date(pickupInput.value + "T00:00:00");
 
   const minimum =
     getMinimumPickupDate();
 
-
   if (selected < minimum) {
-
-    info.className =
-      "info error";
+    info.className = "info error";
 
     info.innerText =
       "Deze afhaaldatum is te vroeg.";
@@ -522,9 +707,7 @@ function validatePickupDate() {
     return false;
   }
 
-
-  info.className =
-    "info ok";
+  info.className = "info ok";
 
   info.innerText =
     "Afhaaldatum is geldig.";
@@ -534,204 +717,258 @@ function validatePickupDate() {
 
 
 function showSummary() {
+  const rep =
+    document.getElementById("rep").value;
 
   const customer =
     document.getElementById("customer")
     .value
     .trim();
 
-
   if (!customer) {
-
-    alert(
-      "Vul eerst de horecazaak of klant in."
-    );
-
+    alert("Vul eerst de horecazaak of klant in.");
     return;
   }
-
 
   if (!validatePickupDate()) {
-
-    alert(
-      "Kies een geldige afhaaldatum."
-    );
-
+    alert("Kies een geldige afhaaldatum.");
     return;
   }
-
 
   const selected =
     Object.values(products)
-    .filter(
-      product => product.qty > 0
-    );
-
+    .filter(product => product.qty > 0);
 
   if (selected.length === 0) {
-
-    alert(
-      "Selecteer minstens één materiaal."
-    );
-
+    alert("Selecteer minstens één materiaal.");
     return;
   }
 
+  document.getElementById("summaryRep").innerText =
+    rep;
 
-  document.getElementById(
-    "summaryCustomer"
-  ).innerText = customer;
+  document.getElementById("summaryCustomer").innerText =
+    customer;
 
-
-  document.getElementById(
-    "summaryPickup"
-  ).innerText =
+  document.getElementById("summaryPickup").innerText =
     pickupInput.value;
 
-
   const container =
-    document.getElementById(
-      "summaryProducts"
-    );
-
+    document.getElementById("summaryProducts");
 
   container.innerHTML = "";
 
+  selected.forEach(product => {
+    const row =
+      document.createElement("div");
 
-  selected.forEach(
-    product => {
+    row.className =
+      "summary-line";
 
-      const row =
-        document.createElement("div");
+    row.innerHTML =
+      `<span>${product.name}</span>
+       <strong>${product.qty}</strong>`;
 
-      row.className =
-        "summary-line";
-
-      row.innerHTML =
-        `<span>${product.name}</span>
-         <strong>${product.qty}</strong>`;
-
-      container.appendChild(row);
-
-    }
-  );
-
+    container.appendChild(row);
+  });
 
   const note =
     document.getElementById("note")
     .value
     .trim();
 
-
-  document.getElementById(
-    "summaryNote"
-  ).innerText =
+  document.getElementById("summaryNote").innerText =
     note
       ? "Opmerking: " + note
       : "";
 
-
-  document.getElementById(
-    "orderScreen"
-  ).classList.add("hidden");
-
-
-  document.getElementById(
-    "summaryScreen"
-  ).classList.remove("hidden");
+  showOnly("summaryScreen");
 }
 
 
 function backToOrder() {
-
-  document.getElementById(
-    "summaryScreen"
-  ).classList.add("hidden");
+  showOnly("orderScreen");
+}
 
 
-  document.getElementById(
-    "orderScreen"
-  ).classList.remove("hidden");
+function generateOrderId() {
+  const year =
+    new Date().getFullYear();
+
+  let counter =
+    parseInt(
+      localStorage.getItem("achelOrderCounter") || "0"
+    );
+
+  counter++;
+
+  localStorage.setItem(
+    "achelOrderCounter",
+    counter
+  );
+
+  const number =
+    String(counter).padStart(3, "0");
+
+  return `POS-${year}-${number}`;
 }
 
 
 function submitOrder() {
+  const orderId =
+    generateOrderId();
 
-  /*
-    Later koppelen we hier:
-    - database
-    - Outlook
-    - Teams
-    - aanvraagnummer
-  */
+  const selectedProducts =
+    Object.values(products)
+    .filter(product => product.qty > 0)
+    .map(product => ({
+      name: product.name,
+      qty: product.qty
+    }));
+
+  const order = {
+    id: orderId,
+    representative:
+      document.getElementById("rep").value,
+    customer:
+      document.getElementById("customer").value.trim(),
+    pickup:
+      document.getElementById("pickup").value,
+    note:
+      document.getElementById("note").value.trim(),
+    products:
+      selectedProducts,
+    status:
+      "Aangevraagd",
+    createdAt:
+      new Date().toLocaleString("nl-BE")
+  };
+
+  const orders =
+    JSON.parse(
+      localStorage.getItem("achelOrders") || "[]"
+    );
+
+  orders.unshift(order);
+
+  localStorage.setItem(
+    "achelOrders",
+    JSON.stringify(orders)
+  );
 
   document.getElementById(
-    "summaryScreen"
-  ).classList.add("hidden");
+    "successOrderId"
+  ).innerText = orderId;
 
-
-  document.getElementById(
-    "successScreen"
-  ).classList.remove("hidden");
+  showOnly("successScreen");
 }
 
 
-function newOrder() {
+function renderOrders() {
+  const orders =
+    JSON.parse(
+      localStorage.getItem("achelOrders") || "[]"
+    );
 
-  document.getElementById(
-    "customer"
-  ).value = "";
+  const container =
+    document.getElementById("ordersList");
+
+  if (orders.length === 0) {
+    container.innerHTML =
+      `<div class="empty">
+        Nog geen aanvragen opgeslagen.
+      </div>`;
+
+    return;
+  }
+
+  container.innerHTML =
+    orders.map(order => {
+
+      const items =
+        order.products
+        .map(product =>
+          `${product.qty} × ${product.name}`
+        )
+        .join("<br>");
+
+      return `
+        <div class="order-card">
+
+          <div class="order-top">
+            <div class="order-id">
+              ${order.id}
+            </div>
+
+            <div class="status">
+              ${order.status}
+            </div>
+          </div>
+
+          <div class="order-meta">
+            ${order.customer}
+          </div>
+
+          <div class="order-meta">
+            Afhalen: ${order.pickup}
+          </div>
+
+          <div class="order-items">
+            ${items}
+          </div>
+
+          ${
+            order.note
+            ? `<div class="order-meta">
+                 Opmerking: ${order.note}
+               </div>`
+            : ""
+          }
+
+          <div class="order-meta">
+            Aangevraagd door:
+            ${order.representative}
+          </div>
+
+        </div>
+      `;
+    })
+    .join("");
+}
 
 
-  document.getElementById(
-    "pickup"
-  ).value = "";
-
-
-  document.getElementById(
-    "note"
-  ).value = "";
-
+function resetForm() {
+  document.getElementById("customer").value = "";
+  document.getElementById("pickup").value = "";
+  document.getElementById("note").value = "";
 
   Object.keys(products)
   .forEach(id => {
-
     products[id].qty = 0;
-
-    document.getElementById(id)
-      .innerText = "0";
-
+    document.getElementById(id).innerText = "0";
   });
-
-
-  document.getElementById(
-    "successScreen"
-  ).classList.add("hidden");
-
-
-  document.getElementById(
-    "orderScreen"
-  ).classList.remove("hidden");
-
 
   validatePickupDate();
 }
 
 
+function newOrder() {
+  resetForm();
+  openNewOrder();
+}
+
+
 if ("serviceWorker" in navigator) {
-
-  window.addEventListener(
-    "load",
-    () => {
-
-      navigator.serviceWorker
-        .register(
-          "./service-worker.js"
+  window.addEventListener("load", () => {
+    navigator.serviceWorker
+      .register("./service-worker.js")
+      .catch(error => {
+        console.log(
+          "Service worker fout:",
+          error
         );
-
-    }
-  );
-
+      });
+  });
 }
 
 </script>
