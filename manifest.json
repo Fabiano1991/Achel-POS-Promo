@@ -1,9 +1,17 @@
 {
   "name": "Achel POS",
   "short_name": "Achel POS",
-  "description": "Interne POS bestelapp voor Achel",
+  "description": "Interne POS en promo bestelapp voor Achel",
+
   "start_url": "./",
+  "scope": "./",
+
   "display": "standalone",
+
   "background_color": "#f4f2ed",
-  "theme_color": "#1e2722"
+  "theme_color": "#1e2722",
+
+  "orientation": "portrait-primary",
+
+  "lang": "nl-BE"
 }
