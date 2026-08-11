@@ -553,17 +553,16 @@
 
 
 <script>
-
-const products = {
-  const representatives = {
+const representatives = {
   Fabiano: {
     email: "fabiovenaruzzo@hotmail.com"
   },
-
   Tom: {
     email: "venaruzzofabio@gmail.com"
   }
 };
+
+const products = {
   tripel33: {
     name: "Achel Tripel 33cl",
     qty: 0
@@ -598,7 +597,6 @@ const products = {
   }
 };
 
-
 function showOnly(screenId) {
   const screens = [
     "homeScreen",
@@ -609,86 +607,103 @@ function showOnly(screenId) {
   ];
 
   screens.forEach(id => {
-    document.getElementById(id).classList.add("hidden");
+    const element = document.getElementById(id);
+
+    if (element) {
+      element.classList.add("hidden");
+    }
   });
 
-  document.getElementById(screenId).classList.remove("hidden");
-}
+  const target = document.getElementById(screenId);
 
+  if (target) {
+    target.classList.remove("hidden");
+  }
+}
 
 function goHome() {
   showOnly("homeScreen");
 
-  document.getElementById("navHome").classList.add("active");
-  document.getElementById("navOrders").classList.remove("active");
+  document.getElementById("navHome")?.classList.add("active");
+  document.getElementById("navOrders")?.classList.remove("active");
 }
-
 
 function openNewOrder() {
   showOnly("orderScreen");
 
-  document.getElementById("navHome").classList.add("active");
-  document.getElementById("navOrders").classList.remove("active");
+  document.getElementById("navHome")?.classList.add("active");
+  document.getElementById("navOrders")?.classList.remove("active");
 }
-
 
 function openOrders() {
   renderOrders();
   showOnly("ordersScreen");
 
-  document.getElementById("navHome").classList.remove("active");
-  document.getElementById("navOrders").classList.add("active");
+  document.getElementById("navHome")?.classList.remove("active");
+  document.getElementById("navOrders")?.classList.add("active");
 }
 
-
 function changeQty(id, amount) {
+  if (!products[id]) {
+    return;
+  }
+
   products[id].qty += amount;
 
   if (products[id].qty < 0) {
     products[id].qty = 0;
   }
 
-  document.getElementById(id).innerText = products[id].qty;
-}
+  const element = document.getElementById(id);
 
+  if (element) {
+    element.innerText = products[id].qty;
+  }
+}
 
 function getMinimumPickupDate() {
   const date = new Date();
 
-  date.setHours(0,0,0,0);
+  date.setHours(0, 0, 0, 0);
   date.setDate(date.getDate() + 2);
 
   return date;
 }
-
 
 function formatISO(date) {
   const year = date.getFullYear();
 
   const month =
     String(date.getMonth() + 1)
-    .padStart(2, "0");
+      .padStart(2, "0");
 
   const day =
     String(date.getDate())
-    .padStart(2, "0");
+      .padStart(2, "0");
 
   return `${year}-${month}-${day}`;
 }
 
+const pickupInput =
+  document.getElementById("pickup");
 
-const pickupInput = document.getElementById("pickup");
+if (pickupInput) {
+  pickupInput.min =
+    formatISO(getMinimumPickupDate());
 
-pickupInput.min = formatISO(getMinimumPickupDate());
-
-pickupInput.addEventListener(
-  "change",
-  validatePickupDate
-);
-
+  pickupInput.addEventListener(
+    "change",
+    validatePickupDate
+  );
+}
 
 function validatePickupDate() {
-  const info = document.getElementById("dateInfo");
+  const info =
+    document.getElementById("dateInfo");
+
+  if (!pickupInput || !info) {
+    return false;
+  }
 
   if (!pickupInput.value) {
     info.className = "info";
@@ -700,13 +715,16 @@ function validatePickupDate() {
   }
 
   const selected =
-    new Date(pickupInput.value + "T00:00:00");
+    new Date(
+      pickupInput.value + "T00:00:00"
+    );
 
   const minimum =
     getMinimumPickupDate();
 
   if (selected < minimum) {
-    info.className = "info error";
+    info.className =
+      "info error";
 
     info.innerText =
       "Deze afhaaldatum is te vroeg.";
@@ -714,7 +732,8 @@ function validatePickupDate() {
     return false;
   }
 
-  info.className = "info ok";
+  info.className =
+    "info ok";
 
   info.innerText =
     "Afhaaldatum is geldig.";
@@ -722,32 +741,51 @@ function validatePickupDate() {
   return true;
 }
 
-
 function showSummary() {
+  const repElement =
+    document.getElementById("rep");
+
+  const customerElement =
+    document.getElementById("customer");
+
+  if (!repElement || !customerElement) {
+    alert("Er ontbreekt een veld in de app.");
+    return;
+  }
+
   const rep =
-    document.getElementById("rep").value;
+    repElement.value;
 
   const customer =
-    document.getElementById("customer")
-    .value
-    .trim();
+    customerElement.value.trim();
 
   if (!customer) {
-    alert("Vul eerst de horecazaak of klant in.");
+    alert(
+      "Vul eerst de horecazaak of klant in."
+    );
+
     return;
   }
 
   if (!validatePickupDate()) {
-    alert("Kies een geldige afhaaldatum.");
+    alert(
+      "Kies een geldige afhaaldatum."
+    );
+
     return;
   }
 
   const selected =
     Object.values(products)
-    .filter(product => product.qty > 0);
+      .filter(
+        product => product.qty > 0
+      );
 
   if (selected.length === 0) {
-    alert("Selecteer minstens één materiaal.");
+    alert(
+      "Selecteer minstens één materiaal."
+    );
+
     return;
   }
 
@@ -761,7 +799,9 @@ function showSummary() {
     pickupInput.value;
 
   const container =
-    document.getElementById("summaryProducts");
+    document.getElementById(
+      "summaryProducts"
+    );
 
   container.innerHTML = "";
 
@@ -781,10 +821,12 @@ function showSummary() {
 
   const note =
     document.getElementById("note")
-    .value
-    .trim();
+      .value
+      .trim();
 
-  document.getElementById("summaryNote").innerText =
+  document.getElementById(
+    "summaryNote"
+  ).innerText =
     note
       ? "Opmerking: " + note
       : "";
@@ -792,11 +834,9 @@ function showSummary() {
   showOnly("summaryScreen");
 }
 
-
 function backToOrder() {
   showOnly("orderScreen");
 }
-
 
 function generateOrderId() {
   const year =
@@ -804,7 +844,9 @@ function generateOrderId() {
 
   let counter =
     parseInt(
-      localStorage.getItem("achelOrderCounter") || "0"
+      localStorage.getItem(
+        "achelOrderCounter"
+      ) || "0"
     );
 
   counter++;
@@ -815,36 +857,68 @@ function generateOrderId() {
   );
 
   const number =
-    String(counter).padStart(3, "0");
+    String(counter)
+      .padStart(3, "0");
 
   return `POS-${year}-${number}`;
 }
 
-
 function submitOrder() {
-  const orderId = generateOrderId();
+  const repName =
+    document.getElementById("rep").value;
+
+  const representative =
+    representatives[repName];
+
+  if (!representative) {
+    alert(
+      "Geen e-mailadres gevonden voor deze vertegenwoordiger."
+    );
+
+    return;
+  }
+
+  const repEmail =
+    representative.email;
+
+  const orderId =
+    generateOrderId();
 
   const selectedProducts =
     Object.values(products)
-    .filter(product => product.qty > 0)
-    .map(product => ({
-      name: product.name,
-      qty: product.qty
-    }));
+      .filter(
+        product => product.qty > 0
+      )
+      .map(product => ({
+        name: product.name,
+        qty: product.qty
+      }));
 
   const order = {
     id: orderId,
+
     representative:
-      document.getElementById("rep").value,
+      repName,
+
+    representativeEmail:
+      repEmail,
 
     customer:
-      document.getElementById("customer").value.trim(),
+      document
+        .getElementById("customer")
+        .value
+        .trim(),
 
     pickup:
-      document.getElementById("pickup").value,
+      document
+        .getElementById("pickup")
+        .value,
 
     note:
-      document.getElementById("note").value.trim(),
+      document
+        .getElementById("note")
+        .value
+        .trim(),
 
     products:
       selectedProducts,
@@ -853,17 +927,15 @@ function submitOrder() {
       "Aangevraagd",
 
     createdAt:
-      new Date().toLocaleString("nl-BE")
+      new Date()
+        .toLocaleString("nl-BE")
   };
-
-
-  // =========================
-  // AANVRAAG LOKAAL OPSLAAN
-  // =========================
 
   const orders =
     JSON.parse(
-      localStorage.getItem("achelOrders") || "[]"
+      localStorage.getItem(
+        "achelOrders"
+      ) || "[]"
     );
 
   orders.unshift(order);
@@ -873,46 +945,31 @@ function submitOrder() {
     JSON.stringify(orders)
   );
 
-
-  // =========================
-  // MAIL OPBOUWEN
-  // =========================
-
-  const repName =
-  document.getElementById("rep").value;
-
-const repEmail =
-  representatives[repName].email;
-
-const ontvanger =
-  "fabiovenaruzzo@hotmail.com";
-
+  const ontvanger =
+    "fabiovenaruzzo@hotmail.com";
 
   const onderwerp =
     `Achel POS aanvraag ${orderId} - ${order.customer}`;
 
-
   let productenTekst = "";
 
-  selectedProducts.forEach(product => {
+  selectedProducts.forEach(
+    product => {
+      productenTekst +=
+        `${product.qty} x ${product.name}\n`;
+    }
+  );
 
-    productenTekst +=
-      `${product.qty} x ${product.name}\n`;
-
-  });
-
-
-  const body = `
-ACHEL POS AANVRAAG
+  const body = `ACHEL POS AANVRAAG
 
 Aanvraagnummer:
-${orderId}
+${order.id}
 
 Vertegenwoordiger:
 ${order.representative}
 
 E-mail vertegenwoordiger:
-${repEmail}
+${order.representativeEmail}
 
 Horecazaak / klant:
 ${order.customer}
@@ -933,51 +990,50 @@ ${order.note || "Geen opmerkingen"}
 --------------------
 
 Aanvraag aangemaakt:
-${order.createdAt}
-  `;
+${order.createdAt}`;
 
+  let mailto =
+    `mailto:${ontvanger}`;
 
-  // =========================
-  // MAILAPP OPENEN
-  // =========================
+  if (repEmail !== ontvanger) {
+    mailto +=
+      `?cc=${encodeURIComponent(repEmail)}` +
+      `&subject=${encodeURIComponent(onderwerp)}` +
+      `&body=${encodeURIComponent(body)}`;
+  } else {
+    mailto +=
+      `?subject=${encodeURIComponent(onderwerp)}` +
+      `&body=${encodeURIComponent(body)}`;
+  }
 
-  const mailto =
-  `mailto:${ontvanger}` +
-  `?cc=${encodeURIComponent(repEmail)}` +
-  `&subject=${encodeURIComponent(onderwerp)}` +
-  `&body=${encodeURIComponent(body)}`;
-
-  // Aanvraagnummer tonen
   document.getElementById(
     "successOrderId"
   ).innerText = orderId;
 
-
-  // Formulier resetten
-  resetForm();
-
-
-  // Bevestigingsscherm tonen
   showOnly("successScreen");
 
-
-  // Mailapp openen
   setTimeout(() => {
-
-    window.location.href = mailto;
-
-  }, 500);
+    window.location.href =
+      mailto;
+  }, 400);
 }
-
 
 function renderOrders() {
   const orders =
     JSON.parse(
-      localStorage.getItem("achelOrders") || "[]"
+      localStorage.getItem(
+        "achelOrders"
+      ) || "[]"
     );
 
   const container =
-    document.getElementById("ordersList");
+    document.getElementById(
+      "ordersList"
+    );
+
+  if (!container) {
+    return;
+  }
 
   if (orders.length === 0) {
     container.innerHTML =
@@ -989,94 +1045,121 @@ function renderOrders() {
   }
 
   container.innerHTML =
-    orders.map(order => {
+    orders
+      .map(order => {
+        const items =
+          order.products
+            .map(
+              product =>
+                `${product.qty} × ${product.name}`
+            )
+            .join("<br>");
 
-      const items =
-        order.products
-        .map(product =>
-          `${product.qty} × ${product.name}`
-        )
-        .join("<br>");
+        return `
+          <div class="order-card">
 
-      return `
-        <div class="order-card">
+            <div class="order-top">
 
-          <div class="order-top">
-            <div class="order-id">
-              ${order.id}
+              <div class="order-id">
+                ${order.id}
+              </div>
+
+              <div class="status">
+                ${order.status}
+              </div>
+
             </div>
 
-            <div class="status">
-              ${order.status}
+            <div class="order-meta">
+              ${order.customer}
             </div>
+
+            <div class="order-meta">
+              Afhalen: ${order.pickup}
+            </div>
+
+            <div class="order-items">
+              ${items}
+            </div>
+
+            ${
+              order.note
+                ? `
+                  <div class="order-meta">
+                    Opmerking: ${order.note}
+                  </div>
+                `
+                : ""
+            }
+
+            <div class="order-meta">
+              Aangevraagd door:
+              ${order.representative}
+            </div>
+
           </div>
-
-          <div class="order-meta">
-            ${order.customer}
-          </div>
-
-          <div class="order-meta">
-            Afhalen: ${order.pickup}
-          </div>
-
-          <div class="order-items">
-            ${items}
-          </div>
-
-          ${
-            order.note
-            ? `<div class="order-meta">
-                 Opmerking: ${order.note}
-               </div>`
-            : ""
-          }
-
-          <div class="order-meta">
-            Aangevraagd door:
-            ${order.representative}
-          </div>
-
-        </div>
-      `;
-    })
-    .join("");
+        `;
+      })
+      .join("");
 }
 
-
 function resetForm() {
-  document.getElementById("customer").value = "";
-  document.getElementById("pickup").value = "";
-  document.getElementById("note").value = "";
+  const customer =
+    document.getElementById("customer");
+
+  const pickup =
+    document.getElementById("pickup");
+
+  const note =
+    document.getElementById("note");
+
+  if (customer) {
+    customer.value = "";
+  }
+
+  if (pickup) {
+    pickup.value = "";
+  }
+
+  if (note) {
+    note.value = "";
+  }
 
   Object.keys(products)
-  .forEach(id => {
-    products[id].qty = 0;
-    document.getElementById(id).innerText = "0";
-  });
+    .forEach(id => {
+      products[id].qty = 0;
+
+      const element =
+        document.getElementById(id);
+
+      if (element) {
+        element.innerText = "0";
+      }
+    });
 
   validatePickupDate();
 }
-
 
 function newOrder() {
   resetForm();
   openNewOrder();
 }
 
-
 if ("serviceWorker" in navigator) {
-  window.addEventListener("load", () => {
-    navigator.serviceWorker
-      .register("./service-worker.js")
-      .catch(error => {
-        console.log(
-          "Service worker fout:",
-          error
-        );
-      });
-  });
+  window.addEventListener(
+    "load",
+    () => {
+      navigator.serviceWorker
+        .register("./service-worker.js")
+        .catch(error => {
+          console.log(
+            "Service worker fout:",
+            error
+          );
+        });
+    }
+  );
 }
-
 </script>
 
 </body>
