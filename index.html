@@ -942,10 +942,10 @@ ${order.createdAt}
   // =========================
 
   const mailto =
-    `mailto:${ontvanger}` +
-    `?subject=${encodeURIComponent(onderwerp)}` +
-    `&body=${encodeURIComponent(body)}`;
-
+  `mailto:${ontvanger}` +
+  `?cc=${encodeURIComponent(repEmail)}` +
+  `&subject=${encodeURIComponent(onderwerp)}` +
+  `&body=${encodeURIComponent(body)}`;
 
   // Aanvraagnummer tonen
   document.getElementById(
