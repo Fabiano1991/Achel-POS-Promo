@@ -1,4 +1,4 @@
-const CACHE_NAME = "achel-pos-v1";
+const CACHE_NAME = "achel-pos-v2";
 
 const filesToCache = [
   "./",
