@@ -878,8 +878,14 @@ function submitOrder() {
   // MAIL OPBOUWEN
   // =========================
 
-  const ontvanger =
-    "fabiovenaruzzo@hotmail.com";
+  const repName =
+  document.getElementById("rep").value;
+
+const repEmail =
+  representatives[repName].email;
+
+const ontvanger =
+  "fabiovenaruzzo@hotmail.com";
 
 
   const onderwerp =
