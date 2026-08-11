@@ -1,15 +1,43 @@
 <!DOCTYPE html>
 <html lang="nl">
+
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <meta name="theme-color" content="#1e2722">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+  >
+
+  <meta
+    name="theme-color"
+    content="#1e2722"
+  >
+
+  <meta
+    name="apple-mobile-web-app-capable"
+    content="yes"
+  >
+
+  <meta
+    name="apple-mobile-web-app-status-bar-style"
+    content="black-translucent"
+  >
+
+  <meta
+    name="apple-mobile-web-app-title"
+    content="Achel POS"
+  >
 
   <title>Achel POS</title>
 
-  <link rel="manifest" href="manifest.json">
+  <link
+    rel="manifest"
+    href="./manifest.json"
+  >
 
   <style>
+
     :root {
       --bg: #f4f2ed;
       --card: #ffffff;
@@ -17,7 +45,7 @@
       --gold: #8b662e;
       --gold-soft: #f3eadb;
       --border: #ddd8ce;
-      --muted: #777;
+      --muted: #777777;
       --green: #2e6944;
       --red: #a94442;
     }
@@ -28,7 +56,13 @@
 
     body {
       margin: 0;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+      font-family:
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        Arial,
+        sans-serif;
+
       background: var(--bg);
       color: var(--dark);
     }
@@ -36,7 +70,10 @@
     header {
       background: var(--dark);
       color: white;
-      padding: 24px 20px;
+      padding:
+        calc(24px + env(safe-area-inset-top))
+        20px
+        24px;
     }
 
     header h1 {
@@ -62,7 +99,10 @@
       border-radius: 18px;
       padding: 18px;
       margin-bottom: 16px;
-      box-shadow: 0 3px 10px rgba(0,0,0,.04);
+
+      box-shadow:
+        0 3px 10px
+        rgba(0, 0, 0, 0.04);
     }
 
     h2 {
@@ -76,27 +116,37 @@
       margin-bottom: 7px;
     }
 
-    input,
-    textarea,
-    select {
+    input[type="text"],
+    input[type="date"],
+    textarea {
       width: 100%;
       padding: 13px;
-      border: 1px solid var(--border);
+
+      border:
+        1px solid
+        var(--border);
+
       border-radius: 12px;
+
       font-size: 16px;
       background: white;
+      color: var(--dark);
     }
 
     textarea {
       min-height: 90px;
+      resize: vertical;
     }
 
     .info {
       margin-top: 10px;
       padding: 12px;
+
       border-radius: 12px;
+
       background: #f7efdf;
       color: #6b4d24;
+
       font-size: 14px;
     }
 
@@ -113,20 +163,29 @@
     .category {
       margin-top: 22px;
       margin-bottom: 10px;
+
       color: var(--gold);
+
       font-size: 13px;
       font-weight: 800;
+
       text-transform: uppercase;
-      letter-spacing: .08em;
+      letter-spacing: 0.08em;
     }
 
     .product {
       display: flex;
       align-items: center;
       justify-content: space-between;
+
       gap: 12px;
-      border: 1px solid var(--border);
+
+      border:
+        1px solid
+        var(--border);
+
       border-radius: 14px;
+
       padding: 13px;
       margin-bottom: 10px;
     }
@@ -145,62 +204,94 @@
     .qty button {
       width: 42px;
       height: 42px;
+
       border-radius: 11px;
-      border: 1px solid var(--border);
+
+      border:
+        1px solid
+        var(--border);
+
       background: #f8f7f4;
       color: var(--dark);
+
       font-size: 24px;
       font-weight: 700;
+
       cursor: pointer;
     }
 
     .qty span {
       width: 34px;
+
       text-align: center;
+
       font-size: 18px;
       font-weight: 800;
     }
 
     .primary {
       width: 100%;
+
       padding: 16px;
+
       border: none;
       border-radius: 14px;
+
       background: var(--gold);
       color: white;
+
       font-size: 17px;
       font-weight: 800;
+
       cursor: pointer;
     }
 
     .secondary {
       width: 100%;
+
       padding: 14px;
       margin-top: 10px;
+
       border-radius: 14px;
-      border: 1px solid var(--border);
+
+      border:
+        1px solid
+        var(--border);
+
       background: white;
       color: var(--dark);
+
       font-size: 16px;
       font-weight: 700;
+
       cursor: pointer;
     }
 
     .home-button {
       width: 100%;
+
       text-align: left;
-      border: none;
+
+      border:
+        1px solid
+        var(--border);
+
       background: white;
+
       padding: 20px;
+
       border-radius: 18px;
-      border: 1px solid var(--border);
+
       margin-bottom: 14px;
+
       cursor: pointer;
     }
 
     .home-button strong {
       display: block;
+
       font-size: 19px;
+
       margin-bottom: 5px;
     }
 
@@ -209,27 +300,105 @@
       font-size: 14px;
     }
 
+
+    /* VERTEGENWOORDIGERS */
+
+    .rep-options {
+      display: grid;
+      gap: 10px;
+      margin-top: 8px;
+    }
+
+    .rep-option {
+      display: flex;
+      align-items: center;
+
+      gap: 12px;
+
+      width: 100%;
+
+      padding: 14px;
+
+      margin: 0;
+
+      border:
+        1px solid
+        var(--border);
+
+      border-radius: 14px;
+
+      background: white;
+
+      cursor: pointer;
+    }
+
+    .rep-option input[type="radio"] {
+      width: 22px;
+      height: 22px;
+
+      margin: 0;
+
+      flex-shrink: 0;
+
+      accent-color: var(--gold);
+    }
+
+    .rep-option-text {
+      display: flex;
+      flex-direction: column;
+
+      gap: 3px;
+    }
+
+    .rep-option-text strong {
+      font-size: 16px;
+    }
+
+    .rep-option-text small {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+
+    /* SAMENVATTING */
+
     .summary-line {
       display: flex;
       justify-content: space-between;
+
       gap: 16px;
+
       padding: 9px 0;
-      border-bottom: 1px solid #eee;
+
+      border-bottom:
+        1px solid
+        #eeeeee;
     }
+
+
+    /* AANVRAGEN */
 
     .order-card {
       background: white;
-      border: 1px solid var(--border);
+
+      border:
+        1px solid
+        var(--border);
+
       border-radius: 16px;
+
       padding: 15px;
+
       margin-bottom: 12px;
     }
 
     .order-top {
       display: flex;
+
       justify-content: space-between;
-      gap: 10px;
       align-items: center;
+
+      gap: 10px;
     }
 
     .order-id {
@@ -240,276 +409,698 @@
     .status {
       background: var(--gold-soft);
       color: var(--gold);
+
       padding: 5px 9px;
+
       border-radius: 999px;
+
       font-size: 12px;
       font-weight: 800;
     }
 
     .order-meta {
       margin-top: 6px;
+
       color: var(--muted);
+
       font-size: 14px;
     }
 
     .order-items {
       margin-top: 10px;
+
       line-height: 1.5;
+
       font-size: 14px;
     }
 
     .empty {
       text-align: center;
+
       color: var(--muted);
+
       padding: 30px 10px;
     }
 
+
+    /* SUCCES */
+
     .success {
       text-align: center;
+
       padding: 28px 10px;
     }
 
     .success-icon {
       font-size: 52px;
+
       color: var(--green);
+
       margin-bottom: 10px;
     }
 
+
+    /* SCHERMEN */
+
     .hidden {
-      display: none;
+      display: none !important;
     }
 
     .top-back {
       border: none;
+
       background: transparent;
+
       color: var(--gold);
+
       font-weight: 800;
       font-size: 15px;
+
       padding: 0;
+
       margin-bottom: 15px;
+
       cursor: pointer;
     }
 
+
+    /* ONDERSTE NAVIGATIE */
+
     .footer-nav {
       position: fixed;
+
       bottom: 0;
       left: 0;
       right: 0;
+
+      padding-bottom:
+        env(safe-area-inset-bottom);
+
       background: white;
-      border-top: 1px solid var(--border);
+
+      border-top:
+        1px solid
+        var(--border);
+
       display: grid;
-      grid-template-columns: 1fr 1fr;
+
+      grid-template-columns:
+        1fr 1fr;
+
       z-index: 20;
     }
 
     .footer-nav button {
       border: none;
+
       background: white;
+
       padding: 15px 8px;
+
       font-weight: 800;
+
       color: var(--muted);
     }
 
     .footer-nav button.active {
       color: var(--gold);
     }
+
   </style>
+
 </head>
+
 
 <body>
 
 <header>
+
   <h1>Achel POS</h1>
-  <p>Interne POS & promo bestelapp</p>
+
+  <p>
+    Interne POS & promo bestelapp
+  </p>
+
 </header>
 
+
 <main>
+
+
+  <!-- HOME -->
 
   <section id="homeScreen">
 
     <div class="card">
+
       <h2>Welkom</h2>
-      <p>Kies wat je wilt doen.</p>
+
+      <p>
+        Kies wat je wilt doen.
+      </p>
+
     </div>
 
-    <button class="home-button" onclick="openNewOrder()">
-      <strong>Nieuwe aanvraag</strong>
-      <span>POS-materiaal of bier aanvragen</span>
+
+    <button
+      class="home-button"
+      onclick="openNewOrder()"
+    >
+
+      <strong>
+        Nieuwe aanvraag
+      </strong>
+
+      <span>
+        POS-materiaal of bier aanvragen
+      </span>
+
     </button>
 
-    <button class="home-button" onclick="openOrders()">
-      <strong>Mijn aanvragen</strong>
-      <span>Bekijk eerdere aanvragen op dit toestel</span>
+
+    <button
+      class="home-button"
+      onclick="openOrders()"
+    >
+
+      <strong>
+        Mijn aanvragen
+      </strong>
+
+      <span>
+        Bekijk eerdere aanvragen op dit toestel
+      </span>
+
     </button>
 
   </section>
 
 
-  <section id="orderScreen" class="hidden">
 
-    <button class="top-back" onclick="goHome()">← Terug</button>
+  <!-- NIEUWE AANVRAAG -->
+
+  <section
+    id="orderScreen"
+    class="hidden"
+  >
+
+    <button
+      class="top-back"
+      onclick="goHome()"
+    >
+      ← Terug
+    </button>
+
 
     <div class="card">
-      <h2>Nieuwe aanvraag</h2>
 
-      <label for="rep">Vertegenwoordiger</
-<select id="rep">
-  <option value="Fabiano">Fabiano</option>
-  <option value="Tom">Tom</option>
-</select>
-      <label for="customer">Horecazaak / klant</label>
+      <h2>
+        Nieuwe aanvraag
+      </h2>
+
+
+      <label>
+        Vertegenwoordiger
+      </label>
+
+
+      <div class="rep-options">
+
+
+        <label class="rep-option">
+
+          <input
+            type="radio"
+            name="representative"
+            value="Fabiano"
+            checked
+          >
+
+          <span class="rep-option-text">
+
+            <strong>
+              Fabiano
+            </strong>
+
+            <small>
+              fabiovenaruzzo@hotmail.com
+            </small>
+
+          </span>
+
+        </label>
+
+
+
+        <label class="rep-option">
+
+          <input
+            type="radio"
+            name="representative"
+            value="Tom"
+          >
+
+          <span class="rep-option-text">
+
+            <strong>
+              Tom
+            </strong>
+
+            <small>
+              venaruzzofabio@gmail.com
+            </small>
+
+          </span>
+
+        </label>
+
+
+      </div>
+
+
+      <label for="customer">
+        Horecazaak / klant
+      </label>
+
       <input
         id="customer"
         type="text"
         placeholder="Bijv. Café De Markt, Genk"
       >
 
-      <label for="pickup">Gewenste afhaaldatum</label>
+
+      <label for="pickup">
+        Gewenste afhaaldatum
+      </label>
+
       <input
         id="pickup"
         type="date"
       >
 
-      <div id="dateInfo" class="info">
-        De aanvraag moet minstens 2 dagen vóór afhaling gebeuren.
+
+      <div
+        id="dateInfo"
+        class="info"
+      >
+
+        De aanvraag moet minstens
+        2 dagen vóór afhaling gebeuren.
+
       </div>
 
-      <label for="note">Opmerking</label>
+
+      <label for="note">
+        Opmerking
+      </label>
+
       <textarea
         id="note"
         placeholder="Bijv. materiaal voor nieuwe plaatsing of promotieactie"
       ></textarea>
+
     </div>
 
+
+
+    <!-- MATERIALEN -->
+
     <div class="card">
-      <h2>Materialen</h2>
 
-      <div class="category">Achel bier</div>
+      <h2>
+        Materialen
+      </h2>
 
-      <div class="product">
-        <div class="product-name">Achel Tripel 33cl</div>
-        <div class="qty">
-          <button type="button" onclick="changeQty('tripel33', -1)">−</button>
-          <span id="tripel33">0</span>
-          <button type="button" onclick="changeQty('tripel33', 1)">+</button>
-        </div>
+
+      <div class="category">
+        Achel bier
       </div>
 
-      <div class="product">
-        <div class="product-name">Achel Tripel 20L</div>
-        <div class="qty">
-          <button type="button" onclick="changeQty('tripel20', -1)">−</button>
-          <span id="tripel20">0</span>
-          <button type="button" onclick="changeQty('tripel20', 1)">+</button>
-        </div>
-      </div>
 
       <div class="product">
-        <div class="product-name">Achel Dubbel 33cl</div>
-        <div class="qty">
-          <button type="button" onclick="changeQty('dubbel33', -1)">−</button>
-          <span id="dubbel33">0</span>
-          <button type="button" onclick="changeQty('dubbel33', 1)">+</button>
+
+        <div class="product-name">
+          Achel Tripel 33cl
         </div>
+
+        <div class="qty">
+
+          <button
+            type="button"
+            onclick="changeQty('tripel33', -1)"
+          >
+            −
+          </button>
+
+          <span id="tripel33">
+            0
+          </span>
+
+          <button
+            type="button"
+            onclick="changeQty('tripel33', 1)"
+          >
+            +
+          </button>
+
+        </div>
+
       </div>
+
+
 
       <div class="product">
-        <div class="product-name">Achel Dubbel 20L</div>
-        <div class="qty">
-          <button type="button" onclick="changeQty('dubbel20', -1)">−</button>
-          <span id="dubbel20">0</span>
-          <button type="button" onclick="changeQty('dubbel20', 1)">+</button>
+
+        <div class="product-name">
+          Achel Tripel 20L
         </div>
+
+        <div class="qty">
+
+          <button
+            type="button"
+            onclick="changeQty('tripel20', -1)"
+          >
+            −
+          </button>
+
+          <span id="tripel20">
+            0
+          </span>
+
+          <button
+            type="button"
+            onclick="changeQty('tripel20', 1)"
+          >
+            +
+          </button>
+
+        </div>
+
       </div>
 
-      <div class="category">POS-materiaal</div>
 
-      <div class="product">
-        <div class="product-name">Bierviltjes</div>
-        <div class="qty">
-          <button type="button" onclick="changeQty('bierviltjes', -1)">−</button>
-          <span id="bierviltjes">0</span>
-          <button type="button" onclick="changeQty('bierviltjes', 1)">+</button>
-        </div>
-      </div>
-
-      <div class="product">
-        <div class="product-name">Glazen</div>
-        <div class="qty">
-          <button type="button" onclick="changeQty('glazen', -1)">−</button>
-          <span id="glazen">0</span>
-          <button type="button" onclick="changeQty('glazen', 1)">+</button>
-        </div>
-      </div>
-
-      <div class="product">
-        <div class="product-name">Taplens</div>
-        <div class="qty">
-          <button type="button" onclick="changeQty('taplens', -1)">−</button>
-          <span id="taplens">0</span>
-          <button type="button" onclick="changeQty('taplens', 1)">+</button>
-        </div>
-      </div>
 
       <div class="product">
-        <div class="product-name">Wandbord</div>
-        <div class="qty">
-          <button type="button" onclick="changeQty('wandbord', -1)">−</button>
-          <span id="wandbord">0</span>
-          <button type="button" onclick="changeQty('wandbord', 1)">+</button>
+
+        <div class="product-name">
+          Achel Dubbel 33cl
         </div>
+
+        <div class="qty">
+
+          <button
+            type="button"
+            onclick="changeQty('dubbel33', -1)"
+          >
+            −
+          </button>
+
+          <span id="dubbel33">
+            0
+          </span>
+
+          <button
+            type="button"
+            onclick="changeQty('dubbel33', 1)"
+          >
+            +
+          </button>
+
+        </div>
+
       </div>
+
+
+
+      <div class="product">
+
+        <div class="product-name">
+          Achel Dubbel 20L
+        </div>
+
+        <div class="qty">
+
+          <button
+            type="button"
+            onclick="changeQty('dubbel20', -1)"
+          >
+            −
+          </button>
+
+          <span id="dubbel20">
+            0
+          </span>
+
+          <button
+            type="button"
+            onclick="changeQty('dubbel20', 1)"
+          >
+            +
+          </button>
+
+        </div>
+
+      </div>
+
+
+
+      <div class="category">
+        POS-materiaal
+      </div>
+
+
+      <div class="product">
+
+        <div class="product-name">
+          Bierviltjes
+        </div>
+
+        <div class="qty">
+
+          <button
+            type="button"
+            onclick="changeQty('bierviltjes', -1)"
+          >
+            −
+          </button>
+
+          <span id="bierviltjes">
+            0
+          </span>
+
+          <button
+            type="button"
+            onclick="changeQty('bierviltjes', 1)"
+          >
+            +
+          </button>
+
+        </div>
+
+      </div>
+
+
+
+      <div class="product">
+
+        <div class="product-name">
+          Glazen
+        </div>
+
+        <div class="qty">
+
+          <button
+            type="button"
+            onclick="changeQty('glazen', -1)"
+          >
+            −
+          </button>
+
+          <span id="glazen">
+            0
+          </span>
+
+          <button
+            type="button"
+            onclick="changeQty('glazen', 1)"
+          >
+            +
+          </button>
+
+        </div>
+
+      </div>
+
+
+
+      <div class="product">
+
+        <div class="product-name">
+          Taplens
+        </div>
+
+        <div class="qty">
+
+          <button
+            type="button"
+            onclick="changeQty('taplens', -1)"
+          >
+            −
+          </button>
+
+          <span id="taplens">
+            0
+          </span>
+
+          <button
+            type="button"
+            onclick="changeQty('taplens', 1)"
+          >
+            +
+          </button>
+
+        </div>
+
+      </div>
+
+
+
+      <div class="product">
+
+        <div class="product-name">
+          Wandbord
+        </div>
+
+        <div class="qty">
+
+          <button
+            type="button"
+            onclick="changeQty('wandbord', -1)"
+          >
+            −
+          </button>
+
+          <span id="wandbord">
+            0
+          </span>
+
+          <button
+            type="button"
+            onclick="changeQty('wandbord', 1)"
+          >
+            +
+          </button>
+
+        </div>
+
+      </div>
+
     </div>
 
+
     <div class="card">
-      <button class="primary" onclick="showSummary()">
+
+      <button
+        class="primary"
+        onclick="showSummary()"
+      >
         Aanvraag controleren
       </button>
+
     </div>
 
   </section>
 
 
-  <section id="summaryScreen" class="hidden">
 
-    <button class="top-back" onclick="backToOrder()">← Terug aanpassen</button>
+  <!-- CONTROLE -->
+
+  <section
+    id="summaryScreen"
+    class="hidden"
+  >
+
+    <button
+      class="top-back"
+      onclick="backToOrder()"
+    >
+      ← Terug aanpassen
+    </button>
+
 
     <div class="card">
-      <h2>Controleer aanvraag</h2>
+
+      <h2>
+        Controleer aanvraag
+      </h2>
+
 
       <p>
-        <strong>Vertegenwoordiger:</strong><br>
+        <strong>
+          Vertegenwoordiger:
+        </strong>
+        <br>
+
         <span id="summaryRep"></span>
       </p>
 
+
       <p>
-        <strong>Klant:</strong><br>
+        <strong>
+          Klant:
+        </strong>
+        <br>
+
         <span id="summaryCustomer"></span>
       </p>
 
+
       <p>
-        <strong>Afhalen:</strong><br>
+        <strong>
+          Afhalen:
+        </strong>
+        <br>
+
         <span id="summaryPickup"></span>
       </p>
 
+
       <div id="summaryProducts"></div>
+
 
       <p id="summaryNote"></p>
 
-      <button class="primary" onclick="submitOrder()">
-        Aanvraag opslaan
+
+      <button
+        class="primary"
+        onclick="submitOrder()"
+      >
+        Aanvraag verzenden
       </button>
+
     </div>
 
   </section>
 
 
-  <section id="successScreen" class="hidden">
+
+  <!-- SUCCES -->
+
+  <section
+    id="successScreen"
+    class="hidden"
+  >
 
     <div class="card success">
-      <div class="success-icon">✓</div>
 
-      <h2>Aanvraag opgeslagen</h2>
+      <div class="success-icon">
+        ✓
+      </div>
+
+      <h2>
+        Aanvraag aangemaakt
+      </h2>
 
       <p>
         Aanvraagnummer:
@@ -517,87 +1108,158 @@
       </p>
 
       <p>
-        De aanvraag staat nu in Mijn aanvragen.
+        De aanvraag staat ook
+        onder Mijn aanvragen.
       </p>
 
-      <button class="primary" onclick="openOrders()">
+
+      <button
+        class="primary"
+        onclick="openOrders()"
+      >
         Mijn aanvragen bekijken
       </button>
 
-      <button class="secondary" onclick="newOrder()">
+
+      <button
+        class="secondary"
+        onclick="newOrder()"
+      >
         Nieuwe aanvraag
       </button>
+
     </div>
 
   </section>
 
 
-  <section id="ordersScreen" class="hidden">
 
-    <button class="top-back" onclick="goHome()">← Terug</button>
+  <!-- MIJN AANVRAGEN -->
+
+  <section
+    id="ordersScreen"
+    class="hidden"
+  >
+
+    <button
+      class="top-back"
+      onclick="goHome()"
+    >
+      ← Terug
+    </button>
+
 
     <div class="card">
-      <h2>Mijn aanvragen</h2>
+
+      <h2>
+        Mijn aanvragen
+      </h2>
+
       <div id="ordersList"></div>
+
     </div>
 
   </section>
+
 
 </main>
 
 
+
 <nav class="footer-nav">
-  <button id="navHome" class="active" onclick="goHome()">Home</button>
-  <button id="navOrders" onclick="openOrders()">Aanvragen</button>
+
+  <button
+    id="navHome"
+    class="active"
+    onclick="goHome()"
+  >
+    Home
+  </button>
+
+  <button
+    id="navOrders"
+    onclick="openOrders()"
+  >
+    Aanvragen
+  </button>
+
 </nav>
 
 
+
 <script>
+
 const representatives = {
+
   Fabiano: {
-    email: "fabiovenaruzzo@hotmail.com"
+    email:
+      "fabiovenaruzzo@hotmail.com"
   },
+
   Tom: {
-    email: "venaruzzofabio@gmail.com"
+    email:
+      "venaruzzofabio@gmail.com"
   }
+
 };
+
 
 const products = {
+
   tripel33: {
-    name: "Achel Tripel 33cl",
+    name:
+      "Achel Tripel 33cl",
     qty: 0
   },
+
   tripel20: {
-    name: "Achel Tripel 20L",
+    name:
+      "Achel Tripel 20L",
     qty: 0
   },
+
   dubbel33: {
-    name: "Achel Dubbel 33cl",
+    name:
+      "Achel Dubbel 33cl",
     qty: 0
   },
+
   dubbel20: {
-    name: "Achel Dubbel 20L",
+    name:
+      "Achel Dubbel 20L",
     qty: 0
   },
+
   bierviltjes: {
-    name: "Bierviltjes",
+    name:
+      "Bierviltjes",
     qty: 0
   },
+
   glazen: {
-    name: "Glazen",
+    name:
+      "Glazen",
     qty: 0
   },
+
   taplens: {
-    name: "Taplens",
+    name:
+      "Taplens",
     qty: 0
   },
+
   wandbord: {
-    name: "Wandbord",
+    name:
+      "Wandbord",
     qty: 0
   }
+
 };
 
+
+
 function showOnly(screenId) {
+
   const screens = [
     "homeScreen",
     "orderScreen",
@@ -606,296 +1268,638 @@ function showOnly(screenId) {
     "ordersScreen"
   ];
 
+
   screens.forEach(id => {
-    const element = document.getElementById(id);
+
+    const element =
+      document.getElementById(id);
+
 
     if (element) {
-      element.classList.add("hidden");
+
+      element
+        .classList
+        .add("hidden");
+
     }
+
   });
 
-  const target = document.getElementById(screenId);
+
+  const target =
+    document.getElementById(
+      screenId
+    );
+
 
   if (target) {
-    target.classList.remove("hidden");
+
+    target
+      .classList
+      .remove("hidden");
+
   }
+
 }
+
+
 
 function goHome() {
-  showOnly("homeScreen");
 
-  document.getElementById("navHome")?.classList.add("active");
-  document.getElementById("navOrders")?.classList.remove("active");
+  showOnly(
+    "homeScreen"
+  );
+
+
+  document
+    .getElementById("navHome")
+    ?.classList
+    .add("active");
+
+
+  document
+    .getElementById("navOrders")
+    ?.classList
+    .remove("active");
+
 }
+
+
 
 function openNewOrder() {
-  showOnly("orderScreen");
 
-  document.getElementById("navHome")?.classList.add("active");
-  document.getElementById("navOrders")?.classList.remove("active");
+  showOnly(
+    "orderScreen"
+  );
+
+
+  document
+    .getElementById("navHome")
+    ?.classList
+    .add("active");
+
+
+  document
+    .getElementById("navOrders")
+    ?.classList
+    .remove("active");
+
 }
+
+
 
 function openOrders() {
-  renderOrders();
-  showOnly("ordersScreen");
 
-  document.getElementById("navHome")?.classList.remove("active");
-  document.getElementById("navOrders")?.classList.add("active");
+  renderOrders();
+
+
+  showOnly(
+    "ordersScreen"
+  );
+
+
+  document
+    .getElementById("navHome")
+    ?.classList
+    .remove("active");
+
+
+  document
+    .getElementById("navOrders")
+    ?.classList
+    .add("active");
+
 }
 
-function changeQty(id, amount) {
+
+
+function getSelectedRepresentative() {
+
+  const selected =
+    document.querySelector(
+      'input[name="representative"]:checked'
+    );
+
+
+  if (!selected) {
+
+    return null;
+
+  }
+
+
+  return selected.value;
+
+}
+
+
+
+function changeQty(
+  id,
+  amount
+) {
+
   if (!products[id]) {
+
     return;
+
   }
 
-  products[id].qty += amount;
 
-  if (products[id].qty < 0) {
+  products[id].qty +=
+    amount;
+
+
+  if (
+    products[id].qty < 0
+  ) {
+
     products[id].qty = 0;
+
   }
 
-  const element = document.getElementById(id);
+
+  const element =
+    document.getElementById(id);
+
 
   if (element) {
-    element.innerText = products[id].qty;
+
+    element.innerText =
+      products[id].qty;
+
   }
+
 }
+
+
 
 function getMinimumPickupDate() {
-  const date = new Date();
 
-  date.setHours(0, 0, 0, 0);
-  date.setDate(date.getDate() + 2);
+  const date =
+    new Date();
+
+
+  date.setHours(
+    0,
+    0,
+    0,
+    0
+  );
+
+
+  date.setDate(
+    date.getDate() + 2
+  );
+
 
   return date;
+
 }
+
+
 
 function formatISO(date) {
-  const year = date.getFullYear();
+
+  const year =
+    date.getFullYear();
+
 
   const month =
-    String(date.getMonth() + 1)
-      .padStart(2, "0");
+    String(
+      date.getMonth() + 1
+    )
+      .padStart(
+        2,
+        "0"
+      );
+
 
   const day =
-    String(date.getDate())
-      .padStart(2, "0");
+    String(
+      date.getDate()
+    )
+      .padStart(
+        2,
+        "0"
+      );
 
-  return `${year}-${month}-${day}`;
+
+  return (
+    `${year}-${month}-${day}`
+  );
+
 }
+
+
 
 const pickupInput =
-  document.getElementById("pickup");
+  document.getElementById(
+    "pickup"
+  );
+
 
 if (pickupInput) {
-  pickupInput.min =
-    formatISO(getMinimumPickupDate());
 
-  pickupInput.addEventListener(
-    "change",
-    validatePickupDate
-  );
+  pickupInput.min =
+    formatISO(
+      getMinimumPickupDate()
+    );
+
+
+  pickupInput
+    .addEventListener(
+      "change",
+      validatePickupDate
+    );
+
 }
 
-function validatePickupDate() {
-  const info =
-    document.getElementById("dateInfo");
 
-  if (!pickupInput || !info) {
+
+function validatePickupDate() {
+
+  const info =
+    document.getElementById(
+      "dateInfo"
+    );
+
+
+  if (
+    !pickupInput ||
+    !info
+  ) {
+
     return false;
+
   }
 
-  if (!pickupInput.value) {
-    info.className = "info";
+
+  if (
+    !pickupInput.value
+  ) {
+
+    info.className =
+      "info";
+
 
     info.innerText =
       "De aanvraag moet minstens 2 dagen vóór afhaling gebeuren.";
 
+
     return false;
+
   }
+
 
   const selected =
     new Date(
-      pickupInput.value + "T00:00:00"
+      pickupInput.value +
+      "T00:00:00"
     );
+
 
   const minimum =
     getMinimumPickupDate();
 
-  if (selected < minimum) {
+
+  if (
+    selected < minimum
+  ) {
+
     info.className =
       "info error";
+
 
     info.innerText =
       "Deze afhaaldatum is te vroeg.";
 
+
     return false;
+
   }
+
 
   info.className =
     "info ok";
 
+
   info.innerText =
     "Afhaaldatum is geldig.";
 
+
   return true;
+
 }
 
+
+
 function showSummary() {
-  const repElement =
-    document.getElementById("rep");
-
-  const customerElement =
-    document.getElementById("customer");
-
-  if (!repElement || !customerElement) {
-    alert("Er ontbreekt een veld in de app.");
-    return;
-  }
 
   const rep =
-    repElement.value;
+    getSelectedRepresentative();
+
+
+  if (!rep) {
+
+    alert(
+      "Kies eerst een vertegenwoordiger."
+    );
+
+    return;
+
+  }
+
+
+  const customerElement =
+    document.getElementById(
+      "customer"
+    );
+
+
+  if (!customerElement) {
+
+    alert(
+      "Het klantveld kon niet worden gevonden."
+    );
+
+    return;
+
+  }
+
 
   const customer =
-    customerElement.value.trim();
+    customerElement
+      .value
+      .trim();
+
 
   if (!customer) {
+
     alert(
       "Vul eerst de horecazaak of klant in."
     );
 
     return;
+
   }
 
-  if (!validatePickupDate()) {
+
+  if (
+    !validatePickupDate()
+  ) {
+
     alert(
       "Kies een geldige afhaaldatum."
     );
 
     return;
+
   }
 
+
   const selected =
-    Object.values(products)
+    Object
+      .values(products)
       .filter(
-        product => product.qty > 0
+        product =>
+          product.qty > 0
       );
 
-  if (selected.length === 0) {
+
+  if (
+    selected.length === 0
+  ) {
+
     alert(
       "Selecteer minstens één materiaal."
     );
 
     return;
+
   }
 
-  document.getElementById("summaryRep").innerText =
-    rep;
 
-  document.getElementById("summaryCustomer").innerText =
-    customer;
+  document
+    .getElementById(
+      "summaryRep"
+    )
+    .innerText =
+      rep;
 
-  document.getElementById("summaryPickup").innerText =
-    pickupInput.value;
+
+  document
+    .getElementById(
+      "summaryCustomer"
+    )
+    .innerText =
+      customer;
+
+
+  document
+    .getElementById(
+      "summaryPickup"
+    )
+    .innerText =
+      pickupInput.value;
+
 
   const container =
     document.getElementById(
       "summaryProducts"
     );
 
-  container.innerHTML = "";
 
-  selected.forEach(product => {
-    const row =
-      document.createElement("div");
+  container.innerHTML =
+    "";
 
-    row.className =
-      "summary-line";
 
-    row.innerHTML =
-      `<span>${product.name}</span>
-       <strong>${product.qty}</strong>`;
+  selected.forEach(
+    product => {
 
-    container.appendChild(row);
-  });
+      const row =
+        document.createElement(
+          "div"
+        );
+
+
+      row.className =
+        "summary-line";
+
+
+      row.innerHTML =
+        `
+          <span>
+            ${product.name}
+          </span>
+
+          <strong>
+            ${product.qty}
+          </strong>
+        `;
+
+
+      container
+        .appendChild(row);
+
+    }
+  );
+
 
   const note =
-    document.getElementById("note")
+    document
+      .getElementById("note")
       .value
       .trim();
 
-  document.getElementById(
-    "summaryNote"
-  ).innerText =
-    note
-      ? "Opmerking: " + note
-      : "";
 
-  showOnly("summaryScreen");
+  document
+    .getElementById(
+      "summaryNote"
+    )
+    .innerText =
+
+      note
+
+        ? "Opmerking: " + note
+
+        : "";
+
+
+  showOnly(
+    "summaryScreen"
+  );
+
 }
+
+
 
 function backToOrder() {
-  showOnly("orderScreen");
+
+  showOnly(
+    "orderScreen"
+  );
+
 }
 
+
+
 function generateOrderId() {
+
   const year =
-    new Date().getFullYear();
+    new Date()
+      .getFullYear();
+
 
   let counter =
     parseInt(
-      localStorage.getItem(
-        "achelOrderCounter"
-      ) || "0"
+
+      localStorage
+        .getItem(
+          "achelOrderCounter"
+        )
+
+      || "0"
+
     );
+
 
   counter++;
 
-  localStorage.setItem(
-    "achelOrderCounter",
-    counter
-  );
+
+  localStorage
+    .setItem(
+      "achelOrderCounter",
+      counter
+    );
+
 
   const number =
     String(counter)
-      .padStart(3, "0");
+      .padStart(
+        3,
+        "0"
+      );
 
-  return `POS-${year}-${number}`;
+
+  return (
+    `POS-${year}-${number}`
+  );
+
 }
 
+
+
 function submitOrder() {
+
   const repName =
-    document.getElementById("rep").value;
+    getSelectedRepresentative();
+
+
+  if (!repName) {
+
+    alert(
+      "Kies eerst een vertegenwoordiger."
+    );
+
+    return;
+
+  }
+
 
   const representative =
-    representatives[repName];
+    representatives[
+      repName
+    ];
 
-  if (!representative) {
+
+  if (
+    !representative
+  ) {
+
     alert(
       "Geen e-mailadres gevonden voor deze vertegenwoordiger."
     );
 
     return;
+
   }
+
 
   const repEmail =
     representative.email;
 
+
   const orderId =
     generateOrderId();
 
+
   const selectedProducts =
-    Object.values(products)
+    Object
+      .values(products)
+
       .filter(
-        product => product.qty > 0
+        product =>
+          product.qty > 0
       )
-      .map(product => ({
-        name: product.name,
-        qty: product.qty
-      }));
+
+      .map(
+        product => ({
+
+          name:
+            product.name,
+
+          qty:
+            product.qty
+
+        })
+      );
+
 
   const order = {
-    id: orderId,
+
+    id:
+      orderId,
 
     representative:
       repName,
@@ -905,18 +1909,24 @@ function submitOrder() {
 
     customer:
       document
-        .getElementById("customer")
+        .getElementById(
+          "customer"
+        )
         .value
         .trim(),
 
     pickup:
       document
-        .getElementById("pickup")
+        .getElementById(
+          "pickup"
+        )
         .value,
 
     note:
       document
-        .getElementById("note")
+        .getElementById(
+          "note"
+        )
         .value
         .trim(),
 
@@ -928,39 +1938,72 @@ function submitOrder() {
 
     createdAt:
       new Date()
-        .toLocaleString("nl-BE")
+        .toLocaleString(
+          "nl-BE"
+        )
+
   };
+
 
   const orders =
     JSON.parse(
-      localStorage.getItem(
-        "achelOrders"
-      ) || "[]"
+
+      localStorage
+        .getItem(
+          "achelOrders"
+        )
+
+      || "[]"
+
     );
 
-  orders.unshift(order);
 
-  localStorage.setItem(
-    "achelOrders",
-    JSON.stringify(orders)
+  orders.unshift(
+    order
   );
+
+
+  localStorage
+    .setItem(
+
+      "achelOrders",
+
+      JSON.stringify(
+        orders
+      )
+
+    );
+
+
+  /*
+    HOOFDONTVANGER
+  */
 
   const ontvanger =
     "fabiovenaruzzo@hotmail.com";
 
+
   const onderwerp =
     `Achel POS aanvraag ${orderId} - ${order.customer}`;
 
-  let productenTekst = "";
 
-  selectedProducts.forEach(
-    product => {
-      productenTekst +=
-        `${product.qty} x ${product.name}\n`;
-    }
-  );
+  let productenTekst =
+    "";
 
-  const body = `ACHEL POS AANVRAAG
+
+  selectedProducts
+    .forEach(
+      product => {
+
+        productenTekst +=
+          `${product.qty} x ${product.name}\n`;
+
+      }
+    );
+
+
+  const body =
+`ACHEL POS AANVRAAG
 
 Aanvraagnummer:
 ${order.id}
@@ -992,175 +2035,366 @@ ${order.note || "Geen opmerkingen"}
 Aanvraag aangemaakt:
 ${order.createdAt}`;
 
+
   let mailto =
     `mailto:${ontvanger}`;
 
-  if (repEmail !== ontvanger) {
+
+  /*
+    TOM:
+    hoofdmail naar Fabiano
+    + Tom in CC
+
+    FABIANO:
+    geen dubbele CC
+  */
+
+  if (
+    repEmail !== ontvanger
+  ) {
+
     mailto +=
-      `?cc=${encodeURIComponent(repEmail)}` +
-      `&subject=${encodeURIComponent(onderwerp)}` +
-      `&body=${encodeURIComponent(body)}`;
-  } else {
-    mailto +=
-      `?subject=${encodeURIComponent(onderwerp)}` +
-      `&body=${encodeURIComponent(body)}`;
+
+      `?cc=${encodeURIComponent(
+        repEmail
+      )}` +
+
+      `&subject=${encodeURIComponent(
+        onderwerp
+      )}` +
+
+      `&body=${encodeURIComponent(
+        body
+      )}`;
+
   }
 
-  document.getElementById(
-    "successOrderId"
-  ).innerText = orderId;
+  else {
 
-  showOnly("successScreen");
+    mailto +=
 
-  setTimeout(() => {
-    window.location.href =
-      mailto;
-  }, 400);
+      `?subject=${encodeURIComponent(
+        onderwerp
+      )}` +
+
+      `&body=${encodeURIComponent(
+        body
+      )}`;
+
+  }
+
+
+  document
+    .getElementById(
+      "successOrderId"
+    )
+    .innerText =
+      orderId;
+
+
+  showOnly(
+    "successScreen"
+  );
+
+
+  setTimeout(
+    () => {
+
+      window.location.href =
+        mailto;
+
+    },
+
+    400
+  );
+
 }
 
+
+
 function renderOrders() {
+
   const orders =
     JSON.parse(
-      localStorage.getItem(
-        "achelOrders"
-      ) || "[]"
+
+      localStorage
+        .getItem(
+          "achelOrders"
+        )
+
+      || "[]"
+
     );
+
 
   const container =
     document.getElementById(
       "ordersList"
     );
 
+
   if (!container) {
+
     return;
+
   }
 
-  if (orders.length === 0) {
+
+  if (
+    orders.length === 0
+  ) {
+
     container.innerHTML =
-      `<div class="empty">
-        Nog geen aanvragen opgeslagen.
-      </div>`;
+      `
+        <div class="empty">
+          Nog geen aanvragen opgeslagen.
+        </div>
+      `;
+
 
     return;
+
   }
+
 
   container.innerHTML =
+
     orders
-      .map(order => {
-        const items =
-          order.products
-            .map(
-              product =>
-                `${product.qty} × ${product.name}`
-            )
-            .join("<br>");
+      .map(
+        order => {
 
-        return `
-          <div class="order-card">
 
-            <div class="order-top">
+          const items =
+            order.products
 
-              <div class="order-id">
-                ${order.id}
+              .map(
+                product =>
+                  `${product.qty} × ${product.name}`
+              )
+
+              .join(
+                "<br>"
+              );
+
+
+          return `
+            <div class="order-card">
+
+              <div class="order-top">
+
+                <div class="order-id">
+                  ${order.id}
+                </div>
+
+                <div class="status">
+                  ${order.status}
+                </div>
+
               </div>
 
-              <div class="status">
-                ${order.status}
+
+              <div class="order-meta">
+                ${order.customer}
+              </div>
+
+
+              <div class="order-meta">
+                Afhalen:
+                ${order.pickup}
+              </div>
+
+
+              <div class="order-items">
+                ${items}
+              </div>
+
+
+              ${
+                order.note
+
+                  ? `
+                    <div class="order-meta">
+
+                      Opmerking:
+                      ${order.note}
+
+                    </div>
+                  `
+
+                  : ""
+              }
+
+
+              <div class="order-meta">
+
+                Aangevraagd door:
+                ${order.representative}
+
+              </div>
+
+
+              <div class="order-meta">
+
+                ${order.representativeEmail || ""}
+
               </div>
 
             </div>
+          `;
 
-            <div class="order-meta">
-              ${order.customer}
-            </div>
+        }
+      )
 
-            <div class="order-meta">
-              Afhalen: ${order.pickup}
-            </div>
-
-            <div class="order-items">
-              ${items}
-            </div>
-
-            ${
-              order.note
-                ? `
-                  <div class="order-meta">
-                    Opmerking: ${order.note}
-                  </div>
-                `
-                : ""
-            }
-
-            <div class="order-meta">
-              Aangevraagd door:
-              ${order.representative}
-            </div>
-
-          </div>
-        `;
-      })
       .join("");
+
 }
+
+
 
 function resetForm() {
+
   const customer =
-    document.getElementById("customer");
+    document.getElementById(
+      "customer"
+    );
+
 
   const pickup =
-    document.getElementById("pickup");
+    document.getElementById(
+      "pickup"
+    );
+
 
   const note =
-    document.getElementById("note");
+    document.getElementById(
+      "note"
+    );
+
 
   if (customer) {
-    customer.value = "";
+
+    customer.value =
+      "";
+
   }
+
 
   if (pickup) {
-    pickup.value = "";
+
+    pickup.value =
+      "";
+
   }
+
 
   if (note) {
-    note.value = "";
+
+    note.value =
+      "";
+
   }
 
-  Object.keys(products)
-    .forEach(id => {
-      products[id].qty = 0;
 
-      const element =
-        document.getElementById(id);
+  Object
+    .keys(products)
 
-      if (element) {
-        element.innerText = "0";
+    .forEach(
+      id => {
+
+        products[id].qty =
+          0;
+
+
+        const element =
+          document.getElementById(
+            id
+          );
+
+
+        if (element) {
+
+          element.innerText =
+            "0";
+
+        }
+
       }
-    });
+    );
+
+
+  /*
+    Fabiano opnieuw standaard kiezen
+  */
+
+  const fabianoRadio =
+    document.querySelector(
+      'input[name="representative"][value="Fabiano"]'
+    );
+
+
+  if (fabianoRadio) {
+
+    fabianoRadio.checked =
+      true;
+
+  }
+
 
   validatePickupDate();
+
 }
+
+
 
 function newOrder() {
+
   resetForm();
+
   openNewOrder();
+
 }
 
-if ("serviceWorker" in navigator) {
-  window.addEventListener(
-    "load",
-    () => {
-      navigator.serviceWorker
-        .register("./service-worker.js")
-        .catch(error => {
-          console.log(
-            "Service worker fout:",
-            error
+
+
+if (
+  "serviceWorker"
+  in navigator
+) {
+
+  window
+    .addEventListener(
+
+      "load",
+
+      () => {
+
+        navigator
+          .serviceWorker
+
+          .register(
+            "./service-worker.js"
+          )
+
+          .catch(
+            error => {
+
+              console.log(
+                "Service worker fout:",
+                error
+              );
+
+            }
           );
-        });
-    }
-  );
+
+      }
+
+    );
+
 }
+
 </script>
 
+
 </body>
+
 </html>
