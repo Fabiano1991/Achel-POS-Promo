@@ -1291,7 +1291,25 @@ const SUPABASE_KEY = "sb_publishable_pyiiMmH2tpl-lL3e_edcow_4ztJX-Ul";
     .getElementById("appMain")
     .classList
     .remove("hidden");
+// Ingelogde vertegenwoordiger automatisch bepalen
+const loggedInEmail = data.user.email.toLowerCase();
 
+let loggedInRep = null;
+
+for (const [name, rep] of Object.entries(representatives)) {
+  if (rep.email.toLowerCase() === loggedInEmail) {
+    loggedInRep = {
+      name: name,
+      email: rep.email
+    };
+    break;
+  }
+}
+
+if (loggedInRep) {
+  document.getElementById("loggedInRepName").innerText = loggedInRep.name;
+  document.getElementById("loggedInRepEmail").innerText = loggedInRep.email;
+}
 }
 
 
@@ -1483,7 +1501,7 @@ function openOrders() {
 function getSelectedRepresentative() {
 
   const selected =
-    document.querySelector(
+    loggedInrep;
       'input[name="representative"]:checked'
     );
 
