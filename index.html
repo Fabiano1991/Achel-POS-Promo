@@ -543,8 +543,61 @@
 
 </header>
 
+  <!-- LOGIN SCHERM -->
 
-<main>
+<section id="loginScreen">
+
+  <div class="card">
+
+    <h2>Inloggen</h2>
+
+    <p>
+      Log in met je persoonlijke Achel POS-account.
+    </p>
+
+    <label for="loginEmail">
+      E-mailadres
+    </label>
+
+    <input
+      id="loginEmail"
+      type="email"
+      placeholder="jouw@email.be"
+      autocomplete="email"
+    >
+
+    <label for="loginPassword">
+      Wachtwoord
+    </label>
+
+    <input
+      id="loginPassword"
+      type="password"
+      placeholder="Wachtwoord"
+      autocomplete="current-password"
+    >
+
+    <button
+      class="primary"
+      type="button"
+      onclick="loginUser()"
+      style="margin-top:20px;"
+    >
+      Inloggen
+    </button>
+
+    <div
+      id="loginMessage"
+      class="info hidden"
+    ></div>
+
+  </div>
+
+</section>
+
+
+<main id="appMain" class="hidden">
+
 
 
   <!-- HOME -->
@@ -1191,6 +1244,94 @@
 
 const SUPABASE_URL = "https://qosjfznmdnswwfnglxqt.supabase.co";
 const SUPABASE_KEY = "sb_publishable_pyiiMmH2tpl-lL3e_edcow_4ztJX-Ul";
+
+  async function loginUser() {
+
+  const email =
+    document
+      .getElementById("loginEmail")
+      .value
+      .trim();
+
+  const password =
+    document
+      .getElementById("loginPassword")
+      .value;
+
+  const message =
+    document
+      .getElementById("loginMessage");
+
+
+  if (!email || !password) {
+
+    message.className =
+      "info error";
+
+    message.innerText =
+      "Vul je e-mailadres en wachtwoord in.";
+
+    return;
+  }
+
+
+  message.className =
+    "info";
+
+  message.innerText =
+    "Bezig met inloggen...";
+
+
+  const { data, error } =
+    await supabaseClient.auth.signInWithPassword({
+      email: email,
+      password: password
+    });
+
+
+  if (error) {
+
+    message.className =
+      "info error";
+
+    message.innerText =
+      "Inloggen mislukt: " + error.message;
+
+    return;
+  }
+
+
+  if (!data.user) {
+
+    message.className =
+      "info error";
+
+    message.innerText =
+      "Gebruiker kon niet worden gevonden.";
+
+    return;
+  }
+
+
+  message.className =
+    "info ok";
+
+  message.innerText =
+    "Inloggen gelukt.";
+
+
+  document
+    .getElementById("loginScreen")
+    .classList
+    .add("hidden");
+
+
+  document
+    .getElementById("appMain")
+    .classList
+    .remove("hidden");
+
+}
 
 const supabaseClient = supabase.createClient(
   SUPABASE_URL,
@@ -2399,7 +2540,32 @@ if (
     );
 
 }
+async function checkExistingSession() {
 
+  const { data } =
+    await supabaseClient.auth.getSession();
+
+
+  if (data.session) {
+
+    document
+      .getElementById("loginScreen")
+      .classList
+      .add("hidden");
+
+
+    document
+      .getElementById("appMain")
+      .classList
+      .remove("hidden");
+
+  }
+
+}
+
+
+checkExistingSession();
+  
 </script>
 
 
