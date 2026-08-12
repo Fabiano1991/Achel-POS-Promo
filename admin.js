@@ -1,5 +1,5 @@
 /* =========================================================
-   ACHEL POS - ADMIN DASHBOARD V1
+   ACHEL POS - ADMIN DASHBOARD V2
    ========================================================= */
 
 let adminOrders = [];
@@ -8,85 +8,103 @@ let adminItems = [];
 
 
 /* =========================================================
-   START ADMIN MODULE
+   ADMIN MODULE START
    ========================================================= */
 
-const originalStartApp = startApp;
-
-startApp = async function () {
-
-  await originalStartApp();
-
-  setupAdminAccess();
-
-};
-
-
-/*
-  Voor het geval de gebruiker al ingelogd was
-  voordat admin.js geladen werd.
-*/
-
-setTimeout(() => {
+async function initAdminModule() {
 
   try {
 
+    const {
+      data: userData,
+      error: userError
+    } =
+      await supabaseClient
+        .auth
+        .getUser();
+
+
     if (
-      currentProfile &&
-      (
-        currentProfile.rol === "admin" ||
-        currentProfile.rol === "verantwoordelijke"
-      )
+      userError ||
+      !userData.user
     ) {
 
-      setupAdminAccess();
+      return;
 
     }
 
-  } catch (error) {
+
+    const {
+      data: profile,
+      error: profileError
+    } =
+      await supabaseClient
+
+        .from("profiles")
+
+        .select(
+          "id, naam, email, rol, actief"
+        )
+
+        .eq(
+          "id",
+          userData.user.id
+        )
+
+        .single();
+
+
+    if (
+      profileError ||
+      !profile
+    ) {
+
+      console.log(
+        "Admin profiel niet gevonden:",
+        profileError
+      );
+
+      return;
+
+    }
+
 
     console.log(
-      "Admin profiel nog niet geladen."
+      "Achel POS rol:",
+      profile.rol
+    );
+
+
+    if (
+      profile.rol !== "admin" &&
+      profile.rol !== "verantwoordelijke"
+    ) {
+
+      return;
+
+    }
+
+
+    createAdminButton();
+
+    createAdminScreen();
+
+  }
+
+  catch (error) {
+
+    console.log(
+      "Admin module fout:",
+      error
     );
 
   }
 
-}, 1000);
-
-
-
-/* =========================================================
-   ADMIN TOEGANG
-   ========================================================= */
-
-function setupAdminAccess() {
-
-  if (!currentProfile) {
-    return;
-  }
-
-
-  const allowed =
-
-    currentProfile.rol === "admin" ||
-    currentProfile.rol === "verantwoordelijke";
-
-
-  if (!allowed) {
-    return;
-  }
-
-
-  createAdminButton();
-
-  createAdminScreen();
-
 }
 
 
-
 /* =========================================================
-   BEHEER KNOP OP HOME
+   BEHEERKNOP
    ========================================================= */
 
 function createAdminButton() {
@@ -109,7 +127,9 @@ function createAdminButton() {
 
 
   if (!homeScreen) {
+
     return;
+
   }
 
 
@@ -127,18 +147,24 @@ function createAdminButton() {
     "home-button";
 
 
+  button.type =
+    "button";
+
+
   button.onclick =
     openAdminDashboard;
 
 
   button.innerHTML = `
+
     <strong>
       ⚙️ Beheer
     </strong>
 
     <span>
-      Alle aanvragen, vertegenwoordigers en statusbeheer
+      Dashboard, aanvragen en statusbeheer
     </span>
+
   `;
 
 
@@ -149,9 +175,8 @@ function createAdminButton() {
 }
 
 
-
 /* =========================================================
-   ADMIN SCHERM MAKEN
+   ADMIN SCHERM
    ========================================================= */
 
 function createAdminScreen() {
@@ -173,6 +198,13 @@ function createAdminScreen() {
     );
 
 
+  if (!appMain) {
+
+    return;
+
+  }
+
+
   const section =
     document.createElement(
       "section"
@@ -191,7 +223,8 @@ function createAdminScreen() {
 
     <button
       class="top-back"
-      onclick="goHome()"
+      type="button"
+      onclick="closeAdminDashboard()"
     >
       ← Terug
     </button>
@@ -204,8 +237,9 @@ function createAdminScreen() {
       </h2>
 
       <p>
-        Overzicht van alle Achel POS-aanvragen.
+        Centraal overzicht van alle Achel POS-aanvragen.
       </p>
+
 
       <div
         id="adminStatistics"
@@ -303,7 +337,7 @@ function createAdminScreen() {
       <input
         id="adminSearch"
         type="text"
-        placeholder="Klant, gemeente..."
+        placeholder="Klant, gemeente, vertegenwoordiger..."
         oninput="renderAdminOrders()"
       >
 
@@ -321,9 +355,7 @@ function createAdminScreen() {
         "
       >
 
-        <h2
-          style="margin:0;"
-        >
+        <h2 style="margin:0;">
           Alle aanvragen
         </h2>
 
@@ -369,16 +401,39 @@ function createAdminScreen() {
 }
 
 
-
 /* =========================================================
-   ADMIN DASHBOARD OPENEN
+   DASHBOARD OPENEN
    ========================================================= */
 
 async function openAdminDashboard() {
 
-  showOnly(
-    "adminScreen"
+  const normalScreens = [
+    "homeScreen",
+    "orderScreen",
+    "summaryScreen",
+    "successScreen",
+    "ordersScreen"
+  ];
+
+
+  normalScreens.forEach(
+    id => {
+
+      document
+        .getElementById(id)
+        ?.classList
+        .add("hidden");
+
+    }
   );
+
+
+  document
+    .getElementById(
+      "adminScreen"
+    )
+    ?.classList
+    .remove("hidden");
 
 
   document
@@ -402,9 +457,27 @@ async function openAdminDashboard() {
 }
 
 
+/* =========================================================
+   DASHBOARD SLUITEN
+   ========================================================= */
+
+function closeAdminDashboard() {
+
+  document
+    .getElementById(
+      "adminScreen"
+    )
+    ?.classList
+    .add("hidden");
+
+
+  goHome();
+
+}
+
 
 /* =========================================================
-   DATA LADEN
+   DASHBOARD DATA
    ========================================================= */
 
 async function loadAdminDashboard() {
@@ -413,6 +486,13 @@ async function loadAdminDashboard() {
     document.getElementById(
       "adminOrdersList"
     );
+
+
+  if (!container) {
+
+    return;
+
+  }
 
 
   container.innerHTML = `
@@ -434,9 +514,7 @@ async function loadAdminDashboard() {
   } =
     await supabaseClient
 
-      .from(
-        "profiles"
-      )
+      .from("profiles")
 
       .select(
         "id, naam, email, rol, actief"
@@ -449,7 +527,7 @@ async function loadAdminDashboard() {
 
       <div class="info error">
 
-        Vertegenwoordigers konden niet worden geladen:
+        Profielen konden niet worden geladen:
 
         ${adminEscapeHtml(
           profileError.message
@@ -469,7 +547,7 @@ async function loadAdminDashboard() {
 
 
   /*
-    ALLE AANVRAGEN
+    ORDERS
   */
 
   const {
@@ -478,9 +556,7 @@ async function loadAdminDashboard() {
   } =
     await supabaseClient
 
-      .from(
-        "orders"
-      )
+      .from("orders")
 
       .select(
         "id, user_id, klant, gemeente, afhaaldatum, opmerking, status, created_at"
@@ -520,7 +596,7 @@ async function loadAdminDashboard() {
 
 
   /*
-    ALLE AANVRAAGARTIKELEN
+    ORDER ITEMS
   */
 
   const {
@@ -529,9 +605,7 @@ async function loadAdminDashboard() {
   } =
     await supabaseClient
 
-      .from(
-        "order_items"
-      )
+      .from("order_items")
 
       .select(
         "order_id, product_naam, categorie, aantal"
@@ -572,9 +646,8 @@ async function loadAdminDashboard() {
 }
 
 
-
 /* =========================================================
-   VERTEGENWOORDIGERS FILTER
+   VERTEGENWOORDIGER FILTER
    ========================================================= */
 
 function fillRepresentativeFilter() {
@@ -585,25 +658,15 @@ function fillRepresentativeFilter() {
     );
 
 
-  const selected =
+  if (!select) {
+
+    return;
+
+  }
+
+
+  const currentValue =
     select.value;
-
-
-  const representatives =
-    adminProfiles
-
-      .filter(
-        profile =>
-          profile.rol ===
-          "vertegenwoordiger"
-      )
-
-      .sort(
-        (a, b) =>
-          a.naam.localeCompare(
-            b.naam
-          )
-      );
 
 
   select.innerHTML = `
@@ -615,7 +678,21 @@ function fillRepresentativeFilter() {
   `;
 
 
-  representatives
+  adminProfiles
+
+    .filter(
+      profile =>
+        profile.rol === "vertegenwoordiger"
+    )
+
+    .sort(
+      (a, b) =>
+        (a.naam || "")
+          .localeCompare(
+            b.naam || ""
+          )
+    )
+
     .forEach(
       profile => {
 
@@ -642,14 +719,13 @@ function fillRepresentativeFilter() {
 
 
   select.value =
-    selected;
+    currentValue;
 
 }
 
 
-
 /* =========================================================
-   STATISTIEKEN
+   DASHBOARD STATISTIEKEN
    ========================================================= */
 
 function renderAdminStatistics() {
@@ -658,6 +734,13 @@ function renderAdminStatistics() {
     document.getElementById(
       "adminStatistics"
     );
+
+
+  if (!container) {
+
+    return;
+
+  }
 
 
   const total =
@@ -674,8 +757,7 @@ function renderAdminStatistics() {
   const processing =
     adminOrders.filter(
       order =>
-        order.status ===
-        "in_behandeling"
+        order.status === "in_behandeling"
     ).length;
 
 
@@ -715,7 +797,6 @@ function renderAdminStatistics() {
     );
 
 }
-
 
 
 function adminStatCard(
@@ -762,9 +843,8 @@ function adminStatCard(
 }
 
 
-
 /* =========================================================
-   AANVRAGEN TONEN
+   ORDERS TONEN
    ========================================================= */
 
 function renderAdminOrders() {
@@ -776,7 +856,9 @@ function renderAdminOrders() {
 
 
   if (!container) {
+
     return;
+
   }
 
 
@@ -812,41 +894,27 @@ function renderAdminOrders() {
     [...adminOrders];
 
 
-  /*
-    FILTER VERTEGENWOORDIGER
-  */
-
   if (repFilter) {
 
     orders =
       orders.filter(
         order =>
-          order.user_id ===
-          repFilter
+          order.user_id === repFilter
       );
 
   }
 
-
-  /*
-    FILTER STATUS
-  */
 
   if (statusFilter) {
 
     orders =
       orders.filter(
         order =>
-          order.status ===
-          statusFilter
+          order.status === statusFilter
       );
 
   }
 
-
-  /*
-    ZOEKEN
-  */
 
   if (search) {
 
@@ -854,7 +922,7 @@ function renderAdminOrders() {
       orders.filter(
         order => {
 
-          const representative =
+          const rep =
             getAdminProfile(
               order.user_id
             );
@@ -865,14 +933,11 @@ function renderAdminOrders() {
               order.klant,
               order.gemeente,
               order.opmerking,
-              representative?.naam,
-              representative?.email
+              rep?.naam,
+              rep?.email
             ]
-
               .filter(Boolean)
-
               .join(" ")
-
               .toLowerCase();
 
 
@@ -904,7 +969,6 @@ function renderAdminOrders() {
 
 
   container.innerHTML =
-
     orders
       .map(
         order =>
@@ -912,15 +976,13 @@ function renderAdminOrders() {
             order
           )
       )
-
       .join("");
 
 }
 
 
-
 /* =========================================================
-   AANVRAAG KAART
+   ORDER KAART
    ========================================================= */
 
 function adminOrderCard(
@@ -936,44 +998,22 @@ function adminOrderCard(
   const items =
     adminItems.filter(
       item =>
-        item.order_id ===
-        order.id
+        item.order_id === order.id
     );
 
 
-  const itemsHtml =
+  const products =
 
     items.length
 
       ? items
           .map(
-            item => `
-
-              <div>
-                ${item.aantal}
-                ×
-                ${adminEscapeHtml(
-                  item.product_naam
-                )}
-              </div>
-
-            `
+            item =>
+              `${item.aantal} × ${adminEscapeHtml(item.product_naam)}`
           )
+          .join("<br>")
 
-          .join("")
-
-      : `
-          <div>
-            Geen artikelen gevonden
-          </div>
-        `;
-
-
-  const reference =
-    createOrderReference(
-      order.id,
-      order.created_at
-    );
+      : "Geen artikelen";
 
 
   return `
@@ -984,7 +1024,10 @@ function adminOrderCard(
 
         <div class="order-id">
 
-          ${reference}
+          ${createOrderReference(
+            order.id,
+            order.created_at
+          )}
 
         </div>
 
@@ -1003,8 +1046,8 @@ function adminOrderCard(
       <div
         style="
           margin-top:12px;
-          font-weight:800;
           font-size:17px;
+          font-weight:800;
         "
       >
 
@@ -1020,12 +1063,7 @@ function adminOrderCard(
 
           ? `
             <div class="order-meta">
-
-              📍
-              ${adminEscapeHtml(
-                order.gemeente
-              )}
-
+              📍 ${adminEscapeHtml(order.gemeente)}
             </div>
           `
 
@@ -1037,33 +1075,13 @@ function adminOrderCard(
 
         👤
 
-        ${
-          adminEscapeHtml(
-            representative?.naam
-            ||
-            "Onbekende gebruiker"
-          )
-        }
+        ${adminEscapeHtml(
+          representative?.naam
+          ||
+          "Onbekende gebruiker"
+        )}
 
       </div>
-
-
-      ${
-        representative?.email
-
-          ? `
-            <div class="order-meta">
-
-              ✉️
-              ${adminEscapeHtml(
-                representative.email
-              )}
-
-            </div>
-          `
-
-          : ""
-      }
 
 
       <div class="order-meta">
@@ -1085,7 +1103,7 @@ function adminOrderCard(
         "
       >
 
-        ${itemsHtml}
+        ${products}
 
       </div>
 
@@ -1094,10 +1112,7 @@ function adminOrderCard(
         order.opmerking
 
           ? `
-            <div
-              class="order-meta"
-              style="margin-top:10px;"
-            >
+            <div class="order-meta">
 
               Opmerking:
               ${adminEscapeHtml(
@@ -1111,11 +1126,7 @@ function adminOrderCard(
       }
 
 
-      <label
-        style="
-          margin-top:15px;
-        "
-      >
+      <label>
         Status
       </label>
 
@@ -1177,9 +1188,8 @@ function adminOrderCard(
 }
 
 
-
 /* =========================================================
-   STATUS OPTION
+   STATUS
    ========================================================= */
 
 function adminStatusOption(
@@ -1198,20 +1208,13 @@ function adminStatusOption(
           : ""
       }
     >
-
       ${label}
-
     </option>
 
   `;
 
 }
 
-
-
-/* =========================================================
-   STATUS WIJZIGEN
-   ========================================================= */
 
 async function updateAdminOrderStatus(
   orderId,
@@ -1228,15 +1231,10 @@ async function updateAdminOrderStatus(
   } =
     await supabaseClient
 
-      .from(
-        "orders"
-      )
+      .from("orders")
 
       .update({
-
-        status:
-          status
-
+        status: status
       })
 
       .eq(
@@ -1252,13 +1250,9 @@ async function updateAdminOrderStatus(
   if (error) {
 
     alert(
-
       "Status kon niet worden gewijzigd: " +
-
       error.message
-
     );
-
 
     await loadAdminDashboard();
 
@@ -1289,9 +1283,8 @@ async function updateAdminOrderStatus(
 }
 
 
-
 /* =========================================================
-   PROFIEL OPZOEKEN
+   PROFIEL
    ========================================================= */
 
 function getAdminProfile(
@@ -1304,7 +1297,6 @@ function getAdminProfile(
   );
 
 }
-
 
 
 /* =========================================================
@@ -1345,3 +1337,40 @@ function adminEscapeHtml(
     );
 
 }
+
+
+/* =========================================================
+   MODULE AUTOMATISCH STARTEN
+   ========================================================= */
+
+document.addEventListener(
+  "DOMContentLoaded",
+  () => {
+
+    setTimeout(
+      initAdminModule,
+      500
+    );
+
+  }
+);
+
+
+supabaseClient
+  .auth
+  .onAuthStateChange(
+    () => {
+
+      setTimeout(
+        initAdminModule,
+        500
+      );
+
+    }
+  );
+
+
+setTimeout(
+  initAdminModule,
+  1500
+);
