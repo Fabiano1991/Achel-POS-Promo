@@ -672,63 +672,24 @@
       </h2>
 
 
-      <label>
-        Vertegenwoordiger
-      </label>
+     <label>
+  Vertegenwoordiger
+</label>
 
+<div class="rep-option">
 
-      <div class="rep-options">
+  <span class="rep-option-text">
 
+    <strong id="loggedInRepName">
+      Gebruiker laden...
+    </strong>
 
-        <label class="rep-option">
+    <small id="loggedInRepEmail">
+    </small>
 
-          <input
-            type="radio"
-            name="representative"
-            value="Fabiano"
-            checked
-          >
+  </span>
 
-          <span class="rep-option-text">
-
-            <strong>
-              Fabiano
-            </strong>
-
-            <small>
-              fabiovenaruzzo@hotmail.com
-            </small>
-
-          </span>
-
-        </label>
-
-
-
-        <label class="rep-option">
-
-          <input
-            type="radio"
-            name="representative"
-            value="Tom"
-          >
-
-          <span class="rep-option-text">
-
-            <strong>
-              Tom
-            </strong>
-
-            <small>
-              venaruzzofabio@gmail.com
-            </small>
-
-          </span>
-
-        </label>
-
-
-      </div>
+</div>
 
 
       <label for="customer">
@@ -1333,10 +1294,7 @@ const SUPABASE_KEY = "sb_publishable_pyiiMmH2tpl-lL3e_edcow_4ztJX-Ul";
 
 }
 
-const supabaseClient = supabase.createClient(
-  SUPABASE_URL,
-  SUPABASE_KEY
-);
+
   
 const representatives = {
 
