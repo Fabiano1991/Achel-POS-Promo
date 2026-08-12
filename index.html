@@ -30,7 +30,7 @@
   >
 
   <title>Achel POS</title>
-
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <link
     rel="manifest"
     href="./manifest.json"
@@ -1189,11 +1189,19 @@
 
 <script>
 
+const SUPABASE_URL = "https://qosjfznmdnswwfnglxqt.supabase.co";
+const SUPABASE_KEY = "sb_publishable_pyiiMmH2tpl-lL3e_edcow_4ztJX-Ul";
+
+const supabaseClient = supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_KEY
+);
+  
 const representatives = {
 
   Fabiano: {
     email:
-      "fabiovenaruzzo@hotmail.com"
+      "fabianovenaruzzo@achelsekluis.be.com"
   },
 
   Tom: {
