@@ -1,43 +1,20 @@
 <!DOCTYPE html>
 <html lang="nl">
-
 <head>
   <meta charset="UTF-8">
-
-  <meta
-    name="viewport"
-    content="width=device-width, initial-scale=1.0, viewport-fit=cover"
-  >
-
-  <meta
-    name="theme-color"
-    content="#1e2722"
-  >
-
-  <meta
-    name="apple-mobile-web-app-capable"
-    content="yes"
-  >
-
-  <meta
-    name="apple-mobile-web-app-status-bar-style"
-    content="black-translucent"
-  >
-
-  <meta
-    name="apple-mobile-web-app-title"
-    content="Achel POS"
-  >
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#1e2722">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Achel POS">
 
   <title>Achel POS</title>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <link
-    rel="manifest"
-    href="./manifest.json"
-  >
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <link rel="manifest" href="./manifest.json">
 
   <style>
-
     :root {
       --bg: #f4f2ed;
       --card: #ffffff;
@@ -56,13 +33,7 @@
 
     body {
       margin: 0;
-      font-family:
-        -apple-system,
-        BlinkMacSystemFont,
-        "Segoe UI",
-        Arial,
-        sans-serif;
-
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
       background: var(--bg);
       color: var(--dark);
     }
@@ -70,10 +41,7 @@
     header {
       background: var(--dark);
       color: white;
-      padding:
-        calc(24px + env(safe-area-inset-top))
-        20px
-        24px;
+      padding: calc(24px + env(safe-area-inset-top)) 20px 24px;
     }
 
     header h1 {
@@ -83,13 +51,17 @@
 
     header p {
       margin: 6px 0 0;
-      opacity: 0.8;
+      opacity: .8;
     }
 
-    main {
+    main,
+    #loginScreen {
       max-width: 720px;
       margin: auto;
       padding: 16px;
+    }
+
+    main {
       padding-bottom: 100px;
     }
 
@@ -99,10 +71,7 @@
       border-radius: 18px;
       padding: 18px;
       margin-bottom: 16px;
-
-      box-shadow:
-        0 3px 10px
-        rgba(0, 0, 0, 0.04);
+      box-shadow: 0 3px 10px rgba(0,0,0,.04);
     }
 
     h2 {
@@ -112,22 +81,18 @@
     label {
       display: block;
       font-weight: 700;
-      margin-top: 15px;
-      margin-bottom: 7px;
+      margin: 15px 0 7px;
     }
 
     input[type="text"],
+    input[type="email"],
+    input[type="password"],
     input[type="date"],
     textarea {
       width: 100%;
       padding: 13px;
-
-      border:
-        1px solid
-        var(--border);
-
+      border: 1px solid var(--border);
       border-radius: 12px;
-
       font-size: 16px;
       background: white;
       color: var(--dark);
@@ -141,12 +106,9 @@
     .info {
       margin-top: 10px;
       padding: 12px;
-
       border-radius: 12px;
-
       background: #f7efdf;
       color: #6b4d24;
-
       font-size: 14px;
     }
 
@@ -160,32 +122,108 @@
       color: var(--red);
     }
 
-    .category {
-      margin-top: 22px;
-      margin-bottom: 10px;
-
-      color: var(--gold);
-
-      font-size: 13px;
+    .primary {
+      width: 100%;
+      padding: 16px;
+      border: none;
+      border-radius: 14px;
+      background: var(--gold);
+      color: white;
+      font-size: 17px;
       font-weight: 800;
+      cursor: pointer;
+    }
 
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
+    .primary:disabled {
+      opacity: .55;
+    }
+
+    .secondary {
+      width: 100%;
+      padding: 14px;
+      margin-top: 10px;
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      background: white;
+      color: var(--dark);
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .home-button {
+      width: 100%;
+      text-align: left;
+      border: 1px solid var(--border);
+      background: white;
+      padding: 20px;
+      border-radius: 18px;
+      margin-bottom: 14px;
+      cursor: pointer;
+    }
+
+    .home-button strong {
+      display: block;
+      font-size: 19px;
+      margin-bottom: 5px;
+    }
+
+    .home-button span {
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .profile-box {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 14px;
+      background: white;
+    }
+
+    .profile-box strong {
+      display: block;
+    }
+
+    .profile-box small {
+      display: block;
+      color: var(--muted);
+      margin-top: 3px;
+    }
+
+    .category-tabs {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    .category-button {
+      border: 1px solid var(--border);
+      background: white;
+      border-radius: 12px;
+      padding: 12px 6px;
+      font-weight: 800;
+      color: var(--muted);
+      cursor: pointer;
+    }
+
+    .category-button.active {
+      background: var(--gold);
+      color: white;
+      border-color: var(--gold);
     }
 
     .product {
       display: flex;
       align-items: center;
       justify-content: space-between;
-
       gap: 12px;
-
-      border:
-        1px solid
-        var(--border);
-
+      border: 1px solid var(--border);
       border-radius: 14px;
-
       padding: 13px;
       margin-bottom: 10px;
     }
@@ -193,6 +231,13 @@
     .product-name {
       font-weight: 700;
       flex: 1;
+    }
+
+    .product-unit {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      margin-top: 3px;
     }
 
     .qty {
@@ -204,201 +249,43 @@
     .qty button {
       width: 42px;
       height: 42px;
-
       border-radius: 11px;
-
-      border:
-        1px solid
-        var(--border);
-
+      border: 1px solid var(--border);
       background: #f8f7f4;
       color: var(--dark);
-
       font-size: 24px;
       font-weight: 700;
-
       cursor: pointer;
     }
 
     .qty span {
       width: 34px;
-
       text-align: center;
-
       font-size: 18px;
       font-weight: 800;
     }
 
-    .primary {
-      width: 100%;
-
-      padding: 16px;
-
-      border: none;
-      border-radius: 14px;
-
-      background: var(--gold);
-      color: white;
-
-      font-size: 17px;
-      font-weight: 800;
-
-      cursor: pointer;
-    }
-
-    .secondary {
-      width: 100%;
-
-      padding: 14px;
-      margin-top: 10px;
-
-      border-radius: 14px;
-
-      border:
-        1px solid
-        var(--border);
-
-      background: white;
-      color: var(--dark);
-
-      font-size: 16px;
-      font-weight: 700;
-
-      cursor: pointer;
-    }
-
-    .home-button {
-      width: 100%;
-
-      text-align: left;
-
-      border:
-        1px solid
-        var(--border);
-
-      background: white;
-
-      padding: 20px;
-
-      border-radius: 18px;
-
-      margin-bottom: 14px;
-
-      cursor: pointer;
-    }
-
-    .home-button strong {
-      display: block;
-
-      font-size: 19px;
-
-      margin-bottom: 5px;
-    }
-
-    .home-button span {
-      color: var(--muted);
-      font-size: 14px;
-    }
-
-
-    /* VERTEGENWOORDIGERS */
-
-    .rep-options {
-      display: grid;
-      gap: 10px;
-      margin-top: 8px;
-    }
-
-    .rep-option {
-      display: flex;
-      align-items: center;
-
-      gap: 12px;
-
-      width: 100%;
-
-      padding: 14px;
-
-      margin: 0;
-
-      border:
-        1px solid
-        var(--border);
-
-      border-radius: 14px;
-
-      background: white;
-
-      cursor: pointer;
-    }
-
-    .rep-option input[type="radio"] {
-      width: 22px;
-      height: 22px;
-
-      margin: 0;
-
-      flex-shrink: 0;
-
-      accent-color: var(--gold);
-    }
-
-    .rep-option-text {
-      display: flex;
-      flex-direction: column;
-
-      gap: 3px;
-    }
-
-    .rep-option-text strong {
-      font-size: 16px;
-    }
-
-    .rep-option-text small {
-      color: var(--muted);
-      font-size: 12px;
-    }
-
-
-    /* SAMENVATTING */
-
     .summary-line {
       display: flex;
       justify-content: space-between;
-
       gap: 16px;
-
       padding: 9px 0;
-
-      border-bottom:
-        1px solid
-        #eeeeee;
+      border-bottom: 1px solid #eeeeee;
     }
-
-
-    /* AANVRAGEN */
 
     .order-card {
       background: white;
-
-      border:
-        1px solid
-        var(--border);
-
+      border: 1px solid var(--border);
       border-radius: 16px;
-
       padding: 15px;
-
       margin-bottom: 12px;
     }
 
     .order-top {
       display: flex;
-
       justify-content: space-between;
-      align-items: center;
-
       gap: 10px;
+      align-items: center;
     }
 
     .order-id {
@@ -409,58 +296,40 @@
     .status {
       background: var(--gold-soft);
       color: var(--gold);
-
       padding: 5px 9px;
-
       border-radius: 999px;
-
       font-size: 12px;
       font-weight: 800;
     }
 
     .order-meta {
       margin-top: 6px;
-
       color: var(--muted);
-
       font-size: 14px;
     }
 
     .order-items {
       margin-top: 10px;
-
       line-height: 1.5;
-
       font-size: 14px;
     }
 
     .empty {
       text-align: center;
-
       color: var(--muted);
-
       padding: 30px 10px;
     }
 
-
-    /* SUCCES */
-
     .success {
       text-align: center;
-
       padding: 28px 10px;
     }
 
     .success-icon {
       font-size: 52px;
-
       color: var(--green);
-
       margin-bottom: 10px;
     }
-
-
-    /* SCHERMEN */
 
     .hidden {
       display: none !important;
@@ -468,82 +337,51 @@
 
     .top-back {
       border: none;
-
       background: transparent;
-
       color: var(--gold);
-
       font-weight: 800;
       font-size: 15px;
-
       padding: 0;
-
       margin-bottom: 15px;
-
       cursor: pointer;
     }
 
-
-    /* ONDERSTE NAVIGATIE */
-
     .footer-nav {
       position: fixed;
-
       bottom: 0;
       left: 0;
       right: 0;
-
-      padding-bottom:
-        env(safe-area-inset-bottom);
-
+      padding-bottom: env(safe-area-inset-bottom);
       background: white;
-
-      border-top:
-        1px solid
-        var(--border);
-
+      border-top: 1px solid var(--border);
       display: grid;
-
-      grid-template-columns:
-        1fr 1fr;
-
+      grid-template-columns: 1fr 1fr;
       z-index: 20;
     }
 
     .footer-nav button {
       border: none;
-
       background: white;
-
       padding: 15px 8px;
-
       font-weight: 800;
-
       color: var(--muted);
     }
 
     .footer-nav button.active {
       color: var(--gold);
     }
-
   </style>
-
 </head>
-
 
 <body>
 
 <header>
-
   <h1>Achel POS</h1>
-
-  <p>
-    Interne POS & promo bestelapp
-  </p>
-
+  <p>Interne POS & promo bestelapp</p>
 </header>
 
-  <!-- LOGIN SCHERM -->
+
+<!-- LOGIN -->
 
 <section id="loginScreen">
 
@@ -596,591 +434,413 @@
 </section>
 
 
-<main id="appMain" class="hidden">
+<!-- APP -->
+
+<main
+  id="appMain"
+  class="hidden"
+>
 
 
+<!-- HOME -->
 
-  <!-- HOME -->
+<section id="homeScreen">
 
-  <section id="homeScreen">
+  <div class="card">
 
-    <div class="card">
+    <h2 id="welcomeTitle">
+      Welkom
+    </h2>
 
-      <h2>Welkom</h2>
-
-      <p>
-        Kies wat je wilt doen.
-      </p>
-
-    </div>
-
-
-    <button
-      class="home-button"
-      onclick="openNewOrder()"
-    >
-
-      <strong>
-        Nieuwe aanvraag
-      </strong>
-
-      <span>
-        POS-materiaal of bier aanvragen
-      </span>
-
-    </button>
-
+    <p>
+      Je bent ingelogd als
+      <strong id="homeRepName">...</strong>.
+    </p>
 
     <button
-      class="home-button"
-      onclick="openOrders()"
+      class="secondary"
+      type="button"
+      onclick="logoutUser()"
     >
-
-      <strong>
-        Mijn aanvragen
-      </strong>
-
-      <span>
-        Bekijk eerdere aanvragen op dit toestel
-      </span>
-
+      Uitloggen
     </button>
 
-  </section>
+  </div>
 
 
-
-  <!-- NIEUWE AANVRAAG -->
-
-  <section
-    id="orderScreen"
-    class="hidden"
+  <button
+    class="home-button"
+    onclick="openNewOrder()"
   >
 
-    <button
-      class="top-back"
-      onclick="goHome()"
-    >
-      ← Terug
-    </button>
-
-
-    <div class="card">
-
-      <h2>
-        Nieuwe aanvraag
-      </h2>
-
-
-     <label>
-  Vertegenwoordiger
-</label>
-
-<div class="rep-option">
-
-  <span class="rep-option-text">
-
-    <strong id="loggedInRepName">
-      Gebruiker laden...
+    <strong>
+      Nieuwe aanvraag
     </strong>
 
-    <small id="loggedInRepEmail">
-    </small>
+    <span>
+      Bier, evenementenmateriaal of POS aanvragen
+    </span>
 
-  </span>
+  </button>
 
-</div>
 
+  <button
+    class="home-button"
+    onclick="openOrders()"
+  >
 
-      <label for="customer">
-        Horecazaak / klant
-      </label>
+    <strong>
+      Mijn aanvragen
+    </strong>
 
-      <input
-        id="customer"
-        type="text"
-        placeholder="Bijv. Café De Markt, Genk"
-      >
+    <span>
+      Bekijk je centraal opgeslagen aanvragen
+    </span>
 
+  </button>
 
-      <label for="pickup">
-        Gewenste afhaaldatum
-      </label>
+</section>
 
-      <input
-        id="pickup"
-        type="date"
-      >
 
 
-      <div
-        id="dateInfo"
-        class="info"
-      >
+<!-- NIEUWE AANVRAAG -->
 
-        De aanvraag moet minstens
-        2 dagen vóór afhaling gebeuren.
+<section
+  id="orderScreen"
+  class="hidden"
+>
 
-      </div>
+  <button
+    class="top-back"
+    onclick="goHome()"
+  >
+    ← Terug
+  </button>
 
 
-      <label for="note">
-        Opmerking
-      </label>
+  <div class="card">
 
-      <textarea
-        id="note"
-        placeholder="Bijv. materiaal voor nieuwe plaatsing of promotieactie"
-      ></textarea>
+    <h2>
+      Nieuwe aanvraag
+    </h2>
 
-    </div>
 
+    <label>
+      Vertegenwoordiger
+    </label>
 
 
-    <!-- MATERIALEN -->
+    <div class="profile-box">
 
-    <div class="card">
+      <div>
 
-      <h2>
-        Materialen
-      </h2>
+        <strong id="loggedInRepName">
+          Gebruiker laden...
+        </strong>
 
-
-      <div class="category">
-        Achel bier
-      </div>
-
-
-      <div class="product">
-
-        <div class="product-name">
-          Achel Tripel 33cl
-        </div>
-
-        <div class="qty">
-
-          <button
-            type="button"
-            onclick="changeQty('tripel33', -1)"
-          >
-            −
-          </button>
-
-          <span id="tripel33">
-            0
-          </span>
-
-          <button
-            type="button"
-            onclick="changeQty('tripel33', 1)"
-          >
-            +
-          </button>
-
-        </div>
-
-      </div>
-
-
-
-      <div class="product">
-
-        <div class="product-name">
-          Achel Tripel 20L
-        </div>
-
-        <div class="qty">
-
-          <button
-            type="button"
-            onclick="changeQty('tripel20', -1)"
-          >
-            −
-          </button>
-
-          <span id="tripel20">
-            0
-          </span>
-
-          <button
-            type="button"
-            onclick="changeQty('tripel20', 1)"
-          >
-            +
-          </button>
-
-        </div>
-
-      </div>
-
-
-
-      <div class="product">
-
-        <div class="product-name">
-          Achel Dubbel 33cl
-        </div>
-
-        <div class="qty">
-
-          <button
-            type="button"
-            onclick="changeQty('dubbel33', -1)"
-          >
-            −
-          </button>
-
-          <span id="dubbel33">
-            0
-          </span>
-
-          <button
-            type="button"
-            onclick="changeQty('dubbel33', 1)"
-          >
-            +
-          </button>
-
-        </div>
-
-      </div>
-
-
-
-      <div class="product">
-
-        <div class="product-name">
-          Achel Dubbel 20L
-        </div>
-
-        <div class="qty">
-
-          <button
-            type="button"
-            onclick="changeQty('dubbel20', -1)"
-          >
-            −
-          </button>
-
-          <span id="dubbel20">
-            0
-          </span>
-
-          <button
-            type="button"
-            onclick="changeQty('dubbel20', 1)"
-          >
-            +
-          </button>
-
-        </div>
-
-      </div>
-
-
-
-      <div class="category">
-        POS-materiaal
-      </div>
-
-
-      <div class="product">
-
-        <div class="product-name">
-          Bierviltjes
-        </div>
-
-        <div class="qty">
-
-          <button
-            type="button"
-            onclick="changeQty('bierviltjes', -1)"
-          >
-            −
-          </button>
-
-          <span id="bierviltjes">
-            0
-          </span>
-
-          <button
-            type="button"
-            onclick="changeQty('bierviltjes', 1)"
-          >
-            +
-          </button>
-
-        </div>
-
-      </div>
-
-
-
-      <div class="product">
-
-        <div class="product-name">
-          Glazen
-        </div>
-
-        <div class="qty">
-
-          <button
-            type="button"
-            onclick="changeQty('glazen', -1)"
-          >
-            −
-          </button>
-
-          <span id="glazen">
-            0
-          </span>
-
-          <button
-            type="button"
-            onclick="changeQty('glazen', 1)"
-          >
-            +
-          </button>
-
-        </div>
-
-      </div>
-
-
-
-      <div class="product">
-
-        <div class="product-name">
-          Taplens
-        </div>
-
-        <div class="qty">
-
-          <button
-            type="button"
-            onclick="changeQty('taplens', -1)"
-          >
-            −
-          </button>
-
-          <span id="taplens">
-            0
-          </span>
-
-          <button
-            type="button"
-            onclick="changeQty('taplens', 1)"
-          >
-            +
-          </button>
-
-        </div>
-
-      </div>
-
-
-
-      <div class="product">
-
-        <div class="product-name">
-          Wandbord
-        </div>
-
-        <div class="qty">
-
-          <button
-            type="button"
-            onclick="changeQty('wandbord', -1)"
-          >
-            −
-          </button>
-
-          <span id="wandbord">
-            0
-          </span>
-
-          <button
-            type="button"
-            onclick="changeQty('wandbord', 1)"
-          >
-            +
-          </button>
-
-        </div>
+        <small id="loggedInRepEmail">
+        </small>
 
       </div>
 
     </div>
 
 
-    <div class="card">
+    <label for="customer">
+      Horecazaak / klant
+    </label>
+
+    <input
+      id="customer"
+      type="text"
+      placeholder="Bijv. Café De Markt"
+    >
+
+
+    <label for="municipality">
+      Gemeente
+    </label>
+
+    <input
+      id="municipality"
+      type="text"
+      placeholder="Bijv. Genk"
+    >
+
+
+    <label for="pickup">
+      Gewenste afhaaldatum
+    </label>
+
+    <input
+      id="pickup"
+      type="date"
+    >
+
+
+    <div
+      id="dateInfo"
+      class="info"
+    >
+      De aanvraag moet minstens
+      2 dagen vóór afhaling gebeuren.
+    </div>
+
+
+    <label for="note">
+      Opmerking
+    </label>
+
+    <textarea
+      id="note"
+      placeholder="Bijv. materiaal voor nieuwe plaatsing of promotieactie"
+    ></textarea>
+
+  </div>
+
+
+
+  <!-- MATERIALEN -->
+
+  <div class="card">
+
+    <h2>
+      Materialen
+    </h2>
+
+
+    <div class="category-tabs">
 
       <button
-        class="primary"
-        onclick="showSummary()"
+        id="tab-bier"
+        class="category-button active"
+        type="button"
+        onclick="setCategory('bier')"
       >
-        Aanvraag controleren
+        🍺 Bier
+      </button>
+
+
+      <button
+        id="tab-evenement"
+        class="category-button"
+        type="button"
+        onclick="setCategory('evenement')"
+      >
+        🎪 Event
+      </button>
+
+
+      <button
+        id="tab-pos"
+        class="category-button"
+        type="button"
+        onclick="setCategory('pos')"
+      >
+        📣 POS
       </button>
 
     </div>
 
-  </section>
+
+    <div id="productsList">
+
+      <div class="empty">
+        Producten laden...
+      </div>
+
+    </div>
+
+  </div>
 
 
-
-  <!-- CONTROLE -->
-
-  <section
-    id="summaryScreen"
-    class="hidden"
-  >
+  <div class="card">
 
     <button
-      class="top-back"
-      onclick="backToOrder()"
+      class="primary"
+      onclick="showSummary()"
     >
-      ← Terug aanpassen
+      Aanvraag controleren
+    </button>
+
+  </div>
+
+</section>
+
+
+
+<!-- SAMENVATTING -->
+
+<section
+  id="summaryScreen"
+  class="hidden"
+>
+
+  <button
+    class="top-back"
+    onclick="backToOrder()"
+  >
+    ← Terug aanpassen
+  </button>
+
+
+  <div class="card">
+
+    <h2>
+      Controleer aanvraag
+    </h2>
+
+
+    <p>
+      <strong>
+        Vertegenwoordiger:
+      </strong>
+      <br>
+      <span id="summaryRep"></span>
+    </p>
+
+
+    <p>
+      <strong>
+        Klant:
+      </strong>
+      <br>
+      <span id="summaryCustomer"></span>
+    </p>
+
+
+    <p>
+      <strong>
+        Gemeente:
+      </strong>
+      <br>
+      <span id="summaryMunicipality"></span>
+    </p>
+
+
+    <p>
+      <strong>
+        Afhalen:
+      </strong>
+      <br>
+      <span id="summaryPickup"></span>
+    </p>
+
+
+    <div id="summaryProducts"></div>
+
+
+    <p id="summaryNote"></p>
+
+
+    <button
+      id="submitButton"
+      class="primary"
+      onclick="submitOrder()"
+    >
+      Aanvraag verzenden
+    </button>
+
+  </div>
+
+</section>
+
+
+
+<!-- SUCCES -->
+
+<section
+  id="successScreen"
+  class="hidden"
+>
+
+  <div class="card success">
+
+    <div class="success-icon">
+      ✓
+    </div>
+
+    <h2>
+      Aanvraag geregistreerd
+    </h2>
+
+    <p>
+      Aanvraagreferentie:
+      <br>
+      <strong id="successOrderId"></strong>
+    </p>
+
+    <p>
+      De aanvraag is centraal opgeslagen
+      en staat onder Mijn aanvragen.
+    </p>
+
+
+    <button
+      class="primary"
+      onclick="openOrders()"
+    >
+      Mijn aanvragen bekijken
     </button>
 
 
-    <div class="card">
-
-      <h2>
-        Controleer aanvraag
-      </h2>
-
-
-      <p>
-        <strong>
-          Vertegenwoordiger:
-        </strong>
-        <br>
-
-        <span id="summaryRep"></span>
-      </p>
-
-
-      <p>
-        <strong>
-          Klant:
-        </strong>
-        <br>
-
-        <span id="summaryCustomer"></span>
-      </p>
-
-
-      <p>
-        <strong>
-          Afhalen:
-        </strong>
-        <br>
-
-        <span id="summaryPickup"></span>
-      </p>
-
-
-      <div id="summaryProducts"></div>
-
-
-      <p id="summaryNote"></p>
-
-
-      <button
-        class="primary"
-        onclick="submitOrder()"
-      >
-        Aanvraag verzenden
-      </button>
-
-    </div>
-
-  </section>
-
-
-
-  <!-- SUCCES -->
-
-  <section
-    id="successScreen"
-    class="hidden"
-  >
-
-    <div class="card success">
-
-      <div class="success-icon">
-        ✓
-      </div>
-
-      <h2>
-        Aanvraag aangemaakt
-      </h2>
-
-      <p>
-        Aanvraagnummer:
-        <strong id="successOrderId"></strong>
-      </p>
-
-      <p>
-        De aanvraag staat ook
-        onder Mijn aanvragen.
-      </p>
-
-
-      <button
-        class="primary"
-        onclick="openOrders()"
-      >
-        Mijn aanvragen bekijken
-      </button>
-
-
-      <button
-        class="secondary"
-        onclick="newOrder()"
-      >
-        Nieuwe aanvraag
-      </button>
-
-    </div>
-
-  </section>
-
-
-
-  <!-- MIJN AANVRAGEN -->
-
-  <section
-    id="ordersScreen"
-    class="hidden"
-  >
-
     <button
-      class="top-back"
-      onclick="goHome()"
+      class="secondary"
+      onclick="newOrder()"
     >
-      ← Terug
+      Nieuwe aanvraag
     </button>
 
+  </div>
 
-    <div class="card">
+</section>
 
-      <h2>
-        Mijn aanvragen
-      </h2>
 
-      <div id="ordersList"></div>
+
+<!-- MIJN AANVRAGEN -->
+
+<section
+  id="ordersScreen"
+  class="hidden"
+>
+
+  <button
+    class="top-back"
+    onclick="goHome()"
+  >
+    ← Terug
+  </button>
+
+
+  <div class="card">
+
+    <h2>
+      Mijn aanvragen
+    </h2>
+
+    <div id="ordersList">
+
+      <div class="empty">
+        Aanvragen laden...
+      </div>
 
     </div>
 
-  </section>
+  </div>
+
+</section>
 
 
 </main>
 
 
 
-<nav class="footer-nav">
+<!-- NAVIGATIE -->
+
+<nav
+  id="footerNav"
+  class="footer-nav hidden"
+>
 
   <button
     id="navHome"
@@ -1203,10 +863,46 @@
 
 <script>
 
-const SUPABASE_URL = "https://qosjfznmdnswwfnglxqt.supabase.co";
-const SUPABASE_KEY = "sb_publishable_pyiiMmH2tpl-lL3e_edcow_4ztJX-Ul";
+const SUPABASE_URL =
+  "https://qosjfznmdnswwfnglxqt.supabase.co";
 
-  async function loginUser() {
+const SUPABASE_KEY =
+  "sb_publishable_pyiiMmH2tpl-lL3e_edcow_4ztJX-Ul";
+
+
+/*
+  CENTRALE TESTMAILBOX
+*/
+
+const CENTRAL_EMAIL =
+  "fabiovenaruzzo@hotmail.com";
+
+
+const supabaseClient =
+  supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_KEY
+  );
+
+
+let currentUser = null;
+
+let currentProfile = null;
+
+let allProducts = [];
+
+let selectedCategory =
+  "bier";
+
+const quantities = {};
+
+
+
+/* =========================
+   LOGIN
+========================= */
+
+async function loginUser() {
 
   const email =
     document
@@ -1214,216 +910,701 @@ const SUPABASE_KEY = "sb_publishable_pyiiMmH2tpl-lL3e_edcow_4ztJX-Ul";
       .value
       .trim();
 
+
   const password =
     document
       .getElementById("loginPassword")
       .value;
 
-  const message =
-    document
-      .getElementById("loginMessage");
-
 
   if (!email || !password) {
 
-    message.className =
-      "info error";
-
-    message.innerText =
-      "Vul je e-mailadres en wachtwoord in.";
+    showLoginMessage(
+      "Vul je e-mailadres en wachtwoord in.",
+      true
+    );
 
     return;
   }
 
 
-  message.className =
-    "info";
-
-  message.innerText =
-    "Bezig met inloggen...";
+  showLoginMessage(
+    "Bezig met inloggen...",
+    false
+  );
 
 
   const { data, error } =
-    await supabaseClient.auth.signInWithPassword({
-      email: email,
-      password: password
-    });
+    await supabaseClient
+      .auth
+      .signInWithPassword({
+
+        email:
+          email,
+
+        password:
+          password
+
+      });
 
 
-  if (error) {
+  if (
+    error ||
+    !data.user
+  ) {
 
-    message.className =
-      "info error";
+    showLoginMessage(
 
-    message.innerText =
-      "Inloggen mislukt: " + error.message;
+      "Inloggen mislukt: " +
+      (
+        error?.message
+        ||
+        "Gebruiker niet gevonden."
+      ),
+
+      true
+
+    );
 
     return;
   }
 
 
-  if (!data.user) {
+  currentUser =
+    data.user;
 
-    message.className =
-      "info error";
 
-    message.innerText =
-      "Gebruiker kon niet worden gevonden.";
+  if (
+    await loadCurrentProfile()
+  ) {
 
-    return;
+    await startApp();
+
   }
+
+}
+
+
+
+function showLoginMessage(
+  text,
+  isError
+) {
+
+  const message =
+    document.getElementById(
+      "loginMessage"
+    );
 
 
   message.className =
-    "info ok";
+    isError
+      ? "info error"
+      : "info";
+
 
   message.innerText =
-    "Inloggen gelukt.";
+    text;
 
+}
+
+
+
+/* =========================
+   PROFIEL
+========================= */
+
+async function loadCurrentProfile() {
+
+  if (!currentUser) {
+
+    return false;
+
+  }
+
+
+  const { data, error } =
+    await supabaseClient
+
+      .from("profiles")
+
+      .select(
+        "id, naam, email, rol, actief"
+      )
+
+      .eq(
+        "id",
+        currentUser.id
+      )
+
+      .single();
+
+
+  if (
+    error ||
+    !data
+  ) {
+
+    showLoginMessage(
+
+      "Je login werkt, maar je profiel kon niet worden geladen: " +
+      (
+        error?.message
+        ||
+        "Onbekende fout"
+      ),
+
+      true
+
+    );
+
+    return false;
+  }
+
+
+  if (
+    !data.actief
+  ) {
+
+    await supabaseClient
+      .auth
+      .signOut();
+
+
+    currentUser =
+      null;
+
+
+    showLoginMessage(
+      "Dit Achel POS-account is niet actief.",
+      true
+    );
+
+
+    return false;
+
+  }
+
+
+  currentProfile =
+    data;
+
+
+  return true;
+
+}
+
+
+
+/* =========================
+   APP START
+========================= */
+
+async function startApp() {
 
   document
-    .getElementById("loginScreen")
+    .getElementById(
+      "loginScreen"
+    )
     .classList
     .add("hidden");
 
 
   document
-    .getElementById("appMain")
+    .getElementById(
+      "appMain"
+    )
     .classList
     .remove("hidden");
-// Ingelogde vertegenwoordiger automatisch bepalen
-const loggedInEmail = data.user.email.toLowerCase();
 
-let loggedInRep = null;
 
-for (const [name, rep] of Object.entries(representatives)) {
-  if (rep.email.toLowerCase() === loggedInEmail) {
-    loggedInRep = {
-      name: name,
-      email: rep.email
-    };
-    break;
-  }
+  document
+    .getElementById(
+      "footerNav"
+    )
+    .classList
+    .remove("hidden");
+
+
+  document
+    .getElementById(
+      "loggedInRepName"
+    )
+    .innerText =
+      currentProfile.naam;
+
+
+  document
+    .getElementById(
+      "loggedInRepEmail"
+    )
+    .innerText =
+      currentProfile.email
+      ||
+      currentUser.email
+      ||
+      "";
+
+
+  document
+    .getElementById(
+      "homeRepName"
+    )
+    .innerText =
+      currentProfile.naam;
+
+
+  document
+    .getElementById(
+      "welcomeTitle"
+    )
+    .innerText =
+      `Welkom, ${currentProfile.naam}`;
+
+
+  await loadProducts();
+
+
+  goHome();
+
 }
 
-if (loggedInRep) {
-  document.getElementById("loggedInRepName").innerText = loggedInRep.name;
-  document.getElementById("loggedInRepEmail").innerText = loggedInRep.email;
+
+
+/* =========================
+   UITLOGGEN
+========================= */
+
+async function logoutUser() {
+
+  await supabaseClient
+    .auth
+    .signOut();
+
+
+  currentUser =
+    null;
+
+
+  currentProfile =
+    null;
+
+
+  allProducts =
+    [];
+
+
+  document
+    .getElementById(
+      "appMain"
+    )
+    .classList
+    .add("hidden");
+
+
+  document
+    .getElementById(
+      "footerNav"
+    )
+    .classList
+    .add("hidden");
+
+
+  document
+    .getElementById(
+      "loginScreen"
+    )
+    .classList
+    .remove("hidden");
+
+
+  document
+    .getElementById(
+      "loginPassword"
+    )
+    .value =
+      "";
+
+
+  document
+    .getElementById(
+      "loginMessage"
+    )
+    .className =
+      "info hidden";
+
 }
-}
 
 
-  
-const representatives = {
 
-  Fabiano: {
-    email:
-      "fabianovenaruzzo@achelsekluis.be.com"
-  },
+/* =========================
+   BESTAANDE LOGIN CONTROLEREN
+========================= */
 
-  Tom: {
-    email:
-      "venaruzzofabio@gmail.com"
+async function checkExistingSession() {
+
+  const { data, error } =
+    await supabaseClient
+      .auth
+      .getSession();
+
+
+  if (
+    error ||
+    !data.session?.user
+  ) {
+
+    return;
+
   }
 
-};
+
+  currentUser =
+    data.session.user;
 
 
-const products = {
+  if (
+    await loadCurrentProfile()
+  ) {
 
-  tripel33: {
-    name:
-      "Achel Tripel 33cl",
-    qty: 0
-  },
+    await startApp();
 
-  tripel20: {
-    name:
-      "Achel Tripel 20L",
-    qty: 0
-  },
-
-  dubbel33: {
-    name:
-      "Achel Dubbel 33cl",
-    qty: 0
-  },
-
-  dubbel20: {
-    name:
-      "Achel Dubbel 20L",
-    qty: 0
-  },
-
-  bierviltjes: {
-    name:
-      "Bierviltjes",
-    qty: 0
-  },
-
-  glazen: {
-    name:
-      "Glazen",
-    qty: 0
-  },
-
-  taplens: {
-    name:
-      "Taplens",
-    qty: 0
-  },
-
-  wandbord: {
-    name:
-      "Wandbord",
-    qty: 0
   }
 
-};
+}
 
 
 
-function showOnly(screenId) {
+/* =========================
+   PRODUCTEN LADEN
+========================= */
 
-  const screens = [
+async function loadProducts() {
+
+  const { data, error } =
+    await supabaseClient
+
+      .from("products")
+
+      .select(
+        "id, naam, categorie, eenheid, sort_order"
+      )
+
+      .eq(
+        "actief",
+        true
+      )
+
+      .order(
+        "sort_order",
+        {
+          ascending: true
+        }
+      );
+
+
+  if (error) {
+
+    document
+      .getElementById(
+        "productsList"
+      )
+      .innerHTML =
+
+        `<div class="info error">
+          Producten konden niet worden geladen:
+          ${escapeHtml(error.message)}
+        </div>`;
+
+
+    return;
+  }
+
+
+  allProducts =
+    data || [];
+
+
+  allProducts
+    .forEach(
+      product => {
+
+        if (
+          quantities[
+            product.id
+          ] === undefined
+        ) {
+
+          quantities[
+            product.id
+          ] = 0;
+
+        }
+
+      }
+    );
+
+
+  renderProducts();
+
+}
+
+
+
+/* =========================
+   CATEGORIE
+========================= */
+
+function setCategory(
+  category
+) {
+
+  selectedCategory =
+    category;
+
+
+  [
+    "bier",
+    "evenement",
+    "pos"
+  ]
+    .forEach(
+      name => {
+
+        document
+          .getElementById(
+            `tab-${name}`
+          )
+          .classList
+          .toggle(
+            "active",
+            name === category
+          );
+
+      }
+    );
+
+
+  renderProducts();
+
+}
+
+
+
+/* =========================
+   PRODUCTEN TONEN
+========================= */
+
+function renderProducts() {
+
+  const container =
+    document.getElementById(
+      "productsList"
+    );
+
+
+  const products =
+    allProducts
+      .filter(
+        product =>
+          product.categorie ===
+          selectedCategory
+      );
+
+
+  if (
+    products.length === 0
+  ) {
+
+    container.innerHTML =
+      `
+        <div class="empty">
+          Nog geen artikelen in deze categorie.
+        </div>
+      `;
+
+
+    return;
+
+  }
+
+
+  container.innerHTML =
+
+    products
+      .map(
+        product => `
+
+          <div class="product">
+
+            <div class="product-name">
+
+              ${escapeHtml(
+                product.naam
+              )}
+
+              ${
+                product.eenheid
+
+                  ? `
+                    <span class="product-unit">
+
+                      Per ${escapeHtml(
+                        product.eenheid
+                      )}
+
+                    </span>
+                  `
+
+                  : ""
+              }
+
+            </div>
+
+
+            <div class="qty">
+
+              <button
+                type="button"
+                onclick="changeQty(${product.id}, -1)"
+              >
+                −
+              </button>
+
+
+              <span
+                id="qty-${product.id}"
+              >
+                ${quantities[product.id] || 0}
+              </span>
+
+
+              <button
+                type="button"
+                onclick="changeQty(${product.id}, 1)"
+              >
+                +
+              </button>
+
+            </div>
+
+          </div>
+
+        `
+      )
+
+      .join("");
+
+}
+
+
+
+/* =========================
+   AANTALLEN
+========================= */
+
+function changeQty(
+  productId,
+  amount
+) {
+
+  const current =
+    quantities[
+      productId
+    ] || 0;
+
+
+  quantities[
+    productId
+  ] =
+    Math.max(
+      0,
+      current + amount
+    );
+
+
+  const element =
+    document.getElementById(
+      `qty-${productId}`
+    );
+
+
+  if (element) {
+
+    element.innerText =
+      quantities[
+        productId
+      ];
+
+  }
+
+}
+
+
+
+function selectedProducts() {
+
+  return allProducts
+
+    .filter(
+      product =>
+        (
+          quantities[
+            product.id
+          ] || 0
+        ) > 0
+    )
+
+    .map(
+      product => ({
+
+        ...product,
+
+        qty:
+          quantities[
+            product.id
+          ]
+
+      })
+    );
+
+}
+
+
+
+/* =========================
+   SCHERMEN
+========================= */
+
+function showOnly(
+  screenId
+) {
+
+  [
     "homeScreen",
     "orderScreen",
     "summaryScreen",
     "successScreen",
     "ordersScreen"
-  ];
+  ]
+    .forEach(
+      id => {
 
+        document
+          .getElementById(id)
+          ?.classList
+          .add("hidden");
 
-  screens.forEach(id => {
-
-    const element =
-      document.getElementById(id);
-
-
-    if (element) {
-
-      element
-        .classList
-        .add("hidden");
-
-    }
-
-  });
-
-
-  const target =
-    document.getElementById(
-      screenId
+      }
     );
 
 
-  if (target) {
-
-    target
-      .classList
-      .remove("hidden");
-
-  }
+  document
+    .getElementById(
+      screenId
+    )
+    ?.classList
+    .remove("hidden");
 
 }
 
@@ -1436,16 +1617,9 @@ function goHome() {
   );
 
 
-  document
-    .getElementById("navHome")
-    ?.classList
-    .add("active");
-
-
-  document
-    .getElementById("navOrders")
-    ?.classList
-    .remove("active");
+  setNav(
+    "home"
+  );
 
 }
 
@@ -1458,106 +1632,64 @@ function openNewOrder() {
   );
 
 
-  document
-    .getElementById("navHome")
-    ?.classList
-    .add("active");
-
-
-  document
-    .getElementById("navOrders")
-    ?.classList
-    .remove("active");
+  setNav(
+    "home"
+  );
 
 }
 
 
 
-function openOrders() {
-
-  renderOrders();
-
+async function openOrders() {
 
   showOnly(
     "ordersScreen"
   );
 
 
-  document
-    .getElementById("navHome")
-    ?.classList
-    .remove("active");
+  setNav(
+    "orders"
+  );
 
 
-  document
-    .getElementById("navOrders")
-    ?.classList
-    .add("active");
+  await renderOrders();
 
 }
 
 
 
-function getSelectedRepresentative() {
+function setNav(
+  active
+) {
 
-  const selected =
-    loggedInrep;
-      'input[name="representative"]:checked'
+  document
+    .getElementById(
+      "navHome"
+    )
+    ?.classList
+    .toggle(
+      "active",
+      active === "home"
     );
 
 
-  if (!selected) {
-
-    return null;
-
-  }
-
-
-  return selected.value;
-
-}
-
-
-
-function changeQty(
-  id,
-  amount
-) {
-
-  if (!products[id]) {
-
-    return;
-
-  }
-
-
-  products[id].qty +=
-    amount;
-
-
-  if (
-    products[id].qty < 0
-  ) {
-
-    products[id].qty = 0;
-
-  }
-
-
-  const element =
-    document.getElementById(id);
-
-
-  if (element) {
-
-    element.innerText =
-      products[id].qty;
-
-  }
+  document
+    .getElementById(
+      "navOrders"
+    )
+    ?.classList
+    .toggle(
+      "active",
+      active === "orders"
+    );
 
 }
 
 
+
+/* =========================
+   AFHAALDATUM
+========================= */
 
 function getMinimumPickupDate() {
 
@@ -1584,7 +1716,9 @@ function getMinimumPickupDate() {
 
 
 
-function formatISO(date) {
+function formatISO(
+  date
+) {
 
   const year =
     date.getFullYear();
@@ -1624,21 +1758,17 @@ const pickupInput =
   );
 
 
-if (pickupInput) {
-
-  pickupInput.min =
-    formatISO(
-      getMinimumPickupDate()
-    );
+pickupInput.min =
+  formatISO(
+    getMinimumPickupDate()
+  );
 
 
-  pickupInput
-    .addEventListener(
-      "change",
-      validatePickupDate
-    );
-
-}
+pickupInput
+  .addEventListener(
+    "change",
+    validatePickupDate
+  );
 
 
 
@@ -1648,16 +1778,6 @@ function validatePickupDate() {
     document.getElementById(
       "dateInfo"
     );
-
-
-  if (
-    !pickupInput ||
-    !info
-  ) {
-
-    return false;
-
-  }
 
 
   if (
@@ -1719,33 +1839,19 @@ function validatePickupDate() {
 
 
 
+/* =========================
+   SAMENVATTING
+========================= */
+
 function showSummary() {
 
-  const rep =
-    getSelectedRepresentative();
-
-
-  if (!rep) {
-
-    alert(
-      "Kies eerst een vertegenwoordiger."
-    );
-
-    return;
-
-  }
-
-
-  const customerElement =
-    document.getElementById(
-      "customer"
-    );
-
-
-  if (!customerElement) {
+  if (
+    !currentUser ||
+    !currentProfile
+  ) {
 
     alert(
-      "Het klantveld kon niet worden gevonden."
+      "Je sessie is verlopen. Log opnieuw in."
     );
 
     return;
@@ -1754,9 +1860,34 @@ function showSummary() {
 
 
   const customer =
-    customerElement
+    document
+      .getElementById(
+        "customer"
+      )
       .value
       .trim();
+
+
+  const municipality =
+    document
+      .getElementById(
+        "municipality"
+      )
+      .value
+      .trim();
+
+
+  const note =
+    document
+      .getElementById(
+        "note"
+      )
+      .value
+      .trim();
+
+
+  const chosenProducts =
+    selectedProducts();
 
 
   if (!customer) {
@@ -1783,17 +1914,8 @@ function showSummary() {
   }
 
 
-  const selected =
-    Object
-      .values(products)
-      .filter(
-        product =>
-          product.qty > 0
-      );
-
-
   if (
-    selected.length === 0
+    chosenProducts.length === 0
   ) {
 
     alert(
@@ -1810,7 +1932,8 @@ function showSummary() {
       "summaryRep"
     )
     .innerText =
-      rep;
+
+      `${currentProfile.naam} (${currentProfile.email || currentUser.email || ""})`;
 
 
   document
@@ -1823,59 +1946,51 @@ function showSummary() {
 
   document
     .getElementById(
+      "summaryMunicipality"
+    )
+    .innerText =
+
+      municipality
+      ||
+      "Niet ingevuld";
+
+
+  document
+    .getElementById(
       "summaryPickup"
     )
     .innerText =
       pickupInput.value;
 
 
-  const container =
-    document.getElementById(
+  document
+    .getElementById(
       "summaryProducts"
-    );
+    )
+    .innerHTML =
 
+      chosenProducts
+        .map(
+          product => `
 
-  container.innerHTML =
-    "";
+            <div class="summary-line">
 
+              <span>
+                ${escapeHtml(
+                  product.naam
+                )}
+              </span>
 
-  selected.forEach(
-    product => {
+              <strong>
+                ${product.qty}
+              </strong>
 
-      const row =
-        document.createElement(
-          "div"
-        );
+            </div>
 
+          `
+        )
 
-      row.className =
-        "summary-line";
-
-
-      row.innerHTML =
-        `
-          <span>
-            ${product.name}
-          </span>
-
-          <strong>
-            ${product.qty}
-          </strong>
-        `;
-
-
-      container
-        .appendChild(row);
-
-    }
-  );
-
-
-  const note =
-    document
-      .getElementById("note")
-      .value
-      .trim();
+        .join("");
 
 
   document
@@ -1885,9 +2000,7 @@ function showSummary() {
     .innerText =
 
       note
-
-        ? "Opmerking: " + note
-
+        ? `Opmerking: ${note}`
         : "";
 
 
@@ -1909,81 +2022,19 @@ function backToOrder() {
 
 
 
-function generateOrderId() {
+/* =========================
+   AANVRAAG OPSLAAN
+========================= */
 
-  const year =
-    new Date()
-      .getFullYear();
-
-
-  let counter =
-    parseInt(
-
-      localStorage
-        .getItem(
-          "achelOrderCounter"
-        )
-
-      || "0"
-
-    );
-
-
-  counter++;
-
-
-  localStorage
-    .setItem(
-      "achelOrderCounter",
-      counter
-    );
-
-
-  const number =
-    String(counter)
-      .padStart(
-        3,
-        "0"
-      );
-
-
-  return (
-    `POS-${year}-${number}`
-  );
-
-}
-
-
-
-function submitOrder() {
-
-  const repName =
-    getSelectedRepresentative();
-
-
-  if (!repName) {
-
-    alert(
-      "Kies eerst een vertegenwoordiger."
-    );
-
-    return;
-
-  }
-
-
-  const representative =
-    representatives[
-      repName
-    ];
-
+async function submitOrder() {
 
   if (
-    !representative
+    !currentUser ||
+    !currentProfile
   ) {
 
     alert(
-      "Geen e-mailadres gevonden voor deze vertegenwoordiger."
+      "Je sessie is verlopen. Log opnieuw in."
     );
 
     return;
@@ -1991,222 +2042,201 @@ function submitOrder() {
   }
 
 
-  const repEmail =
-    representative.email;
+  const chosenProducts =
+    selectedProducts();
 
 
-  const orderId =
-    generateOrderId();
+  if (
+    chosenProducts.length === 0
+  ) {
+
+    alert(
+      "Er zijn geen materialen geselecteerd."
+    );
+
+    return;
+
+  }
 
 
-  const selectedProducts =
-    Object
-      .values(products)
+  const submitButton =
+    document.getElementById(
+      "submitButton"
+    );
 
-      .filter(
-        product =>
-          product.qty > 0
+
+  submitButton.disabled =
+    true;
+
+
+  submitButton.innerText =
+    "Aanvraag opslaan...";
+
+
+  const customer =
+    document
+      .getElementById(
+        "customer"
+      )
+      .value
+      .trim();
+
+
+  const municipality =
+    document
+      .getElementById(
+        "municipality"
+      )
+      .value
+      .trim();
+
+
+  const note =
+    document
+      .getElementById(
+        "note"
+      )
+      .value
+      .trim();
+
+
+  const {
+    data: order,
+    error: orderError
+  } =
+    await supabaseClient
+
+      .from("orders")
+
+      .insert({
+
+        user_id:
+          currentUser.id,
+
+        klant:
+          customer,
+
+        gemeente:
+          municipality || null,
+
+        afhaaldatum:
+          pickupInput.value,
+
+        opmerking:
+          note || null,
+
+        status:
+          "nieuw"
+
+      })
+
+      .select(
+        "id, created_at"
       )
 
+      .single();
+
+
+  if (
+    orderError ||
+    !order
+  ) {
+
+    submitButton.disabled =
+      false;
+
+
+    submitButton.innerText =
+      "Aanvraag verzenden";
+
+
+    alert(
+
+      "De aanvraag kon niet worden opgeslagen: " +
+
+      (
+        orderError?.message
+        ||
+        "Onbekende fout"
+      )
+
+    );
+
+
+    return;
+
+  }
+
+
+
+  const itemRows =
+    chosenProducts
       .map(
         product => ({
 
-          name:
-            product.name,
+          order_id:
+            order.id,
 
-          qty:
+          product_id:
+            product.id,
+
+          product_naam:
+            product.naam,
+
+          categorie:
+            product.categorie,
+
+          aantal:
             product.qty
 
         })
       );
 
 
-  const order = {
+  const {
+    error: itemsError
+  } =
+    await supabaseClient
 
-    id:
-      orderId,
-
-    representative:
-      repName,
-
-    representativeEmail:
-      repEmail,
-
-    customer:
-      document
-        .getElementById(
-          "customer"
-        )
-        .value
-        .trim(),
-
-    pickup:
-      document
-        .getElementById(
-          "pickup"
-        )
-        .value,
-
-    note:
-      document
-        .getElementById(
-          "note"
-        )
-        .value
-        .trim(),
-
-    products:
-      selectedProducts,
-
-    status:
-      "Aangevraagd",
-
-    createdAt:
-      new Date()
-        .toLocaleString(
-          "nl-BE"
-        )
-
-  };
-
-
-  const orders =
-    JSON.parse(
-
-      localStorage
-        .getItem(
-          "achelOrders"
-        )
-
-      || "[]"
-
-    );
-
-
-  orders.unshift(
-    order
-  );
-
-
-  localStorage
-    .setItem(
-
-      "achelOrders",
-
-      JSON.stringify(
-        orders
+      .from(
+        "order_items"
       )
 
+      .insert(
+        itemRows
+      );
+
+
+  if (itemsError) {
+
+    submitButton.disabled =
+      false;
+
+
+    submitButton.innerText =
+      "Aanvraag verzenden";
+
+
+    alert(
+
+      "De aanvraag is aangemaakt, maar de artikelen konden niet worden opgeslagen: " +
+
+      itemsError.message
+
     );
 
 
-  /*
-    HOOFDONTVANGER
-  */
+    return;
 
-  const ontvanger =
-    "fabiovenaruzzo@hotmail.com";
+  }
 
 
-  const onderwerp =
-    `Achel POS aanvraag ${orderId} - ${order.customer}`;
 
-
-  let productenTekst =
-    "";
-
-
-  selectedProducts
-    .forEach(
-      product => {
-
-        productenTekst +=
-          `${product.qty} x ${product.name}\n`;
-
-      }
+  const reference =
+    createOrderReference(
+      order.id,
+      order.created_at
     );
-
-
-  const body =
-`ACHEL POS AANVRAAG
-
-Aanvraagnummer:
-${order.id}
-
-Vertegenwoordiger:
-${order.representative}
-
-E-mail vertegenwoordiger:
-${order.representativeEmail}
-
-Horecazaak / klant:
-${order.customer}
-
-Gewenste afhaaldatum:
-${order.pickup}
-
-MATERIALEN
---------------------
-
-${productenTekst}
-
-OPMERKING
---------------------
-
-${order.note || "Geen opmerkingen"}
-
---------------------
-
-Aanvraag aangemaakt:
-${order.createdAt}`;
-
-
-  let mailto =
-    `mailto:${ontvanger}`;
-
-
-  /*
-    TOM:
-    hoofdmail naar Fabiano
-    + Tom in CC
-
-    FABIANO:
-    geen dubbele CC
-  */
-
-  if (
-    repEmail !== ontvanger
-  ) {
-
-    mailto +=
-
-      `?cc=${encodeURIComponent(
-        repEmail
-      )}` +
-
-      `&subject=${encodeURIComponent(
-        onderwerp
-      )}` +
-
-      `&body=${encodeURIComponent(
-        body
-      )}`;
-
-  }
-
-  else {
-
-    mailto +=
-
-      `?subject=${encodeURIComponent(
-        onderwerp
-      )}` +
-
-      `&body=${encodeURIComponent(
-        body
-      )}`;
-
-  }
 
 
   document
@@ -2214,12 +2244,150 @@ ${order.createdAt}`;
       "successOrderId"
     )
     .innerText =
-      orderId;
+      reference;
+
+
+  submitButton.disabled =
+    false;
+
+
+  submitButton.innerText =
+    "Aanvraag verzenden";
 
 
   showOnly(
     "successScreen"
   );
+
+
+  openCentralEmail(
+    reference,
+    chosenProducts
+  );
+
+}
+
+
+
+/* =========================
+   REFERENTIENUMMER
+========================= */
+
+function createOrderReference(
+  orderId,
+  createdAt
+) {
+
+  const year =
+    new Date(
+      createdAt ||
+      Date.now()
+    )
+      .getFullYear();
+
+
+  return (
+    `POS-${year}-${orderId.slice(0,8).toUpperCase()}`
+  );
+
+}
+
+
+
+/* =========================
+   MAIL OPENEN
+========================= */
+
+function openCentralEmail(
+  reference,
+  chosenProducts
+) {
+
+  const customer =
+    document
+      .getElementById(
+        "customer"
+      )
+      .value
+      .trim();
+
+
+  const municipality =
+    document
+      .getElementById(
+        "municipality"
+      )
+      .value
+      .trim();
+
+
+  const note =
+    document
+      .getElementById(
+        "note"
+      )
+      .value
+      .trim();
+
+
+  const productsText =
+    chosenProducts
+
+      .map(
+        product =>
+          `${product.qty} x ${product.naam}`
+      )
+
+      .join("\n");
+
+
+  const subject =
+    `Achel POS aanvraag ${reference} - ${customer}`;
+
+
+  const body =
+`ACHEL POS AANVRAAG
+
+Aanvraag:
+${reference}
+
+Vertegenwoordiger:
+${currentProfile.naam}
+
+E-mail:
+${currentProfile.email || currentUser.email || ""}
+
+Horecazaak / klant:
+${customer}
+
+Gemeente:
+${municipality || "Niet ingevuld"}
+
+Gewenste afhaaldatum:
+${pickupInput.value}
+
+MATERIALEN
+--------------------
+${productsText}
+
+OPMERKING
+--------------------
+${note || "Geen opmerkingen"}
+
+Deze aanvraag is centraal opgeslagen in Achel POS.`;
+
+
+  const mailto =
+
+    `mailto:${CENTRAL_EMAIL}` +
+
+    `?subject=${encodeURIComponent(
+      subject
+    )}` +
+
+    `&body=${encodeURIComponent(
+      body
+    )}`;
 
 
   setTimeout(
@@ -2237,20 +2405,11 @@ ${order.createdAt}`;
 
 
 
-function renderOrders() {
+/* =========================
+   MIJN AANVRAGEN
+========================= */
 
-  const orders =
-    JSON.parse(
-
-      localStorage
-        .getItem(
-          "achelOrders"
-        )
-
-      || "[]"
-
-    );
-
+async function renderOrders() {
 
   const container =
     document.getElementById(
@@ -2258,7 +2417,48 @@ function renderOrders() {
     );
 
 
-  if (!container) {
+  container.innerHTML =
+    `
+      <div class="empty">
+        Aanvragen laden...
+      </div>
+    `;
+
+
+  const {
+    data: orders,
+    error: orderError
+  } =
+    await supabaseClient
+
+      .from("orders")
+
+      .select(
+        "id, klant, gemeente, afhaaldatum, opmerking, status, created_at"
+      )
+
+      .order(
+        "created_at",
+        {
+          ascending: false
+        }
+      );
+
+
+  if (orderError) {
+
+    container.innerHTML =
+
+      `<div class="info error">
+
+        Aanvragen konden niet worden geladen:
+
+        ${escapeHtml(
+          orderError.message
+        )}
+
+      </div>`;
+
 
     return;
 
@@ -2266,13 +2466,14 @@ function renderOrders() {
 
 
   if (
+    !orders ||
     orders.length === 0
   ) {
 
     container.innerHTML =
       `
         <div class="empty">
-          Nog geen aanvragen opgeslagen.
+          Nog geen aanvragen.
         </div>
       `;
 
@@ -2282,66 +2483,155 @@ function renderOrders() {
   }
 
 
+  const orderIds =
+    orders.map(
+      order =>
+        order.id
+    );
+
+
+  const {
+    data: items,
+    error: itemsError
+  } =
+    await supabaseClient
+
+      .from(
+        "order_items"
+      )
+
+      .select(
+        "order_id, product_naam, aantal, categorie"
+      )
+
+      .in(
+        "order_id",
+        orderIds
+      );
+
+
+  if (itemsError) {
+
+    container.innerHTML =
+
+      `<div class="info error">
+
+        Aanvraagartikelen konden niet worden geladen:
+
+        ${escapeHtml(
+          itemsError.message
+        )}
+
+      </div>`;
+
+
+    return;
+
+  }
+
+
+  const itemsByOrder = {};
+
+
+  (
+    items || []
+  )
+    .forEach(
+      item => {
+
+        if (
+          !itemsByOrder[
+            item.order_id
+          ]
+        ) {
+
+          itemsByOrder[
+            item.order_id
+          ] = [];
+
+        }
+
+
+        itemsByOrder[
+          item.order_id
+        ]
+          .push(item);
+
+      }
+    );
+
+
   container.innerHTML =
 
     orders
       .map(
         order => {
 
+          const orderItems =
+            itemsByOrder[
+              order.id
+            ] || [];
 
-          const items =
-            order.products
 
-              .map(
-                product =>
-                  `${product.qty} × ${product.name}`
-              )
+          const productsHtml =
 
-              .join(
-                "<br>"
-              );
+            orderItems.length
+
+              ? orderItems
+                  .map(
+                    item =>
+                      `${item.aantal} × ${escapeHtml(item.product_naam)}`
+                  )
+                  .join("<br>")
+
+              : "Geen artikelen gevonden";
 
 
           return `
+
             <div class="order-card">
 
               <div class="order-top">
 
                 <div class="order-id">
-                  ${order.id}
+
+                  ${createOrderReference(
+                    order.id,
+                    order.created_at
+                  )}
+
                 </div>
+
 
                 <div class="status">
-                  ${order.status}
+
+                  ${formatStatus(
+                    order.status
+                  )}
+
                 </div>
 
               </div>
 
 
               <div class="order-meta">
-                ${order.customer}
-              </div>
 
+                ${escapeHtml(
+                  order.klant
+                )}
 
-              <div class="order-meta">
-                Afhalen:
-                ${order.pickup}
-              </div>
-
-
-              <div class="order-items">
-                ${items}
               </div>
 
 
               ${
-                order.note
+                order.gemeente
 
                   ? `
                     <div class="order-meta">
 
-                      Opmerking:
-                      ${order.note}
+                      ${escapeHtml(
+                        order.gemeente
+                      )}
 
                     </div>
                   `
@@ -2352,19 +2642,40 @@ function renderOrders() {
 
               <div class="order-meta">
 
-                Aangevraagd door:
-                ${order.representative}
+                Afhalen:
+                ${escapeHtml(
+                  order.afhaaldatum
+                )}
 
               </div>
 
 
-              <div class="order-meta">
+              <div class="order-items">
 
-                ${order.representativeEmail || ""}
+                ${productsHtml}
 
               </div>
+
+
+              ${
+                order.opmerking
+
+                  ? `
+                    <div class="order-meta">
+
+                      Opmerking:
+                      ${escapeHtml(
+                        order.opmerking
+                      )}
+
+                    </div>
+                  `
+
+                  : ""
+              }
 
             </div>
+
           `;
 
         }
@@ -2376,96 +2687,109 @@ function renderOrders() {
 
 
 
+/* =========================
+   STATUS
+========================= */
+
+function formatStatus(
+  status
+) {
+
+  const statuses = {
+
+    nieuw:
+      "Nieuw",
+
+    in_behandeling:
+      "In behandeling",
+
+    klaar:
+      "Klaar",
+
+    afgehaald:
+      "Afgehaald",
+
+    geannuleerd:
+      "Geannuleerd"
+
+  };
+
+
+  return (
+    statuses[
+      status
+    ]
+    ||
+    status
+  );
+
+}
+
+
+
+/* =========================
+   FORMULIER RESET
+========================= */
+
 function resetForm() {
 
-  const customer =
-    document.getElementById(
+  document
+    .getElementById(
       "customer"
-    );
+    )
+    .value =
+      "";
 
 
-  const pickup =
-    document.getElementById(
+  document
+    .getElementById(
+      "municipality"
+    )
+    .value =
+      "";
+
+
+  document
+    .getElementById(
       "pickup"
-    );
+    )
+    .value =
+      "";
 
 
-  const note =
-    document.getElementById(
+  document
+    .getElementById(
       "note"
-    );
-
-
-  if (customer) {
-
-    customer.value =
+    )
+    .value =
       "";
-
-  }
-
-
-  if (pickup) {
-
-    pickup.value =
-      "";
-
-  }
-
-
-  if (note) {
-
-    note.value =
-      "";
-
-  }
 
 
   Object
-    .keys(products)
+    .keys(
+      quantities
+    )
 
     .forEach(
       id => {
 
-        products[id].qty =
-          0;
-
-
-        const element =
-          document.getElementById(
-            id
-          );
-
-
-        if (element) {
-
-          element.innerText =
-            "0";
-
-        }
+        quantities[
+          id
+        ] = 0;
 
       }
     );
 
 
-  /*
-    Fabiano opnieuw standaard kiezen
-  */
-
-  const fabianoRadio =
-    document.querySelector(
-      'input[name="representative"][value="Fabiano"]'
-    );
-
-
-  if (fabianoRadio) {
-
-    fabianoRadio.checked =
-      true;
-
-  }
-
-
   validatePickupDate();
+
+
+  setCategory(
+    "bier"
+  );
+
+
+  renderProducts();
 
 }
 
@@ -2481,6 +2805,51 @@ function newOrder() {
 
 
 
+/* =========================
+   VEILIGE TEKST
+========================= */
+
+function escapeHtml(
+  value
+) {
+
+  return String(
+    value ?? ""
+  )
+
+    .replaceAll(
+      "&",
+      "&amp;"
+    )
+
+    .replaceAll(
+      "<",
+      "&lt;"
+    )
+
+    .replaceAll(
+      ">",
+      "&gt;"
+    )
+
+    .replaceAll(
+      '"',
+      "&quot;"
+    )
+
+    .replaceAll(
+      "'",
+      "&#039;"
+    );
+
+}
+
+
+
+/* =========================
+   SERVICE WORKER
+========================= */
+
 if (
   "serviceWorker"
   in navigator
@@ -2488,9 +2857,7 @@ if (
 
   window
     .addEventListener(
-
       "load",
-
       () => {
 
         navigator
@@ -2512,39 +2879,19 @@ if (
           );
 
       }
-
     );
 
 }
-async function checkExistingSession() {
-
-  const { data } =
-    await supabaseClient.auth.getSession();
 
 
-  if (data.session) {
-
-    document
-      .getElementById("loginScreen")
-      .classList
-      .add("hidden");
-
-
-    document
-      .getElementById("appMain")
-      .classList
-      .remove("hidden");
-
-  }
-
-}
-
+/*
+  APP START
+*/
 
 checkExistingSession();
-  
+
 </script>
 
 
 </body>
-
 </html>
