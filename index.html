@@ -2,411 +2,2012 @@
 <html lang="nl">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <meta name="theme-color" content="#1e2722">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="Achel POS">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+  >
+
+  <meta
+    name="theme-color"
+    content="#182019"
+  >
+
+  <meta
+    name="apple-mobile-web-app-capable"
+    content="yes"
+  >
+
+  <meta
+    name="apple-mobile-web-app-status-bar-style"
+    content="black-translucent"
+  >
+
+  <meta
+    name="apple-mobile-web-app-title"
+    content="Achel POS"
+  >
 
   <title>Achel POS</title>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-  <link rel="manifest" href="./manifest.json">
+  <link
+    rel="manifest"
+    href="./manifest.json"
+  >
 
   <style>
+
     :root {
-      --bg: #f4f2ed;
-      --card: #ffffff;
-      --dark: #1e2722;
-      --gold: #8b662e;
-      --gold-soft: #f3eadb;
-      --border: #ddd8ce;
-      --muted: #777777;
-      --green: #2e6944;
-      --red: #a94442;
+      --bg: #f4f3ef;
+      --surface: #ffffff;
+      --surface-soft: #f8f7f3;
+
+      --dark: #182019;
+      --text: #202722;
+      --muted: #717972;
+
+      --gold: #8c692f;
+      --gold-soft: #f1e8d7;
+
+      --border: #ddd9cf;
+
+      --green: #2f7449;
+      --green-soft: #e7f3eb;
+
+      --red: #a74646;
+      --red-soft: #f8e9e9;
+
+      --shadow:
+        0 8px 30px
+        rgba(22, 30, 24, .07);
     }
+
 
     * {
       box-sizing: border-box;
     }
 
+
+    html,
     body {
       margin: 0;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+      min-height: 100%;
+    }
+
+
+    body {
+      font-family:
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        Arial,
+        sans-serif;
+
       background: var(--bg);
-      color: var(--dark);
+
+      color: var(--text);
+
+      -webkit-tap-highlight-color:
+        transparent;
     }
 
-    header {
-      background: var(--dark);
-      color: white;
-      padding: calc(24px + env(safe-area-inset-top)) 20px 24px;
-    }
 
-    header h1 {
-      margin: 0;
-      font-size: 28px;
-    }
-
-    header p {
-      margin: 6px 0 0;
-      opacity: .8;
-    }
-
-    main,
-    #loginScreen {
-      max-width: 720px;
-      margin: auto;
-      padding: 16px;
-    }
-
-    main {
-      padding-bottom: 100px;
-    }
-
-    .card {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 18px;
-      padding: 18px;
-      margin-bottom: 16px;
-      box-shadow: 0 3px 10px rgba(0,0,0,.04);
-    }
-
-    h2 {
-      margin-top: 0;
-    }
-
-    label {
-      display: block;
-      font-weight: 700;
-      margin: 15px 0 7px;
-    }
-
-    input[type="text"],
-    input[type="email"],
-    input[type="password"],
-    input[type="date"],
+    button,
+    input,
+    select,
     textarea {
-      width: 100%;
-      padding: 13px;
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      font-size: 16px;
-      background: white;
-      color: var(--dark);
+      font: inherit;
     }
 
-    textarea {
-      min-height: 90px;
-      resize: vertical;
-    }
 
-    .info {
-      margin-top: 10px;
-      padding: 12px;
-      border-radius: 12px;
-      background: #f7efdf;
-      color: #6b4d24;
-      font-size: 14px;
-    }
-
-    .info.ok {
-      background: #e9f3ec;
-      color: var(--green);
-    }
-
-    .info.error {
-      background: #f7e8e8;
-      color: var(--red);
-    }
-
-    .primary {
-      width: 100%;
-      padding: 16px;
-      border: none;
-      border-radius: 14px;
-      background: var(--gold);
-      color: white;
-      font-size: 17px;
-      font-weight: 800;
+    button {
       cursor: pointer;
     }
 
-    .primary:disabled {
-      opacity: .55;
-    }
-
-    .secondary {
-      width: 100%;
-      padding: 14px;
-      margin-top: 10px;
-      border-radius: 14px;
-      border: 1px solid var(--border);
-      background: white;
-      color: var(--dark);
-      font-size: 16px;
-      font-weight: 700;
-      cursor: pointer;
-    }
-
-    .home-button {
-      width: 100%;
-      text-align: left;
-      border: 1px solid var(--border);
-      background: white;
-      padding: 20px;
-      border-radius: 18px;
-      margin-bottom: 14px;
-      cursor: pointer;
-    }
-
-    .home-button strong {
-      display: block;
-      font-size: 19px;
-      margin-bottom: 5px;
-    }
-
-    .home-button span {
-      color: var(--muted);
-      font-size: 14px;
-    }
-
-    .profile-box {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 12px;
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: 14px;
-      background: white;
-    }
-
-    .profile-box strong {
-      display: block;
-    }
-
-    .profile-box small {
-      display: block;
-      color: var(--muted);
-      margin-top: 3px;
-    }
-
-    .category-tabs {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 8px;
-      margin-bottom: 14px;
-    }
-
-    .category-button {
-      border: 1px solid var(--border);
-      background: white;
-      border-radius: 12px;
-      padding: 12px 6px;
-      font-weight: 800;
-      color: var(--muted);
-      cursor: pointer;
-    }
-
-    .category-button.active {
-      background: var(--gold);
-      color: white;
-      border-color: var(--gold);
-    }
-
-    .product {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: 13px;
-      margin-bottom: 10px;
-    }
-
-    .product-name {
-      font-weight: 700;
-      flex: 1;
-    }
-
-    .product-unit {
-      display: block;
-      color: var(--muted);
-      font-size: 12px;
-      margin-top: 3px;
-    }
-
-    .qty {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .qty button {
-      width: 42px;
-      height: 42px;
-      border-radius: 11px;
-      border: 1px solid var(--border);
-      background: #f8f7f4;
-      color: var(--dark);
-      font-size: 24px;
-      font-weight: 700;
-      cursor: pointer;
-    }
-
-    .qty span {
-      width: 34px;
-      text-align: center;
-      font-size: 18px;
-      font-weight: 800;
-    }
-
-    .summary-line {
-      display: flex;
-      justify-content: space-between;
-      gap: 16px;
-      padding: 9px 0;
-      border-bottom: 1px solid #eeeeee;
-    }
-
-    .order-card {
-      background: white;
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 15px;
-      margin-bottom: 12px;
-    }
-
-    .order-top {
-      display: flex;
-      justify-content: space-between;
-      gap: 10px;
-      align-items: center;
-    }
-
-    .order-id {
-      font-weight: 800;
-      color: var(--gold);
-    }
-
-    .status {
-      background: var(--gold-soft);
-      color: var(--gold);
-      padding: 5px 9px;
-      border-radius: 999px;
-      font-size: 12px;
-      font-weight: 800;
-    }
-
-    .order-meta {
-      margin-top: 6px;
-      color: var(--muted);
-      font-size: 14px;
-    }
-
-    .order-items {
-      margin-top: 10px;
-      line-height: 1.5;
-      font-size: 14px;
-    }
-
-    .empty {
-      text-align: center;
-      color: var(--muted);
-      padding: 30px 10px;
-    }
-
-    .success {
-      text-align: center;
-      padding: 28px 10px;
-    }
-
-    .success-icon {
-      font-size: 52px;
-      color: var(--green);
-      margin-bottom: 10px;
-    }
 
     .hidden {
       display: none !important;
     }
 
-    .top-back {
-      border: none;
-      background: transparent;
-      color: var(--gold);
-      font-weight: 800;
-      font-size: 15px;
-      padding: 0;
-      margin-bottom: 15px;
-      cursor: pointer;
-    }
 
-    .footer-nav {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      padding-bottom: env(safe-area-inset-bottom);
-      background: white;
-      border-top: 1px solid var(--border);
+
+    /* =========================
+       HEADER
+    ========================= */
+
+    .app-header {
+
+      position: sticky;
+
+      top: 0;
+
+      z-index: 40;
+
+
       display: grid;
-      grid-template-columns: 1fr 1fr;
-      z-index: 20;
+
+      grid-template-columns:
+        48px 1fr 48px;
+
+
+      align-items: center;
+
+
+      min-height:
+        calc(
+          64px +
+          env(safe-area-inset-top)
+        );
+
+
+      padding:
+        env(safe-area-inset-top)
+        12px
+        0;
+
+
+      background:
+        rgba(
+          24,
+          32,
+          25,
+          .97
+        );
+
+
+      color: white;
+
+
+      backdrop-filter:
+        blur(14px);
+
     }
 
-    .footer-nav button {
-      border: none;
-      background: white;
-      padding: 15px 8px;
-      font-weight: 800;
-      color: var(--muted);
+
+    .header-title {
+      text-align: center;
     }
 
-    .footer-nav button.active {
-      color: var(--gold);
+
+    .header-title strong {
+
+      display: block;
+
+      font-size: 18px;
+
+      letter-spacing: .02em;
+
     }
+
+
+    .header-title span {
+
+      display: block;
+
+      margin-top: 2px;
+
+      font-size: 11px;
+
+      color:
+        rgba(
+          255,
+          255,
+          255,
+          .65
+        );
+
+    }
+
+
+
+    /* =========================
+       MENU KNOP
+    ========================= */
+
+    .menu-button {
+
+      width: 44px;
+
+      height: 44px;
+
+
+      border: 0;
+
+      border-radius: 12px;
+
+
+      background:
+        transparent;
+
+
+      color:
+        white;
+
+
+      display: grid;
+
+      place-items:
+        center;
+
+    }
+
+
+    .menu-lines,
+    .menu-lines::before,
+    .menu-lines::after {
+
+      width: 22px;
+
+      height: 2px;
+
+
+      border-radius:
+        3px;
+
+
+      background:
+        currentColor;
+
+
+      display: block;
+
+      position:
+        relative;
+
+    }
+
+
+    .menu-lines::before,
+    .menu-lines::after {
+
+      content: "";
+
+      position:
+        absolute;
+
+      left: 0;
+
+    }
+
+
+    .menu-lines::before {
+      top: -7px;
+    }
+
+
+    .menu-lines::after {
+      top: 7px;
+    }
+
+
+
+    /* =========================
+       SIDE MENU
+    ========================= */
+
+    .menu-overlay {
+
+      position: fixed;
+
+      inset: 0;
+
+      z-index: 80;
+
+
+      background:
+        rgba(
+          0,
+          0,
+          0,
+          .36
+        );
+
+
+      opacity: 0;
+
+      pointer-events:
+        none;
+
+
+      transition:
+        opacity .2s ease;
+
+    }
+
+
+    .menu-overlay.open {
+
+      opacity: 1;
+
+      pointer-events:
+        auto;
+
+    }
+
+
+    .side-menu {
+
+      position:
+        absolute;
+
+
+      top: 0;
+
+      left: 0;
+
+
+      width:
+        min(
+          84vw,
+          340px
+        );
+
+
+      height:
+        100%;
+
+
+      background:
+        var(--surface);
+
+
+      transform:
+        translateX(
+          -102%
+        );
+
+
+      transition:
+        transform .22s ease;
+
+
+      box-shadow:
+        20px 0 50px
+        rgba(
+          0,
+          0,
+          0,
+          .16
+        );
+
+
+      padding:
+
+        calc(
+          22px +
+          env(safe-area-inset-top)
+        )
+
+        18px
+
+        24px;
+
+
+      overflow-y:
+        auto;
+
+    }
+
+
+    .menu-overlay.open
+    .side-menu {
+
+      transform:
+        translateX(0);
+
+    }
+
+
+    .menu-profile {
+
+      padding:
+        10px 6px 18px;
+
+
+      border-bottom:
+        1px solid
+        var(--border);
+
+
+      margin-bottom:
+        12px;
+
+    }
+
+
+    .menu-profile strong {
+
+      display: block;
+
+      font-size: 18px;
+
+    }
+
+
+    .menu-profile small {
+
+      display: block;
+
+      margin-top: 4px;
+
+      color:
+        var(--muted);
+
+
+      word-break:
+        break-word;
+
+    }
+
+
+    .menu-item {
+
+      width: 100%;
+
+
+      border: 0;
+
+
+      background:
+        transparent;
+
+
+      text-align:
+        left;
+
+
+      padding:
+        14px 12px;
+
+
+      border-radius:
+        12px;
+
+
+      font-weight:
+        750;
+
+
+      color:
+        var(--text);
+
+    }
+
+
+    .menu-item:active {
+
+      background:
+        var(--surface-soft);
+
+    }
+
+
+    .menu-item.danger {
+
+      color:
+        var(--red);
+
+      margin-top:
+        8px;
+
+    }
+
+
+
+    /* =========================
+       PAGINA
+    ========================= */
+
+    #loginScreen,
+    main {
+
+      max-width:
+        760px;
+
+
+      margin:
+        0 auto;
+
+
+      padding:
+        18px 16px 36px;
+
+    }
+
+
+    .card {
+
+      background:
+        var(--surface);
+
+
+      border:
+        1px solid
+        var(--border);
+
+
+      border-radius:
+        20px;
+
+
+      padding:
+        18px;
+
+
+      margin-bottom:
+        15px;
+
+
+      box-shadow:
+        var(--shadow);
+
+    }
+
+
+    h1,
+    h2,
+    h3 {
+
+      color:
+        var(--dark);
+
+    }
+
+
+    h2 {
+
+      margin:
+        0 0 14px;
+
+
+      font-size:
+        20px;
+
+    }
+
+
+
+    /* =========================
+       LOGIN
+    ========================= */
+
+    .login-card {
+
+      margin-top:
+        28px;
+
+    }
+
+
+    .login-card h1 {
+
+      margin: 0;
+
+      font-size: 28px;
+
+    }
+
+
+    .login-card p {
+
+      color:
+        var(--muted);
+
+
+      line-height:
+        1.5;
+
+    }
+
+
+
+    /* =========================
+       FORMULIER
+    ========================= */
+
+    label {
+
+      display: block;
+
+
+      font-size:
+        13px;
+
+
+      font-weight:
+        800;
+
+
+      margin:
+        15px 0 7px;
+
+
+      color:
+        #354038;
+
+    }
+
+
+    input[type="text"],
+    input[type="email"],
+    input[type="password"],
+    input[type="date"],
+    select,
+    textarea {
+
+      width: 100%;
+
+      min-height:
+        48px;
+
+
+      border:
+        1px solid
+        var(--border);
+
+
+      border-radius:
+        13px;
+
+
+      padding:
+        12px 13px;
+
+
+      background:
+        white;
+
+
+      color:
+        var(--text);
+
+
+      font-size:
+        16px;
+
+
+      outline:
+        none;
+
+    }
+
+
+    input:focus,
+    select:focus,
+    textarea:focus {
+
+      border-color:
+        var(--gold);
+
+
+      box-shadow:
+
+        0 0 0 3px
+
+        rgba(
+          140,
+          105,
+          47,
+          .12
+        );
+
+    }
+
+
+    textarea {
+
+      min-height:
+        88px;
+
+      resize:
+        vertical;
+
+    }
+
+
+
+    /* =========================
+       KNOPPEN
+    ========================= */
+
+    .primary,
+    .secondary {
+
+      width: 100%;
+
+      min-height:
+        50px;
+
+
+      border-radius:
+        14px;
+
+
+      font-weight:
+        850;
+
+
+      border: 0;
+
+    }
+
+
+    .primary {
+
+      background:
+        var(--gold);
+
+
+      color:
+        white;
+
+    }
+
+
+    .primary:disabled {
+
+      opacity:
+        .55;
+
+      cursor:
+        default;
+
+    }
+
+
+    .secondary {
+
+      background:
+        white;
+
+
+      color:
+        var(--dark);
+
+
+      border:
+        1px solid
+        var(--border);
+
+    }
+
+
+
+    /* =========================
+       INFO
+    ========================= */
+
+    .info {
+
+      margin-top:
+        10px;
+
+
+      padding:
+        11px 12px;
+
+
+      border-radius:
+        12px;
+
+
+      background:
+        #f8f0e1;
+
+
+      color:
+        #6d5227;
+
+
+      font-size:
+        13px;
+
+
+      line-height:
+        1.4;
+
+    }
+
+
+    .info.ok {
+
+      background:
+        var(--green-soft);
+
+
+      color:
+        var(--green);
+
+    }
+
+
+    .info.error {
+
+      background:
+        var(--red-soft);
+
+
+      color:
+        var(--red);
+
+    }
+
+
+
+    /* =========================
+       HOME HERO
+    ========================= */
+
+    .hero {
+
+      background:
+        linear-gradient(
+          145deg,
+          #202a22,
+          #121813
+        );
+
+
+      color:
+        white;
+
+
+      border: 0;
+
+
+      overflow:
+        hidden;
+
+
+      position:
+        relative;
+
+    }
+
+
+    .hero::after {
+
+      content: "";
+
+
+      position:
+        absolute;
+
+
+      width:
+        180px;
+
+
+      height:
+        180px;
+
+
+      border-radius:
+        50%;
+
+
+      background:
+        rgba(
+          140,
+          105,
+          47,
+          .22
+        );
+
+
+      right:
+        -70px;
+
+
+      top:
+        -85px;
+
+    }
+
+
+    .hero h1 {
+
+      color:
+        white;
+
+
+      margin:
+        0 0 7px;
+
+
+      font-size:
+        28px;
+
+
+      position:
+        relative;
+
+
+      z-index:
+        1;
+
+    }
+
+
+    .beer-quote {
+
+      margin: 0;
+
+
+      max-width:
+        520px;
+
+
+      color:
+        rgba(
+          255,
+          255,
+          255,
+          .72
+        );
+
+
+      font-style:
+        italic;
+
+
+      line-height:
+        1.45;
+
+
+      position:
+        relative;
+
+
+      z-index:
+        1;
+
+    }
+
+
+
+    /* =========================
+       HOME KNOPPEN
+    ========================= */
+
+    .quick-grid {
+
+      display: grid;
+
+      gap:
+        12px;
+
+    }
+
+
+    .quick-card {
+
+      width: 100%;
+
+
+      border:
+        1px solid
+        var(--border);
+
+
+      background:
+        var(--surface);
+
+
+      border-radius:
+        18px;
+
+
+      padding:
+        18px;
+
+
+      text-align:
+        left;
+
+
+      box-shadow:
+
+        0 5px 22px
+
+        rgba(
+          22,
+          30,
+          24,
+          .05
+        );
+
+    }
+
+
+    .quick-card strong {
+
+      display: block;
+
+      font-size:
+        17px;
+
+      color:
+        var(--dark);
+
+    }
+
+
+    .quick-card span {
+
+      display: block;
+
+      color:
+        var(--muted);
+
+      font-size:
+        13px;
+
+      margin-top:
+        5px;
+
+      line-height:
+        1.4;
+
+    }
+
+
+    /*
+      admin.js maakt momenteel zelf
+      ook een home-knop.
+
+      Die verbergen we omdat Beheer
+      nu in het hamburger-menu zit.
+    */
+
+    #adminHomeButton {
+
+      display:
+        none !important;
+
+    }
+
+
+
+    /* =========================
+       PROFIEL
+    ========================= */
+
+    .profile-box {
+
+      border:
+        1px solid
+        var(--border);
+
+
+      background:
+        var(--surface-soft);
+
+
+      border-radius:
+        14px;
+
+
+      padding:
+        13px;
+
+    }
+
+
+    .profile-box strong {
+
+      display:
+        block;
+
+    }
+
+
+    .profile-box small {
+
+      display:
+        block;
+
+
+      color:
+        var(--muted);
+
+
+      margin-top:
+        3px;
+
+    }
+
+
+
+    /* =========================
+       CATEGORIEËN
+    ========================= */
+
+    .category-tabs {
+
+      display:
+        grid;
+
+
+      grid-template-columns:
+        repeat(
+          3,
+          1fr
+        );
+
+
+      gap:
+        7px;
+
+
+      background:
+        var(--surface-soft);
+
+
+      border:
+        1px solid
+        var(--border);
+
+
+      padding:
+        5px;
+
+
+      border-radius:
+        15px;
+
+
+      margin-bottom:
+        16px;
+
+    }
+
+
+    .category-button {
+
+      min-height:
+        43px;
+
+
+      border:
+        0;
+
+
+      border-radius:
+        11px;
+
+
+      background:
+        transparent;
+
+
+      color:
+        var(--muted);
+
+
+      font-size:
+        12px;
+
+
+      font-weight:
+        900;
+
+
+      letter-spacing:
+        .035em;
+
+    }
+
+
+    .category-button.active {
+
+      background:
+        var(--surface);
+
+
+      color:
+        var(--dark);
+
+
+      box-shadow:
+
+        0 2px 10px
+
+        rgba(
+          0,
+          0,
+          0,
+          .06
+        );
+
+    }
+
+
+
+    /* =========================
+       EVENEMENT
+    ========================= */
+
+    .event-panel {
+
+      border:
+        1px solid
+        #d8c7a7;
+
+
+      background:
+        #fcf8f0;
+
+
+      border-radius:
+        16px;
+
+
+      padding:
+        14px;
+
+
+      margin:
+        0 0 15px;
+
+    }
+
+
+    .event-panel h3 {
+
+      margin: 0;
+
+      font-size:
+        16px;
+
+    }
+
+
+    .event-panel p {
+
+      margin:
+        5px 0 0;
+
+
+      font-size:
+        12px;
+
+
+      color:
+        var(--muted);
+
+    }
+
+
+
+    /* =========================
+       PRODUCTEN
+    ========================= */
+
+    .product {
+
+      display:
+        grid;
+
+
+      grid-template-columns:
+        1fr auto;
+
+
+      align-items:
+        center;
+
+
+      gap:
+        12px;
+
+
+      border:
+        1px solid
+        var(--border);
+
+
+      background:
+        white;
+
+
+      border-radius:
+        15px;
+
+
+      padding:
+        13px;
+
+
+      margin-bottom:
+        9px;
+
+    }
+
+
+    .product-name {
+
+      font-weight:
+        780;
+
+
+      line-height:
+        1.25;
+
+    }
+
+
+    .product-unit {
+
+      display:
+        block;
+
+
+      margin-top:
+        4px;
+
+
+      color:
+        var(--muted);
+
+
+      font-size:
+        11px;
+
+
+      font-weight:
+        500;
+
+    }
+
+
+    .qty {
+
+      display:
+        flex;
+
+
+      align-items:
+        center;
+
+
+      gap:
+        6px;
+
+    }
+
+
+    .qty button {
+
+      width:
+        39px;
+
+
+      height:
+        39px;
+
+
+      border:
+        1px solid
+        var(--border);
+
+
+      border-radius:
+        11px;
+
+
+      background:
+        var(--surface-soft);
+
+
+      color:
+        var(--dark);
+
+
+      font-size:
+        23px;
+
+
+      line-height:
+        1;
+
+    }
+
+
+    .qty span {
+
+      min-width:
+        32px;
+
+
+      text-align:
+        center;
+
+
+      font-weight:
+        900;
+
+    }
+
+
+
+    /* =========================
+       STICKY ACTIE
+    ========================= */
+
+    .sticky-action {
+
+      position:
+        sticky;
+
+
+      bottom:
+        calc(
+          12px +
+          env(safe-area-inset-bottom)
+        );
+
+
+      z-index:
+        20;
+
+
+      padding-top:
+        8px;
+
+    }
+
+
+    .sticky-action
+    .primary {
+
+      box-shadow:
+
+        0 8px 28px
+
+        rgba(
+          82,
+          60,
+          24,
+          .28
+        );
+
+    }
+
+
+
+    /* =========================
+       SAMENVATTING
+    ========================= */
+
+    .summary-section {
+
+      margin-top:
+        18px;
+
+    }
+
+
+    .summary-section-title {
+
+      font-size:
+        12px;
+
+
+      color:
+        var(--gold);
+
+
+      font-weight:
+        950;
+
+
+      letter-spacing:
+        .08em;
+
+
+      margin:
+        0 0 7px;
+
+    }
+
+
+    .summary-line {
+
+      display:
+        flex;
+
+
+      justify-content:
+        space-between;
+
+
+      gap:
+        14px;
+
+
+      padding:
+        10px 0;
+
+
+      border-bottom:
+        1px solid
+        #eeeeee;
+
+    }
+
+
+
+    /* =========================
+       MIJN AANVRAGEN
+    ========================= */
+
+    .order-card {
+
+      border:
+        1px solid
+        var(--border);
+
+
+      border-radius:
+        16px;
+
+
+      padding:
+        14px;
+
+
+      margin-bottom:
+        11px;
+
+
+      background:
+        white;
+
+    }
+
+
+    .order-top {
+
+      display:
+        flex;
+
+
+      justify-content:
+        space-between;
+
+
+      gap:
+        10px;
+
+
+      align-items:
+        center;
+
+    }
+
+
+    .order-id {
+
+      font-weight:
+        900;
+
+
+      color:
+        var(--gold);
+
+
+      font-size:
+        13px;
+
+    }
+
+
+    .order-title {
+
+      margin-top:
+        9px;
+
+
+      font-size:
+        17px;
+
+
+      font-weight:
+        850;
+
+    }
+
+
+    .order-meta {
+
+      margin-top:
+        5px;
+
+
+      color:
+        var(--muted);
+
+
+      font-size:
+        13px;
+
+
+      line-height:
+        1.35;
+
+    }
+
+
+    .order-items {
+
+      margin-top:
+        10px;
+
+
+      font-size:
+        13px;
+
+
+      line-height:
+        1.55;
+
+    }
+
+
+
+    /* =========================
+       STATUS
+    ========================= */
+
+    .status {
+
+      padding:
+        5px 9px;
+
+
+      border-radius:
+        999px;
+
+
+      font-size:
+        11px;
+
+
+      font-weight:
+        900;
+
+
+      background:
+        var(--gold-soft);
+
+
+      color:
+        var(--gold);
+
+    }
+
+
+    .status.status-klaar {
+
+      background:
+        var(--green-soft);
+
+
+      color:
+        var(--green);
+
+    }
+
+
+    .status.status-geannuleerd {
+
+      background:
+        var(--red-soft);
+
+
+      color:
+        var(--red);
+
+    }
+
+
+
+    /* =========================
+       OVERIG
+    ========================= */
+
+    .empty {
+
+      text-align:
+        center;
+
+
+      color:
+        var(--muted);
+
+
+      padding:
+        30px 8px;
+
+
+      font-size:
+        14px;
+
+    }
+
+
+    .success {
+
+      text-align:
+        center;
+
+    }
+
+
+    .success-mark {
+
+      width:
+        64px;
+
+
+      height:
+        64px;
+
+
+      margin:
+        3px auto 14px;
+
+
+      border-radius:
+        50%;
+
+
+      display:
+        grid;
+
+
+      place-items:
+        center;
+
+
+      background:
+        var(--green-soft);
+
+
+      color:
+        var(--green);
+
+
+      font-size:
+        32px;
+
+
+      font-weight:
+        900;
+
+    }
+
+
+    .top-back {
+
+      border: 0;
+
+
+      background:
+        transparent;
+
+
+      color:
+        var(--gold);
+
+
+      font-weight:
+        850;
+
+
+      padding:
+        5px 2px 13px;
+
+    }
+
+
+
+    /* =========================
+       DESKTOP / TABLET
+    ========================= */
+
+    @media (
+      min-width: 620px
+    ) {
+
+      .quick-grid {
+
+        grid-template-columns:
+          1fr 1fr;
+
+      }
+
+
+      .field-grid {
+
+        display: grid;
+
+
+        grid-template-columns:
+          1fr 1fr;
+
+
+        gap:
+          12px;
+
+      }
+
+
+      .field-grid label {
+
+        margin-top:
+          15px;
+
+      }
+
+    }
+
   </style>
 </head>
 
+
 <body>
 
-<header>
-  <h1>Achel POS</h1>
-  <p>Interne POS & promo bestelapp</p>
+
+<header class="app-header">
+
+  <button
+    id="menuButton"
+    class="menu-button hidden"
+    type="button"
+    onclick="openMenu()"
+    aria-label="Menu openen"
+  >
+
+    <span class="menu-lines"></span>
+
+  </button>
+
+
+  <div class="header-title">
+
+    <strong>
+      Achel POS
+    </strong>
+
+    <span>
+      Interne bestelapp
+    </span>
+
+  </div>
+
+
+  <div></div>
+
 </header>
 
 
-<!-- LOGIN -->
+
+<!-- =========================
+     MENU
+========================= -->
+
+<div
+  id="menuOverlay"
+  class="menu-overlay"
+  onclick="closeMenuFromOverlay(event)"
+>
+
+  <aside
+    class="side-menu"
+    onclick="event.stopPropagation()"
+  >
+
+    <div class="menu-profile">
+
+      <strong id="menuRepName">
+        Achel POS
+      </strong>
+
+      <small id="menuRepEmail"></small>
+
+    </div>
+
+
+    <button
+      class="menu-item"
+      type="button"
+      onclick="menuGoHome()"
+    >
+      Home
+    </button>
+
+
+    <button
+      class="menu-item"
+      type="button"
+      onclick="menuNewOrder()"
+    >
+      Nieuwe aanvraag
+    </button>
+
+
+    <button
+      class="menu-item"
+      type="button"
+      onclick="menuOrders()"
+    >
+      Aanvragen bekijken
+    </button>
+
+
+    <button
+      id="menuAdmin"
+      class="menu-item hidden"
+      type="button"
+      onclick="openAdminFromMenu()"
+    >
+      Beheer
+    </button>
+
+
+    <button
+      class="menu-item danger"
+      type="button"
+      onclick="menuLogout()"
+    >
+      Uitloggen
+    </button>
+
+  </aside>
+
+</div>
+
+
+
+<!-- =========================
+     LOGIN
+========================= -->
 
 <section id="loginScreen">
 
-  <div class="card">
+  <div class="card login-card">
 
-    <h2>Inloggen</h2>
+    <h1>
+      Welkom bij Achel POS
+    </h1>
+
 
     <p>
-      Log in met je persoonlijke Achel POS-account.
+      Log in met je persoonlijke account om een aanvraag te plaatsen of je aanvragen te bekijken.
     </p>
+
 
     <label for="loginEmail">
       E-mailadres
     </label>
 
+
     <input
       id="loginEmail"
       type="email"
-      placeholder="jouw@email.be"
+      placeholder="naam@achelsekluis.be"
       autocomplete="email"
     >
+
 
     <label for="loginPassword">
       Wachtwoord
     </label>
+
 
     <input
       id="loginPassword"
@@ -415,14 +2016,16 @@
       autocomplete="current-password"
     >
 
+
     <button
       class="primary"
       type="button"
       onclick="loginUser()"
-      style="margin-top:20px;"
+      style="margin-top:18px;"
     >
       Inloggen
     </button>
+
 
     <div
       id="loginMessage"
@@ -434,7 +2037,10 @@
 </section>
 
 
-<!-- APP -->
+
+<!-- =========================
+     APP
+========================= -->
 
 <main
   id="appMain"
@@ -442,436 +2048,579 @@
 >
 
 
-<!-- HOME -->
+  <!-- =====================
+       HOME
+  ====================== -->
 
-<section id="homeScreen">
+  <section id="homeScreen">
 
-  <div class="card">
+    <div class="card hero">
 
-    <h2 id="welcomeTitle">
-      Welkom
-    </h2>
+      <h1 id="welcomeTitle">
+        Hallo
+      </h1>
 
-    <p>
-      Je bent ingelogd als
-      <strong id="homeRepName">...</strong>.
-    </p>
+
+      <p
+        id="beerQuote"
+        class="beer-quote"
+      ></p>
+
+    </div>
+
+
+    <div class="quick-grid">
+
+
+      <button
+        class="quick-card"
+        type="button"
+        onclick="openNewOrder()"
+      >
+
+        <strong>
+          Nieuwe aanvraag
+        </strong>
+
+        <span>
+          Maak een nieuwe aanvraag voor bier, POS of evenementenmateriaal.
+        </span>
+
+      </button>
+
+
+      <button
+        class="quick-card"
+        type="button"
+        onclick="openOrders()"
+      >
+
+        <strong>
+          Mijn aanvragen
+        </strong>
+
+        <span>
+          Bekijk je aanvragen en de actuele status.
+        </span>
+
+      </button>
+
+
+    </div>
+
+  </section>
+
+
+
+  <!-- =====================
+       NIEUWE AANVRAAG
+  ====================== -->
+
+  <section
+    id="orderScreen"
+    class="hidden"
+  >
 
     <button
-      class="secondary"
+      class="top-back"
       type="button"
-      onclick="logoutUser()"
+      onclick="goHome()"
     >
-      Uitloggen
+      ← Terug
     </button>
 
-  </div>
+
+    <div class="card">
+
+      <h2>
+        Nieuwe aanvraag
+      </h2>
 
 
-  <button
-    class="home-button"
-    onclick="openNewOrder()"
-  >
-
-    <strong>
-      Nieuwe aanvraag
-    </strong>
-
-    <span>
-      Bier, evenementenmateriaal of POS aanvragen
-    </span>
-
-  </button>
+      <label>
+        Vertegenwoordiger
+      </label>
 
 
-  <button
-    class="home-button"
-    onclick="openOrders()"
-  >
-
-    <strong>
-      Mijn aanvragen
-    </strong>
-
-    <span>
-      Bekijk je centraal opgeslagen aanvragen
-    </span>
-
-  </button>
-
-</section>
-
-
-
-<!-- NIEUWE AANVRAAG -->
-
-<section
-  id="orderScreen"
-  class="hidden"
->
-
-  <button
-    class="top-back"
-    onclick="goHome()"
-  >
-    ← Terug
-  </button>
-
-
-  <div class="card">
-
-    <h2>
-      Nieuwe aanvraag
-    </h2>
-
-
-    <label>
-      Vertegenwoordiger
-    </label>
-
-
-    <div class="profile-box">
-
-      <div>
+      <div class="profile-box">
 
         <strong id="loggedInRepName">
           Gebruiker laden...
         </strong>
 
-        <small id="loggedInRepEmail">
-        </small>
+        <small id="loggedInRepEmail"></small>
+
+      </div>
+
+
+
+      <!-- REFERENTIE -->
+
+      <label for="reference">
+        Referentie
+      </label>
+
+
+      <input
+        id="reference"
+        type="text"
+        placeholder="Bijv. Café De Markt, actie Genk, Event Bokrijk"
+      >
+
+
+
+      <!-- LAND / GEMEENTE -->
+
+      <div class="field-grid">
+
+
+        <div>
+
+          <label for="country">
+            Land
+          </label>
+
+
+          <select id="country">
+
+            <option value="België">
+              België
+            </option>
+
+            <option value="Nederland">
+              Nederland
+            </option>
+
+          </select>
+
+        </div>
+
+
+        <div>
+
+          <label for="municipality">
+            Stad / gemeente
+          </label>
+
+
+          <input
+            id="municipality"
+            type="text"
+            placeholder="Bijv. Genk"
+          >
+
+        </div>
+
+
+      </div>
+
+
+
+      <!-- AFHALEN -->
+
+      <label for="pickup">
+        Gewenste afhaaldatum
+      </label>
+
+
+      <input
+        id="pickup"
+        type="date"
+      >
+
+
+      <div
+        id="dateInfo"
+        class="info"
+      >
+        De aanvraag moet minstens 2 dagen vóór afhaling gebeuren.
+      </div>
+
+
+
+      <!-- OPMERKING -->
+
+      <label for="note">
+        Opmerking
+      </label>
+
+
+      <textarea
+        id="note"
+        placeholder="Extra informatie voor de verantwoordelijke"
+      ></textarea>
+
+    </div>
+
+
+
+    <!-- =====================
+         MATERIALEN
+    ====================== -->
+
+    <div class="card">
+
+      <h2>
+        Materialen
+      </h2>
+
+
+      <div class="category-tabs">
+
+
+        <button
+          id="tab-bier"
+          class="category-button active"
+          type="button"
+          onclick="setCategory('bier')"
+        >
+          BIER
+        </button>
+
+
+        <button
+          id="tab-pos"
+          class="category-button"
+          type="button"
+          onclick="setCategory('pos')"
+        >
+          POS
+        </button>
+
+
+        <button
+          id="tab-evenement"
+          class="category-button"
+          type="button"
+          onclick="setCategory('evenement')"
+        >
+          EVENEMENT
+        </button>
+
+
+      </div>
+
+
+
+      <!-- EVENEMENT DETAILS -->
+
+      <div
+        id="eventPanel"
+        class="event-panel hidden"
+      >
+
+        <h3>
+          Evenementgegevens
+        </h3>
+
+
+        <p>
+          Vul dit in wanneer je evenementenmateriaal aanvraagt.
+        </p>
+
+
+        <label for="eventName">
+          Naam evenement
+        </label>
+
+
+        <input
+          id="eventName"
+          type="text"
+          placeholder="Bijv. Dorpsfeest Neeroeteren"
+        >
+
+
+        <div class="field-grid">
+
+
+          <div>
+
+            <label for="eventFrom">
+              Materiaal nodig vanaf
+            </label>
+
+            <input
+              id="eventFrom"
+              type="date"
+            >
+
+          </div>
+
+
+          <div>
+
+            <label for="eventUntil">
+              Materiaal nodig t/m
+            </label>
+
+            <input
+              id="eventUntil"
+              type="date"
+            >
+
+          </div>
+
+
+        </div>
+
+
+      </div>
+
+
+
+      <div id="productsList">
+
+        <div class="empty">
+          Producten laden...
+        </div>
 
       </div>
 
     </div>
 
 
-    <label for="customer">
-      Horecazaak / klant
-    </label>
 
-    <input
-      id="customer"
-      type="text"
-      placeholder="Bijv. Café De Markt"
-    >
+    <!-- VASTE ACTIEKNOP -->
 
-
-    <label for="municipality">
-      Gemeente
-    </label>
-
-    <input
-      id="municipality"
-      type="text"
-      placeholder="Bijv. Genk"
-    >
-
-
-    <label for="pickup">
-      Gewenste afhaaldatum
-    </label>
-
-    <input
-      id="pickup"
-      type="date"
-    >
-
-
-    <div
-      id="dateInfo"
-      class="info"
-    >
-      De aanvraag moet minstens
-      2 dagen vóór afhaling gebeuren.
-    </div>
-
-
-    <label for="note">
-      Opmerking
-    </label>
-
-    <textarea
-      id="note"
-      placeholder="Bijv. materiaal voor nieuwe plaatsing of promotieactie"
-    ></textarea>
-
-  </div>
-
-
-
-  <!-- MATERIALEN -->
-
-  <div class="card">
-
-    <h2>
-      Materialen
-    </h2>
-
-
-    <div class="category-tabs">
+    <div class="sticky-action">
 
       <button
-        id="tab-bier"
-        class="category-button active"
+        id="reviewButton"
+        class="primary"
         type="button"
-        onclick="setCategory('bier')"
+        onclick="showSummary()"
       >
-        🍺 Bier
-      </button>
-
-
-      <button
-        id="tab-evenement"
-        class="category-button"
-        type="button"
-        onclick="setCategory('evenement')"
-      >
-        🎪 Event
-      </button>
-
-
-      <button
-        id="tab-pos"
-        class="category-button"
-        type="button"
-        onclick="setCategory('pos')"
-      >
-        📣 POS
+        Aanvraag controleren
       </button>
 
     </div>
 
-
-    <div id="productsList">
-
-      <div class="empty">
-        Producten laden...
-      </div>
-
-    </div>
-
-  </div>
-
-
-  <div class="card">
-
-    <button
-      class="primary"
-      onclick="showSummary()"
-    >
-      Aanvraag controleren
-    </button>
-
-  </div>
-
-</section>
+  </section>
 
 
 
-<!-- SAMENVATTING -->
+  <!-- =====================
+       CONTROLE
+  ====================== -->
 
-<section
-  id="summaryScreen"
-  class="hidden"
->
-
-  <button
-    class="top-back"
-    onclick="backToOrder()"
+  <section
+    id="summaryScreen"
+    class="hidden"
   >
-    ← Terug aanpassen
-  </button>
-
-
-  <div class="card">
-
-    <h2>
-      Controleer aanvraag
-    </h2>
-
-
-    <p>
-      <strong>
-        Vertegenwoordiger:
-      </strong>
-      <br>
-      <span id="summaryRep"></span>
-    </p>
-
-
-    <p>
-      <strong>
-        Klant:
-      </strong>
-      <br>
-      <span id="summaryCustomer"></span>
-    </p>
-
-
-    <p>
-      <strong>
-        Gemeente:
-      </strong>
-      <br>
-      <span id="summaryMunicipality"></span>
-    </p>
-
-
-    <p>
-      <strong>
-        Afhalen:
-      </strong>
-      <br>
-      <span id="summaryPickup"></span>
-    </p>
-
-
-    <div id="summaryProducts"></div>
-
-
-    <p id="summaryNote"></p>
-
 
     <button
-      id="submitButton"
-      class="primary"
-      onclick="submitOrder()"
+      class="top-back"
+      type="button"
+      onclick="backToOrder()"
     >
-      Aanvraag verzenden
+      ← Terug aanpassen
     </button>
 
-  </div>
 
-</section>
+    <div class="card">
+
+      <h2>
+        Controleer aanvraag
+      </h2>
 
 
+      <p>
+        <strong>
+          Vertegenwoordiger
+        </strong>
 
-<!-- SUCCES -->
+        <br>
 
-<section
-  id="successScreen"
-  class="hidden"
->
+        <span id="summaryRep"></span>
+      </p>
 
-  <div class="card success">
 
-    <div class="success-icon">
-      ✓
+      <p>
+        <strong>
+          Referentie
+        </strong>
+
+        <br>
+
+        <span id="summaryReference"></span>
+      </p>
+
+
+      <p>
+        <strong>
+          Locatie
+        </strong>
+
+        <br>
+
+        <span id="summaryLocation"></span>
+      </p>
+
+
+      <p>
+        <strong>
+          Afhalen
+        </strong>
+
+        <br>
+
+        <span id="summaryPickup"></span>
+      </p>
+
+
+      <div
+        id="summaryEvent"
+        class="hidden"
+      ></div>
+
+
+      <div id="summaryProducts"></div>
+
+
+      <p id="summaryNote"></p>
+
+
+      <button
+        id="submitButton"
+        class="primary"
+        type="button"
+        onclick="submitOrder()"
+      >
+        Aanvraag verzenden
+      </button>
+
+
     </div>
 
-    <h2>
-      Aanvraag geregistreerd
-    </h2>
-
-    <p>
-      Aanvraagreferentie:
-      <br>
-      <strong id="successOrderId"></strong>
-    </p>
-
-    <p>
-      De aanvraag is centraal opgeslagen
-      en staat onder Mijn aanvragen.
-    </p>
-
-
-    <button
-      class="primary"
-      onclick="openOrders()"
-    >
-      Mijn aanvragen bekijken
-    </button>
-
-
-    <button
-      class="secondary"
-      onclick="newOrder()"
-    >
-      Nieuwe aanvraag
-    </button>
-
-  </div>
-
-</section>
+  </section>
 
 
 
-<!-- MIJN AANVRAGEN -->
+  <!-- =====================
+       SUCCES
+  ====================== -->
 
-<section
-  id="ordersScreen"
-  class="hidden"
->
-
-  <button
-    class="top-back"
-    onclick="goHome()"
+  <section
+    id="successScreen"
+    class="hidden"
   >
-    ← Terug
-  </button>
+
+    <div class="card success">
 
 
-  <div class="card">
-
-    <h2>
-      Mijn aanvragen
-    </h2>
-
-    <div id="ordersList">
-
-      <div class="empty">
-        Aanvragen laden...
+      <div class="success-mark">
+        ✓
       </div>
 
+
+      <h2>
+        Aanvraag geregistreerd
+      </h2>
+
+
+      <p>
+
+        Referentie aanvraag:
+
+        <br>
+
+        <strong id="successOrderId"></strong>
+
+      </p>
+
+
+      <p>
+        De aanvraag is centraal opgeslagen en staat bij Mijn aanvragen.
+      </p>
+
+
+      <button
+        class="primary"
+        type="button"
+        onclick="openOrders()"
+      >
+        Mijn aanvragen bekijken
+      </button>
+
+
+      <button
+        class="secondary"
+        type="button"
+        onclick="newOrder()"
+      >
+        Nieuwe aanvraag
+      </button>
+
+
     </div>
 
-  </div>
+  </section>
 
-</section>
+
+
+  <!-- =====================
+       MIJN AANVRAGEN
+  ====================== -->
+
+  <section
+    id="ordersScreen"
+    class="hidden"
+  >
+
+    <button
+      class="top-back"
+      type="button"
+      onclick="goHome()"
+    >
+      ← Terug
+    </button>
+
+
+    <div class="card">
+
+      <h2>
+        Mijn aanvragen
+      </h2>
+
+
+      <div id="ordersList">
+
+        <div class="empty">
+          Aanvragen laden...
+        </div>
+
+      </div>
+
+
+    </div>
+
+  </section>
 
 
 </main>
 
 
 
-<!-- NAVIGATIE -->
-
-<nav
-  id="footerNav"
-  class="footer-nav hidden"
->
-
-  <button
-    id="navHome"
-    class="active"
-    onclick="goHome()"
-  >
-    Home
-  </button>
-
-  <button
-    id="navOrders"
-    onclick="openOrders()"
-  >
-    Aanvragen
-  </button>
-
-</nav>
-
-
-
 <script>
+
+/* ============================================================
+   SUPABASE
+============================================================ */
 
 const SUPABASE_URL =
   "https://qosjfznmdnswwfnglxqt.supabase.co";
+
 
 const SUPABASE_KEY =
   "sb_publishable_pyiiMmH2tpl-lL3e_edcow_4ztJX-Ul";
 
 
 /*
-  CENTRALE TESTMAILBOX
+  Tijdelijk centraal testadres.
+
+  Later vervangen we dit door
+  het definitieve Achel adres.
 */
 
 const CENTRAL_EMAIL =
@@ -885,39 +2634,83 @@ const supabaseClient =
   );
 
 
-let currentUser = null;
 
-let currentProfile = null;
+/* ============================================================
+   BIERQUOTES
+============================================================ */
 
-let allProducts = [];
+const BEER_QUOTES = [
+
+  "Goed bier brengt goede mensen samen.",
+
+  "Een sterk verhaal begint vaak bij een goed glas bier.",
+
+  "Proef het moment, deel het verhaal.",
+
+  "Waar bier verbindt, ontstaan mooie gesprekken.",
+
+  "Kwaliteit proef je. Gastvrijheid onthoud je.",
+
+  "Een goed bier krijgt pas waarde wanneer het gedeeld wordt."
+
+];
+
+
+
+/* ============================================================
+   APP DATA
+============================================================ */
+
+let currentUser =
+  null;
+
+
+let currentProfile =
+  null;
+
+
+let allProducts =
+  [];
+
 
 let selectedCategory =
   "bier";
 
-const quantities = {};
+
+const quantities =
+  {};
 
 
 
-/* =========================
+/* ============================================================
    LOGIN
-========================= */
+============================================================ */
 
 async function loginUser() {
 
   const email =
+
     document
-      .getElementById("loginEmail")
+      .getElementById(
+        "loginEmail"
+      )
       .value
       .trim();
 
 
   const password =
+
     document
-      .getElementById("loginPassword")
+      .getElementById(
+        "loginPassword"
+      )
       .value;
 
 
-  if (!email || !password) {
+  if (
+    !email ||
+    !password
+  ) {
 
     showLoginMessage(
       "Vul je e-mailadres en wachtwoord in.",
@@ -934,7 +2727,11 @@ async function loginUser() {
   );
 
 
-  const { data, error } =
+  const {
+    data,
+    error
+  } =
+
     await supabaseClient
       .auth
       .signInWithPassword({
@@ -956,6 +2753,7 @@ async function loginUser() {
     showLoginMessage(
 
       "Inloggen mislukt: " +
+
       (
         error?.message
         ||
@@ -965,6 +2763,7 @@ async function loginUser() {
       true
 
     );
+
 
     return;
   }
@@ -986,18 +2785,25 @@ async function loginUser() {
 
 
 
+/* ============================================================
+   LOGIN MELDING
+============================================================ */
+
 function showLoginMessage(
   text,
   isError
 ) {
 
   const message =
-    document.getElementById(
-      "loginMessage"
-    );
+
+    document
+      .getElementById(
+        "loginMessage"
+      );
 
 
   message.className =
+
     isError
       ? "info error"
       : "info";
@@ -1010,9 +2816,9 @@ function showLoginMessage(
 
 
 
-/* =========================
-   PROFIEL
-========================= */
+/* ============================================================
+   PROFIEL LADEN
+============================================================ */
 
 async function loadCurrentProfile() {
 
@@ -1023,10 +2829,16 @@ async function loadCurrentProfile() {
   }
 
 
-  const { data, error } =
+  const {
+    data,
+    error
+  } =
+
     await supabaseClient
 
-      .from("profiles")
+      .from(
+        "profiles"
+      )
 
       .select(
         "id, naam, email, rol, actief"
@@ -1048,6 +2860,7 @@ async function loadCurrentProfile() {
     showLoginMessage(
 
       "Je login werkt, maar je profiel kon niet worden geladen: " +
+
       (
         error?.message
         ||
@@ -1058,7 +2871,9 @@ async function loadCurrentProfile() {
 
     );
 
+
     return false;
+
   }
 
 
@@ -1096,9 +2911,9 @@ async function loadCurrentProfile() {
 
 
 
-/* =========================
-   APP START
-========================= */
+/* ============================================================
+   APP STARTEN
+============================================================ */
 
 async function startApp() {
 
@@ -1120,10 +2935,44 @@ async function startApp() {
 
   document
     .getElementById(
-      "footerNav"
+      "menuButton"
     )
     .classList
     .remove("hidden");
+
+
+
+  const firstName =
+    getFirstName(
+      currentProfile.naam
+    );
+
+
+  document
+    .getElementById(
+      "welcomeTitle"
+    )
+    .innerText =
+      `Hallo ${firstName}`;
+
+
+
+  document
+    .getElementById(
+      "beerQuote"
+    )
+    .innerText =
+
+      BEER_QUOTES[
+
+        Math.floor(
+          Math.random()
+          *
+          BEER_QUOTES.length
+        )
+
+      ];
+
 
 
   document
@@ -1139,6 +2988,7 @@ async function startApp() {
       "loggedInRepEmail"
     )
     .innerText =
+
       currentProfile.email
       ||
       currentUser.email
@@ -1146,9 +2996,10 @@ async function startApp() {
       "";
 
 
+
   document
     .getElementById(
-      "homeRepName"
+      "menuRepName"
     )
     .innerText =
       currentProfile.naam;
@@ -1156,10 +3007,36 @@ async function startApp() {
 
   document
     .getElementById(
-      "welcomeTitle"
+      "menuRepEmail"
     )
     .innerText =
-      `Welkom, ${currentProfile.naam}`;
+
+      currentProfile.email
+      ||
+      currentUser.email
+      ||
+      "";
+
+
+
+  const canManage =
+
+    currentProfile.rol === "admin"
+
+    ||
+
+    currentProfile.rol === "verantwoordelijke";
+
+
+  document
+    .getElementById(
+      "menuAdmin"
+    )
+    .classList
+    .toggle(
+      "hidden",
+      !canManage
+    );
 
 
   await loadProducts();
@@ -1171,9 +3048,58 @@ async function startApp() {
 
 
 
-/* =========================
+/* ============================================================
+   VOORNAAM
+============================================================ */
+
+function getFirstName(
+  name
+) {
+
+  const cleaned =
+
+    String(
+      name || ""
+    )
+
+      .trim()
+
+      .replace(
+        /[._-]+/g,
+        " "
+      );
+
+
+  const first =
+
+    cleaned
+      .split(
+        /\s+/
+      )[0]
+
+    ||
+    "";
+
+
+  return first
+
+    ? first
+        .charAt(0)
+        .toUpperCase()
+
+      +
+
+      first.slice(1)
+
+    : "";
+
+}
+
+
+
+/* ============================================================
    UITLOGGEN
-========================= */
+============================================================ */
 
 async function logoutUser() {
 
@@ -1194,6 +3120,9 @@ async function logoutUser() {
     [];
 
 
+  closeMenu();
+
+
   document
     .getElementById(
       "appMain"
@@ -1204,7 +3133,7 @@ async function logoutUser() {
 
   document
     .getElementById(
-      "footerNav"
+      "menuButton"
     )
     .classList
     .add("hidden");
@@ -1237,13 +3166,17 @@ async function logoutUser() {
 
 
 
-/* =========================
-   BESTAANDE LOGIN CONTROLEREN
-========================= */
+/* ============================================================
+   BESTAANDE SESSIE
+============================================================ */
 
 async function checkExistingSession() {
 
-  const { data, error } =
+  const {
+    data,
+    error
+  } =
+
     await supabaseClient
       .auth
       .getSession();
@@ -1275,16 +3208,145 @@ async function checkExistingSession() {
 
 
 
-/* =========================
+/* ============================================================
+   MENU
+============================================================ */
+
+function openMenu() {
+
+  document
+    .getElementById(
+      "menuOverlay"
+    )
+    .classList
+    .add("open");
+
+}
+
+
+function closeMenu() {
+
+  document
+    .getElementById(
+      "menuOverlay"
+    )
+    .classList
+    .remove("open");
+
+}
+
+
+function closeMenuFromOverlay(
+  event
+) {
+
+  if (
+    event.target.id ===
+    "menuOverlay"
+  ) {
+
+    closeMenu();
+
+  }
+
+}
+
+
+function menuGoHome() {
+
+  closeMenu();
+
+  goHome();
+
+}
+
+
+function menuNewOrder() {
+
+  closeMenu();
+
+  openNewOrder();
+
+}
+
+
+function menuOrders() {
+
+  closeMenu();
+
+  openOrders();
+
+}
+
+
+function menuLogout() {
+
+  closeMenu();
+
+  logoutUser();
+
+}
+
+
+
+/* ============================================================
+   ADMIN MENU
+============================================================ */
+
+async function openAdminFromMenu() {
+
+  closeMenu();
+
+
+  if (
+    typeof initAdminModule
+    ===
+    "function"
+  ) {
+
+    await initAdminModule();
+
+  }
+
+
+  if (
+    typeof openAdminDashboard
+    ===
+    "function"
+  ) {
+
+    await openAdminDashboard();
+
+  }
+
+  else {
+
+    alert(
+      "Het beheerdersdashboard kon niet worden geladen."
+    );
+
+  }
+
+}
+
+
+
+/* ============================================================
    PRODUCTEN LADEN
-========================= */
+============================================================ */
 
 async function loadProducts() {
 
-  const { data, error } =
+  const {
+    data,
+    error
+  } =
+
     await supabaseClient
 
-      .from("products")
+      .from(
+        "products"
+      )
 
       .select(
         "id, naam, categorie, eenheid, sort_order"
@@ -1298,7 +3360,8 @@ async function loadProducts() {
       .order(
         "sort_order",
         {
-          ascending: true
+          ascending:
+            true
         }
       );
 
@@ -1318,6 +3381,7 @@ async function loadProducts() {
 
 
     return;
+
   }
 
 
@@ -1347,13 +3411,15 @@ async function loadProducts() {
 
   renderProducts();
 
+  updateReviewButton();
+
 }
 
 
 
-/* =========================
+/* ============================================================
    CATEGORIE
-========================= */
+============================================================ */
 
 function setCategory(
   category
@@ -1365,8 +3431,8 @@ function setCategory(
 
   [
     "bier",
-    "evenement",
-    "pos"
+    "pos",
+    "evenement"
   ]
     .forEach(
       name => {
@@ -1385,43 +3451,99 @@ function setCategory(
     );
 
 
+  updateEventPanel();
+
   renderProducts();
 
 }
 
 
 
-/* =========================
+/* ============================================================
+   EVENEMENT PANEL
+============================================================ */
+
+function updateEventPanel() {
+
+  const hasEventItems =
+
+    allProducts
+      .some(
+        product =>
+
+          product.categorie ===
+          "evenement"
+
+          &&
+
+          (
+            quantities[
+              product.id
+            ]
+            ||
+            0
+          ) > 0
+      );
+
+
+  document
+    .getElementById(
+      "eventPanel"
+    )
+    .classList
+    .toggle(
+
+      "hidden",
+
+      selectedCategory
+      !==
+      "evenement"
+
+      &&
+
+      !hasEventItems
+
+    );
+
+}
+
+
+
+/* ============================================================
    PRODUCTEN TONEN
-========================= */
+============================================================ */
 
 function renderProducts() {
 
   const container =
-    document.getElementById(
-      "productsList"
-    );
+
+    document
+      .getElementById(
+        "productsList"
+      );
 
 
   const products =
+
     allProducts
       .filter(
         product =>
-          product.categorie ===
+
+          product.categorie
+          ===
           selectedCategory
       );
 
 
   if (
-    products.length === 0
+    !products.length
   ) {
 
     container.innerHTML =
-      `
-        <div class="empty">
-          Nog geen artikelen in deze categorie.
-        </div>
-      `;
+
+      `<div class="empty">
+        Nog geen artikelen in deze categorie.
+      </div>`;
 
 
     return;
@@ -1448,11 +3570,10 @@ function renderProducts() {
 
                   ? `
                     <span class="product-unit">
-
-                      Per ${escapeHtml(
+                      Eenheid:
+                      ${escapeHtml(
                         product.eenheid
                       )}
-
                     </span>
                   `
 
@@ -1475,7 +3596,13 @@ function renderProducts() {
               <span
                 id="qty-${product.id}"
               >
-                ${quantities[product.id] || 0}
+                ${
+                  quantities[
+                    product.id
+                  ]
+                  ||
+                  0
+                }
               </span>
 
 
@@ -1499,48 +3626,68 @@ function renderProducts() {
 
 
 
-/* =========================
+/* ============================================================
    AANTALLEN
-========================= */
+============================================================ */
 
 function changeQty(
   productId,
   amount
 ) {
 
-  const current =
-    quantities[
-      productId
-    ] || 0;
-
-
   quantities[
     productId
   ] =
+
     Math.max(
+
       0,
-      current + amount
+
+      (
+        quantities[
+          productId
+        ]
+        ||
+        0
+      )
+
+      +
+
+      amount
+
     );
 
 
   const element =
-    document.getElementById(
-      `qty-${productId}`
-    );
+
+    document
+      .getElementById(
+        `qty-${productId}`
+      );
 
 
   if (element) {
 
     element.innerText =
+
       quantities[
         productId
       ];
 
   }
 
+
+  updateEventPanel();
+
+  updateReviewButton();
+
 }
 
 
+
+/* ============================================================
+   GESELECTEERDE PRODUCTEN
+============================================================ */
 
 function selectedProducts() {
 
@@ -1548,11 +3695,16 @@ function selectedProducts() {
 
     .filter(
       product =>
+
         (
           quantities[
             product.id
-          ] || 0
-        ) > 0
+          ]
+          ||
+          0
+        )
+        >
+        0
     )
 
     .map(
@@ -1572,9 +3724,49 @@ function selectedProducts() {
 
 
 
-/* =========================
+/* ============================================================
+   AANVRAAG KNOP
+============================================================ */
+
+function updateReviewButton() {
+
+  const total =
+
+    selectedProducts()
+
+      .reduce(
+        (
+          sum,
+          product
+        ) =>
+
+          sum
+          +
+          product.qty,
+
+        0
+      );
+
+
+  document
+    .getElementById(
+      "reviewButton"
+    )
+    .innerText =
+
+      total > 0
+
+        ? `Aanvraag controleren · ${total}`
+
+        : "Aanvraag controleren";
+
+}
+
+
+
+/* ============================================================
    SCHERMEN
-========================= */
+============================================================ */
 
 function showOnly(
   screenId
@@ -1587,6 +3779,7 @@ function showOnly(
     "successScreen",
     "ordersScreen"
   ]
+
     .forEach(
       id => {
 
@@ -1609,20 +3802,13 @@ function showOnly(
 }
 
 
-
 function goHome() {
 
   showOnly(
     "homeScreen"
   );
 
-
-  setNav(
-    "home"
-  );
-
 }
-
 
 
 function openNewOrder() {
@@ -1631,13 +3817,7 @@ function openNewOrder() {
     "orderScreen"
   );
 
-
-  setNav(
-    "home"
-  );
-
 }
-
 
 
 async function openOrders() {
@@ -1647,49 +3827,24 @@ async function openOrders() {
   );
 
 
-  setNav(
-    "orders"
-  );
-
-
   await renderOrders();
 
 }
 
 
+function backToOrder() {
 
-function setNav(
-  active
-) {
-
-  document
-    .getElementById(
-      "navHome"
-    )
-    ?.classList
-    .toggle(
-      "active",
-      active === "home"
-    );
-
-
-  document
-    .getElementById(
-      "navOrders"
-    )
-    ?.classList
-    .toggle(
-      "active",
-      active === "orders"
-    );
+  showOnly(
+    "orderScreen"
+  );
 
 }
 
 
 
-/* =========================
+/* ============================================================
    AFHAALDATUM
-========================= */
+============================================================ */
 
 function getMinimumPickupDate() {
 
@@ -1706,14 +3861,15 @@ function getMinimumPickupDate() {
 
 
   date.setDate(
-    date.getDate() + 2
+    date.getDate()
+    +
+    2
   );
 
 
   return date;
 
 }
-
 
 
 function formatISO(
@@ -1725,9 +3881,13 @@ function formatISO(
 
 
   const month =
+
     String(
-      date.getMonth() + 1
+      date.getMonth()
+      +
+      1
     )
+
       .padStart(
         2,
         "0"
@@ -1735,9 +3895,11 @@ function formatISO(
 
 
   const day =
+
     String(
       date.getDate()
     )
+
       .padStart(
         2,
         "0"
@@ -1751,14 +3913,16 @@ function formatISO(
 }
 
 
-
 const pickupInput =
-  document.getElementById(
-    "pickup"
-  );
+
+  document
+    .getElementById(
+      "pickup"
+    );
 
 
 pickupInput.min =
+
   formatISO(
     getMinimumPickupDate()
   );
@@ -1771,13 +3935,14 @@ pickupInput
   );
 
 
-
 function validatePickupDate() {
 
   const info =
-    document.getElementById(
-      "dateInfo"
-    );
+
+    document
+      .getElementById(
+        "dateInfo"
+      );
 
 
   if (
@@ -1798,18 +3963,18 @@ function validatePickupDate() {
 
 
   const selected =
+
     new Date(
-      pickupInput.value +
+      pickupInput.value
+      +
       "T00:00:00"
     );
 
 
-  const minimum =
-    getMinimumPickupDate();
-
-
   if (
-    selected < minimum
+    selected
+    <
+    getMinimumPickupDate()
   ) {
 
     info.className =
@@ -1839,14 +4004,124 @@ function validatePickupDate() {
 
 
 
-/* =========================
+/* ============================================================
+   EVENEMENT DATA
+============================================================ */
+
+function getEventData() {
+
+  return {
+
+    name:
+      document
+        .getElementById(
+          "eventName"
+        )
+        .value
+        .trim(),
+
+    from:
+      document
+        .getElementById(
+          "eventFrom"
+        )
+        .value,
+
+    until:
+      document
+        .getElementById(
+          "eventUntil"
+        )
+        .value
+
+  };
+
+}
+
+
+
+/* ============================================================
+   EVENEMENT CONTROLEREN
+============================================================ */
+
+function validateEventData(
+  chosenProducts
+) {
+
+  const hasEventItems =
+
+    chosenProducts
+      .some(
+        product =>
+
+          product.categorie
+          ===
+          "evenement"
+      );
+
+
+  if (
+    !hasEventItems
+  ) {
+
+    return true;
+
+  }
+
+
+  const event =
+    getEventData();
+
+
+  if (
+    !event.name
+    ||
+    !event.from
+    ||
+    !event.until
+  ) {
+
+    alert(
+      "Vul voor evenementenmateriaal de naam van het evenement en beide datums in."
+    );
+
+
+    return false;
+
+  }
+
+
+  if (
+    event.until
+    <
+    event.from
+  ) {
+
+    alert(
+      "De einddatum van het evenement kan niet vóór de begindatum liggen."
+    );
+
+
+    return false;
+
+  }
+
+
+  return true;
+
+}
+
+
+
+/* ============================================================
    SAMENVATTING
-========================= */
+============================================================ */
 
 function showSummary() {
 
   if (
-    !currentUser ||
+    !currentUser
+    ||
     !currentProfile
   ) {
 
@@ -1854,21 +4129,33 @@ function showSummary() {
       "Je sessie is verlopen. Log opnieuw in."
     );
 
+
     return;
 
   }
 
 
-  const customer =
+  const reference =
+
     document
       .getElementById(
-        "customer"
+        "reference"
       )
       .value
       .trim();
 
 
+  const country =
+
+    document
+      .getElementById(
+        "country"
+      )
+      .value;
+
+
   const municipality =
+
     document
       .getElementById(
         "municipality"
@@ -1878,6 +4165,7 @@ function showSummary() {
 
 
   const note =
+
     document
       .getElementById(
         "note"
@@ -1890,11 +4178,14 @@ function showSummary() {
     selectedProducts();
 
 
-  if (!customer) {
+  if (
+    !reference
+  ) {
 
     alert(
-      "Vul eerst de horecazaak of klant in."
+      "Vul eerst een referentie in."
     );
+
 
     return;
 
@@ -1909,22 +4200,36 @@ function showSummary() {
       "Kies een geldige afhaaldatum."
     );
 
+
     return;
 
   }
 
 
   if (
-    chosenProducts.length === 0
+    !chosenProducts.length
   ) {
 
     alert(
       "Selecteer minstens één materiaal."
     );
 
+
     return;
 
   }
+
+
+  if (
+    !validateEventData(
+      chosenProducts
+    )
+  ) {
+
+    return;
+
+  }
+
 
 
   document
@@ -1938,21 +4243,23 @@ function showSummary() {
 
   document
     .getElementById(
-      "summaryCustomer"
+      "summaryReference"
     )
     .innerText =
-      customer;
+      reference;
 
 
   document
     .getElementById(
-      "summaryMunicipality"
+      "summaryLocation"
     )
     .innerText =
 
       municipality
-      ||
-      "Niet ingevuld";
+
+        ? `${country} · ${municipality}`
+
+        : country;
 
 
   document
@@ -1963,34 +4270,101 @@ function showSummary() {
       pickupInput.value;
 
 
+
+  const hasEventItems =
+
+    chosenProducts
+      .some(
+        product =>
+
+          product.categorie
+          ===
+          "evenement"
+      );
+
+
+  const summaryEvent =
+
+    document
+      .getElementById(
+        "summaryEvent"
+      );
+
+
+  if (
+    hasEventItems
+  ) {
+
+    const event =
+      getEventData();
+
+
+    summaryEvent
+      .classList
+      .remove("hidden");
+
+
+    summaryEvent.innerHTML = `
+
+      <p>
+
+        <strong>
+          Evenement
+        </strong>
+
+        <br>
+
+        ${escapeHtml(
+          event.name
+        )}
+
+        <br>
+
+        <span
+          style="color:var(--muted)"
+        >
+
+          ${escapeHtml(
+            event.from
+          )}
+
+          t/m
+
+          ${escapeHtml(
+            event.until
+          )}
+
+        </span>
+
+      </p>
+
+    `;
+
+  }
+
+  else {
+
+    summaryEvent
+      .classList
+      .add("hidden");
+
+
+    summaryEvent.innerHTML =
+      "";
+
+  }
+
+
+
   document
     .getElementById(
       "summaryProducts"
     )
     .innerHTML =
 
-      chosenProducts
-        .map(
-          product => `
-
-            <div class="summary-line">
-
-              <span>
-                ${escapeHtml(
-                  product.naam
-                )}
-              </span>
-
-              <strong>
-                ${product.qty}
-              </strong>
-
-            </div>
-
-          `
-        )
-
-        .join("");
+      buildSummarySections(
+        chosenProducts
+      );
 
 
   document
@@ -2000,7 +4374,9 @@ function showSummary() {
     .innerText =
 
       note
+
         ? `Opmerking: ${note}`
+
         : "";
 
 
@@ -2012,30 +4388,133 @@ function showSummary() {
 
 
 
-function backToOrder() {
+/* ============================================================
+   SAMENVATTING PER CATEGORIE
+============================================================ */
 
-  showOnly(
-    "orderScreen"
-  );
+function buildSummarySections(
+  chosenProducts
+) {
+
+  const groups = [
+
+    {
+      key:
+        "bier",
+
+      title:
+        "BIER"
+    },
+
+    {
+      key:
+        "pos",
+
+      title:
+        "POS-MATERIALEN"
+    },
+
+    {
+      key:
+        "evenement",
+
+      title:
+        "EVENEMENTENMATERIAAL"
+    }
+
+  ];
+
+
+  return groups
+
+    .map(
+      group => {
+
+        const items =
+
+          chosenProducts
+            .filter(
+              product =>
+
+                product.categorie
+                ===
+                group.key
+            );
+
+
+        if (
+          !items.length
+        ) {
+
+          return "";
+
+        }
+
+
+        return `
+
+          <div class="summary-section">
+
+            <div class="summary-section-title">
+              ${group.title}
+            </div>
+
+
+            ${
+              items
+
+                .map(
+                  product => `
+
+                    <div class="summary-line">
+
+                      <span>
+                        ${escapeHtml(
+                          product.naam
+                        )}
+                      </span>
+
+                      <strong>
+                        ${product.qty}
+                      </strong>
+
+                    </div>
+
+                  `
+                )
+
+                .join("")
+            }
+
+          </div>
+
+        `;
+
+      }
+    )
+
+    .join("");
 
 }
 
 
 
-/* =========================
+/* ============================================================
    AANVRAAG OPSLAAN
-========================= */
+============================================================ */
 
 async function submitOrder() {
 
   if (
-    !currentUser ||
+    !currentUser
+    ||
     !currentProfile
   ) {
 
     alert(
       "Je sessie is verlopen. Log opnieuw in."
     );
+
 
     return;
 
@@ -2047,22 +4526,81 @@ async function submitOrder() {
 
 
   if (
-    chosenProducts.length === 0
+    !chosenProducts.length
+    ||
+    !validateEventData(
+      chosenProducts
+    )
   ) {
-
-    alert(
-      "Er zijn geen materialen geselecteerd."
-    );
 
     return;
 
   }
 
 
+
+  const reference =
+
+    document
+      .getElementById(
+        "reference"
+      )
+      .value
+      .trim();
+
+
+  const country =
+
+    document
+      .getElementById(
+        "country"
+      )
+      .value;
+
+
+  const municipality =
+
+    document
+      .getElementById(
+        "municipality"
+      )
+      .value
+      .trim();
+
+
+  const note =
+
+    document
+      .getElementById(
+        "note"
+      )
+      .value
+      .trim();
+
+
+  const event =
+    getEventData();
+
+
+  const hasEventItems =
+
+    chosenProducts
+      .some(
+        product =>
+
+          product.categorie
+          ===
+          "evenement"
+      );
+
+
+
   const submitButton =
-    document.getElementById(
-      "submitButton"
-    );
+
+    document
+      .getElementById(
+        "submitButton"
+      );
 
 
   submitButton.disabled =
@@ -2073,40 +4611,17 @@ async function submitOrder() {
     "Aanvraag opslaan...";
 
 
-  const customer =
-    document
-      .getElementById(
-        "customer"
-      )
-      .value
-      .trim();
-
-
-  const municipality =
-    document
-      .getElementById(
-        "municipality"
-      )
-      .value
-      .trim();
-
-
-  const note =
-    document
-      .getElementById(
-        "note"
-      )
-      .value
-      .trim();
-
 
   const {
     data: order,
     error: orderError
   } =
+
     await supabaseClient
 
-      .from("orders")
+      .from(
+        "orders"
+      )
 
       .insert({
 
@@ -2114,7 +4629,13 @@ async function submitOrder() {
           currentUser.id,
 
         klant:
-          customer,
+          null,
+
+        referentie:
+          reference,
+
+        land:
+          country,
 
         gemeente:
           municipality || null,
@@ -2124,6 +4645,21 @@ async function submitOrder() {
 
         opmerking:
           note || null,
+
+        event_naam:
+          hasEventItems
+            ? event.name
+            : null,
+
+        event_vanaf:
+          hasEventItems
+            ? event.from
+            : null,
+
+        event_tot:
+          hasEventItems
+            ? event.until
+            : null,
 
         status:
           "nieuw"
@@ -2137,8 +4673,10 @@ async function submitOrder() {
       .single();
 
 
+
   if (
-    orderError ||
+    orderError
+    ||
     !order
   ) {
 
@@ -2152,7 +4690,9 @@ async function submitOrder() {
 
     alert(
 
-      "De aanvraag kon niet worden opgeslagen: " +
+      "De aanvraag kon niet worden opgeslagen: "
+
+      +
 
       (
         orderError?.message
@@ -2170,6 +4710,7 @@ async function submitOrder() {
 
 
   const itemRows =
+
     chosenProducts
       .map(
         product => ({
@@ -2196,6 +4737,7 @@ async function submitOrder() {
   const {
     error: itemsError
   } =
+
     await supabaseClient
 
       .from(
@@ -2207,7 +4749,10 @@ async function submitOrder() {
       );
 
 
-  if (itemsError) {
+
+  if (
+    itemsError
+  ) {
 
     submitButton.disabled =
       false;
@@ -2219,7 +4764,9 @@ async function submitOrder() {
 
     alert(
 
-      "De aanvraag is aangemaakt, maar de artikelen konden niet worden opgeslagen: " +
+      "De aanvraag is aangemaakt, maar de artikelen konden niet worden opgeslagen: "
+
+      +
 
       itemsError.message
 
@@ -2232,7 +4779,8 @@ async function submitOrder() {
 
 
 
-  const reference =
+  const orderReference =
+
     createOrderReference(
       order.id,
       order.created_at
@@ -2244,7 +4792,7 @@ async function submitOrder() {
       "successOrderId"
     )
     .innerText =
-      reference;
+      orderReference;
 
 
   submitButton.disabled =
@@ -2261,17 +4809,24 @@ async function submitOrder() {
 
 
   openCentralEmail(
-    reference,
-    chosenProducts
+
+    orderReference,
+
+    chosenProducts,
+
+    hasEventItems
+      ? event
+      : null
+
   );
 
 }
 
 
 
-/* =========================
-   REFERENTIENUMMER
-========================= */
+/* ============================================================
+   AANVRAAG REFERENTIE
+============================================================ */
 
 function createOrderReference(
   orderId,
@@ -2279,40 +4834,94 @@ function createOrderReference(
 ) {
 
   const year =
+
     new Date(
-      createdAt ||
+      createdAt
+      ||
       Date.now()
     )
+
       .getFullYear();
 
 
   return (
+
     `POS-${year}-${orderId.slice(0,8).toUpperCase()}`
+
   );
 
 }
 
 
 
-/* =========================
-   MAIL OPENEN
-========================= */
+/* ============================================================
+   MAIL CATEGORIE BLOK
+============================================================ */
 
-function openCentralEmail(
-  reference,
-  chosenProducts
+function categoryMailBlock(
+  title,
+  products
 ) {
 
-  const customer =
+  if (
+    !products.length
+  ) {
+
+    return "";
+
+  }
+
+
+  return (
+
+`${title}
+--------------------
+${products
+  .map(
+    product =>
+      `${product.qty} x ${product.naam}`
+  )
+  .join("\n")}
+
+`
+
+  );
+
+}
+
+
+
+/* ============================================================
+   MAIL OPBOUW
+============================================================ */
+
+function openCentralEmail(
+  orderReference,
+  chosenProducts,
+  event
+) {
+
+  const reference =
+
     document
       .getElementById(
-        "customer"
+        "reference"
       )
       .value
       .trim();
 
 
+  const country =
+
+    document
+      .getElementById(
+        "country"
+      )
+      .value;
+
+
   const municipality =
+
     document
       .getElementById(
         "municipality"
@@ -2322,6 +4931,7 @@ function openCentralEmail(
 
 
   const note =
+
     document
       .getElementById(
         "note"
@@ -2330,26 +4940,105 @@ function openCentralEmail(
       .trim();
 
 
-  const productsText =
+
+  const beerProducts =
+
     chosenProducts
-
-      .map(
+      .filter(
         product =>
-          `${product.qty} x ${product.naam}`
-      )
 
-      .join("\n");
+          product.categorie
+          ===
+          "bier"
+      );
+
+
+  const posProducts =
+
+    chosenProducts
+      .filter(
+        product =>
+
+          product.categorie
+          ===
+          "pos"
+      );
+
+
+  const eventProducts =
+
+    chosenProducts
+      .filter(
+        product =>
+
+          product.categorie
+          ===
+          "evenement"
+      );
+
+
+
+  let materialText =
+    "";
+
+
+  materialText +=
+
+    categoryMailBlock(
+      "BIER",
+      beerProducts
+    );
+
+
+  materialText +=
+
+    categoryMailBlock(
+      "POS-MATERIALEN",
+      posProducts
+    );
+
+
+
+  if (
+    eventProducts.length
+  ) {
+
+    materialText +=
+
+`EVENEMENT
+--------------------
+Naam evenement: ${event.name}
+Materiaal nodig: ${event.from} t/m ${event.until}
+
+`;
+
+
+    materialText +=
+
+      categoryMailBlock(
+
+        "EVENEMENTENMATERIAAL",
+
+        eventProducts
+
+      );
+
+  }
+
 
 
   const subject =
-    `Achel POS aanvraag ${reference} - ${customer}`;
+
+    `Achel aanvraag ${orderReference} - ${reference}`;
+
 
 
   const body =
-`ACHEL POS AANVRAAG
+
+`ACHEL AANVRAAG
 
 Aanvraag:
-${reference}
+${orderReference}
 
 Vertegenwoordiger:
 ${currentProfile.naam}
@@ -2357,40 +5046,46 @@ ${currentProfile.naam}
 E-mail:
 ${currentProfile.email || currentUser.email || ""}
 
-Horecazaak / klant:
-${customer}
+Referentie:
+${reference}
 
-Gemeente:
+Land:
+${country}
+
+Stad / gemeente:
 ${municipality || "Niet ingevuld"}
 
 Gewenste afhaaldatum:
 ${pickupInput.value}
 
-MATERIALEN
---------------------
-${productsText}
-
-OPMERKING
+${materialText}OPMERKING
 --------------------
 ${note || "Geen opmerkingen"}
 
 Deze aanvraag is centraal opgeslagen in Achel POS.`;
 
 
+
   const mailto =
 
-    `mailto:${CENTRAL_EMAIL}` +
+    `mailto:${CENTRAL_EMAIL}`
+
+    +
 
     `?subject=${encodeURIComponent(
       subject
-    )}` +
+    )}`
+
+    +
 
     `&body=${encodeURIComponent(
       body
     )}`;
 
 
+
   setTimeout(
+
     () => {
 
       window.location.href =
@@ -2399,53 +5094,63 @@ Deze aanvraag is centraal opgeslagen in Achel POS.`;
     },
 
     400
+
   );
 
 }
 
 
 
-/* =========================
+/* ============================================================
    MIJN AANVRAGEN
-========================= */
+============================================================ */
 
 async function renderOrders() {
 
   const container =
-    document.getElementById(
-      "ordersList"
-    );
+
+    document
+      .getElementById(
+        "ordersList"
+      );
 
 
   container.innerHTML =
-    `
-      <div class="empty">
-        Aanvragen laden...
-      </div>
-    `;
+
+    `<div class="empty">
+      Aanvragen laden...
+    </div>`;
+
 
 
   const {
     data: orders,
     error: orderError
   } =
+
     await supabaseClient
 
-      .from("orders")
+      .from(
+        "orders"
+      )
 
       .select(
-        "id, klant, gemeente, afhaaldatum, opmerking, status, created_at"
+        "id, referentie, land, gemeente, afhaaldatum, opmerking, status, event_naam, event_vanaf, event_tot, created_at"
       )
 
       .order(
         "created_at",
         {
-          ascending: false
+          ascending:
+            false
         }
       );
 
 
-  if (orderError) {
+
+  if (
+    orderError
+  ) {
 
     container.innerHTML =
 
@@ -2465,17 +5170,16 @@ async function renderOrders() {
   }
 
 
+
   if (
-    !orders ||
-    orders.length === 0
+    !orders?.length
   ) {
 
     container.innerHTML =
-      `
-        <div class="empty">
-          Nog geen aanvragen.
-        </div>
-      `;
+
+      `<div class="empty">
+        Nog geen aanvragen.
+      </div>`;
 
 
     return;
@@ -2483,17 +5187,21 @@ async function renderOrders() {
   }
 
 
+
   const orderIds =
+
     orders.map(
       order =>
         order.id
     );
 
 
+
   const {
     data: items,
     error: itemsError
   } =
+
     await supabaseClient
 
       .from(
@@ -2510,7 +5218,10 @@ async function renderOrders() {
       );
 
 
-  if (itemsError) {
+
+  if (
+    itemsError
+  ) {
 
     container.innerHTML =
 
@@ -2530,12 +5241,15 @@ async function renderOrders() {
   }
 
 
-  const itemsByOrder = {};
+
+  const itemsByOrder =
+    {};
 
 
   (
     items || []
   )
+
     .forEach(
       item => {
 
@@ -2555,22 +5269,31 @@ async function renderOrders() {
         itemsByOrder[
           item.order_id
         ]
-          .push(item);
+
+          .push(
+            item
+          );
 
       }
     );
 
 
+
   container.innerHTML =
 
     orders
+
       .map(
         order => {
 
+
           const orderItems =
+
             itemsByOrder[
               order.id
-            ] || [];
+            ]
+            ||
+            [];
 
 
           const productsHtml =
@@ -2578,13 +5301,52 @@ async function renderOrders() {
             orderItems.length
 
               ? orderItems
+
                   .map(
                     item =>
+
                       `${item.aantal} × ${escapeHtml(item.product_naam)}`
                   )
-                  .join("<br>")
+
+                  .join(
+                    "<br>"
+                  )
 
               : "Geen artikelen gevonden";
+
+
+
+          const eventHtml =
+
+            order.event_naam
+
+              ? `
+
+                <div class="order-meta">
+
+                  Evenement:
+                  ${escapeHtml(
+                    order.event_naam
+                  )}
+
+                  ·
+
+                  ${escapeHtml(
+                    order.event_vanaf || ""
+                  )}
+
+                  t/m
+
+                  ${escapeHtml(
+                    order.event_tot || ""
+                  )}
+
+                </div>
+
+              `
+
+              : "";
+
 
 
           return `
@@ -2603,7 +5365,9 @@ async function renderOrders() {
                 </div>
 
 
-                <div class="status">
+                <div
+                  class="status ${statusClass(order.status)}"
+                >
 
                   ${formatStatus(
                     order.status
@@ -2614,40 +5378,46 @@ async function renderOrders() {
               </div>
 
 
-              <div class="order-meta">
+              <div class="order-title">
 
                 ${escapeHtml(
-                  order.klant
+                  order.referentie
+                  ||
+                  "Geen referentie"
                 )}
 
               </div>
 
 
-              ${
-                order.gemeente
+              <div class="order-meta">
 
-                  ? `
-                    <div class="order-meta">
+                ${escapeHtml(
+                  order.land || ""
+                )}
 
-                      ${escapeHtml(
-                        order.gemeente
-                      )}
+                ${
+                  order.gemeente
 
-                    </div>
-                  `
+                    ? `· ${escapeHtml(order.gemeente)}`
 
-                  : ""
-              }
+                    : ""
+                }
+
+              </div>
 
 
               <div class="order-meta">
 
                 Afhalen:
+
                 ${escapeHtml(
                   order.afhaaldatum
                 )}
 
               </div>
+
+
+              ${eventHtml}
 
 
               <div class="order-items">
@@ -2661,18 +5431,22 @@ async function renderOrders() {
                 order.opmerking
 
                   ? `
+
                     <div class="order-meta">
 
                       Opmerking:
+
                       ${escapeHtml(
                         order.opmerking
                       )}
 
                     </div>
+
                   `
 
                   : ""
               }
+
 
             </div>
 
@@ -2687,9 +5461,9 @@ async function renderOrders() {
 
 
 
-/* =========================
+/* ============================================================
    STATUS
-========================= */
+============================================================ */
 
 function formatStatus(
   status
@@ -2716,29 +5490,71 @@ function formatStatus(
 
 
   return (
+
     statuses[
       status
     ]
+
     ||
+
     status
+
   );
 
 }
 
 
 
-/* =========================
+function statusClass(
+  status
+) {
+
+  if (
+    status === "klaar"
+    ||
+    status === "afgehaald"
+  ) {
+
+    return "status-klaar";
+
+  }
+
+
+  if (
+    status === "geannuleerd"
+  ) {
+
+    return "status-geannuleerd";
+
+  }
+
+
+  return "";
+
+}
+
+
+
+/* ============================================================
    FORMULIER RESET
-========================= */
+============================================================ */
 
 function resetForm() {
 
   document
     .getElementById(
-      "customer"
+      "reference"
     )
     .value =
       "";
+
+
+  document
+    .getElementById(
+      "country"
+    )
+    .value =
+      "België";
 
 
   document
@@ -2760,6 +5576,30 @@ function resetForm() {
   document
     .getElementById(
       "note"
+    )
+    .value =
+      "";
+
+
+  document
+    .getElementById(
+      "eventName"
+    )
+    .value =
+      "";
+
+
+  document
+    .getElementById(
+      "eventFrom"
+    )
+    .value =
+      "";
+
+
+  document
+    .getElementById(
+      "eventUntil"
     )
     .value =
       "";
@@ -2791,6 +5631,9 @@ function resetForm() {
 
   renderProducts();
 
+
+  updateReviewButton();
+
 }
 
 
@@ -2805,9 +5648,9 @@ function newOrder() {
 
 
 
-/* =========================
-   VEILIGE TEKST
-========================= */
+/* ============================================================
+   VEILIGE HTML
+============================================================ */
 
 function escapeHtml(
   value
@@ -2846,9 +5689,9 @@ function escapeHtml(
 
 
 
-/* =========================
+/* ============================================================
    SERVICE WORKER
-========================= */
+============================================================ */
 
 if (
   "serviceWorker"
@@ -2868,14 +5711,13 @@ if (
           )
 
           .catch(
-            error => {
+            error =>
 
               console.log(
                 "Service worker fout:",
                 error
-              );
+              )
 
-            }
           );
 
       }
@@ -2884,15 +5726,21 @@ if (
 }
 
 
-/*
-  APP START
-*/
 
 checkExistingSession();
 
 </script>
 
+
+
+<!--
+  Bestaande admin-module.
+  Stap C vervangen we deze door
+  de nieuwe dashboardversie.
+-->
+
 <script src="./admin.js"></script>
+
 
 </body>
 </html>
