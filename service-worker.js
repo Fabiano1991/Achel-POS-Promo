@@ -1,18 +1,23 @@
 const CACHE_NAME =
-  "achel-pos-v6";
+  "achel-pos-v8";
 
 
 const STATIC_FILES = [
+
   "./",
+
   "./index.html",
-  "./manifest.json"
+
+  "./manifest.json",
+
+  "./admin.js"
+
 ];
 
 
 
 self.addEventListener(
   "install",
-
   event => {
 
     event.waitUntil(
@@ -23,13 +28,10 @@ self.addEventListener(
         )
 
         .then(
-          cache => {
-
-            return cache.addAll(
+          cache =>
+            cache.addAll(
               STATIC_FILES
-            );
-
-          }
+            )
         )
 
     );
@@ -44,7 +46,6 @@ self.addEventListener(
 
 self.addEventListener(
   "activate",
-
   event => {
 
     event.waitUntil(
@@ -53,27 +54,27 @@ self.addEventListener(
         .keys()
 
         .then(
-          cacheNames => {
+          names =>
 
-            return Promise.all(
+            Promise.all(
 
-              cacheNames
+              names
 
                 .filter(
-                  cacheName =>
-                    cacheName !== CACHE_NAME
+                  name =>
+                    name !==
+                    CACHE_NAME
                 )
 
                 .map(
-                  cacheName =>
+                  name =>
                     caches.delete(
-                      cacheName
+                      name
                     )
                 )
 
-            );
+            )
 
-          }
         )
 
     );
@@ -88,12 +89,12 @@ self.addEventListener(
 
 self.addEventListener(
   "fetch",
-
   event => {
 
     if (
       event.request.method
-      !== "GET"
+      !==
+      "GET"
     ) {
 
       return;
@@ -101,18 +102,16 @@ self.addEventListener(
     }
 
 
-    /*
-      Voor pagina's gebruiken we
-      NETWORK FIRST.
 
-      Daardoor krijgt de gebruiker
-      bij voorkeur altijd de nieuwste
-      versie van GitHub.
+    /*
+      PAGINA'S:
+      ALTIJD EERST ONLINE CONTROLEREN
     */
 
     if (
       event.request.mode
-      === "navigate"
+      ===
+      "navigate"
     ) {
 
       event.respondWith(
@@ -121,22 +120,11 @@ self.addEventListener(
           event.request
         )
 
-          .then(
-            response => {
-
-              return response;
-
-            }
-          )
-
           .catch(
-            () => {
-
-              return caches.match(
+            () =>
+              caches.match(
                 "./index.html"
-              );
-
-            }
+              )
           )
 
       );
@@ -147,10 +135,10 @@ self.addEventListener(
     }
 
 
+
     /*
-      Voor overige bestanden:
-      eerst internet,
-      daarna cache.
+      ANDERE BESTANDEN:
+      NETWORK FIRST
     */
 
     event.respondWith(
@@ -162,7 +150,7 @@ self.addEventListener(
         .then(
           response => {
 
-            const responseClone =
+            const copy =
               response.clone();
 
 
@@ -172,14 +160,13 @@ self.addEventListener(
               )
 
               .then(
-                cache => {
+                cache =>
 
                   cache.put(
                     event.request,
-                    responseClone
-                  );
+                    copy
+                  )
 
-                }
               );
 
 
@@ -189,13 +176,12 @@ self.addEventListener(
         )
 
         .catch(
-          () => {
+          () =>
 
-            return caches.match(
+            caches.match(
               event.request
-            );
+            )
 
-          }
         )
 
     );
