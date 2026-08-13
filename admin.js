@@ -1,15 +1,17 @@
-/* =========================================================
-   ACHEL POS - ADMIN DASHBOARD V2
-   ========================================================= */
+/* ============================================================
+   ACHEL POS - ADMIN DASHBOARD V3
+   ============================================================ */
 
 let adminOrders = [];
 let adminProfiles = [];
 let adminItems = [];
 
+let selectedAdminOrder = null;
 
-/* =========================================================
+
+/* ============================================================
    ADMIN MODULE START
-   ========================================================= */
+============================================================ */
 
 async function initAdminModule() {
 
@@ -69,12 +71,6 @@ async function initAdminModule() {
     }
 
 
-    console.log(
-      "Achel POS rol:",
-      profile.rol
-    );
-
-
     if (
       profile.rol !== "admin" &&
       profile.rol !== "verantwoordelijke"
@@ -84,8 +80,6 @@ async function initAdminModule() {
 
     }
 
-
-    createAdminButton();
 
     createAdminScreen();
 
@@ -103,81 +97,10 @@ async function initAdminModule() {
 }
 
 
-/* =========================================================
-   BEHEERKNOP
-   ========================================================= */
 
-function createAdminButton() {
-
-  if (
-    document.getElementById(
-      "adminHomeButton"
-    )
-  ) {
-
-    return;
-
-  }
-
-
-  const homeScreen =
-    document.getElementById(
-      "homeScreen"
-    );
-
-
-  if (!homeScreen) {
-
-    return;
-
-  }
-
-
-  const button =
-    document.createElement(
-      "button"
-    );
-
-
-  button.id =
-    "adminHomeButton";
-
-
-  button.className =
-    "home-button";
-
-
-  button.type =
-    "button";
-
-
-  button.onclick =
-    openAdminDashboard;
-
-
-  button.innerHTML = `
-
-    <strong>
-      ⚙️ Beheer
-    </strong>
-
-    <span>
-      Dashboard, aanvragen en statusbeheer
-    </span>
-
-  `;
-
-
-  homeScreen.appendChild(
-    button
-  );
-
-}
-
-
-/* =========================================================
-   ADMIN SCHERM
-   ========================================================= */
+/* ============================================================
+   ADMIN SCHERM MAKEN
+============================================================ */
 
 function createAdminScreen() {
 
@@ -236,8 +159,13 @@ function createAdminScreen() {
         Beheerdersdashboard
       </h2>
 
-      <p>
-        Centraal overzicht van alle Achel POS-aanvragen.
+      <p
+        style="
+          color:var(--muted);
+          margin-top:-5px;
+        "
+      >
+        Centraal overzicht van alle aanvragen.
       </p>
 
 
@@ -269,14 +197,6 @@ function createAdminScreen() {
       <select
         id="adminRepFilter"
         onchange="renderAdminOrders()"
-        style="
-          width:100%;
-          padding:13px;
-          border:1px solid #ddd8ce;
-          border-radius:12px;
-          font-size:16px;
-          background:white;
-        "
       >
 
         <option value="">
@@ -293,14 +213,6 @@ function createAdminScreen() {
       <select
         id="adminStatusFilter"
         onchange="renderAdminOrders()"
-        style="
-          width:100%;
-          padding:13px;
-          border:1px solid #ddd8ce;
-          border-radius:12px;
-          font-size:16px;
-          background:white;
-        "
       >
 
         <option value="">
@@ -337,7 +249,7 @@ function createAdminScreen() {
       <input
         id="adminSearch"
         type="text"
-        placeholder="Klant, gemeente, vertegenwoordiger..."
+        placeholder="Referentie, gemeente, vertegenwoordiger..."
         oninput="renderAdminOrders()"
       >
 
@@ -355,7 +267,11 @@ function createAdminScreen() {
         "
       >
 
-        <h2 style="margin:0;">
+        <h2
+          style="
+            margin:0;
+          "
+        >
           Alle aanvragen
         </h2>
 
@@ -365,11 +281,11 @@ function createAdminScreen() {
           onclick="loadAdminDashboard()"
           style="
             border:none;
-            background:#f3eadb;
-            color:#8b662e;
+            background:var(--gold-soft);
+            color:var(--gold);
             padding:9px 12px;
             border-radius:10px;
-            font-weight:700;
+            font-weight:800;
           "
         >
           Vernieuwen
@@ -380,7 +296,9 @@ function createAdminScreen() {
 
       <div
         id="adminOrdersList"
-        style="margin-top:16px;"
+        style="
+          margin-top:16px;
+        "
       >
 
         <div class="empty">
@@ -398,34 +316,103 @@ function createAdminScreen() {
     section
   );
 
+
+  createAdminDetailScreen();
+
 }
 
 
-/* =========================================================
+
+/* ============================================================
+   DETAIL SCHERM MAKEN
+============================================================ */
+
+function createAdminDetailScreen() {
+
+  if (
+    document.getElementById(
+      "adminDetailScreen"
+    )
+  ) {
+
+    return;
+
+  }
+
+
+  const appMain =
+    document.getElementById(
+      "appMain"
+    );
+
+
+  const section =
+    document.createElement(
+      "section"
+    );
+
+
+  section.id =
+    "adminDetailScreen";
+
+
+  section.className =
+    "hidden";
+
+
+  section.innerHTML = `
+
+    <button
+      class="top-back"
+      type="button"
+      onclick="backToAdminDashboard()"
+    >
+      ← Terug naar dashboard
+    </button>
+
+
+    <div
+      id="adminDetailContent"
+    >
+    </div>
+
+  `;
+
+
+  appMain.appendChild(
+    section
+  );
+
+}
+
+
+
+/* ============================================================
    DASHBOARD OPENEN
-   ========================================================= */
+============================================================ */
 
 async function openAdminDashboard() {
 
-  const normalScreens = [
-    "homeScreen",
-    "orderScreen",
-    "summaryScreen",
-    "successScreen",
-    "ordersScreen"
-  ];
+  if (
+    !document.getElementById(
+      "adminScreen"
+    )
+  ) {
+
+    await initAdminModule();
+
+  }
 
 
-  normalScreens.forEach(
-    id => {
+  hideAllNormalScreens();
 
-      document
-        .getElementById(id)
-        ?.classList
-        .add("hidden");
 
-    }
-  );
+  document
+    .getElementById(
+      "adminDetailScreen"
+    )
+    ?.classList
+    .add("hidden");
 
 
   document
@@ -436,30 +423,15 @@ async function openAdminDashboard() {
     .remove("hidden");
 
 
-  document
-    .getElementById(
-      "navHome"
-    )
-    ?.classList
-    .remove("active");
-
-
-  document
-    .getElementById(
-      "navOrders"
-    )
-    ?.classList
-    .remove("active");
-
-
   await loadAdminDashboard();
 
 }
 
 
-/* =========================================================
+
+/* ============================================================
    DASHBOARD SLUITEN
-   ========================================================= */
+============================================================ */
 
 function closeAdminDashboard() {
 
@@ -471,14 +443,82 @@ function closeAdminDashboard() {
     .add("hidden");
 
 
+  document
+    .getElementById(
+      "adminDetailScreen"
+    )
+    ?.classList
+    .add("hidden");
+
+
   goHome();
 
 }
 
 
-/* =========================================================
-   DASHBOARD DATA
-   ========================================================= */
+
+/* ============================================================
+   TERUG NAAR DASHBOARD
+============================================================ */
+
+function backToAdminDashboard() {
+
+  document
+    .getElementById(
+      "adminDetailScreen"
+    )
+    ?.classList
+    .add("hidden");
+
+
+  document
+    .getElementById(
+      "adminScreen"
+    )
+    ?.classList
+    .remove("hidden");
+
+
+  renderAdminOrders();
+
+}
+
+
+
+/* ============================================================
+   NORMALE SCHERMEN VERBERGEN
+============================================================ */
+
+function hideAllNormalScreens() {
+
+  [
+    "homeScreen",
+    "orderScreen",
+    "summaryScreen",
+    "successScreen",
+    "ordersScreen"
+  ]
+
+    .forEach(
+      id => {
+
+        document
+          .getElementById(
+            id
+          )
+          ?.classList
+          .add("hidden");
+
+      }
+    );
+
+}
+
+
+
+/* ============================================================
+   DATA LADEN
+============================================================ */
 
 async function loadAdminDashboard() {
 
@@ -504,9 +544,10 @@ async function loadAdminDashboard() {
   `;
 
 
-  /*
-    PROFIELEN
-  */
+
+  /* =========================
+     PROFIELEN
+  ========================= */
 
   const {
     data: profiles,
@@ -537,6 +578,7 @@ async function loadAdminDashboard() {
 
     `;
 
+
     return;
 
   }
@@ -546,9 +588,10 @@ async function loadAdminDashboard() {
     profiles || [];
 
 
-  /*
-    ORDERS
-  */
+
+  /* =========================
+     ORDERS
+  ========================= */
 
   const {
     data: orders,
@@ -559,7 +602,24 @@ async function loadAdminDashboard() {
       .from("orders")
 
       .select(
-        "id, user_id, klant, gemeente, afhaaldatum, opmerking, status, created_at"
+        `
+          id,
+          user_id,
+          referentie,
+          land,
+          gemeente,
+          afhaaldatum,
+          opmerking,
+          status,
+          event_naam,
+          event_vanaf,
+          event_tot,
+          opened_at,
+          completed_at,
+          collected_at,
+          created_at,
+          updated_at
+        `
       )
 
       .order(
@@ -586,6 +646,7 @@ async function loadAdminDashboard() {
 
     `;
 
+
     return;
 
   }
@@ -595,9 +656,10 @@ async function loadAdminDashboard() {
     orders || [];
 
 
-  /*
-    ORDER ITEMS
-  */
+
+  /* =========================
+     ORDER ITEMS
+  ========================= */
 
   const {
     data: items,
@@ -628,6 +690,7 @@ async function loadAdminDashboard() {
 
     `;
 
+
     return;
 
   }
@@ -646,9 +709,10 @@ async function loadAdminDashboard() {
 }
 
 
-/* =========================================================
-   VERTEGENWOORDIGER FILTER
-   ========================================================= */
+
+/* ============================================================
+   FILTER VERTEGENWOORDIGER
+============================================================ */
 
 function fillRepresentativeFilter() {
 
@@ -665,7 +729,7 @@ function fillRepresentativeFilter() {
   }
 
 
-  const currentValue =
+  const selectedValue =
     select.value;
 
 
@@ -682,14 +746,23 @@ function fillRepresentativeFilter() {
 
     .filter(
       profile =>
-        profile.rol === "vertegenwoordiger"
+        profile.actief
     )
 
     .sort(
-      (a, b) =>
-        (a.naam || "")
+      (
+        a,
+        b
+      ) =>
+
+        String(
+          a.naam || ""
+        )
+
           .localeCompare(
-            b.naam || ""
+            String(
+              b.naam || ""
+            )
           )
     )
 
@@ -719,14 +792,15 @@ function fillRepresentativeFilter() {
 
 
   select.value =
-    currentValue;
+    selectedValue;
 
 }
 
 
-/* =========================================================
-   DASHBOARD STATISTIEKEN
-   ========================================================= */
+
+/* ============================================================
+   STATISTIEKEN
+============================================================ */
 
 function renderAdminStatistics() {
 
@@ -747,24 +821,27 @@ function renderAdminStatistics() {
     adminOrders.length;
 
 
-  const newOrders =
+  const nieuw =
     adminOrders.filter(
       order =>
-        order.status === "nieuw"
+        order.status ===
+        "nieuw"
     ).length;
 
 
   const processing =
     adminOrders.filter(
       order =>
-        order.status === "in_behandeling"
+        order.status ===
+        "in_behandeling"
     ).length;
 
 
-  const ready =
+  const klaar =
     adminOrders.filter(
       order =>
-        order.status === "klaar"
+        order.status ===
+        "klaar"
     ).length;
 
 
@@ -779,7 +856,7 @@ function renderAdminStatistics() {
 
     adminStatCard(
       "Nieuw",
-      newOrders
+      nieuw
     )
 
     +
@@ -793,10 +870,11 @@ function renderAdminStatistics() {
 
     adminStatCard(
       "Klaar",
-      ready
+      klaar
     );
 
 }
+
 
 
 function adminStatCard(
@@ -808,8 +886,8 @@ function adminStatCard(
 
     <div
       style="
-        background:#f8f7f4;
-        border:1px solid #ddd8ce;
+        background:var(--surface-soft);
+        border:1px solid var(--border);
         border-radius:14px;
         padding:15px;
       "
@@ -818,8 +896,8 @@ function adminStatCard(
       <div
         style="
           font-size:27px;
-          font-weight:800;
-          color:#8b662e;
+          font-weight:900;
+          color:var(--gold);
         "
       >
         ${value}
@@ -828,8 +906,8 @@ function adminStatCard(
 
       <div
         style="
-          font-size:13px;
-          color:#777;
+          font-size:12px;
+          color:var(--muted);
           margin-top:4px;
         "
       >
@@ -843,9 +921,10 @@ function adminStatCard(
 }
 
 
-/* =========================================================
+
+/* ============================================================
    ORDERS TONEN
-   ========================================================= */
+============================================================ */
 
 function renderAdminOrders() {
 
@@ -863,60 +942,88 @@ function renderAdminOrders() {
 
 
   const repFilter =
+
     document
       .getElementById(
         "adminRepFilter"
       )
-      ?.value || "";
+      ?.value
+
+    ||
+
+    "";
 
 
   const statusFilter =
+
     document
       .getElementById(
         "adminStatusFilter"
       )
-      ?.value || "";
+      ?.value
+
+    ||
+
+    "";
 
 
   const search =
+
     (
       document
         .getElementById(
           "adminSearch"
         )
-        ?.value || ""
+        ?.value
+
+      ||
+
+      ""
     )
+
       .trim()
       .toLowerCase();
+
 
 
   let orders =
     [...adminOrders];
 
 
-  if (repFilter) {
+
+  if (
+    repFilter
+  ) {
 
     orders =
       orders.filter(
         order =>
-          order.user_id === repFilter
+          order.user_id ===
+          repFilter
       );
 
   }
 
 
-  if (statusFilter) {
+
+  if (
+    statusFilter
+  ) {
 
     orders =
       orders.filter(
         order =>
-          order.status === statusFilter
+          order.status ===
+          statusFilter
       );
 
   }
 
 
-  if (search) {
+
+  if (
+    search
+  ) {
 
     orders =
       orders.filter(
@@ -928,22 +1035,31 @@ function renderAdminOrders() {
             );
 
 
-          const text =
+          const combinedText =
+
             [
-              order.klant,
+              order.referentie,
+              order.land,
               order.gemeente,
+              order.event_naam,
               order.opmerking,
               rep?.naam,
               rep?.email
             ]
-              .filter(Boolean)
+
+              .filter(
+                Boolean
+              )
+
               .join(" ")
+
               .toLowerCase();
 
 
-          return text.includes(
-            search
-          );
+          return combinedText
+            .includes(
+              search
+            );
 
         }
       );
@@ -951,8 +1067,9 @@ function renderAdminOrders() {
   }
 
 
+
   if (
-    orders.length === 0
+    !orders.length
   ) {
 
     container.innerHTML = `
@@ -963,27 +1080,33 @@ function renderAdminOrders() {
 
     `;
 
+
     return;
 
   }
 
 
+
   container.innerHTML =
+
     orders
+
       .map(
         order =>
           adminOrderCard(
             order
           )
       )
+
       .join("");
 
 }
 
 
-/* =========================================================
-   ORDER KAART
-   ========================================================= */
+
+/* ============================================================
+   COMPACTE ORDER KAART
+============================================================ */
 
 function adminOrderCard(
   order
@@ -998,41 +1121,77 @@ function adminOrderCard(
   const items =
     adminItems.filter(
       item =>
-        item.order_id === order.id
+        item.order_id ===
+        order.id
     );
 
 
-  const products =
+  const totalItems =
 
-    items.length
+    items.reduce(
+      (
+        total,
+        item
+      ) =>
 
-      ? items
-          .map(
-            item =>
-              `${item.aantal} × ${adminEscapeHtml(item.product_naam)}`
-          )
-          .join("<br>")
+        total
+        +
+        Number(
+          item.aantal || 0
+        ),
 
-      : "Geen artikelen";
+      0
+    );
+
+
+  const reference =
+    createOrderReference(
+      order.id,
+      order.created_at
+    );
 
 
   return `
 
-    <div class="order-card">
+    <button
+      type="button"
+      onclick="openAdminOrder('${order.id}')"
+      style="
+        display:block;
+        width:100%;
+        text-align:left;
+        border:1px solid var(--border);
+        background:white;
+        border-radius:16px;
+        padding:14px;
+        margin-bottom:10px;
+        color:var(--text);
+      "
+    >
 
-      <div class="order-top">
+      <div
+        style="
+          display:flex;
+          justify-content:space-between;
+          align-items:center;
+          gap:10px;
+        "
+      >
 
-        <div class="order-id">
-
-          ${createOrderReference(
-            order.id,
-            order.created_at
-          )}
-
+        <div
+          style="
+            font-size:12px;
+            font-weight:900;
+            color:var(--gold);
+          "
+        >
+          ${reference}
         </div>
 
 
-        <div class="status">
+        <div
+          class="status ${adminStatusClass(order.status)}"
+        >
 
           ${formatStatus(
             order.status
@@ -1045,35 +1204,24 @@ function adminOrderCard(
 
       <div
         style="
-          margin-top:12px;
+          margin-top:10px;
           font-size:17px;
-          font-weight:800;
+          font-weight:850;
         "
       >
 
         ${adminEscapeHtml(
-          order.klant
+          order.referentie
+          ||
+          "Geen referentie"
         )}
 
       </div>
 
 
-      ${
-        order.gemeente
-
-          ? `
-            <div class="order-meta">
-              📍 ${adminEscapeHtml(order.gemeente)}
-            </div>
-          `
-
-          : ""
-      }
-
-
-      <div class="order-meta">
-
-        👤
+      <div
+        class="order-meta"
+      >
 
         ${adminEscapeHtml(
           representative?.naam
@@ -1084,102 +1232,442 @@ function adminOrderCard(
       </div>
 
 
-      <div class="order-meta">
+      <div
+        class="order-meta"
+      >
 
-        📅 Afhalen:
         ${adminEscapeHtml(
-          order.afhaaldatum
+          order.land || ""
         )}
+
+        ${
+          order.gemeente
+
+            ? ` · ${adminEscapeHtml(order.gemeente)}`
+
+            : ""
+        }
 
       </div>
 
 
       <div
-        class="order-items"
+        class="order-meta"
+      >
+
+        Afhalen:
+        ${adminEscapeHtml(
+          order.afhaaldatum
+        )}
+
+        ·
+
+        ${totalItems}
+        items
+
+      </div>
+
+    </button>
+
+  `;
+
+}
+
+
+
+/* ============================================================
+   ORDER OPENEN
+============================================================ */
+
+async function openAdminOrder(
+  orderId
+) {
+
+  let order =
+    adminOrders.find(
+      item =>
+        item.id ===
+        orderId
+    );
+
+
+  if (!order) {
+
+    return;
+
+  }
+
+
+  /*
+    NIEUW → IN BEHANDELING
+    zodra admin opent.
+  */
+
+  if (
+    order.status ===
+    "nieuw"
+  ) {
+
+    const {
+      error
+    } =
+      await supabaseClient
+
+        .from("orders")
+
+        .update({
+
+          status:
+            "in_behandeling"
+
+        })
+
+        .eq(
+          "id",
+          order.id
+        );
+
+
+    if (!error) {
+
+      order.status =
+        "in_behandeling";
+
+
+      /*
+        Stap A zet via trigger
+        automatisch opened_at.
+      */
+
+    }
+
+    else {
+
+      console.log(
+        "Status kon niet automatisch worden gewijzigd:",
+        error
+      );
+
+    }
+
+  }
+
+
+  selectedAdminOrder =
+    order;
+
+
+  renderAdminDetail(
+    order
+  );
+
+
+  document
+    .getElementById(
+      "adminScreen"
+    )
+    ?.classList
+    .add("hidden");
+
+
+  document
+    .getElementById(
+      "adminDetailScreen"
+    )
+    ?.classList
+    .remove("hidden");
+
+
+  /*
+    Dashboard lokaal bijwerken
+  */
+
+  renderAdminStatistics();
+
+}
+
+
+
+/* ============================================================
+   DETAILWEERGAVE
+============================================================ */
+
+function renderAdminDetail(
+  order
+) {
+
+  const container =
+    document.getElementById(
+      "adminDetailContent"
+    );
+
+
+  const representative =
+    getAdminProfile(
+      order.user_id
+    );
+
+
+  const items =
+    adminItems.filter(
+      item =>
+        item.order_id ===
+        order.id
+    );
+
+
+  const beer =
+    items.filter(
+      item =>
+        item.categorie ===
+        "bier"
+    );
+
+
+  const pos =
+    items.filter(
+      item =>
+        item.categorie ===
+        "pos"
+    );
+
+
+  const events =
+    items.filter(
+      item =>
+        item.categorie ===
+        "evenement"
+    );
+
+
+  const orderReference =
+    createOrderReference(
+      order.id,
+      order.created_at
+    );
+
+
+  container.innerHTML = `
+
+    <div class="card">
+
+      <div
         style="
-          background:#f8f7f4;
-          padding:12px;
-          border-radius:12px;
+          display:flex;
+          justify-content:space-between;
+          align-items:flex-start;
+          gap:12px;
         "
       >
 
-        ${products}
+        <div>
+
+          <div
+            style="
+              font-size:12px;
+              color:var(--gold);
+              font-weight:900;
+            "
+          >
+            ${orderReference}
+          </div>
+
+
+          <h2
+            style="
+              margin-top:6px;
+              margin-bottom:5px;
+            "
+          >
+
+            ${adminEscapeHtml(
+              order.referentie
+              ||
+              "Geen referentie"
+            )}
+
+          </h2>
+
+        </div>
+
+
+        <div
+          class="status ${adminStatusClass(order.status)}"
+        >
+
+          ${formatStatus(
+            order.status
+          )}
+
+        </div>
 
       </div>
 
 
-      ${
-        order.opmerking
+      <div
+        style="
+          margin-top:18px;
+          display:grid;
+          gap:9px;
+        "
+      >
 
-          ? `
-            <div class="order-meta">
+        ${adminDetailRow(
+          "Vertegenwoordiger",
+          representative?.naam
+          ||
+          "Onbekend"
+        )}
 
-              Opmerking:
+
+        ${adminDetailRow(
+          "E-mail",
+          representative?.email
+          ||
+          ""
+        )}
+
+
+        ${adminDetailRow(
+          "Land",
+          order.land
+          ||
+          ""
+        )}
+
+
+        ${adminDetailRow(
+          "Stad / gemeente",
+          order.gemeente
+          ||
+          "Niet ingevuld"
+        )}
+
+
+        ${adminDetailRow(
+          "Afhaaldatum",
+          order.afhaaldatum
+          ||
+          ""
+        )}
+
+      </div>
+
+    </div>
+
+
+
+    ${
+      order.event_naam
+
+        ? `
+
+          <div class="card">
+
+            <h2>
+              Evenement
+            </h2>
+
+
+            ${adminDetailRow(
+              "Naam",
+              order.event_naam
+            )}
+
+
+            ${adminDetailRow(
+              "Materiaal vanaf",
+              order.event_vanaf
+              ||
+              ""
+            )}
+
+
+            ${adminDetailRow(
+              "Materiaal t/m",
+              order.event_tot
+              ||
+              ""
+            )}
+
+          </div>
+
+        `
+
+        : ""
+    }
+
+
+
+    ${adminCategoryCard(
+      "BIER",
+      beer
+    )}
+
+
+    ${adminCategoryCard(
+      "POS-MATERIALEN",
+      pos
+    )}
+
+
+    ${adminCategoryCard(
+      "EVENEMENTENMATERIAAL",
+      events
+    )}
+
+
+
+    ${
+      order.opmerking
+
+        ? `
+
+          <div class="card">
+
+            <h2>
+              Opmerking
+            </h2>
+
+            <p
+              style="
+                margin:0;
+                line-height:1.5;
+              "
+            >
+
               ${adminEscapeHtml(
                 order.opmerking
               )}
 
-            </div>
-          `
+            </p>
 
-          : ""
-      }
+          </div>
+
+        `
+
+        : ""
+    }
 
 
-      <label>
+
+    <div class="card">
+
+      <h2>
         Status
-      </label>
+      </h2>
 
 
-      <select
-        onchange="
-          updateAdminOrderStatus(
-            '${order.id}',
-            this.value,
-            this
-          )
-        "
-        style="
-          width:100%;
-          padding:12px;
-          border:1px solid #ddd8ce;
-          border-radius:12px;
-          font-size:16px;
-          background:white;
-        "
-      >
+      ${adminStatusTimeline(
+        order
+      )}
 
-        ${adminStatusOption(
-          "nieuw",
-          "Nieuw",
-          order.status
-        )}
 
-        ${adminStatusOption(
-          "in_behandeling",
-          "In behandeling",
-          order.status
-        )}
-
-        ${adminStatusOption(
-          "klaar",
-          "Klaar",
-          order.status
-        )}
-
-        ${adminStatusOption(
-          "afgehaald",
-          "Afgehaald",
-          order.status
-        )}
-
-        ${adminStatusOption(
-          "geannuleerd",
-          "Geannuleerd",
-          order.status
-        )}
-
-      </select>
+      ${
+        adminActionButtons(
+          order
+        )
+      }
 
     </div>
 
@@ -1188,45 +1676,380 @@ function adminOrderCard(
 }
 
 
-/* =========================================================
-   STATUS
-   ========================================================= */
 
-function adminStatusOption(
-  value,
+/* ============================================================
+   DETAIL RIJ
+============================================================ */
+
+function adminDetailRow(
   label,
-  current
+  value
 ) {
 
   return `
 
-    <option
-      value="${value}"
-      ${
-        current === value
-          ? "selected"
-          : ""
-      }
-    >
-      ${label}
-    </option>
+    <div>
+
+      <div
+        style="
+          font-size:11px;
+          font-weight:900;
+          color:var(--muted);
+          text-transform:uppercase;
+          letter-spacing:.04em;
+        "
+      >
+        ${label}
+      </div>
+
+
+      <div
+        style="
+          margin-top:2px;
+          font-weight:700;
+        "
+      >
+
+        ${adminEscapeHtml(
+          value
+        )}
+
+      </div>
+
+    </div>
 
   `;
 
 }
 
 
-async function updateAdminOrderStatus(
-  orderId,
-  status,
-  selectElement
+
+/* ============================================================
+   CATEGORIE KAART
+============================================================ */
+
+function adminCategoryCard(
+  title,
+  items
 ) {
 
-  selectElement.disabled =
-    true;
+  if (
+    !items.length
+  ) {
+
+    return "";
+
+  }
+
+
+  return `
+
+    <div class="card">
+
+      <h2>
+        ${title}
+      </h2>
+
+
+      ${
+        items
+
+          .map(
+            item => `
+
+              <div
+                class="summary-line"
+              >
+
+                <span>
+
+                  ${adminEscapeHtml(
+                    item.product_naam
+                  )}
+
+                </span>
+
+
+                <strong>
+
+                  ${item.aantal}
+
+                </strong>
+
+              </div>
+
+            `
+          )
+
+          .join("")
+      }
+
+    </div>
+
+  `;
+
+}
+
+
+
+/* ============================================================
+   STATUS TIJDLIJN
+============================================================ */
+
+function adminStatusTimeline(
+  order
+) {
+
+  return `
+
+    <div
+      style="
+        display:grid;
+        gap:8px;
+        margin-bottom:18px;
+      "
+    >
+
+      ${adminTimelineRow(
+        "Aangevraagd",
+        order.created_at,
+        true
+      )}
+
+
+      ${adminTimelineRow(
+        "In behandeling",
+        order.opened_at,
+        Boolean(
+          order.opened_at
+        )
+      )}
+
+
+      ${adminTimelineRow(
+        "Klaar",
+        order.completed_at,
+        Boolean(
+          order.completed_at
+        )
+      )}
+
+
+      ${adminTimelineRow(
+        "Afgehaald",
+        order.collected_at,
+        Boolean(
+          order.collected_at
+        )
+      )}
+
+    </div>
+
+  `;
+
+}
+
+
+
+function adminTimelineRow(
+  label,
+  date,
+  active
+) {
+
+  return `
+
+    <div
+      style="
+        display:grid;
+        grid-template-columns:12px 1fr;
+        gap:10px;
+        align-items:start;
+      "
+    >
+
+      <div
+        style="
+          width:10px;
+          height:10px;
+          margin-top:4px;
+          border-radius:50%;
+          background:${
+            active
+              ? "var(--green)"
+              : "var(--border)"
+          };
+        "
+      >
+      </div>
+
+
+      <div>
+
+        <div
+          style="
+            font-weight:800;
+            color:${
+              active
+                ? "var(--text)"
+                : "var(--muted)"
+            };
+          "
+        >
+          ${label}
+        </div>
+
+
+        ${
+          date
+
+            ? `
+
+              <div
+                style="
+                  margin-top:2px;
+                  font-size:12px;
+                  color:var(--muted);
+                "
+              >
+
+                ${adminFormatDateTime(
+                  date
+                )}
+
+              </div>
+
+            `
+
+            : ""
+        }
+
+      </div>
+
+    </div>
+
+  `;
+
+}
+
+
+
+/* ============================================================
+   ACTIEKNOPPEN
+============================================================ */
+
+function adminActionButtons(
+  order
+) {
+
+  if (
+    order.status ===
+    "in_behandeling"
+  ) {
+
+    return `
+
+      <button
+        class="primary"
+        type="button"
+        onclick="markAdminOrderCompleted()"
+      >
+        Voltooid · Klaar voor afhaling
+      </button>
+
+
+      <button
+        class="secondary"
+        type="button"
+        onclick="cancelAdminOrder()"
+      >
+        Aanvraag annuleren
+      </button>
+
+    `;
+
+  }
+
+
+  if (
+    order.status ===
+    "klaar"
+  ) {
+
+    return `
+
+      <button
+        class="primary"
+        type="button"
+        onclick="markAdminOrderCollected()"
+      >
+        Markeer als afgehaald
+      </button>
+
+    `;
+
+  }
+
+
+  if (
+    order.status ===
+    "afgehaald"
+  ) {
+
+    return `
+
+      <div
+        class="info ok"
+      >
+        Deze aanvraag is volledig afgehandeld.
+      </div>
+
+    `;
+
+  }
+
+
+  if (
+    order.status ===
+    "geannuleerd"
+  ) {
+
+    return `
+
+      <div
+        class="info error"
+      >
+        Deze aanvraag werd geannuleerd.
+      </div>
+
+    `;
+
+  }
+
+
+  return "";
+
+}
+
+
+
+/* ============================================================
+   VOLTOOID → KLAAR
+============================================================ */
+
+async function markAdminOrderCompleted() {
+
+  if (
+    !selectedAdminOrder
+  ) {
+
+    return;
+
+  }
 
 
   const {
+    data,
     error
   } =
     await supabaseClient
@@ -1234,58 +2057,323 @@ async function updateAdminOrderStatus(
       .from("orders")
 
       .update({
-        status: status
+
+        status:
+          "klaar"
+
       })
 
       .eq(
         "id",
-        orderId
-      );
+        selectedAdminOrder.id
+      )
 
+      .select(
+        `
+          id,
+          user_id,
+          referentie,
+          land,
+          gemeente,
+          afhaaldatum,
+          opmerking,
+          status,
+          event_naam,
+          event_vanaf,
+          event_tot,
+          opened_at,
+          completed_at,
+          collected_at,
+          created_at,
+          updated_at
+        `
+      )
 
-  selectElement.disabled =
-    false;
+      .single();
 
 
   if (error) {
 
     alert(
-      "Status kon niet worden gewijzigd: " +
+
+      "De aanvraag kon niet als voltooid worden gemarkeerd: "
+
+      +
+
       error.message
+
     );
 
-    await loadAdminDashboard();
 
     return;
 
   }
 
 
-  const order =
-    adminOrders.find(
-      item =>
-        item.id === orderId
-    );
+  updateLocalAdminOrder(
+    data
+  );
 
 
-  if (order) {
+  selectedAdminOrder =
+    data;
 
-    order.status =
-      status;
 
-  }
+  renderAdminDetail(
+    data
+  );
 
 
   renderAdminStatistics();
 
-  renderAdminOrders();
+}
+
+
+
+/* ============================================================
+   KLAAR → AFGEHAALD
+============================================================ */
+
+async function markAdminOrderCollected() {
+
+  if (
+    !selectedAdminOrder
+  ) {
+
+    return;
+
+  }
+
+
+  const {
+    data,
+    error
+  } =
+    await supabaseClient
+
+      .from("orders")
+
+      .update({
+
+        status:
+          "afgehaald"
+
+      })
+
+      .eq(
+        "id",
+        selectedAdminOrder.id
+      )
+
+      .select(
+        `
+          id,
+          user_id,
+          referentie,
+          land,
+          gemeente,
+          afhaaldatum,
+          opmerking,
+          status,
+          event_naam,
+          event_vanaf,
+          event_tot,
+          opened_at,
+          completed_at,
+          collected_at,
+          created_at,
+          updated_at
+        `
+      )
+
+      .single();
+
+
+  if (error) {
+
+    alert(
+
+      "De aanvraag kon niet als afgehaald worden gemarkeerd: "
+
+      +
+
+      error.message
+
+    );
+
+
+    return;
+
+  }
+
+
+  updateLocalAdminOrder(
+    data
+  );
+
+
+  selectedAdminOrder =
+    data;
+
+
+  renderAdminDetail(
+    data
+  );
+
+
+  renderAdminStatistics();
 
 }
 
 
-/* =========================================================
-   PROFIEL
-   ========================================================= */
+
+/* ============================================================
+   ANNULEREN
+============================================================ */
+
+async function cancelAdminOrder() {
+
+  if (
+    !selectedAdminOrder
+  ) {
+
+    return;
+
+  }
+
+
+  const confirmed =
+
+    window.confirm(
+      "Wil je deze aanvraag werkelijk annuleren?"
+    );
+
+
+  if (
+    !confirmed
+  ) {
+
+    return;
+
+  }
+
+
+  const {
+    data,
+    error
+  } =
+    await supabaseClient
+
+      .from("orders")
+
+      .update({
+
+        status:
+          "geannuleerd"
+
+      })
+
+      .eq(
+        "id",
+        selectedAdminOrder.id
+      )
+
+      .select(
+        `
+          id,
+          user_id,
+          referentie,
+          land,
+          gemeente,
+          afhaaldatum,
+          opmerking,
+          status,
+          event_naam,
+          event_vanaf,
+          event_tot,
+          opened_at,
+          completed_at,
+          collected_at,
+          created_at,
+          updated_at
+        `
+      )
+
+      .single();
+
+
+  if (error) {
+
+    alert(
+
+      "De aanvraag kon niet worden geannuleerd: "
+
+      +
+
+      error.message
+
+    );
+
+
+    return;
+
+  }
+
+
+  updateLocalAdminOrder(
+    data
+  );
+
+
+  selectedAdminOrder =
+    data;
+
+
+  renderAdminDetail(
+    data
+  );
+
+
+  renderAdminStatistics();
+
+}
+
+
+
+/* ============================================================
+   LOKALE ADMIN ORDER BIJWERKEN
+============================================================ */
+
+function updateLocalAdminOrder(
+  updatedOrder
+) {
+
+  const index =
+    adminOrders.findIndex(
+      order =>
+        order.id ===
+        updatedOrder.id
+    );
+
+
+  if (
+    index !== -1
+  ) {
+
+    adminOrders[
+      index
+    ] =
+      updatedOrder;
+
+  }
+
+}
+
+
+
+/* ============================================================
+   PROFIEL OPZOEKEN
+============================================================ */
 
 function getAdminProfile(
   userId
@@ -1293,15 +2381,107 @@ function getAdminProfile(
 
   return adminProfiles.find(
     profile =>
-      profile.id === userId
+      profile.id ===
+      userId
   );
 
 }
 
 
-/* =========================================================
+
+/* ============================================================
+   STATUS CLASS
+============================================================ */
+
+function adminStatusClass(
+  status
+) {
+
+  if (
+    status === "klaar"
+    ||
+    status === "afgehaald"
+  ) {
+
+    return "status-klaar";
+
+  }
+
+
+  if (
+    status ===
+    "geannuleerd"
+  ) {
+
+    return "status-geannuleerd";
+
+  }
+
+
+  return "";
+
+}
+
+
+
+/* ============================================================
+   DATUM / TIJD
+============================================================ */
+
+function adminFormatDateTime(
+  date
+) {
+
+  if (!date) {
+
+    return "";
+
+  }
+
+
+  try {
+
+    return new Date(
+      date
+    )
+
+      .toLocaleString(
+        "nl-BE",
+        {
+
+          day:
+            "2-digit",
+
+          month:
+            "2-digit",
+
+          year:
+            "numeric",
+
+          hour:
+            "2-digit",
+
+          minute:
+            "2-digit"
+
+        }
+      );
+
+  }
+
+  catch {
+
+    return date;
+
+  }
+
+}
+
+
+
+/* ============================================================
    VEILIGE HTML
-   ========================================================= */
+============================================================ */
 
 function adminEscapeHtml(
   value
@@ -1339,9 +2519,10 @@ function adminEscapeHtml(
 }
 
 
-/* =========================================================
+
+/* ============================================================
    MODULE AUTOMATISCH STARTEN
-   ========================================================= */
+============================================================ */
 
 document.addEventListener(
   "DOMContentLoaded",
@@ -1349,7 +2530,7 @@ document.addEventListener(
 
     setTimeout(
       initAdminModule,
-      500
+      400
     );
 
   }
@@ -1363,7 +2544,7 @@ supabaseClient
 
       setTimeout(
         initAdminModule,
-        500
+        400
       );
 
     }
@@ -1372,5 +2553,5 @@ supabaseClient
 
 setTimeout(
   initAdminModule,
-  1500
+  1000
 );
