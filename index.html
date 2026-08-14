@@ -1,767 +1,1297 @@
 <!DOCTYPE html>
 <html lang="nl">
 <head>
-  <meta charset="UTF-8">
-
-  <meta
-    name="viewport"
-    content="width=device-width, initial-scale=1.0, viewport-fit=cover"
-  >
-
-  <meta name="theme-color" content="#182019">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta
-    name="apple-mobile-web-app-status-bar-style"
-    content="black-translucent"
-  >
-  <meta
-    name="apple-mobile-web-app-title"
-    content="Achel POS"
-  >
-
-  <title>Achel POS</title>
-
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-  <link rel="manifest" href="./manifest.json">
-  <link rel="icon" type="image/png" sizes="192x192" href="./achel-icon-192.png">
-<link rel="icon" type="image/png" sizes="512x512" href="./achel-icon-512.png">
-<link rel="apple-touch-icon" href="./achel-icon-192.png">
-
-  <style>
-    :root {
-      --bg: #f4f3ef;
-      --surface: #ffffff;
-      --surface-soft: #f8f7f3;
-      --dark: #182019;
-      --text: #202722;
-      --muted: #717972;
-      --gold: #8c692f;
-      --gold-soft: #f1e8d7;
-      --border: #ddd9cf;
-      --green: #2f7449;
-      --green-soft: #e7f3eb;
-      --red: #a74646;
-      --red-soft: #f8e9e9;
-      --shadow: 0 8px 30px rgba(22,30,24,.07);
-    }
-
-    * {
-      box-sizing: border-box;
-    }
-
-    html,
-    body {
-      margin: 0;
-      min-height: 100%;
-    }
-
-    body {
-      font-family:
-        -apple-system,
-        BlinkMacSystemFont,
-        "Segoe UI",
-        Arial,
-        sans-serif;
-
-      background: var(--bg);
-      color: var(--text);
-      -webkit-tap-highlight-color: transparent;
-    }
-
-    button,
-    input,
-    select,
-    textarea {
-      font: inherit;
-    }
-
-    button {
-      cursor: pointer;
-    }
-
-    .hidden {
-      display: none !important;
-    }
-
-    .app-header {
-      position: sticky;
-      top: 0;
-      z-index: 40;
-
-      display: grid;
-      grid-template-columns: 48px 1fr 48px;
-      align-items: center;
-
-      min-height:
-        calc(
-          64px +
-          env(safe-area-inset-top)
-        );
-
-      padding:
-        env(safe-area-inset-top)
-        12px
-        0;
-
-      background: rgba(24,32,25,.97);
-      color: white;
-      backdrop-filter: blur(14px);
-    }
-
-    .header-title {
-      text-align: center;
-    }
-
-    .header-title strong {
-      display: block;
-      font-size: 18px;
-      letter-spacing: .02em;
-    }
-
-    .header-title span {
-      display: block;
-      margin-top: 2px;
-      font-size: 11px;
-      color: rgba(255,255,255,.65);
-    }
-
-    .menu-button {
-      width: 44px;
-      height: 44px;
-      border: 0;
-      border-radius: 12px;
-      background: transparent;
-      color: white;
-      display: grid;
-      place-items: center;
-    }
-
-    .menu-lines,
-    .menu-lines::before,
-    .menu-lines::after {
-      width: 22px;
-      height: 2px;
-      border-radius: 3px;
-      background: currentColor;
-      display: block;
-      position: relative;
-    }
-
-    .menu-lines::before,
-    .menu-lines::after {
-      content: "";
-      position: absolute;
-      left: 0;
-    }
-
-    .menu-lines::before {
-      top: -7px;
-    }
-
-    .menu-lines::after {
-      top: 7px;
-    }
-
-    .menu-overlay {
-      position: fixed;
-      inset: 0;
-      z-index: 80;
-      background: rgba(0,0,0,.36);
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity .2s ease;
-    }
-
-    .menu-overlay.open {
-      opacity: 1;
-      pointer-events: auto;
-    }
-
-    .side-menu {
-      position: absolute;
-      top: 0;
-      left: 0;
-
-      width: min(84vw,340px);
-      height: 100%;
-
-      background: var(--surface);
-
-      transform: translateX(-102%);
-      transition: transform .22s ease;
-
-      box-shadow:
-        20px 0 50px
-        rgba(0,0,0,.16);
-
-      padding:
-        calc(
-          22px +
-          env(safe-area-inset-top)
-        )
-        18px
-        24px;
-
-      overflow-y: auto;
-    }
-
-    .menu-overlay.open .side-menu {
-      transform: translateX(0);
-    }
-
-    .menu-profile {
-      padding: 10px 6px 18px;
-      border-bottom: 1px solid var(--border);
-      margin-bottom: 12px;
-    }
-
-    .menu-profile strong {
-      display: block;
-      font-size: 18px;
-    }
-
-    .menu-profile small {
-      display: block;
-      margin-top: 4px;
-      color: var(--muted);
-      word-break: break-word;
-    }
-
-    .menu-item {
-      width: 100%;
-      border: 0;
-      background: transparent;
-      text-align: left;
-      padding: 14px 12px;
-      border-radius: 12px;
-      font-weight: 750;
-      color: var(--text);
-    }
-
-    .menu-item:active {
-      background: var(--surface-soft);
-    }
-
-    .menu-item.danger {
-      color: var(--red);
-      margin-top: 8px;
-    }
-
-    #loginScreen,
-    main {
-      max-width: 760px;
-      margin: 0 auto;
-      padding: 18px 16px 36px;
-    }
-
-    .card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 20px;
-      padding: 18px;
-      margin-bottom: 15px;
-      box-shadow: var(--shadow);
-    }
-
-    h1,
-    h2,
-    h3 {
-      color: var(--dark);
-    }
-
-    h2 {
-      margin: 0 0 14px;
-      font-size: 20px;
-    }
-
-    .login-card {
-      margin-top: 28px;
-    }
-
-    .login-card h1 {
-      margin: 0;
-      font-size: 28px;
-    }
-
-    .login-card p {
-      color: var(--muted);
-      line-height: 1.5;
-    }
-
-    label {
-      display: block;
-      font-size: 13px;
-      font-weight: 800;
-      margin: 15px 0 7px;
-      color: #354038;
-    }
-
-    input[type="text"],
-    input[type="email"],
-    input[type="password"],
-    input[type="date"],
-    select,
-    textarea {
-      width: 100%;
-      min-height: 48px;
-      border: 1px solid var(--border);
-      border-radius: 13px;
-      padding: 12px 13px;
-      background: white;
-      color: var(--text);
-      font-size: 16px;
-      outline: none;
-    }
-
-    input:focus,
-    select:focus,
-    textarea:focus {
-      border-color: var(--gold);
-      box-shadow:
-        0 0 0 3px
-        rgba(140,105,47,.12);
-    }
-
-    textarea {
-      min-height: 88px;
-      resize: vertical;
-    }
-
-    .primary,
-    .secondary {
-      width: 100%;
-      min-height: 50px;
-      border-radius: 14px;
-      font-weight: 850;
-      border: 0;
-    }
-
-    .primary {
-      background: var(--gold);
-      color: white;
-    }
-
-    .primary:disabled {
-      opacity: .55;
-      cursor: default;
-    }
-
-    .secondary {
-      background: white;
-      color: var(--dark);
-      border: 1px solid var(--border);
-      margin-top: 10px;
-    }
-
-    .info {
-      margin-top: 10px;
-      padding: 11px 12px;
-      border-radius: 12px;
-      background: #f8f0e1;
-      color: #6d5227;
-      font-size: 13px;
-      line-height: 1.4;
-    }
-
-    .info.ok {
-      background: var(--green-soft);
-      color: var(--green);
-    }
-
-    .info.error {
-      background: var(--red-soft);
-      color: var(--red);
-    }
-
-    .hero {
-      background:
-        linear-gradient(
-          145deg,
-          #202a22,
-          #121813
-        );
-
-      color: white;
-      border: 0;
-      overflow: hidden;
-      position: relative;
-    }
-
-    .hero::after {
-      content: "";
-      position: absolute;
-      width: 180px;
-      height: 180px;
-      border-radius: 50%;
-      background: rgba(140,105,47,.22);
-      right: -70px;
-      top: -85px;
-    }
-
-    .hero h1 {
-      color: white;
-      margin: 0 0 7px;
-      font-size: 28px;
-      position: relative;
-      z-index: 1;
-    }
-
-    .beer-quote {
-      margin: 0;
-      max-width: 520px;
-      color: rgba(255,255,255,.72);
-      font-style: italic;
-      line-height: 1.45;
-      position: relative;
-      z-index: 1;
-    }
-
-    .achel-home-image {
-      position: relative;
-      width: 100%;
-      min-height: 360px;
-      margin-top: 18px;
-      overflow: hidden;
-      border-radius: 22px;
-      background: #182019;
-
-      box-shadow:
-        0 12px 35px
-        rgba(22,30,24,.12);
-    }
-
-    .achel-home-photo {
-      width: 100%;
-      height: 420px;
-      display: block;
-      object-fit: cover;
-    }
-
-    .achel-home-image::after {
-      content: "";
-      position: absolute;
-      inset: 0;
-
-      background:
-        linear-gradient(
-          to top,
-          rgba(15,20,16,.75),
-          rgba(15,20,16,.05) 60%
-        );
-    }
-
-    .achel-image-overlay {
-      position: absolute;
-      z-index: 2;
-      inset: auto 0 0 0;
-      padding: 28px 24px;
-      text-align: center;
-    }
-
-    .achel-home-logo {
-      display: block;
-      width: 145px;
-      max-width: 48%;
-      height: auto;
-      margin: 0 auto 10px;
-    }
-
-    .achel-home-caption {
-      color: white;
-      font-size: 17px;
-      font-weight: 800;
-      letter-spacing: .03em;
-    }
-
-    .profile-box {
-      border: 1px solid var(--border);
-      background: var(--surface-soft);
-      border-radius: 14px;
-      padding: 13px;
-    }
-
-    .profile-box strong {
-      display: block;
-    }
-
-    .profile-box small {
-      display: block;
-      color: var(--muted);
-      margin-top: 3px;
-    }
-
-    .category-tabs {
-      display: grid;
-      grid-template-columns: repeat(3,1fr);
-      gap: 7px;
-
-      background: var(--surface-soft);
-      border: 1px solid var(--border);
-      padding: 5px;
-      border-radius: 15px;
-      margin-bottom: 16px;
-    }
-
-    .category-button {
-      min-height: 43px;
-      border: 0;
-      border-radius: 11px;
-      background: transparent;
-      color: var(--muted);
-      font-size: 12px;
-      font-weight: 900;
-      letter-spacing: .035em;
-    }
-
-    .category-button.active {
-      background: var(--surface);
-      color: var(--dark);
-      box-shadow:
-        0 2px 10px
-        rgba(0,0,0,.06);
-    }
-
-    .event-panel {
-      border: 1px solid #d8c7a7;
-      background: #fcf8f0;
-      border-radius: 16px;
-      padding: 14px;
-      margin: 0 0 15px;
-    }
-
-    .event-panel h3 {
-      margin: 0;
-      font-size: 16px;
-    }
-
-    .event-panel p {
-      margin: 5px 0 0;
-      font-size: 12px;
-      color: var(--muted);
-    }
-
-    .product {
-      display: grid;
-      grid-template-columns: 1fr auto;
-      align-items: center;
-      gap: 12px;
-
-      border: 1px solid var(--border);
-      background: white;
-      border-radius: 15px;
-      padding: 13px;
-      margin-bottom: 9px;
-    }
-
-    .product-name {
-      font-weight: 780;
-      line-height: 1.25;
-    }
-
-    .product-unit {
-      display: block;
-      margin-top: 4px;
-      color: var(--muted);
-      font-size: 11px;
-      font-weight: 500;
-    }
-
-    .qty {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .qty button {
-      width: 39px;
-      height: 39px;
-      border: 1px solid var(--border);
-      border-radius: 11px;
-      background: var(--surface-soft);
-      color: var(--dark);
-      font-size: 23px;
-      line-height: 1;
-    }
-
-    .qty span {
-      min-width: 32px;
-      text-align: center;
-      font-weight: 900;
-    }
-
-    .sticky-action {
-      position: sticky;
-      bottom:
-        calc(
-          12px +
-          env(safe-area-inset-bottom)
-        );
-
-      z-index: 20;
-      padding-top: 8px;
-    }
-
-    .sticky-action .primary {
-      box-shadow:
-        0 8px 28px
-        rgba(82,60,24,.28);
-    }
-
-    .summary-section {
-      margin-top: 18px;
-    }
-
-    .summary-section-title {
-      font-size: 12px;
-      color: var(--gold);
-      font-weight: 950;
-      letter-spacing: .08em;
-      margin: 0 0 7px;
-    }
-
-    .summary-line {
-      display: flex;
-      justify-content: space-between;
-      gap: 14px;
-      padding: 10px 0;
-      border-bottom: 1px solid #eeeeee;
-    }
-
-    .order-card {
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 14px;
-      margin-bottom: 11px;
-      background: white;
-    }
-
-    .order-top {
-      display: flex;
-      justify-content: space-between;
-      gap: 10px;
-      align-items: center;
-    }
-
-    .order-id {
-      font-weight: 900;
-      color: var(--gold);
-      font-size: 13px;
-    }
-
-    .order-title {
-      margin-top: 9px;
-      font-size: 17px;
-      font-weight: 850;
-    }
-
-    .order-meta {
-      margin-top: 5px;
-      color: var(--muted);
-      font-size: 13px;
-      line-height: 1.35;
-    }
-
-    .order-items {
-      margin-top: 10px;
-      font-size: 13px;
-      line-height: 1.55;
-    }
-
-    .status {
-      padding: 5px 9px;
-      border-radius: 999px;
-      font-size: 11px;
-      font-weight: 900;
-      background: var(--gold-soft);
-      color: var(--gold);
-    }
-
-    .status.status-klaar {
-      background: var(--green-soft);
-      color: var(--green);
-    }
-
-    .status.status-geannuleerd {
-      background: var(--red-soft);
-      color: var(--red);
-    }
-
-    .empty {
-      text-align: center;
-      color: var(--muted);
-      padding: 30px 8px;
-      font-size: 14px;
-    }
-
-    .success {
-      text-align: center;
-    }
-
-    .success-mark {
-      width: 64px;
-      height: 64px;
-      margin: 3px auto 14px;
-      border-radius: 50%;
-      display: grid;
-      place-items: center;
-      background: var(--green-soft);
-      color: var(--green);
-      font-size: 32px;
-      font-weight: 900;
-    }
-
-    .top-back {
-      border: 0;
-      background: transparent;
-      color: var(--gold);
-      font-weight: 850;
-      padding: 5px 2px 13px;
-    }
-
-    #adminHomeButton {
-      display: none !important;
-    }
-
-    @media (min-width: 620px) {
-      .field-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 12px;
-      }
-    }
-
-    @media (max-width: 520px) {
-      .achel-home-photo {
-        height: 360px;
-      }
-    }
-  </style>
+<meta charset="UTF-8">
+
+<meta
+  name="viewport"
+  content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+>
+
+<meta name="theme-color" content="#182019">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta
+  name="apple-mobile-web-app-status-bar-style"
+  content="black-translucent"
+>
+<meta
+  name="apple-mobile-web-app-title"
+  content="Achel POS"
+>
+
+<title>Achel POS</title>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<link
+  rel="manifest"
+  href="./manifest.json"
+>
+
+<style>
+
+:root {
+  --bg:#f4f3ef;
+  --surface:#ffffff;
+  --surface-soft:#f8f7f3;
+
+  --dark:#182019;
+  --text:#202722;
+  --muted:#717972;
+
+  --gold:#8c692f;
+  --gold-soft:#f1e8d7;
+
+  --border:#ddd9cf;
+
+  --green:#2f7449;
+  --green-soft:#e7f3eb;
+
+  --red:#a74646;
+  --red-soft:#f8e9e9;
+
+  --shadow:
+    0 8px 30px
+    rgba(22,30,24,.07);
+}
+
+* {
+  box-sizing:border-box;
+}
+
+html,
+body {
+  margin:0;
+  min-height:100%;
+}
+
+body {
+  font-family:
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Arial,
+    sans-serif;
+
+  background:var(--bg);
+  color:var(--text);
+
+  -webkit-tap-highlight-color:
+    transparent;
+}
+
+button,
+input,
+select,
+textarea {
+  font:inherit;
+}
+
+button {
+  cursor:pointer;
+}
+
+.hidden {
+  display:none !important;
+}
+
+
+/* ===============================
+   HEADER
+================================ */
+
+.app-header {
+  position:sticky;
+  top:0;
+  z-index:40;
+
+  display:grid;
+
+  grid-template-columns:
+    48px 1fr 48px;
+
+  align-items:center;
+
+  min-height:
+    calc(
+      64px +
+      env(safe-area-inset-top)
+    );
+
+  padding:
+    env(safe-area-inset-top)
+    12px
+    0;
+
+  background:
+    rgba(
+      24,
+      32,
+      25,
+      .97
+    );
+
+  color:white;
+
+  backdrop-filter:
+    blur(14px);
+}
+
+.header-title {
+  text-align:center;
+}
+
+.header-title strong {
+  display:block;
+  font-size:18px;
+  letter-spacing:.02em;
+}
+
+.header-title span {
+  display:block;
+  margin-top:2px;
+
+  font-size:11px;
+
+  color:
+    rgba(
+      255,
+      255,
+      255,
+      .65
+    );
+}
+
+
+/* ===============================
+   HAMBURGER
+================================ */
+
+.menu-button {
+  width:44px;
+  height:44px;
+
+  border:0;
+  border-radius:12px;
+
+  background:transparent;
+  color:white;
+
+  display:grid;
+  place-items:center;
+}
+
+.menu-lines,
+.menu-lines::before,
+.menu-lines::after {
+  display:block;
+
+  position:relative;
+
+  width:22px;
+  height:2px;
+
+  border-radius:3px;
+
+  background:currentColor;
+}
+
+.menu-lines::before,
+.menu-lines::after {
+  content:"";
+
+  position:absolute;
+  left:0;
+}
+
+.menu-lines::before {
+  top:-7px;
+}
+
+.menu-lines::after {
+  top:7px;
+}
+
+
+/* ===============================
+   MENU
+================================ */
+
+.menu-overlay {
+  position:fixed;
+  inset:0;
+
+  z-index:80;
+
+  background:
+    rgba(
+      0,
+      0,
+      0,
+      .36
+    );
+
+  opacity:0;
+
+  pointer-events:none;
+
+  transition:
+    opacity .2s ease;
+}
+
+.menu-overlay.open {
+  opacity:1;
+  pointer-events:auto;
+}
+
+.side-menu {
+  position:absolute;
+
+  top:0;
+  left:0;
+
+  width:
+    min(
+      84vw,
+      340px
+    );
+
+  height:100%;
+
+  background:var(--surface);
+
+  transform:
+    translateX(-102%);
+
+  transition:
+    transform .22s ease;
+
+  box-shadow:
+    20px 0 50px
+    rgba(0,0,0,.16);
+
+  padding:
+    calc(
+      22px +
+      env(safe-area-inset-top)
+    )
+    18px
+    24px;
+
+  overflow-y:auto;
+}
+
+.menu-overlay.open
+.side-menu {
+  transform:
+    translateX(0);
+}
+
+.menu-profile {
+  padding:
+    10px 6px 18px;
+
+  border-bottom:
+    1px solid
+    var(--border);
+
+  margin-bottom:12px;
+}
+
+.menu-profile strong {
+  display:block;
+  font-size:18px;
+}
+
+.menu-profile small {
+  display:block;
+
+  margin-top:4px;
+
+  color:var(--muted);
+
+  word-break:
+    break-word;
+}
+
+.menu-item {
+  width:100%;
+
+  border:0;
+
+  background:
+    transparent;
+
+  text-align:left;
+
+  padding:
+    14px 12px;
+
+  border-radius:12px;
+
+  font-weight:750;
+
+  color:var(--text);
+}
+
+.menu-item:active {
+  background:
+    var(--surface-soft);
+}
+
+.menu-item.danger {
+  color:var(--red);
+  margin-top:8px;
+}
+
+
+/* ===============================
+   APP
+================================ */
+
+#loginScreen,
+main {
+  max-width:760px;
+
+  margin:
+    0 auto;
+
+  padding:
+    18px 16px 36px;
+}
+
+.card {
+  background:
+    var(--surface);
+
+  border:
+    1px solid
+    var(--border);
+
+  border-radius:20px;
+
+  padding:18px;
+
+  margin-bottom:15px;
+
+  box-shadow:
+    var(--shadow);
+}
+
+h1,
+h2,
+h3 {
+  color:var(--dark);
+}
+
+h2 {
+  margin:
+    0 0 14px;
+
+  font-size:20px;
+}
+
+
+/* ===============================
+   FORM
+================================ */
+
+label {
+  display:block;
+
+  font-size:13px;
+  font-weight:800;
+
+  margin:
+    15px 0 7px;
+
+  color:#354038;
+}
+
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="date"],
+select,
+textarea {
+  width:100%;
+
+  min-height:48px;
+
+  border:
+    1px solid
+    var(--border);
+
+  border-radius:13px;
+
+  padding:
+    12px 13px;
+
+  background:white;
+
+  color:var(--text);
+
+  font-size:16px;
+
+  outline:none;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  border-color:
+    var(--gold);
+
+  box-shadow:
+    0 0 0 3px
+    rgba(140,105,47,.12);
+}
+
+textarea {
+  min-height:88px;
+  resize:vertical;
+}
+
+
+/* ===============================
+   BUTTONS
+================================ */
+
+.primary,
+.secondary {
+  width:100%;
+
+  min-height:50px;
+
+  border-radius:14px;
+
+  font-weight:850;
+
+  border:0;
+}
+
+.primary {
+  background:
+    var(--gold);
+
+  color:white;
+}
+
+.primary:disabled {
+  opacity:.55;
+  cursor:default;
+}
+
+.secondary {
+  background:white;
+
+  color:var(--dark);
+
+  border:
+    1px solid
+    var(--border);
+
+  margin-top:10px;
+}
+
+.top-back {
+  border:0;
+
+  background:
+    transparent;
+
+  color:var(--gold);
+
+  font-weight:850;
+
+  padding:
+    5px 2px 13px;
+}
+
+
+/* ===============================
+   INFO
+================================ */
+
+.info {
+  margin-top:10px;
+
+  padding:
+    11px 12px;
+
+  border-radius:12px;
+
+  background:#f8f0e1;
+
+  color:#6d5227;
+
+  font-size:13px;
+  line-height:1.4;
+}
+
+.info.ok {
+  background:
+    var(--green-soft);
+
+  color:
+    var(--green);
+}
+
+.info.error {
+  background:
+    var(--red-soft);
+
+  color:
+    var(--red);
+}
+
+
+/* ===============================
+   LOGIN
+================================ */
+
+.login-card {
+  margin-top:28px;
+}
+
+.login-card h1 {
+  margin:0;
+  font-size:28px;
+}
+
+.login-card p {
+  color:var(--muted);
+  line-height:1.5;
+}
+
+
+/* ===============================
+   HOME
+================================ */
+
+.hero {
+  position:relative;
+
+  overflow:hidden;
+
+  border:0;
+
+  background:
+    linear-gradient(
+      145deg,
+      #202a22,
+      #121813
+    );
+
+  color:white;
+}
+
+.hero::after {
+  content:"";
+
+  position:absolute;
+
+  width:180px;
+  height:180px;
+
+  right:-70px;
+  top:-85px;
+
+  border-radius:50%;
+
+  background:
+    rgba(
+      140,
+      105,
+      47,
+      .22
+    );
+}
+
+.hero h1 {
+  position:relative;
+  z-index:1;
+
+  color:white;
+
+  margin:
+    0 0 7px;
+
+  font-size:28px;
+}
+
+.beer-quote {
+  position:relative;
+  z-index:1;
+
+  margin:0;
+
+  max-width:520px;
+
+  color:
+    rgba(
+      255,
+      255,
+      255,
+      .72
+    );
+
+  font-style:italic;
+
+  line-height:1.45;
+}
+
+.achel-home-image {
+  position:relative;
+
+  width:100%;
+
+  min-height:360px;
+
+  margin-top:18px;
+
+  overflow:hidden;
+
+  border-radius:22px;
+
+  background:#182019;
+
+  box-shadow:
+    0 12px 35px
+    rgba(22,30,24,.12);
+}
+
+.achel-home-photo {
+  display:block;
+
+  width:100%;
+  height:420px;
+
+  object-fit:cover;
+}
+
+.achel-home-image::after {
+  content:"";
+
+  position:absolute;
+  inset:0;
+
+  background:
+    linear-gradient(
+      to top,
+      rgba(15,20,16,.75),
+      rgba(15,20,16,.05) 60%
+    );
+}
+
+.achel-image-overlay {
+  position:absolute;
+
+  z-index:2;
+
+  inset:
+    auto 0 0 0;
+
+  padding:
+    28px 24px;
+
+  text-align:center;
+}
+
+.achel-home-logo {
+  display:block;
+
+  width:145px;
+
+  max-width:48%;
+
+  height:auto;
+
+  margin:
+    0 auto 10px;
+}
+
+.achel-home-caption {
+  color:white;
+
+  font-size:17px;
+
+  font-weight:800;
+
+  letter-spacing:.03em;
+}
+
+
+/* ===============================
+   PROFILE
+================================ */
+
+.profile-box {
+  border:
+    1px solid
+    var(--border);
+
+  background:
+    var(--surface-soft);
+
+  border-radius:14px;
+
+  padding:13px;
+}
+
+.profile-box strong {
+  display:block;
+}
+
+.profile-box small {
+  display:block;
+
+  margin-top:3px;
+
+  color:var(--muted);
+}
+
+
+/* ===============================
+   CATEGORY
+================================ */
+
+.category-tabs {
+  display:grid;
+
+  grid-template-columns:
+    repeat(
+      2,
+      1fr
+    );
+
+  gap:7px;
+
+  background:
+    var(--surface-soft);
+
+  border:
+    1px solid
+    var(--border);
+
+  padding:5px;
+
+  border-radius:15px;
+
+  margin-bottom:16px;
+}
+
+.category-button {
+  min-height:43px;
+
+  border:0;
+
+  border-radius:11px;
+
+  background:
+    transparent;
+
+  color:
+    var(--muted);
+
+  font-size:12px;
+  font-weight:900;
+
+  letter-spacing:.035em;
+}
+
+.category-button.active {
+  background:
+    var(--surface);
+
+  color:
+    var(--dark);
+
+  box-shadow:
+    0 2px 10px
+    rgba(0,0,0,.06);
+}
+
+
+/* ===============================
+   PRODUCTS
+================================ */
+
+.product {
+  display:grid;
+
+  grid-template-columns:
+    1fr auto;
+
+  align-items:center;
+
+  gap:12px;
+
+  border:
+    1px solid
+    var(--border);
+
+  background:white;
+
+  border-radius:15px;
+
+  padding:13px;
+
+  margin-bottom:9px;
+}
+
+.product-name {
+  font-weight:780;
+  line-height:1.25;
+}
+
+.product-unit {
+  display:block;
+
+  margin-top:4px;
+
+  color:var(--muted);
+
+  font-size:11px;
+
+  font-weight:500;
+}
+
+.qty {
+  display:flex;
+
+  align-items:center;
+
+  gap:6px;
+}
+
+.qty button {
+  width:39px;
+  height:39px;
+
+  border:
+    1px solid
+    var(--border);
+
+  border-radius:11px;
+
+  background:
+    var(--surface-soft);
+
+  color:var(--dark);
+
+  font-size:23px;
+
+  line-height:1;
+}
+
+.qty span {
+  min-width:32px;
+
+  text-align:center;
+
+  font-weight:900;
+}
+
+
+/* ===============================
+   STICKY
+================================ */
+
+.sticky-action {
+  position:sticky;
+
+  bottom:
+    calc(
+      12px +
+      env(safe-area-inset-bottom)
+    );
+
+  z-index:20;
+
+  padding-top:8px;
+}
+
+.sticky-action
+.primary {
+  box-shadow:
+    0 8px 28px
+    rgba(82,60,24,.28);
+}
+
+
+/* ===============================
+   SUMMARY
+================================ */
+
+.summary-section {
+  margin-top:18px;
+}
+
+.summary-section-title {
+  margin:
+    0 0 7px;
+
+  font-size:12px;
+
+  color:var(--gold);
+
+  font-weight:950;
+
+  letter-spacing:.08em;
+}
+
+.summary-line {
+  display:flex;
+
+  justify-content:
+    space-between;
+
+  gap:14px;
+
+  padding:
+    10px 0;
+
+  border-bottom:
+    1px solid
+    #eeeeee;
+}
+
+
+/* ===============================
+   ORDERS
+================================ */
+
+.order-card {
+  border:
+    1px solid
+    var(--border);
+
+  border-radius:16px;
+
+  padding:14px;
+
+  margin-bottom:11px;
+
+  background:white;
+}
+
+.order-top {
+  display:flex;
+
+  justify-content:
+    space-between;
+
+  gap:10px;
+
+  align-items:center;
+}
+
+.order-id {
+  font-weight:900;
+
+  color:var(--gold);
+
+  font-size:13px;
+}
+
+.order-title {
+  margin-top:9px;
+
+  font-size:17px;
+
+  font-weight:850;
+}
+
+.order-meta {
+  margin-top:5px;
+
+  color:var(--muted);
+
+  font-size:13px;
+
+  line-height:1.35;
+}
+
+.order-items {
+  margin-top:10px;
+
+  font-size:13px;
+
+  line-height:1.55;
+}
+
+
+/* ===============================
+   STATUS
+================================ */
+
+.status {
+  padding:
+    5px 9px;
+
+  border-radius:999px;
+
+  font-size:11px;
+
+  font-weight:900;
+
+  background:
+    var(--gold-soft);
+
+  color:
+    var(--gold);
+}
+
+.status.status-klaar {
+  background:
+    var(--green-soft);
+
+  color:
+    var(--green);
+}
+
+.status.status-geannuleerd {
+  background:
+    var(--red-soft);
+
+  color:
+    var(--red);
+}
+
+
+/* ===============================
+   OTHER
+================================ */
+
+.empty {
+  text-align:center;
+
+  color:
+    var(--muted);
+
+  padding:
+    30px 8px;
+
+  font-size:14px;
+}
+
+.success {
+  text-align:center;
+}
+
+.success-mark {
+  width:64px;
+  height:64px;
+
+  margin:
+    3px auto 14px;
+
+  border-radius:50%;
+
+  display:grid;
+
+  place-items:center;
+
+  background:
+    var(--green-soft);
+
+  color:
+    var(--green);
+
+  font-size:32px;
+
+  font-weight:900;
+}
+
+
+/* ===============================
+   ADMIN COLLAPSIBLE
+================================ */
+
+.dashboard-fold {
+  padding:0;
+  overflow:hidden;
+}
+
+.dashboard-fold > summary {
+  list-style:none;
+
+  cursor:pointer;
+
+  padding:18px;
+
+  display:flex;
+
+  align-items:center;
+
+  justify-content:
+    space-between;
+
+  gap:12px;
+
+  font-weight:900;
+
+  color:
+    var(--dark);
+
+  user-select:none;
+}
+
+.dashboard-fold
+> summary::-webkit-details-marker {
+  display:none;
+}
+
+.dashboard-fold
+> summary::after {
+  content:"＋";
+
+  color:
+    var(--gold);
+
+  font-size:20px;
+}
+
+.dashboard-fold[open]
+> summary::after {
+  content:"−";
+}
+
+.dashboard-fold-body {
+  padding:
+    0 18px 18px;
+
+  border-top:
+    1px solid
+    var(--border);
+}
+
+.dashboard-count {
+  margin-left:auto;
+
+  padding:
+    4px 9px;
+
+  border-radius:999px;
+
+  background:
+    var(--gold-soft);
+
+  color:
+    var(--gold);
+
+  font-size:11px;
+
+  font-weight:900;
+}
+
+.wholesale-admin-order {
+  border:
+    1px solid
+    var(--border);
+
+  border-radius:14px;
+
+  margin-top:10px;
+
+  background:white;
+
+  overflow:hidden;
+}
+
+.wholesale-admin-order
+> summary {
+  list-style:none;
+
+  cursor:pointer;
+
+  padding:14px;
+}
+
+.wholesale-admin-order
+> summary::-webkit-details-marker {
+  display:none;
+}
+
+.wholesale-admin-body {
+  padding:
+    0 14px 14px;
+
+  border-top:
+    1px solid
+    var(--border);
+}
+
+
+/* ===============================
+   RESPONSIVE
+================================ */
+
+@media (min-width:620px) {
+
+  .field-grid {
+    display:grid;
+
+    grid-template-columns:
+      1fr 1fr;
+
+    gap:12px;
+  }
+
+}
+
+@media (max-width:520px) {
+
+  .achel-home-photo {
+    height:360px;
+  }
+
+}
+
+</style>
 </head>
+
 
 <body>
 
+
 <header class="app-header">
 
-  <button
-    id="menuButton"
-    class="menu-button hidden"
-    type="button"
-    onclick="openMenu()"
-    aria-label="Menu openen"
-  >
-    <span class="menu-lines"></span>
-  </button>
+<button
+  id="menuButton"
+  class="menu-button hidden"
+  type="button"
+  onclick="openMenu()"
+  aria-label="Menu openen"
+>
 
-  <div class="header-title">
-    <strong>Achel POS</strong>
-    <span>Interne bestelapp</span>
-  </div>
+<span class="menu-lines"></span>
 
-  <div></div>
+</button>
+
+
+<div class="header-title">
+
+<strong>
+Achel POS
+</strong>
+
+<span>
+Interne bestelapp
+</span>
+
+</div>
+
+
+<div></div>
 
 </header>
 
+
+<!-- ===============================
+     MENU
+================================ -->
 
 <div
   id="menuOverlay"
@@ -769,551 +1299,798 @@
   onclick="closeMenuFromOverlay(event)"
 >
 
-  <aside
-    class="side-menu"
-    onclick="event.stopPropagation()"
-  >
+<aside
+  class="side-menu"
+  onclick="event.stopPropagation()"
+>
 
-    <div class="menu-profile">
-      <strong id="menuRepName">Achel POS</strong>
-      <small id="menuRepEmail"></small>
-    </div>
+<div class="menu-profile">
 
-    <button
-      class="menu-item"
-      type="button"
-      onclick="menuGoHome()"
-    >
-      Home
-    </button>
+<strong id="menuRepName">
+Achel POS
+</strong>
 
-    <button
-      class="menu-item"
-      type="button"
-      onclick="menuNewOrder()"
-    >
-      Nieuwe aanvraag
-    </button>
-
-    <button
-      class="menu-item"
-      type="button"
-      onclick="menuOrders()"
-    >
-      Aanvragen bekijken
-    </button>
-
-    <button
-      id="menuWholesale"
-      class="menu-item"
-      type="button"
-      onclick="openWholesaleOrder()"
-    >
-      Bestelling groothandel
-    </button>
-
-    <button
-      id="menuAdmin"
-      class="menu-item hidden"
-      type="button"
-      onclick="openAdminFromMenu()"
-    >
-      Beheer
-    </button>
-
-    <button
-      class="menu-item danger"
-      type="button"
-      onclick="menuLogout()"
-    >
-      Uitloggen
-    </button>
-
-  </aside>
+<small id="menuRepEmail"></small>
 
 </div>
 
 
+<button
+  class="menu-item"
+  type="button"
+  onclick="menuGoHome()"
+>
+Home
+</button>
+
+
+<button
+  class="menu-item"
+  type="button"
+  onclick="menuNewOrder()"
+>
+Nieuwe aanvraag
+</button>
+
+
+<button
+  class="menu-item"
+  type="button"
+  onclick="menuEventOrder()"
+>
+Evenementaanvraag
+</button>
+
+
+<button
+  class="menu-item"
+  type="button"
+  onclick="menuOrders()"
+>
+Aanvragen bekijken
+</button>
+
+
+<button
+  id="menuWholesale"
+  class="menu-item"
+  type="button"
+  onclick="openWholesaleOrder()"
+>
+Bestelling groothandel
+</button>
+
+
+<button
+  id="menuAdmin"
+  class="menu-item hidden"
+  type="button"
+  onclick="openAdminFromMenu()"
+>
+Beheer
+</button>
+
+
+<button
+  class="menu-item danger"
+  type="button"
+  onclick="menuLogout()"
+>
+Uitloggen
+</button>
+
+</aside>
+
+</div>
+
+
+<!-- ===============================
+     LOGIN
+================================ -->
+
 <section id="loginScreen">
 
-  <div class="card login-card">
+<div class="card login-card">
 
-    <h1>Welkom bij Achel POS</h1>
+<h1>
+Welkom bij Achel POS
+</h1>
 
-    <p>
-      Log in met je persoonlijke account om een aanvraag te plaatsen of je aanvragen te bekijken.
-    </p>
 
-    <label for="loginEmail">
-      E-mailadres
-    </label>
+<p>
+Log in met je persoonlijke account om een aanvraag te plaatsen of je aanvragen te bekijken.
+</p>
 
-    <input
-      id="loginEmail"
-      type="email"
-      placeholder="naam@achelsekluis.be"
-      autocomplete="email"
-    >
 
-    <label for="loginPassword">
-      Wachtwoord
-    </label>
+<label for="loginEmail">
+E-mailadres
+</label>
 
-    <input
-      id="loginPassword"
-      type="password"
-      placeholder="Wachtwoord"
-      autocomplete="current-password"
-    >
 
-    <button
-      class="primary"
-      type="button"
-      onclick="loginUser()"
-      style="margin-top:18px;"
-    >
-      Inloggen
-    </button>
+<input
+  id="loginEmail"
+  type="email"
+  placeholder="naam@achelsekluis.be"
+  autocomplete="email"
+>
 
-    <div
-      id="loginMessage"
-      class="info hidden"
-    ></div>
 
-  </div>
+<label for="loginPassword">
+Wachtwoord
+</label>
+
+
+<input
+  id="loginPassword"
+  type="password"
+  placeholder="Wachtwoord"
+  autocomplete="current-password"
+>
+
+
+<button
+  class="primary"
+  type="button"
+  onclick="loginUser()"
+  style="margin-top:18px;"
+>
+Inloggen
+</button>
+
+
+<div
+  id="loginMessage"
+  class="info hidden"
+></div>
+
+</div>
 
 </section>
 
+
+<!-- ===============================
+     APP
+================================ -->
 
 <main
   id="appMain"
   class="hidden"
 >
 
-  <section id="homeScreen">
 
-    <div class="card hero">
+<!-- ===============================
+     HOME
+================================ -->
 
-      <h1 id="welcomeTitle">
-        Hallo
-      </h1>
+<section id="homeScreen">
 
-      <p
-        id="beerQuote"
-        class="beer-quote"
-      ></p>
+<div class="card hero">
 
-    </div>
+<h1 id="welcomeTitle">
+Hallo
+</h1>
 
-    <div class="achel-home-image">
+<p
+  id="beerQuote"
+  class="beer-quote"
+></p>
 
-      <img
-        src="./achel-kluis-home.jpg"
-        alt="De Achelse Kluis"
-        class="achel-home-photo"
-      >
+</div>
 
-      <div class="achel-image-overlay">
 
-        <img
-          src="./achel-logo.png"
-          alt="Achel"
-          class="achel-home-logo"
-        >
+<div class="achel-home-image">
 
-        <div class="achel-home-caption">
-          De Achelse Kluis
-        </div>
+<img
+  src="./achel-kluis-home.jpg"
+  alt="De Achelse Kluis"
+  class="achel-home-photo"
+>
 
-      </div>
 
-    </div>
+<div class="achel-image-overlay">
 
-  </section>
+<img
+  src="./achel-logo.png"
+  alt="Achel"
+  class="achel-home-logo"
+>
 
+<div class="achel-home-caption">
+De Achelse Kluis
+</div>
 
-  <section
-    id="orderScreen"
-    class="hidden"
-  >
+</div>
 
-    <button
-      class="top-back"
-      type="button"
-      onclick="goHome()"
-    >
-      ← Terug
-    </button>
+</div>
 
-    <div class="card">
+</section>
 
-      <h2>
-        Nieuwe aanvraag
-      </h2>
 
-      <label>
-        Vertegenwoordiger
-      </label>
+<!-- ===============================
+     NIEUWE POS / BIER AANVRAAG
+================================ -->
 
-      <div class="profile-box">
+<section
+  id="orderScreen"
+  class="hidden"
+>
 
-        <strong id="loggedInRepName">
-          Gebruiker laden...
-        </strong>
+<button
+  class="top-back"
+  type="button"
+  onclick="goHome()"
+>
+← Terug
+</button>
 
-        <small id="loggedInRepEmail"></small>
 
-      </div>
+<div class="card">
 
-      <label for="reference">
-        Referentie
-      </label>
+<h2>
+Nieuwe aanvraag
+</h2>
 
-      <input
-        id="reference"
-        type="text"
-        placeholder="Bijv. Café De Markt, actie Genk, Event Bokrijk"
-      >
 
-      <div class="field-grid">
+<label>
+Vertegenwoordiger
+</label>
 
-        <div>
 
-          <label for="country">
-            Land
-          </label>
+<div class="profile-box">
 
-          <select id="country">
+<strong id="loggedInRepName">
+Gebruiker laden...
+</strong>
 
-            <option value="België">
-              België
-            </option>
+<small id="loggedInRepEmail"></small>
 
-            <option value="Nederland">
-              Nederland
-            </option>
-
-          </select>
-
-        </div>
-
-        <div>
-
-          <label for="municipality">
-            Stad / gemeente
-          </label>
-
-          <input
-            id="municipality"
-            type="text"
-            placeholder="Bijv. Genk"
-          >
-
-        </div>
+</div>
 
-      </div>
-
-      <label for="pickup">
-        Gewenste afhaaldatum
-      </label>
 
-      <input
-        id="pickup"
-        type="date"
-      >
+<label for="reference">
+Referentie
+</label>
 
-      <div
-        id="dateInfo"
-        class="info"
-      >
-        De aanvraag moet minstens 2 dagen vóór afhaling gebeuren.
-      </div>
 
-      <label for="note">
-        Opmerking
-      </label>
+<input
+  id="reference"
+  type="text"
+  placeholder="Bijv. Café De Markt"
+>
 
-      <textarea
-        id="note"
-        placeholder="Extra informatie voor de verantwoordelijke"
-      ></textarea>
 
-    </div>
+<div class="field-grid">
 
 
-    <div class="card">
+<div>
 
-      <h2>
-        Materialen
-      </h2>
+<label for="country">
+Land
+</label>
 
-      <div class="category-tabs">
+<select id="country">
 
-        <button
-          id="tab-bier"
-          class="category-button active"
-          type="button"
-          onclick="setCategory('bier')"
-        >
-          BIER
-        </button>
+<option value="België">
+België
+</option>
 
-        <button
-          id="tab-pos"
-          class="category-button"
-          type="button"
-          onclick="setCategory('pos')"
-        >
-          POS
-        </button>
+<option value="Nederland">
+Nederland
+</option>
 
-        <button
-          id="tab-evenement"
-          class="category-button"
-          type="button"
-          onclick="setCategory('evenement')"
-        >
-          EVENEMENT
-        </button>
+</select>
 
-      </div>
+</div>
 
-      <div
-        id="eventPanel"
-        class="event-panel hidden"
-      >
 
-        <h3>
-          Evenementgegevens
-        </h3>
+<div>
 
-        <p>
-          Vul dit in wanneer je evenementenmateriaal aanvraagt.
-        </p>
+<label for="municipality">
+Stad / gemeente
+</label>
 
-        <label for="eventName">
-          Naam evenement
-        </label>
+<input
+  id="municipality"
+  type="text"
+  placeholder="Bijv. Genk"
+>
 
-        <input
-          id="eventName"
-          type="text"
-          placeholder="Bijv. Dorpsfeest Neeroeteren"
-        >
+</div>
 
-        <div class="field-grid">
 
-          <div>
+</div>
 
-            <label for="eventFrom">
-              Materiaal nodig vanaf
-            </label>
 
-            <input
-              id="eventFrom"
-              type="date"
-            >
+<label for="pickup">
+Gewenste afhaaldatum
+</label>
 
-          </div>
 
-          <div>
+<input
+  id="pickup"
+  type="date"
+>
 
-            <label for="eventUntil">
-              Materiaal nodig t/m
-            </label>
 
-            <input
-              id="eventUntil"
-              type="date"
-            >
+<div
+  id="dateInfo"
+  class="info"
+>
+De aanvraag moet minstens 2 dagen vóór afhaling gebeuren.
+</div>
 
-          </div>
 
-        </div>
+<label for="note">
+Opmerking
+</label>
 
-      </div>
 
-      <div id="productsList">
+<textarea
+  id="note"
+  placeholder="Extra informatie voor de verantwoordelijke"
+></textarea>
 
-        <div class="empty">
-          Producten laden...
-        </div>
+</div>
 
-      </div>
 
-    </div>
+<div class="card">
 
-    <div class="sticky-action">
+<h2>
+Bier & POS
+</h2>
 
-      <button
-        id="reviewButton"
-        class="primary"
-        type="button"
-        onclick="showSummary()"
-      >
-        Aanvraag controleren
-      </button>
 
-    </div>
+<div class="category-tabs">
 
-  </section>
+<button
+  id="tab-bier"
+  class="category-button active"
+  type="button"
+  onclick="setCategory('bier')"
+>
+BIER
+</button>
 
 
-  <section
-    id="summaryScreen"
-    class="hidden"
-  >
+<button
+  id="tab-pos"
+  class="category-button"
+  type="button"
+  onclick="setCategory('pos')"
+>
+POS
+</button>
 
-    <button
-      class="top-back"
-      type="button"
-      onclick="backToOrder()"
-    >
-      ← Terug aanpassen
-    </button>
+</div>
 
-    <div class="card">
 
-      <h2>
-        Controleer aanvraag
-      </h2>
+<div id="productsList">
 
-      <p>
-        <strong>Vertegenwoordiger</strong>
-        <br>
-        <span id="summaryRep"></span>
-      </p>
+<div class="empty">
+Producten laden...
+</div>
 
-      <p>
-        <strong>Referentie</strong>
-        <br>
-        <span id="summaryReference"></span>
-      </p>
+</div>
 
-      <p>
-        <strong>Locatie</strong>
-        <br>
-        <span id="summaryLocation"></span>
-      </p>
+</div>
 
-      <p>
-        <strong>Afhalen</strong>
-        <br>
-        <span id="summaryPickup"></span>
-      </p>
 
-      <div
-        id="summaryEvent"
-        class="hidden"
-      ></div>
+<div class="sticky-action">
 
-      <div id="summaryProducts"></div>
+<button
+  id="reviewButton"
+  class="primary"
+  type="button"
+  onclick="showSummary()"
+>
+Aanvraag controleren
+</button>
 
-      <p id="summaryNote"></p>
+</div>
 
-      <button
-        id="submitButton"
-        class="primary"
-        type="button"
-        onclick="submitOrder()"
-      >
-        Aanvraag verzenden
-      </button>
+</section>
 
-    </div>
 
-  </section>
+<!-- ===============================
+     POS / BIER CONTROLE
+================================ -->
 
+<section
+  id="summaryScreen"
+  class="hidden"
+>
 
-  <section
-    id="successScreen"
-    class="hidden"
-  >
+<button
+  class="top-back"
+  type="button"
+  onclick="backToOrder()"
+>
+← Terug aanpassen
+</button>
 
-    <div class="card success">
 
-      <div class="success-mark">
-        ✓
-      </div>
+<div class="card">
 
-      <h2>
-        Aanvraag geregistreerd
-      </h2>
+<h2>
+Controleer aanvraag
+</h2>
 
-      <p>
-        Referentie aanvraag:
-        <br>
-        <strong id="successOrderId"></strong>
-      </p>
 
-      <p>
-        De aanvraag is centraal opgeslagen en staat bij Mijn aanvragen.
-      </p>
+<p>
+<strong>
+Vertegenwoordiger
+</strong>
+<br>
+<span id="summaryRep"></span>
+</p>
 
-      <button
-        class="primary"
-        type="button"
-        onclick="openOrders()"
-      >
-        Mijn aanvragen bekijken
-      </button>
 
-      <button
-        class="secondary"
-        type="button"
-        onclick="newOrder()"
-      >
-        Nieuwe aanvraag
-      </button>
+<p>
+<strong>
+Referentie
+</strong>
+<br>
+<span id="summaryReference"></span>
+</p>
 
-    </div>
 
-  </section>
+<p>
+<strong>
+Locatie
+</strong>
+<br>
+<span id="summaryLocation"></span>
+</p>
 
 
-  <section
-    id="ordersScreen"
-    class="hidden"
-  >
+<p>
+<strong>
+Afhalen
+</strong>
+<br>
+<span id="summaryPickup"></span>
+</p>
 
-    <button
-      class="top-back"
-      type="button"
-      onclick="goHome()"
-    >
-      ← Terug
-    </button>
 
-    <div class="card">
+<div id="summaryProducts"></div>
 
-      <h2>
-        Mijn aanvragen
-      </h2>
 
-      <div id="ordersList">
+<p id="summaryNote"></p>
 
-        <div class="empty">
-          Aanvragen laden...
-        </div>
 
-      </div>
+<button
+  id="submitButton"
+  class="primary"
+  type="button"
+  onclick="submitOrder()"
+>
+Aanvraag verzenden
+</button>
 
-    </div>
+</div>
 
-  </section>
+</section>
+
+
+<!-- ===============================
+     EVENT AANVRAAG
+================================ -->
+
+<section
+  id="eventOrderScreen"
+  class="hidden"
+>
+
+<button
+  class="top-back"
+  type="button"
+  onclick="goHome()"
+>
+← Terug
+</button>
+
+
+<div class="card">
+
+<h2>
+Evenementaanvraag
+</h2>
+
+
+<label>
+Vertegenwoordiger
+</label>
+
+
+<div class="profile-box">
+
+<strong id="eventRepName">
+Gebruiker laden...
+</strong>
+
+<small id="eventRepEmail"></small>
+
+</div>
+
+
+<label for="eventName">
+Naam evenement
+</label>
+
+
+<input
+  id="eventName"
+  type="text"
+  placeholder="Bijv. Dorpsfeest Neeroeteren"
+>
+
+
+<div class="field-grid">
+
+
+<div>
+
+<label for="eventFrom">
+Materiaal nodig vanaf
+</label>
+
+<input
+  id="eventFrom"
+  type="date"
+>
+
+</div>
+
+
+<div>
+
+<label for="eventUntil">
+Materiaal nodig t/m
+</label>
+
+<input
+  id="eventUntil"
+  type="date"
+>
+
+</div>
+
+
+</div>
+
+
+<label for="eventNote">
+Opmerking
+</label>
+
+
+<textarea
+  id="eventNote"
+  placeholder="Extra informatie over het evenement"
+></textarea>
+
+</div>
+
+
+<div class="card">
+
+<h2>
+Evenementmateriaal
+</h2>
+
+
+<div id="eventProductsList">
+
+<div class="empty">
+Materialen laden...
+</div>
+
+</div>
+
+</div>
+
+
+<div class="sticky-action">
+
+<button
+  id="eventReviewButton"
+  class="primary"
+  type="button"
+  onclick="showEventSummary()"
+>
+Evenementaanvraag controleren
+</button>
+
+</div>
+
+</section>
+
+
+<!-- ===============================
+     EVENT CONTROLE
+================================ -->
+
+<section
+  id="eventSummaryScreen"
+  class="hidden"
+>
+
+<button
+  class="top-back"
+  type="button"
+  onclick="backToEventOrder()"
+>
+← Terug aanpassen
+</button>
+
+
+<div class="card">
+
+<h2>
+Controleer evenementaanvraag
+</h2>
+
+
+<p>
+<strong>
+Vertegenwoordiger
+</strong>
+<br>
+<span id="eventSummaryRep"></span>
+</p>
+
+
+<p>
+<strong>
+Evenement
+</strong>
+<br>
+<span id="eventSummaryName"></span>
+</p>
+
+
+<p>
+<strong>
+Periode
+</strong>
+<br>
+<span id="eventSummaryPeriod"></span>
+</p>
+
+
+<div id="eventSummaryProducts"></div>
+
+
+<p id="eventSummaryNote"></p>
+
+
+<button
+  id="eventSubmitButton"
+  class="primary"
+  type="button"
+  onclick="submitEventOrder()"
+>
+Evenementaanvraag verzenden
+</button>
+
+</div>
+
+</section>
+
+
+<!-- ===============================
+     SUCCESS
+================================ -->
+
+<section
+  id="successScreen"
+  class="hidden"
+>
+
+<div class="card success">
+
+<div class="success-mark">
+✓
+</div>
+
+
+<h2>
+Aanvraag geregistreerd
+</h2>
+
+
+<p>
+Referentie aanvraag:
+<br>
+<strong id="successOrderId"></strong>
+</p>
+
+
+<p>
+De aanvraag is centraal opgeslagen en staat bij Mijn aanvragen.
+</p>
+
+
+<button
+  class="primary"
+  type="button"
+  onclick="openOrders()"
+>
+Mijn aanvragen bekijken
+</button>
+
+
+<button
+  class="secondary"
+  type="button"
+  onclick="newOrder()"
+>
+Nieuwe aanvraag
+</button>
+
+</div>
+
+</section>
+
+
+<!-- ===============================
+     MIJN AANVRAGEN
+================================ -->
+
+<section
+  id="ordersScreen"
+  class="hidden"
+>
+
+<button
+  class="top-back"
+  type="button"
+  onclick="goHome()"
+>
+← Terug
+</button>
+
+
+<div class="card">
+
+<h2>
+Mijn aanvragen
+</h2>
+
+
+<div id="ordersList">
+
+<div class="empty">
+Aanvragen laden...
+</div>
+
+</div>
+
+</div>
+
+</section>
+
 
 </main>
 
 
 <script>
+
+/* ===============================
+   SUPABASE
+================================ */
+
 const SUPABASE_URL =
   "https://qosjfznmdnswwfnglxqt.supabase.co";
+
 
 const SUPABASE_KEY =
   "sb_publishable_pyiiMmH2tpl-lL3e_edcow_4ztJX-Ul";
 
+
 const CENTRAL_EMAIL =
   "fabiovenaruzzo@hotmail.com";
+
 
 const supabaseClient =
   supabase.createClient(
@@ -1322,38 +2099,78 @@ const supabaseClient =
   );
 
 
+/* ===============================
+   QUOTES
+================================ */
+
 const BEER_QUOTES = [
+
   "Goed bier brengt goede mensen samen.",
+
   "Een sterk verhaal begint vaak bij een goed glas bier.",
+
   "Proef het moment, deel het verhaal.",
+
   "Waar bier verbindt, ontstaan mooie gesprekken.",
+
   "Kwaliteit proef je. Gastvrijheid onthoud je.",
+
   "Een goed bier krijgt pas waarde wanneer het gedeeld wordt."
+
 ];
 
 
-let currentUser = null;
-let currentProfile = null;
-let allProducts = [];
-let selectedCategory = "bier";
+/* ===============================
+   DATA
+================================ */
 
-const quantities = {};
+let currentUser =
+  null;
 
+let currentProfile =
+  null;
+
+let allProducts =
+  [];
+
+let selectedCategory =
+  "bier";
+
+const quantities =
+  {};
+
+const eventQuantities =
+  {};
+
+
+/* ===============================
+   LOGIN
+================================ */
 
 async function loginUser() {
 
   const email =
     document
-      .getElementById("loginEmail")
+      .getElementById(
+        "loginEmail"
+      )
       .value
       .trim();
 
+
   const password =
     document
-      .getElementById("loginPassword")
+      .getElementById(
+        "loginPassword"
+      )
       .value;
 
-  if (!email || !password) {
+
+  if (
+    !email
+    ||
+    !password
+  ) {
 
     showLoginMessage(
       "Vul je e-mailadres en wachtwoord in.",
@@ -1361,41 +2178,63 @@ async function loginUser() {
     );
 
     return;
+
   }
+
 
   showLoginMessage(
     "Bezig met inloggen...",
     false
   );
 
+
   const {
     data,
     error
   } =
-    await supabaseClient.auth.signInWithPassword({
-      email,
-      password
-    });
+    await supabaseClient
+      .auth
+      .signInWithPassword({
+
+        email:
+          email,
+
+        password:
+          password
+
+      });
+
 
   if (
-    error ||
+    error
+    ||
     !data.user
   ) {
 
     showLoginMessage(
-      "Inloggen mislukt: " +
+
+      "Inloggen mislukt: "
+
+      +
+
       (
-        error?.message ||
+        error?.message
+        ||
         "Gebruiker niet gevonden."
       ),
+
       true
+
     );
 
     return;
+
   }
+
 
   currentUser =
     data.user;
+
 
   if (
     await loadCurrentProfile()
@@ -1404,8 +2243,13 @@ async function loginUser() {
     await startApp();
 
   }
+
 }
 
+
+/* ===============================
+   LOGIN MESSAGE
+================================ */
 
 function showLoginMessage(
   text,
@@ -1418,224 +2262,336 @@ function showLoginMessage(
         "loginMessage"
       );
 
+
   message.className =
     isError
+
       ? "info error"
+
       : "info";
+
 
   message.innerText =
     text;
+
 }
 
 
+/* ===============================
+   PROFILE
+================================ */
+
 async function loadCurrentProfile() {
 
-  if (!currentUser) {
+  if (
+    !currentUser
+  ) {
+
     return false;
+
   }
+
 
   const {
     data,
     error
   } =
     await supabaseClient
-      .from("profiles")
+
+      .from(
+        "profiles"
+      )
+
       .select(
         "id, naam, email, rol, actief"
       )
+
       .eq(
         "id",
         currentUser.id
       )
+
       .single();
 
+
   if (
-    error ||
+    error
+    ||
     !data
   ) {
 
     showLoginMessage(
-      "Je login werkt, maar je profiel kon niet worden geladen: " +
+
+      "Je login werkt, maar je profiel kon niet worden geladen: "
+
+      +
+
       (
-        error?.message ||
+        error?.message
+        ||
         "Onbekende fout"
       ),
+
       true
+
     );
 
     return false;
+
   }
 
-  if (!data.actief) {
+
+  if (
+    !data.actief
+  ) {
 
     await supabaseClient
       .auth
       .signOut();
 
-    currentUser = null;
+
+    currentUser =
+      null;
+
 
     showLoginMessage(
       "Dit Achel POS-account is niet actief.",
       true
     );
 
+
     return false;
+
   }
+
 
   currentProfile =
     data;
 
+
   return true;
+
 }
 
+
+/* ===============================
+   START APP
+================================ */
 
 async function startApp() {
 
   document
-    .getElementById("loginScreen")
+    .getElementById(
+      "loginScreen"
+    )
     .classList
     .add("hidden");
 
+
   document
-    .getElementById("appMain")
+    .getElementById(
+      "appMain"
+    )
     .classList
     .remove("hidden");
 
+
   document
-    .getElementById("menuButton")
+    .getElementById(
+      "menuButton"
+    )
     .classList
     .remove("hidden");
+
 
   const firstName =
     getFirstName(
       currentProfile.naam
     );
 
+
   document
-    .getElementById("welcomeTitle")
+    .getElementById(
+      "welcomeTitle"
+    )
     .innerText =
       `Hallo ${firstName}`;
 
+
   document
-    .getElementById("beerQuote")
+    .getElementById(
+      "beerQuote"
+    )
     .innerText =
+
       BEER_QUOTES[
+
         Math.floor(
-          Math.random() *
+
+          Math.random()
+
+          *
+
           BEER_QUOTES.length
+
         )
+
       ];
 
+
   document
-    .getElementById("loggedInRepName")
+    .getElementById(
+      "loggedInRepName"
+    )
     .innerText =
       currentProfile.naam;
 
-  document
-    .getElementById("loggedInRepEmail")
-    .innerText =
-      currentProfile.email ||
-      currentUser.email ||
-      "";
 
   document
-    .getElementById("menuRepName")
+    .getElementById(
+      "loggedInRepEmail"
+    )
+    .innerText =
+      currentProfile.email
+      ||
+      currentUser.email
+      ||
+      "";
+
+
+  document
+    .getElementById(
+      "eventRepName"
+    )
     .innerText =
       currentProfile.naam;
 
+
   document
-    .getElementById("menuRepEmail")
+    .getElementById(
+      "eventRepEmail"
+    )
     .innerText =
-      currentProfile.email ||
-      currentUser.email ||
+      currentProfile.email
+      ||
+      currentUser.email
+      ||
       "";
+
+
+  document
+    .getElementById(
+      "menuRepName"
+    )
+    .innerText =
+      currentProfile.naam;
+
+
+  document
+    .getElementById(
+      "menuRepEmail"
+    )
+    .innerText =
+      currentProfile.email
+      ||
+      currentUser.email
+      ||
+      "";
+
 
   const canManage =
-    currentProfile.rol === "admin" ||
-    currentProfile.rol === "verantwoordelijke";
+
+    currentProfile.rol ===
+    "admin"
+
+    ||
+
+    currentProfile.rol ===
+    "verantwoordelijke";
+
 
   document
-    .getElementById("menuAdmin")
+    .getElementById(
+      "menuAdmin"
+    )
     .classList
     .toggle(
       "hidden",
       !canManage
     );
 
+
   await loadProducts();
 
+
   goHome();
+
 }
 
 
-function getFirstName(name) {
+/* ===============================
+   FIRST NAME
+================================ */
+
+function getFirstName(
+  name
+) {
 
   const cleaned =
-    String(name || "")
+
+    String(
+      name
+      ||
+      ""
+    )
+
       .trim()
+
       .replace(
         /[._-]+/g,
         " "
       );
 
+
   const first =
+
     cleaned
-      .split(/\s+/)[0] ||
+      .split(
+        /\s+/
+      )[0]
+
+    ||
+
     "";
 
-  if (!first) {
+
+  if (
+    !first
+  ) {
+
     return "";
+
   }
 
+
   return (
-    first.charAt(0).toUpperCase() +
+
+    first
+      .charAt(0)
+      .toUpperCase()
+
+    +
+
     first.slice(1)
+
   );
+
 }
 
 
-async function logoutUser() {
-
-  await supabaseClient
-    .auth
-    .signOut();
-
-  currentUser = null;
-  currentProfile = null;
-  allProducts = [];
-
-  closeMenu();
-
-  showOnly(
-    "homeScreen"
-  );
-
-  document
-    .getElementById("appMain")
-    .classList
-    .add("hidden");
-
-  document
-    .getElementById("menuButton")
-    .classList
-    .add("hidden");
-
-  document
-    .getElementById("loginScreen")
-    .classList
-    .remove("hidden");
-
-  document
-    .getElementById("loginPassword")
-    .value =
-      "";
-
-  document
-    .getElementById("loginMessage")
-    .className =
-      "info hidden";
-}
-
+/* ===============================
+   EXISTING SESSION
+================================ */
 
 async function checkExistingSession() {
 
@@ -1647,15 +2603,21 @@ async function checkExistingSession() {
       .auth
       .getSession();
 
+
   if (
-    error ||
+    error
+    ||
     !data.session?.user
   ) {
+
     return;
+
   }
+
 
   currentUser =
     data.session.user;
+
 
   if (
     await loadCurrentProfile()
@@ -1664,85 +2626,209 @@ async function checkExistingSession() {
     await startApp();
 
   }
+
 }
 
+
+/* ===============================
+   LOGOUT
+================================ */
+
+async function logoutUser() {
+
+  await supabaseClient
+    .auth
+    .signOut();
+
+
+  currentUser =
+    null;
+
+
+  currentProfile =
+    null;
+
+
+  allProducts =
+    [];
+
+
+  closeMenu();
+
+
+  document
+    .getElementById(
+      "appMain"
+    )
+    .classList
+    .add("hidden");
+
+
+  document
+    .getElementById(
+      "menuButton"
+    )
+    .classList
+    .add("hidden");
+
+
+  document
+    .getElementById(
+      "loginScreen"
+    )
+    .classList
+    .remove("hidden");
+
+
+  document
+    .getElementById(
+      "loginPassword"
+    )
+    .value =
+      "";
+
+
+  document
+    .getElementById(
+      "loginMessage"
+    )
+    .className =
+      "info hidden";
+
+}
+
+
+/* ===============================
+   MENU
+================================ */
 
 function openMenu() {
 
   document
-    .getElementById("menuOverlay")
+    .getElementById(
+      "menuOverlay"
+    )
     .classList
     .add("open");
+
 }
 
 
 function closeMenu() {
 
   document
-    .getElementById("menuOverlay")
+    .getElementById(
+      "menuOverlay"
+    )
     .classList
     .remove("open");
+
 }
 
 
-function closeMenuFromOverlay(event) {
+function closeMenuFromOverlay(
+  event
+) {
 
   if (
     event.target.id ===
     "menuOverlay"
   ) {
+
     closeMenu();
+
   }
+
 }
 
 
 function menuGoHome() {
+
   closeMenu();
+
   goHome();
+
 }
 
 
 function menuNewOrder() {
+
   closeMenu();
-  openNewOrder();
+
+  newOrder();
+
+}
+
+
+function menuEventOrder() {
+
+  closeMenu();
+
+  openEventOrder();
+
 }
 
 
 function menuOrders() {
+
   closeMenu();
+
   openOrders();
+
 }
 
 
 function menuLogout() {
+
   closeMenu();
+
   logoutUser();
+
 }
 
+
+/* ===============================
+   ADMIN MENU
+================================ */
 
 async function openAdminFromMenu() {
 
   closeMenu();
 
+
   if (
     typeof initAdminModule ===
     "function"
   ) {
+
     await initAdminModule();
+
   }
+
 
   if (
     typeof openAdminDashboard ===
     "function"
   ) {
+
     await openAdminDashboard();
-  } else {
+
+  }
+
+  else {
+
     alert(
       "Het beheerdersdashboard kon niet worden geladen."
     );
+
   }
+
 }
 
+
+/* ===============================
+   PRODUCTS
+================================ */
 
 async function loadProducts() {
 
@@ -1751,38 +2837,64 @@ async function loadProducts() {
     error
   } =
     await supabaseClient
-      .from("products")
+
+      .from(
+        "products"
+      )
+
       .select(
         "id, naam, categorie, eenheid, sort_order"
       )
+
       .eq(
         "actief",
         true
       )
+
       .order(
         "sort_order",
         {
-          ascending: true
+          ascending:
+            true
         }
       );
 
-  if (error) {
+
+  if (
+    error
+  ) {
 
     document
-      .getElementById("productsList")
+      .getElementById(
+        "productsList"
+      )
       .innerHTML =
+
         `
+
         <div class="info error">
-          Producten konden niet worden geladen:
-          ${escapeHtml(error.message)}
+
+        Producten konden niet worden geladen:
+
+        ${escapeHtml(
+          error.message
+        )}
+
         </div>
+
         `;
 
+
     return;
+
   }
 
+
   allProducts =
-    data || [];
+    data
+    ||
+    [];
+
 
   allProducts.forEach(
     product => {
@@ -1790,76 +2902,104 @@ async function loadProducts() {
       if (
         quantities[
           product.id
-        ] === undefined
+        ] ===
+        undefined
       ) {
+
         quantities[
           product.id
-        ] = 0;
+        ] =
+          0;
+
+      }
+
+
+      if (
+        eventQuantities[
+          product.id
+        ] ===
+        undefined
+      ) {
+
+        eventQuantities[
+          product.id
+        ] =
+          0;
+
       }
 
     }
   );
 
+
   renderProducts();
+
+  renderEventProducts();
+
   updateReviewButton();
+
+  updateEventReviewButton();
+
 }
 
 
-function setCategory(category) {
+/* ===============================
+   CATEGORY
+================================ */
+
+function setCategory(
+  category
+) {
+
+  if (
+    category !==
+    "bier"
+
+    &&
+
+    category !==
+    "pos"
+  ) {
+
+    category =
+      "bier";
+
+  }
+
 
   selectedCategory =
     category;
 
+
   [
     "bier",
-    "pos",
-    "evenement"
-  ].forEach(
-    name => {
+    "pos"
+  ]
+    .forEach(
+      name => {
 
-      document
-        .getElementById(
-          `tab-${name}`
-        )
-        .classList
-        .toggle(
-          "active",
-          name === category
-        );
+        document
+          .getElementById(
+            `tab-${name}`
+          )
+          ?.classList
+          .toggle(
+            "active",
+            name === category
+          );
 
-    }
-  );
+      }
+    );
 
-  updateEventPanel();
+
   renderProducts();
+
 }
 
 
-function updateEventPanel() {
-
-  const hasEventItems =
-    allProducts.some(
-      product =>
-        product.categorie ===
-          "evenement" &&
-        (
-          quantities[
-            product.id
-          ] || 0
-        ) > 0
-    );
-
-  document
-    .getElementById("eventPanel")
-    .classList
-    .toggle(
-      "hidden",
-      selectedCategory !==
-        "evenement" &&
-      !hasEventItems
-    );
-}
-
+/* ===============================
+   NORMAL PRODUCTS
+================================ */
 
 function renderProducts() {
 
@@ -1869,86 +3009,122 @@ function renderProducts() {
         "productsList"
       );
 
-  const products =
-    allProducts.filter(
-      product =>
-        product.categorie ===
-        selectedCategory
-    );
 
-  if (!products.length) {
+  const products =
+    allProducts
+      .filter(
+        product =>
+
+          product.categorie ===
+          selectedCategory
+      );
+
+
+  if (
+    !products.length
+  ) {
 
     container.innerHTML =
+
       `
+
       <div class="empty">
-        Nog geen artikelen in deze categorie.
+
+      Nog geen artikelen in deze categorie.
+
       </div>
+
       `;
 
+
     return;
+
   }
 
+
   container.innerHTML =
+
     products
+
       .map(
         product => `
-          <div class="product">
 
-            <div class="product-name">
+        <div class="product">
 
-              ${escapeHtml(
-                product.naam
-              )}
+        <div class="product-name">
 
-              ${
-                product.eenheid
-                  ? `
-                    <span class="product-unit">
-                      Eenheid:
-                      ${escapeHtml(
-                        product.eenheid
-                      )}
-                    </span>
-                  `
-                  : ""
-              }
+        ${escapeHtml(
+          product.naam
+        )}
 
-            </div>
+        ${
+          product.eenheid
 
-            <div class="qty">
+            ? `
 
-              <button
-                type="button"
-                onclick="changeQty(${product.id}, -1)"
-              >
-                −
-              </button>
+            <span class="product-unit">
 
-              <span
-                id="qty-${product.id}"
-              >
-                ${
-                  quantities[
-                    product.id
-                  ] || 0
-                }
-              </span>
+            Eenheid:
 
-              <button
-                type="button"
-                onclick="changeQty(${product.id}, 1)"
-              >
-                +
-              </button>
+            ${escapeHtml(
+              product.eenheid
+            )}
 
-            </div>
+            </span>
 
-          </div>
+            `
+
+            : ""
+        }
+
+        </div>
+
+
+        <div class="qty">
+
+        <button
+          type="button"
+          onclick="changeQty(${product.id}, -1)"
+        >
+        −
+        </button>
+
+
+        <span
+          id="qty-${product.id}"
+        >
+        ${
+          quantities[
+            product.id
+          ]
+          ||
+          0
+        }
+        </span>
+
+
+        <button
+          type="button"
+          onclick="changeQty(${product.id}, 1)"
+        >
+        +
+        </button>
+
+        </div>
+
+        </div>
+
         `
       )
+
       .join("");
+
 }
 
+
+/* ===============================
+   NORMAL QTY
+================================ */
 
 function changeQty(
   productId,
@@ -1958,14 +3134,27 @@ function changeQty(
   quantities[
     productId
   ] =
+
     Math.max(
+
       0,
+
       (
         quantities[
           productId
-        ] || 0
-      ) + amount
+        ]
+
+        ||
+
+        0
+      )
+
+      +
+
+      amount
+
     );
+
 
   const element =
     document
@@ -1973,124 +3162,226 @@ function changeQty(
         `qty-${productId}`
       );
 
-  if (element) {
+
+  if (
+    element
+  ) {
+
     element.innerText =
       quantities[
         productId
       ];
+
   }
 
-  updateEventPanel();
+
   updateReviewButton();
+
 }
 
+
+/* ===============================
+   SELECT NORMAL
+================================ */
 
 function selectedProducts() {
 
   return allProducts
+
     .filter(
       product =>
+
+        (
+          product.categorie ===
+          "bier"
+
+          ||
+
+          product.categorie ===
+          "pos"
+        )
+
+        &&
+
         (
           quantities[
             product.id
-          ] || 0
-        ) > 0
+          ]
+
+          ||
+
+          0
+        )
+
+        >
+
+        0
     )
+
     .map(
       product => ({
+
         ...product,
+
         qty:
           quantities[
             product.id
           ]
+
       })
     );
+
 }
 
+
+/* ===============================
+   NORMAL BUTTON
+================================ */
 
 function updateReviewButton() {
 
   const total =
+
     selectedProducts()
+
       .reduce(
         (
           sum,
           product
         ) =>
-          sum +
+
+          sum
+          +
           product.qty,
+
         0
       );
 
-  document
-    .getElementById("reviewButton")
-    .innerText =
-      total > 0
-        ? `Aanvraag controleren · ${total}`
-        : "Aanvraag controleren";
+
+  const button =
+    document
+      .getElementById(
+        "reviewButton"
+      );
+
+
+  if (
+    !button
+  ) {
+
+    return;
+
+  }
+
+
+  button.innerText =
+
+    total > 0
+
+      ? `Aanvraag controleren · ${total}`
+
+      : "Aanvraag controleren";
+
 }
 
 
-function showOnly(screenId) {
+/* ===============================
+   NAVIGATION
+================================ */
+
+function showOnly(
+  screenId
+) {
 
   const screens = [
+
     "homeScreen",
+
     "orderScreen",
+
     "summaryScreen",
+
     "successScreen",
+
     "ordersScreen",
+
+    "eventOrderScreen",
+
+    "eventSummaryScreen",
+
     "adminScreen",
+
     "adminDetailScreen",
+
     "wholesaleScreen",
+
     "wholesaleSummaryScreen"
+
   ];
+
 
   screens.forEach(
     id => {
 
       document
-        .getElementById(id)
+        .getElementById(
+          id
+        )
         ?.classList
         .add("hidden");
 
     }
   );
 
+
   document
-    .getElementById(screenId)
+    .getElementById(
+      screenId
+    )
     ?.classList
     .remove("hidden");
+
 }
 
 
 function goHome() {
+
   closeMenu();
-  showOnly("homeScreen");
+
+  showOnly(
+    "homeScreen"
+  );
+
 }
 
 
 function openNewOrder() {
-  showOnly("orderScreen");
-}
 
+  showOnly(
+    "orderScreen"
+  );
 
-async function openOrders() {
-
-  showOnly("ordersScreen");
-
-  await renderOrders();
 }
 
 
 function backToOrder() {
-  showOnly("orderScreen");
+
+  showOnly(
+    "orderScreen"
+  );
+
 }
 
+
+/* ===============================
+   PICKUP DATE
+================================ */
 
 function getMinimumPickupDate() {
 
   const date =
     new Date();
+
 
   date.setHours(
     0,
@@ -2099,52 +3390,81 @@ function getMinimumPickupDate() {
     0
   );
 
+
   date.setDate(
-    date.getDate() + 2
+    date.getDate()
+    +
+    2
   );
 
+
   return date;
+
 }
 
 
-function formatISO(date) {
+function formatISO(
+  date
+) {
 
   const year =
     date.getFullYear();
 
+
   const month =
+
     String(
-      date.getMonth() + 1
-    ).padStart(
-      2,
-      "0"
-    );
+      date.getMonth()
+      +
+      1
+    )
+
+      .padStart(
+        2,
+        "0"
+      );
+
 
   const day =
+
     String(
       date.getDate()
-    ).padStart(
-      2,
-      "0"
-    );
+    )
 
-  return `${year}-${month}-${day}`;
+      .padStart(
+        2,
+        "0"
+      );
+
+
+  return (
+
+    `${year}-${month}-${day}`
+
+  );
+
 }
 
 
 const pickupInput =
   document
-    .getElementById("pickup");
+    .getElementById(
+      "pickup"
+    );
+
 
 pickupInput.min =
+
   formatISO(
     getMinimumPickupDate()
   );
 
-pickupInput.addEventListener(
-  "change",
-  validatePickupDate
-);
+
+pickupInput
+  .addEventListener(
+    "change",
+    validatePickupDate
+  );
 
 
 function validatePickupDate() {
@@ -2155,359 +3475,335 @@ function validatePickupDate() {
         "dateInfo"
       );
 
-  if (!pickupInput.value) {
+
+  if (
+    !pickupInput.value
+  ) {
 
     info.className =
       "info";
 
+
     info.innerText =
       "De aanvraag moet minstens 2 dagen vóór afhaling gebeuren.";
 
+
     return false;
+
   }
 
+
   const selected =
+
     new Date(
-      pickupInput.value +
+      pickupInput.value
+      +
       "T00:00:00"
     );
 
+
   if (
-    selected <
+    selected
+    <
     getMinimumPickupDate()
   ) {
 
     info.className =
       "info error";
 
+
     info.innerText =
       "Deze afhaaldatum is te vroeg.";
 
+
     return false;
+
   }
+
 
   info.className =
     "info ok";
 
+
   info.innerText =
     "Afhaaldatum is geldig.";
 
-  return true;
-}
-
-
-function getEventData() {
-
-  return {
-    name:
-      document
-        .getElementById(
-          "eventName"
-        )
-        .value
-        .trim(),
-
-    from:
-      document
-        .getElementById(
-          "eventFrom"
-        )
-        .value,
-
-    until:
-      document
-        .getElementById(
-          "eventUntil"
-        )
-        .value
-  };
-}
-
-
-function validateEventData(
-  chosenProducts
-) {
-
-  const hasEventItems =
-    chosenProducts.some(
-      product =>
-        product.categorie ===
-        "evenement"
-    );
-
-  if (!hasEventItems) {
-    return true;
-  }
-
-  const event =
-    getEventData();
-
-  if (
-    !event.name ||
-    !event.from ||
-    !event.until
-  ) {
-
-    alert(
-      "Vul voor evenementenmateriaal de naam van het evenement en beide datums in."
-    );
-
-    return false;
-  }
-
-  if (
-    event.until <
-    event.from
-  ) {
-
-    alert(
-      "De einddatum van het evenement kan niet vóór de begindatum liggen."
-    );
-
-    return false;
-  }
 
   return true;
+
 }
 
+
+/* ===============================
+   NORMAL SUMMARY
+================================ */
 
 function showSummary() {
 
-  if (
-    !currentUser ||
-    !currentProfile
-  ) {
-
-    alert(
-      "Je sessie is verlopen. Log opnieuw in."
-    );
-
-    return;
-  }
-
   const reference =
     document
-      .getElementById("reference")
+      .getElementById(
+        "reference"
+      )
       .value
       .trim();
+
 
   const country =
     document
-      .getElementById("country")
+      .getElementById(
+        "country"
+      )
       .value;
+
 
   const municipality =
     document
-      .getElementById("municipality")
+      .getElementById(
+        "municipality"
+      )
       .value
       .trim();
+
 
   const note =
     document
-      .getElementById("note")
+      .getElementById(
+        "note"
+      )
       .value
       .trim();
 
-  const chosenProducts =
+
+  const products =
     selectedProducts();
 
-  if (!reference) {
+
+  if (
+    !reference
+  ) {
 
     alert(
       "Vul eerst een referentie in."
     );
 
     return;
+
   }
 
-  if (!validatePickupDate()) {
+
+  if (
+    !validatePickupDate()
+  ) {
 
     alert(
       "Kies een geldige afhaaldatum."
     );
 
     return;
+
   }
 
-  if (!chosenProducts.length) {
+
+  if (
+    !products.length
+  ) {
 
     alert(
-      "Selecteer minstens één materiaal."
+      "Selecteer minstens één product."
     );
 
     return;
+
   }
 
-  if (
-    !validateEventData(
-      chosenProducts
-    )
-  ) {
-    return;
-  }
 
   document
-    .getElementById("summaryRep")
+    .getElementById(
+      "summaryRep"
+    )
     .innerText =
+
       `${currentProfile.naam} (${currentProfile.email || currentUser.email || ""})`;
 
+
   document
-    .getElementById("summaryReference")
+    .getElementById(
+      "summaryReference"
+    )
     .innerText =
       reference;
 
-  document
-    .getElementById("summaryLocation")
-    .innerText =
-      municipality
-        ? `${country} · ${municipality}`
-        : country;
 
   document
-    .getElementById("summaryPickup")
+    .getElementById(
+      "summaryLocation"
+    )
+    .innerText =
+
+      municipality
+
+        ? `${country} · ${municipality}`
+
+        : country;
+
+
+  document
+    .getElementById(
+      "summaryPickup"
+    )
     .innerText =
       pickupInput.value;
 
-  const hasEventItems =
-    chosenProducts.some(
-      product =>
-        product.categorie ===
-        "evenement"
-    );
-
-  const summaryEvent =
-    document
-      .getElementById(
-        "summaryEvent"
-      );
-
-  if (hasEventItems) {
-
-    const event =
-      getEventData();
-
-    summaryEvent
-      .classList
-      .remove("hidden");
-
-    summaryEvent.innerHTML =
-      `
-      <p>
-        <strong>Evenement</strong>
-        <br>
-        ${escapeHtml(event.name)}
-        <br>
-        <span style="color:var(--muted)">
-          ${escapeHtml(event.from)}
-          t/m
-          ${escapeHtml(event.until)}
-        </span>
-      </p>
-      `;
-
-  } else {
-
-    summaryEvent
-      .classList
-      .add("hidden");
-
-    summaryEvent.innerHTML =
-      "";
-
-  }
 
   document
-    .getElementById("summaryProducts")
+    .getElementById(
+      "summaryProducts"
+    )
     .innerHTML =
       buildSummarySections(
-        chosenProducts
+        products
       );
 
+
   document
-    .getElementById("summaryNote")
+    .getElementById(
+      "summaryNote"
+    )
     .innerText =
+
       note
+
         ? `Opmerking: ${note}`
+
         : "";
+
 
   showOnly(
     "summaryScreen"
   );
+
 }
 
 
+/* ===============================
+   SUMMARY SECTIONS
+================================ */
+
 function buildSummarySections(
-  chosenProducts
+  products
 ) {
 
   const groups = [
+
     {
-      key: "bier",
-      title: "BIER"
+      key:
+        "bier",
+
+      title:
+        "BIER"
     },
+
     {
-      key: "pos",
-      title: "POS-MATERIALEN"
+      key:
+        "pos",
+
+      title:
+        "POS-MATERIALEN"
     },
+
     {
-      key: "evenement",
-      title: "EVENEMENTENMATERIAAL"
+      key:
+        "evenement",
+
+      title:
+        "EVENEMENTENMATERIAAL"
     }
+
   ];
 
+
   return groups
+
     .map(
       group => {
 
         const items =
-          chosenProducts.filter(
+          products.filter(
             product =>
               product.categorie ===
               group.key
           );
 
-        if (!items.length) {
+
+        if (
+          !items.length
+        ) {
+
           return "";
+
         }
 
+
         return `
-          <div class="summary-section">
 
-            <div class="summary-section-title">
-              ${group.title}
-            </div>
+        <div class="summary-section">
 
-            ${
-              items
-                .map(
-                  product => `
-                    <div class="summary-line">
-                      <span>
-                        ${escapeHtml(
-                          product.naam
-                        )}
-                      </span>
-                      <strong>
-                        ${product.qty}
-                      </strong>
-                    </div>
-                  `
-                )
-                .join("")
-            }
+        <div class="summary-section-title">
 
-          </div>
+        ${group.title}
+
+        </div>
+
+        ${
+          items
+            .map(
+              product => `
+
+              <div class="summary-line">
+
+              <span>
+
+              ${escapeHtml(
+                product.naam
+              )}
+
+              </span>
+
+              <strong>
+
+              ${product.qty}
+
+              </strong>
+
+              </div>
+
+              `
+            )
+            .join("")
+        }
+
+        </div>
+
         `;
+
       }
     )
+
     .join("");
+
 }
 
+
+/* ===============================
+   NORMAL SUBMIT
+================================ */
 
 async function submitOrder() {
 
   if (
-    !currentUser ||
+    !currentUser
+    ||
     !currentProfile
   ) {
 
@@ -2516,72 +3812,85 @@ async function submitOrder() {
     );
 
     return;
+
   }
 
-  const chosenProducts =
+
+  const products =
     selectedProducts();
 
+
   if (
-    !chosenProducts.length ||
-    !validateEventData(
-      chosenProducts
-    )
+    !products.length
   ) {
+
     return;
+
   }
+
 
   const reference =
     document
-      .getElementById("reference")
+      .getElementById(
+        "reference"
+      )
       .value
       .trim();
+
 
   const country =
     document
-      .getElementById("country")
+      .getElementById(
+        "country"
+      )
       .value;
+
 
   const municipality =
     document
-      .getElementById("municipality")
+      .getElementById(
+        "municipality"
+      )
       .value
       .trim();
+
 
   const note =
     document
-      .getElementById("note")
+      .getElementById(
+        "note"
+      )
       .value
       .trim();
 
-  const event =
-    getEventData();
 
-  const hasEventItems =
-    chosenProducts.some(
-      product =>
-        product.categorie ===
-        "evenement"
-    );
-
-  const submitButton =
+  const button =
     document
       .getElementById(
         "submitButton"
       );
 
-  submitButton.disabled =
+
+  button.disabled =
     true;
 
-  submitButton.innerText =
+
+  button.innerText =
     "Aanvraag opslaan...";
 
+
   const {
-    data: order,
-    error: orderError
+    data:order,
+    error:orderError
   } =
     await supabaseClient
-      .from("orders")
+
+      .from(
+        "orders"
+      )
+
       .insert({
+
         user_id:
           currentUser.id,
 
@@ -2595,62 +3904,77 @@ async function submitOrder() {
           country,
 
         gemeente:
-          municipality || null,
+          municipality
+          ||
+          null,
 
         afhaaldatum:
           pickupInput.value,
 
         opmerking:
-          note || null,
+          note
+          ||
+          null,
 
         event_naam:
-          hasEventItems
-            ? event.name
-            : null,
+          null,
 
         event_vanaf:
-          hasEventItems
-            ? event.from
-            : null,
+          null,
 
         event_tot:
-          hasEventItems
-            ? event.until
-            : null,
+          null,
 
         status:
           "nieuw"
+
       })
+
       .select(
         "id, created_at"
       )
+
       .single();
 
+
   if (
-    orderError ||
+    orderError
+    ||
     !order
   ) {
 
-    submitButton.disabled =
+    button.disabled =
       false;
 
-    submitButton.innerText =
+
+    button.innerText =
       "Aanvraag verzenden";
 
+
     alert(
-      "De aanvraag kon niet worden opgeslagen: " +
+
+      "De aanvraag kon niet worden opgeslagen: "
+
+      +
+
       (
-        orderError?.message ||
+        orderError?.message
+        ||
         "Onbekende fout"
       )
+
     );
 
+
     return;
+
   }
 
-  const itemRows =
-    chosenProducts.map(
+
+  const rows =
+    products.map(
       product => ({
+
         order_id:
           order.id,
 
@@ -2665,33 +3989,48 @@ async function submitOrder() {
 
         aantal:
           product.qty
+
       })
     );
 
+
   const {
-    error: itemsError
+    error:itemsError
   } =
     await supabaseClient
-      .from("order_items")
+
+      .from(
+        "order_items"
+      )
+
       .insert(
-        itemRows
+        rows
       );
 
-  if (itemsError) {
 
-    submitButton.disabled =
+  if (
+    itemsError
+  ) {
+
+    button.disabled =
       false;
 
-    submitButton.innerText =
+
+    button.innerText =
       "Aanvraag verzenden";
 
+
     alert(
-      "De aanvraag is aangemaakt, maar de artikelen konden niet worden opgeslagen: " +
+      "De aanvraag is aangemaakt, maar de artikelen konden niet worden opgeslagen: "
+      +
       itemsError.message
     );
 
+
     return;
+
   }
+
 
   const orderReference =
     createOrderReference(
@@ -2699,60 +4038,137 @@ async function submitOrder() {
       order.created_at
     );
 
+
   document
-    .getElementById("successOrderId")
+    .getElementById(
+      "successOrderId"
+    )
     .innerText =
       orderReference;
 
-  submitButton.disabled =
+
+  button.disabled =
     false;
 
-  submitButton.innerText =
+
+  button.innerText =
     "Aanvraag verzenden";
+
 
   showOnly(
     "successScreen"
   );
 
+
   openCentralEmail(
     orderReference,
-    chosenProducts,
-    hasEventItems
-      ? event
-      : null
+    products
   );
+
 }
 
 
+/* ===============================
+   ORDER REFERENCE
+================================ */
+
 function createOrderReference(
-  orderId,
+  id,
   createdAt
 ) {
 
   const year =
+
     new Date(
-      createdAt ||
+      createdAt
+      ||
       Date.now()
-    ).getFullYear();
+    )
+      .getFullYear();
+
 
   return (
-    `POS-${year}-${orderId.slice(0,8).toUpperCase()}`
+
+    `POS-${year}-${String(id).slice(0,8).toUpperCase()}`
+
   );
+
 }
 
 
-function categoryMailBlock(
-  title,
+/* ===============================
+   NORMAL MAIL
+================================ */
+
+function openCentralEmail(
+  orderReference,
   products
 ) {
 
-  if (!products.length) {
-    return "";
-  }
+  const reference =
+    document
+      .getElementById(
+        "reference"
+      )
+      .value
+      .trim();
 
-  return `${title}
+
+  const country =
+    document
+      .getElementById(
+        "country"
+      )
+      .value;
+
+
+  const municipality =
+    document
+      .getElementById(
+        "municipality"
+      )
+      .value
+      .trim();
+
+
+  const note =
+    document
+      .getElementById(
+        "note"
+      )
+      .value
+      .trim();
+
+
+  const beer =
+    products.filter(
+      product =>
+        product.categorie ===
+        "bier"
+    );
+
+
+  const pos =
+    products.filter(
+      product =>
+        product.categorie ===
+        "pos"
+    );
+
+
+  let productText =
+    "";
+
+
+  if (
+    beer.length
+  ) {
+
+    productText +=
+
+`BIER
 --------------------
-${products
+${beer
   .map(
     product =>
       `${product.qty} x ${product.naam}`
@@ -2760,97 +4176,37 @@ ${products
   .join("\n")}
 
 `;
-}
 
+  }
 
-function openCentralEmail(
-  orderReference,
-  chosenProducts,
-  event
-) {
-
-  const reference =
-    document
-      .getElementById("reference")
-      .value
-      .trim();
-
-  const country =
-    document
-      .getElementById("country")
-      .value;
-
-  const municipality =
-    document
-      .getElementById("municipality")
-      .value
-      .trim();
-
-  const note =
-    document
-      .getElementById("note")
-      .value
-      .trim();
-
-  const beerProducts =
-    chosenProducts.filter(
-      product =>
-        product.categorie ===
-        "bier"
-    );
-
-  const posProducts =
-    chosenProducts.filter(
-      product =>
-        product.categorie ===
-        "pos"
-    );
-
-  const eventProducts =
-    chosenProducts.filter(
-      product =>
-        product.categorie ===
-        "evenement"
-    );
-
-  let materialText =
-    "";
-
-  materialText +=
-    categoryMailBlock(
-      "BIER",
-      beerProducts
-    );
-
-  materialText +=
-    categoryMailBlock(
-      "POS-MATERIALEN",
-      posProducts
-    );
 
   if (
-    eventProducts.length
+    pos.length
   ) {
 
-    materialText +=
-`EVENEMENT
+    productText +=
+
+`POS-MATERIALEN
 --------------------
-Naam evenement: ${event.name}
-Materiaal nodig: ${event.from} t/m ${event.until}
+${pos
+  .map(
+    product =>
+      `${product.qty} x ${product.naam}`
+  )
+  .join("\n")}
 
 `;
 
-    materialText +=
-      categoryMailBlock(
-        "EVENEMENTENMATERIAAL",
-        eventProducts
-      );
   }
 
+
   const subject =
+
     `Achel aanvraag ${orderReference} - ${reference}`;
 
+
   const body =
+
 `ACHEL AANVRAAG
 
 Aanvraag:
@@ -2874,24 +4230,1010 @@ ${municipality || "Niet ingevuld"}
 Gewenste afhaaldatum:
 ${pickupInput.value}
 
-${materialText}OPMERKING
+${productText}OPMERKING
 --------------------
 ${note || "Geen opmerkingen"}
 
 Deze aanvraag is centraal opgeslagen in Achel POS.`;
 
+
   const mailto =
-    `mailto:${CENTRAL_EMAIL}` +
-    `?subject=${encodeURIComponent(subject)}` +
-    `&body=${encodeURIComponent(body)}`;
+
+    `mailto:${CENTRAL_EMAIL}`
+
+    +
+
+    `?subject=${encodeURIComponent(
+      subject
+    )}`
+
+    +
+
+    `&body=${encodeURIComponent(
+      body
+    )}`;
+
 
   setTimeout(
     () => {
+
       window.location.href =
         mailto;
+
     },
-    400
+    350
   );
+
+}
+
+
+/* ===============================
+   RESET NORMAL
+================================ */
+
+function resetForm() {
+
+  document
+    .getElementById(
+      "reference"
+    )
+    .value =
+      "";
+
+
+  document
+    .getElementById(
+      "country"
+    )
+    .value =
+      "België";
+
+
+  document
+    .getElementById(
+      "municipality"
+    )
+    .value =
+      "";
+
+
+  document
+    .getElementById(
+      "pickup"
+    )
+    .value =
+      "";
+
+
+  document
+    .getElementById(
+      "note"
+    )
+    .value =
+      "";
+
+
+  Object.keys(
+    quantities
+  ).forEach(
+    id => {
+
+      quantities[id] =
+        0;
+
+    }
+  );
+
+
+  setCategory(
+    "bier"
+  );
+
+
+  renderProducts();
+
+  updateReviewButton();
+
+  validatePickupDate();
+
+}
+
+
+function newOrder() {
+
+  resetForm();
+
+  openNewOrder();
+
+}
+
+
+/* ===============================
+   EVENT FLOW
+================================ */
+
+function openEventOrder() {
+
+  resetEventForm();
+
+
+  document
+    .getElementById(
+      "eventRepName"
+    )
+    .innerText =
+      currentProfile?.naam
+      ||
+      "";
+
+
+  document
+    .getElementById(
+      "eventRepEmail"
+    )
+    .innerText =
+      currentProfile?.email
+      ||
+      currentUser?.email
+      ||
+      "";
+
+
+  renderEventProducts();
+
+
+  showOnly(
+    "eventOrderScreen"
+  );
+
+}
+
+
+function backToEventOrder() {
+
+  showOnly(
+    "eventOrderScreen"
+  );
+
+}
+
+
+function renderEventProducts() {
+
+  const container =
+    document
+      .getElementById(
+        "eventProductsList"
+      );
+
+
+  if (
+    !container
+  ) {
+
+    return;
+
+  }
+
+
+  const products =
+    allProducts
+      .filter(
+        product =>
+          product.categorie ===
+          "evenement"
+      );
+
+
+  if (
+    !products.length
+  ) {
+
+    container.innerHTML =
+
+      `
+
+      <div class="empty">
+
+      Nog geen evenementenmateriaal beschikbaar.
+
+      </div>
+
+      `;
+
+
+    return;
+
+  }
+
+
+  container.innerHTML =
+
+    products
+
+      .map(
+        product => `
+
+        <div class="product">
+
+        <div class="product-name">
+
+        ${escapeHtml(
+          product.naam
+        )}
+
+        ${
+          product.eenheid
+
+            ? `
+
+            <span class="product-unit">
+
+            Eenheid:
+
+            ${escapeHtml(
+              product.eenheid
+            )}
+
+            </span>
+
+            `
+
+            : ""
+        }
+
+        </div>
+
+
+        <div class="qty">
+
+        <button
+          type="button"
+          onclick="changeEventQty(${product.id}, -1)"
+        >
+        −
+        </button>
+
+
+        <span
+          id="eventQty-${product.id}"
+        >
+
+        ${
+          eventQuantities[
+            product.id
+          ]
+          ||
+          0
+        }
+
+        </span>
+
+
+        <button
+          type="button"
+          onclick="changeEventQty(${product.id}, 1)"
+        >
+        +
+        </button>
+
+        </div>
+
+        </div>
+
+        `
+      )
+
+      .join("");
+
+
+  updateEventReviewButton();
+
+}
+
+
+function changeEventQty(
+  productId,
+  amount
+) {
+
+  eventQuantities[
+    productId
+  ] =
+
+    Math.max(
+
+      0,
+
+      (
+        eventQuantities[
+          productId
+        ]
+        ||
+        0
+      )
+
+      +
+
+      amount
+
+    );
+
+
+  const element =
+    document
+      .getElementById(
+        `eventQty-${productId}`
+      );
+
+
+  if (
+    element
+  ) {
+
+    element.innerText =
+      eventQuantities[
+        productId
+      ];
+
+  }
+
+
+  updateEventReviewButton();
+
+}
+
+
+function selectedEventProducts() {
+
+  return allProducts
+
+    .filter(
+      product =>
+
+        product.categorie ===
+        "evenement"
+
+        &&
+
+        (
+          eventQuantities[
+            product.id
+          ]
+          ||
+          0
+        )
+
+        >
+
+        0
+    )
+
+    .map(
+      product => ({
+
+        ...product,
+
+        qty:
+          eventQuantities[
+            product.id
+          ]
+
+      })
+    );
+
+}
+
+
+function updateEventReviewButton() {
+
+  const button =
+    document
+      .getElementById(
+        "eventReviewButton"
+      );
+
+
+  if (
+    !button
+  ) {
+
+    return;
+
+  }
+
+
+  const total =
+
+    selectedEventProducts()
+
+      .reduce(
+        (
+          sum,
+          product
+        ) =>
+
+          sum
+          +
+          product.qty,
+
+        0
+      );
+
+
+  button.innerText =
+
+    total > 0
+
+      ? `Evenementaanvraag controleren · ${total}`
+
+      : "Evenementaanvraag controleren";
+
+}
+
+
+function resetEventForm() {
+
+  [
+    "eventName",
+    "eventFrom",
+    "eventUntil",
+    "eventNote"
+  ]
+    .forEach(
+      id => {
+
+        const element =
+          document
+            .getElementById(
+              id
+            );
+
+
+        if (
+          element
+        ) {
+
+          element.value =
+            "";
+
+        }
+
+      }
+    );
+
+
+  Object.keys(
+    eventQuantities
+  ).forEach(
+    id => {
+
+      eventQuantities[
+        id
+      ] =
+        0;
+
+    }
+  );
+
+
+  renderEventProducts();
+
+  updateEventReviewButton();
+
+}
+
+
+function getStandaloneEventData() {
+
+  return {
+
+    name:
+      document
+        .getElementById(
+          "eventName"
+        )
+        .value
+        .trim(),
+
+    from:
+      document
+        .getElementById(
+          "eventFrom"
+        )
+        .value,
+
+    until:
+      document
+        .getElementById(
+          "eventUntil"
+        )
+        .value,
+
+    note:
+      document
+        .getElementById(
+          "eventNote"
+        )
+        .value
+        .trim()
+
+  };
+
+}
+
+
+function validateStandaloneEventData() {
+
+  const event =
+    getStandaloneEventData();
+
+
+  if (
+    !event.name
+  ) {
+
+    alert(
+      "Vul de naam van het evenement in."
+    );
+
+    return false;
+
+  }
+
+
+  if (
+    !event.from
+    ||
+    !event.until
+  ) {
+
+    alert(
+      "Vul de periode in waarin het materiaal nodig is."
+    );
+
+    return false;
+
+  }
+
+
+  if (
+    event.until
+    <
+    event.from
+  ) {
+
+    alert(
+      "De einddatum kan niet vóór de begindatum liggen."
+    );
+
+    return false;
+
+  }
+
+
+  if (
+    !selectedEventProducts().length
+  ) {
+
+    alert(
+      "Selecteer minstens één evenementenmateriaal."
+    );
+
+    return false;
+
+  }
+
+
+  return true;
+
+}
+
+
+function showEventSummary() {
+
+  if (
+    !validateStandaloneEventData()
+  ) {
+
+    return;
+
+  }
+
+
+  const event =
+    getStandaloneEventData();
+
+
+  const products =
+    selectedEventProducts();
+
+
+  document
+    .getElementById(
+      "eventSummaryRep"
+    )
+    .innerText =
+
+      `${currentProfile?.naam || ""} (${currentProfile?.email || currentUser?.email || ""})`;
+
+
+  document
+    .getElementById(
+      "eventSummaryName"
+    )
+    .innerText =
+      event.name;
+
+
+  document
+    .getElementById(
+      "eventSummaryPeriod"
+    )
+    .innerText =
+      `${event.from} t/m ${event.until}`;
+
+
+  document
+    .getElementById(
+      "eventSummaryProducts"
+    )
+    .innerHTML =
+      buildSummarySections(
+        products
+      );
+
+
+  document
+    .getElementById(
+      "eventSummaryNote"
+    )
+    .innerText =
+
+      event.note
+
+        ? `Opmerking: ${event.note}`
+
+        : "";
+
+
+  showOnly(
+    "eventSummaryScreen"
+  );
+
+}
+
+
+async function submitEventOrder() {
+
+  if (
+    !currentUser
+    ||
+    !currentProfile
+  ) {
+
+    alert(
+      "Je sessie is verlopen. Log opnieuw in."
+    );
+
+    return;
+
+  }
+
+
+  if (
+    !validateStandaloneEventData()
+  ) {
+
+    return;
+
+  }
+
+
+  const event =
+    getStandaloneEventData();
+
+
+  const products =
+    selectedEventProducts();
+
+
+  const button =
+    document
+      .getElementById(
+        "eventSubmitButton"
+      );
+
+
+  button.disabled =
+    true;
+
+
+  button.innerText =
+    "Evenementaanvraag opslaan...";
+
+
+  const {
+    data:order,
+    error:orderError
+  } =
+    await supabaseClient
+
+      .from(
+        "orders"
+      )
+
+      .insert({
+
+        user_id:
+          currentUser.id,
+
+        klant:
+          null,
+
+        referentie:
+          event.name,
+
+        land:
+          "België",
+
+        gemeente:
+          null,
+
+        afhaaldatum:
+          event.from,
+
+        opmerking:
+          event.note
+          ||
+          null,
+
+        event_naam:
+          event.name,
+
+        event_vanaf:
+          event.from,
+
+        event_tot:
+          event.until,
+
+        status:
+          "nieuw"
+
+      })
+
+      .select(
+        "id, created_at"
+      )
+
+      .single();
+
+
+  if (
+    orderError
+    ||
+    !order
+  ) {
+
+    button.disabled =
+      false;
+
+
+    button.innerText =
+      "Evenementaanvraag verzenden";
+
+
+    alert(
+
+      "De evenementaanvraag kon niet worden opgeslagen: "
+
+      +
+
+      (
+        orderError?.message
+        ||
+        "Onbekende fout"
+      )
+
+    );
+
+
+    return;
+
+  }
+
+
+  const rows =
+    products.map(
+      product => ({
+
+        order_id:
+          order.id,
+
+        product_id:
+          product.id,
+
+        product_naam:
+          product.naam,
+
+        categorie:
+          "evenement",
+
+        aantal:
+          product.qty
+
+      })
+    );
+
+
+  const {
+    error:itemsError
+  } =
+    await supabaseClient
+
+      .from(
+        "order_items"
+      )
+
+      .insert(
+        rows
+      );
+
+
+  if (
+    itemsError
+  ) {
+
+    button.disabled =
+      false;
+
+
+    button.innerText =
+      "Evenementaanvraag verzenden";
+
+
+    alert(
+
+      "De aanvraag werd aangemaakt, maar de materialen konden niet worden opgeslagen: "
+
+      +
+
+      itemsError.message
+
+    );
+
+
+    return;
+
+  }
+
+
+  const orderReference =
+    createOrderReference(
+      order.id,
+      order.created_at
+    );
+
+
+  button.disabled =
+    false;
+
+
+  button.innerText =
+    "Evenementaanvraag verzenden";
+
+
+  goHome();
+
+
+  openEventEmail(
+    orderReference,
+    event,
+    products
+  );
+
+
+  resetEventForm();
+
+}
+
+
+function openEventEmail(
+  orderReference,
+  event,
+  products
+) {
+
+  const subject =
+
+    `Achel evenementaanvraag ${orderReference} - ${event.name}`;
+
+
+  const materials =
+
+    products
+
+      .map(
+        product =>
+          `${product.qty} x ${product.naam}`
+      )
+
+      .join("\n");
+
+
+  const body =
+
+`ACHEL EVENEMENTAANVRAAG
+
+Aanvraag:
+${orderReference}
+
+Vertegenwoordiger:
+${currentProfile?.naam || ""}
+
+E-mail:
+${currentProfile?.email || currentUser?.email || ""}
+
+Evenement:
+${event.name}
+
+Materiaal nodig:
+${event.from} t/m ${event.until}
+
+EVENEMENTENMATERIAAL
+--------------------
+${materials}
+
+OPMERKING
+--------------------
+${event.note || "Geen opmerkingen"}
+
+Deze evenementaanvraag is centraal opgeslagen in Achel POS.`;
+
+
+  const mailto =
+
+    `mailto:${CENTRAL_EMAIL}`
+
+    +
+
+    `?subject=${encodeURIComponent(
+      subject
+    )}`
+
+    +
+
+    `&body=${encodeURIComponent(
+      body
+    )}`;
+
+
+  setTimeout(
+    () => {
+
+      window.location.href =
+        mailto;
+
+    },
+    350
+  );
+
+}
+
+
+/* ===============================
+   MY ORDERS
+================================ */
+
+async function openOrders() {
+
+  showOnly(
+    "ordersScreen"
+  );
+
+
+  await renderOrders();
+
 }
 
 
@@ -2903,354 +5245,448 @@ async function renderOrders() {
         "ordersList"
       );
 
+
   container.innerHTML =
+
     `
+
     <div class="empty">
-      Aanvragen laden...
+
+    Aanvragen laden...
+
     </div>
+
     `;
 
+
   const {
-    data: orders,
-    error: orderError
+    data:orders,
+    error:orderError
   } =
     await supabaseClient
-      .from("orders")
+
+      .from(
+        "orders"
+      )
+
       .select(
         "id, referentie, land, gemeente, afhaaldatum, opmerking, status, event_naam, event_vanaf, event_tot, created_at"
       )
+
       .order(
         "created_at",
         {
-          ascending: false
+          ascending:
+            false
         }
       );
 
-  if (orderError) {
+
+  if (
+    orderError
+  ) {
 
     container.innerHTML =
+
       `
+
       <div class="info error">
-        Aanvragen konden niet worden geladen:
-        ${escapeHtml(
-          orderError.message
-        )}
+
+      Aanvragen konden niet worden geladen:
+
+      ${escapeHtml(
+        orderError.message
+      )}
+
       </div>
+
       `;
 
+
     return;
+
   }
 
-  if (!orders?.length) {
+
+  if (
+    !orders?.length
+  ) {
 
     container.innerHTML =
+
       `
+
       <div class="empty">
-        Nog geen aanvragen.
+
+      Nog geen aanvragen.
+
       </div>
+
       `;
 
+
     return;
+
   }
 
-  const orderIds =
+
+  const ids =
     orders.map(
       order =>
         order.id
     );
 
+
   const {
-    data: items,
-    error: itemsError
+    data:items,
+    error:itemsError
   } =
     await supabaseClient
-      .from("order_items")
+
+      .from(
+        "order_items"
+      )
+
       .select(
         "order_id, product_naam, aantal, categorie"
       )
+
       .in(
         "order_id",
-        orderIds
+        ids
       );
 
-  if (itemsError) {
+
+  if (
+    itemsError
+  ) {
 
     container.innerHTML =
+
       `
+
       <div class="info error">
-        Aanvraagartikelen konden niet worden geladen:
-        ${escapeHtml(
-          itemsError.message
-        )}
+
+      Artikelen konden niet worden geladen:
+
+      ${escapeHtml(
+        itemsError.message
+      )}
+
       </div>
+
       `;
 
+
     return;
+
   }
 
-  const itemsByOrder =
+
+  const byOrder =
     {};
 
-  (items || []).forEach(
-    item => {
 
-      if (
-        !itemsByOrder[
+  (
+    items
+    ||
+    []
+  )
+    .forEach(
+      item => {
+
+        if (
+          !byOrder[
+            item.order_id
+          ]
+        ) {
+
+          byOrder[
+            item.order_id
+          ] =
+            [];
+
+        }
+
+
+        byOrder[
           item.order_id
         ]
-      ) {
-        itemsByOrder[
-          item.order_id
-        ] = [];
+          .push(
+            item
+          );
+
       }
+    );
 
-      itemsByOrder[
-        item.order_id
-      ].push(
-        item
-      );
-
-    }
-  );
 
   container.innerHTML =
+
     orders
+
       .map(
         order => {
 
           const orderItems =
-            itemsByOrder[
+            byOrder[
               order.id
-            ] || [];
+            ]
+            ||
+            [];
 
-          const productsHtml =
+
+          const title =
+            order.event_naam
+            ||
+            order.referentie
+            ||
+            "Geen referentie";
+
+
+          const location =
+            order.event_naam
+
+              ? `${order.event_vanaf || ""} t/m ${order.event_tot || ""}`
+
+              : `${order.land || ""}${order.gemeente ? " · " + order.gemeente : ""}`;
+
+
+          return `
+
+          <div class="order-card">
+
+          <div class="order-top">
+
+          <div class="order-id">
+
+          ${createOrderReference(
+            order.id,
+            order.created_at
+          )}
+
+          </div>
+
+
+          <div
+            class="status ${statusClass(order.status)}"
+          >
+
+          ${formatStatus(
+            order.status
+          )}
+
+          </div>
+
+          </div>
+
+
+          <div class="order-title">
+
+          ${escapeHtml(
+            title
+          )}
+
+          </div>
+
+
+          <div class="order-meta">
+
+          ${
+            order.event_naam
+
+              ? "Evenement · "
+
+              : ""
+          }
+
+          ${escapeHtml(
+            location
+          )}
+
+          </div>
+
+
+          <div class="order-items">
+
+          ${
             orderItems.length
+
               ? orderItems
+
                   .map(
                     item =>
                       `${item.aantal} × ${escapeHtml(item.product_naam)}`
                   )
+
                   .join("<br>")
-              : "Geen artikelen gevonden";
 
-          const eventHtml =
-            order.event_naam
+              : "Geen artikelen gevonden"
+          }
+
+          </div>
+
+
+          ${
+            order.opmerking
+
               ? `
-                <div class="order-meta">
-                  Evenement:
-                  ${escapeHtml(order.event_naam)}
-                  ·
-                  ${escapeHtml(order.event_vanaf || "")}
-                  t/m
-                  ${escapeHtml(order.event_tot || "")}
-                </div>
-              `
-              : "";
-
-          return `
-            <div class="order-card">
-
-              <div class="order-top">
-
-                <div class="order-id">
-                  ${createOrderReference(
-                    order.id,
-                    order.created_at
-                  )}
-                </div>
-
-                <div
-                  class="status ${statusClass(order.status)}"
-                >
-                  ${formatStatus(order.status)}
-                </div>
-
-              </div>
-
-              <div class="order-title">
-                ${escapeHtml(
-                  order.referentie ||
-                  "Geen referentie"
-                )}
-              </div>
 
               <div class="order-meta">
 
-                ${escapeHtml(order.land || "")}
+              Opmerking:
 
-                ${
-                  order.gemeente
-                    ? ` · ${escapeHtml(order.gemeente)}`
-                    : ""
-                }
-
-              </div>
-
-              <div class="order-meta">
-                Afhalen:
-                ${escapeHtml(order.afhaaldatum)}
-              </div>
-
-              ${eventHtml}
-
-              <div class="order-items">
-                ${productsHtml}
-              </div>
-
-              ${
+              ${escapeHtml(
                 order.opmerking
-                  ? `
-                    <div class="order-meta">
-                      Opmerking:
-                      ${escapeHtml(order.opmerking)}
-                    </div>
-                  `
-                  : ""
-              }
+              )}
 
-            </div>
+              </div>
+
+              `
+
+              : ""
+          }
+
+          </div>
+
           `;
+
         }
       )
+
       .join("");
+
 }
 
 
-function formatStatus(status) {
+/* ===============================
+   STATUS
+================================ */
+
+function formatStatus(
+  status
+) {
 
   const statuses = {
-    nieuw: "Nieuw",
+
+    nieuw:
+      "Nieuw",
+
     in_behandeling:
       "In behandeling",
-    klaar: "Klaar",
-    afgehaald: "Afgehaald",
-    geannuleerd: "Geannuleerd"
+
+    klaar:
+      "Klaar",
+
+    afgehaald:
+      "Afgehaald",
+
+    geannuleerd:
+      "Geannuleerd",
+
+    besteld:
+      "Besteld"
+
   };
 
+
   return (
-    statuses[status] ||
+
+    statuses[
+      status
+    ]
+
+    ||
+
     status
+
   );
+
 }
 
 
-function statusClass(status) {
+function statusClass(
+  status
+) {
 
   if (
-    status === "klaar" ||
-    status === "afgehaald"
+    status ===
+    "klaar"
+
+    ||
+
+    status ===
+    "afgehaald"
   ) {
+
     return "status-klaar";
+
   }
 
+
   if (
-    status === "geannuleerd"
+    status ===
+    "geannuleerd"
   ) {
+
     return "status-geannuleerd";
+
   }
+
 
   return "";
+
 }
 
 
-function resetForm() {
+/* ===============================
+   ESCAPE
+================================ */
 
-  document
-    .getElementById("reference")
-    .value =
-      "";
-
-  document
-    .getElementById("country")
-    .value =
-      "België";
-
-  document
-    .getElementById("municipality")
-    .value =
-      "";
-
-  document
-    .getElementById("pickup")
-    .value =
-      "";
-
-  document
-    .getElementById("note")
-    .value =
-      "";
-
-  document
-    .getElementById("eventName")
-    .value =
-      "";
-
-  document
-    .getElementById("eventFrom")
-    .value =
-      "";
-
-  document
-    .getElementById("eventUntil")
-    .value =
-      "";
-
-  Object
-    .keys(
-      quantities
-    )
-    .forEach(
-      id => {
-        quantities[id] =
-          0;
-      }
-    );
-
-  validatePickupDate();
-  setCategory("bier");
-  renderProducts();
-  updateReviewButton();
-}
-
-
-function newOrder() {
-
-  resetForm();
-  openNewOrder();
-}
-
-
-function escapeHtml(value) {
+function escapeHtml(
+  value
+) {
 
   return String(
-    value ?? ""
+    value
+    ??
+    ""
   )
+
     .replaceAll(
       "&",
       "&amp;"
     )
+
     .replaceAll(
       "<",
       "&lt;"
     )
+
     .replaceAll(
       ">",
       "&gt;"
     )
+
     .replaceAll(
       '"',
       "&quot;"
     )
+
     .replaceAll(
       "'",
       "&#039;"
     );
+
 }
 
 
+/* ===============================
+   SERVICE WORKER
+================================ */
+
 if (
-  "serviceWorker" in
-  navigator
+  "serviceWorker"
+  in navigator
 ) {
 
   window.addEventListener(
@@ -3263,23 +5699,35 @@ if (
           "./service-worker.js"
         )
         .catch(
-          error =>
+          error => {
+
             console.log(
               "Service worker fout:",
               error
-            )
+            );
+
+          }
         );
 
     }
   );
+
 }
 
 
+/* ===============================
+   START
+================================ */
+
 checkExistingSession();
+
 </script>
 
+
 <script src="./admin.js"></script>
+
 <script src="./wholesale.js"></script>
+
 
 </body>
 </html>
