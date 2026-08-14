@@ -3881,31 +3881,31 @@ function updateReviewButton() {
 
 function showOnly(screenId) {
 
-  const screens = [
+  [
     "homeScreen",
     "orderScreen",
     "summaryScreen",
     "successScreen",
-    "ordersScreen",
-    "adminScreen",
-    "adminDetailScreen",
-    "wholesaleScreen",
-    "wholesaleSummaryScreen"
-  ];
+    "ordersScreen"
+  ].forEach(id => {
 
-  screens.forEach(id => {
+    const screen =
+      document.getElementById(id);
 
-    const screen = document.getElementById(id);
-
-    if (!screen) return;
-
-    if (id === screenId) {
-      screen.classList.remove("hidden");
-    } else {
+    if (screen) {
       screen.classList.add("hidden");
     }
 
   });
+
+
+  const target =
+    document.getElementById(screenId);
+
+
+  if (target) {
+    target.classList.remove("hidden");
+  }
 
 }
 
