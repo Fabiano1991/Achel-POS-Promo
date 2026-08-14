@@ -1,38 +1,25 @@
-/* ============================================================
-   ACHEL POS
-   BESTELLING GROOTHANDEL - TEST V1
-   ============================================================ */
-
-
-/*
-  Voorlopig hetzelfde testadres.
-  Later veranderen we alleen deze regel.
-*/
-
 const WHOLESALE_EMAIL =
   "fabiovenaruzzo@hotmail.com";
 
+let wholesaleProducts =
+  [];
 
-let wholesaleProducts = [];
+const wholesaleQuantities =
+  {};
 
-const wholesaleQuantities = {};
+const wholesaleDiscounts =
+  {};
 
-const wholesaleDiscounts = {};
+let wholesaleSubmitting =
+  false;
 
-
-
-/* ============================================================
-   MODULE START
-============================================================ */
 
 function initWholesaleModule() {
 
   createWholesaleMenuItem();
-
   createWholesaleScreen();
 
 }
-
 
 
 document.addEventListener(
@@ -47,11 +34,6 @@ setTimeout(
 );
 
 
-
-/* ============================================================
-   MENU ITEM TOEVOEGEN
-============================================================ */
-
 function createWholesaleMenuItem() {
 
   if (
@@ -59,67 +41,47 @@ function createWholesaleMenuItem() {
       "menuWholesale"
     )
   ) {
-
     return;
-
   }
-
 
   const adminButton =
     document.getElementById(
       "menuAdmin"
     );
 
-
   const menu =
     adminButton?.parentElement;
 
-
   if (!menu) {
-
     return;
-
   }
-
 
   const button =
     document.createElement(
       "button"
     );
 
-
   button.id =
     "menuWholesale";
-
 
   button.className =
     "menu-item";
 
-
   button.type =
     "button";
-
 
   button.innerText =
     "Bestelling groothandel";
 
-
   button.onclick =
     openWholesaleOrder;
-
 
   menu.insertBefore(
     button,
     adminButton
   );
-
 }
 
-
-
-/* ============================================================
-   SCHERM MAKEN
-============================================================ */
 
 function createWholesaleScreen() {
 
@@ -128,41 +90,30 @@ function createWholesaleScreen() {
       "wholesaleScreen"
     )
   ) {
-
     return;
-
   }
-
 
   const appMain =
     document.getElementById(
       "appMain"
     );
 
-
   if (!appMain) {
-
     return;
-
   }
-
 
   const section =
     document.createElement(
       "section"
     );
 
-
   section.id =
     "wholesaleScreen";
-
 
   section.className =
     "hidden";
 
-
   section.innerHTML = `
-
     <button
       class="top-back"
       type="button"
@@ -171,13 +122,11 @@ function createWholesaleScreen() {
       ← Terug
     </button>
 
-
     <div class="card">
 
       <h2>
         Bestelling groothandel
       </h2>
-
 
       <p
         style="
@@ -189,27 +138,18 @@ function createWholesaleScreen() {
         Maak een bierbestelling voor levering via een drankenhandel.
       </p>
 
-
       <label>
         Vertegenwoordiger
       </label>
 
-
       <div class="profile-box">
-
-        <strong id="wholesaleRepName">
-        </strong>
-
-        <small id="wholesaleRepEmail">
-        </small>
-
+        <strong id="wholesaleRepName"></strong>
+        <small id="wholesaleRepEmail"></small>
       </div>
-
 
       <label for="wholesaleReference">
         Referentie / klantnaam
       </label>
-
 
       <input
         id="wholesaleReference"
@@ -217,11 +157,9 @@ function createWholesaleScreen() {
         placeholder="Bijv. Café De Markt"
       >
 
-
       <label for="wholesaleDealerSelect">
         Drankenhandel
       </label>
-
 
       <select
         id="wholesaleDealerSelect"
@@ -238,7 +176,6 @@ function createWholesaleScreen() {
 
       </select>
 
-
       <div
         id="wholesaleDealerOtherBox"
         class="hidden"
@@ -248,7 +185,6 @@ function createWholesaleScreen() {
           Naam drankenhandel
         </label>
 
-
         <input
           id="wholesaleDealerOther"
           type="text"
@@ -257,11 +193,9 @@ function createWholesaleScreen() {
 
       </div>
 
-
       <label for="wholesaleNote">
         Opmerking
       </label>
-
 
       <textarea
         id="wholesaleNote"
@@ -270,18 +204,13 @@ function createWholesaleScreen() {
 
     </div>
 
-
-
     <div class="card">
 
       <h2>
         Bieren
       </h2>
 
-
-      <div
-        id="wholesaleProductsList"
-      >
+      <div id="wholesaleProductsList">
 
         <div class="empty">
           Bieren laden...
@@ -290,8 +219,6 @@ function createWholesaleScreen() {
       </div>
 
     </div>
-
-
 
     <div class="sticky-action">
 
@@ -305,24 +232,15 @@ function createWholesaleScreen() {
       </button>
 
     </div>
-
   `;
-
 
   appMain.appendChild(
     section
   );
 
-
   createWholesaleSummaryScreen();
-
 }
 
-
-
-/* ============================================================
-   CONTROLE SCHERM
-============================================================ */
 
 function createWholesaleSummaryScreen() {
 
@@ -331,34 +249,30 @@ function createWholesaleSummaryScreen() {
       "wholesaleSummaryScreen"
     )
   ) {
-
     return;
-
   }
-
 
   const appMain =
     document.getElementById(
       "appMain"
     );
 
+  if (!appMain) {
+    return;
+  }
 
   const section =
     document.createElement(
       "section"
     );
 
-
   section.id =
     "wholesaleSummaryScreen";
-
 
   section.className =
     "hidden";
 
-
   section.innerHTML = `
-
     <button
       class="top-back"
       type="button"
@@ -367,67 +281,39 @@ function createWholesaleSummaryScreen() {
       ← Terug aanpassen
     </button>
 
-
     <div class="card">
 
       <h2>
         Controleer bestelling
       </h2>
 
-
       <p>
-
         <strong>
           Vertegenwoordiger
         </strong>
-
         <br>
-
-        <span id="wholesaleSummaryRep">
-        </span>
-
+        <span id="wholesaleSummaryRep"></span>
       </p>
 
-
       <p>
-
         <strong>
           Referentie / klant
         </strong>
-
         <br>
-
-        <span id="wholesaleSummaryReference">
-        </span>
-
+        <span id="wholesaleSummaryReference"></span>
       </p>
 
-
       <p>
-
         <strong>
           Drankenhandel
         </strong>
-
         <br>
-
-        <span id="wholesaleSummaryDealer">
-        </span>
-
+        <span id="wholesaleSummaryDealer"></span>
       </p>
 
+      <div id="wholesaleSummaryProducts"></div>
 
-      <div
-        id="wholesaleSummaryProducts"
-      >
-      </div>
-
-
-      <p
-        id="wholesaleSummaryNote"
-      >
-      </p>
-
+      <p id="wholesaleSummaryNote"></p>
 
       <button
         id="wholesaleSubmitButton"
@@ -439,262 +325,64 @@ function createWholesaleSummaryScreen() {
       </button>
 
     </div>
-
   `;
-
 
   appMain.appendChild(
     section
   );
-
-}
-function resetWholesaleOrder() {
-
-  /*
-    VELDEN
-  */
-
-  const reference =
-    document.getElementById(
-      "wholesaleReference"
-    );
-
-
-  const dealerSelect =
-    document.getElementById(
-      "wholesaleDealerSelect"
-    );
-
-
-  const dealerOther =
-    document.getElementById(
-      "wholesaleDealerOther"
-    );
-
-
-  const note =
-    document.getElementById(
-      "wholesaleNote"
-    );
-
-
-  if (reference) {
-    reference.value = "";
-  }
-
-
-  if (dealerSelect) {
-    dealerSelect.value = "";
-  }
-
-
-  if (dealerOther) {
-    dealerOther.value = "";
-  }
-
-
-  if (note) {
-    note.value = "";
-  }
-
-
-
-  /*
-    ANDERE DRANKENHANDEL
-    VELD VERBERGEN
-  */
-
-  document
-    .getElementById(
-      "wholesaleDealerOtherBox"
-    )
-    ?.classList
-    .add("hidden");
-
-
-
-  /*
-    AANTALLEN RESETTEN
-  */
-
-  Object.keys(
-    wholesaleQuantities
-  )
-    .forEach(
-      productId => {
-
-        wholesaleQuantities[
-          productId
-        ] = 0;
-
-      }
-    );
-
-
-
-  /*
-    KORTINGEN RESETTEN
-  */
-
-  Object.keys(
-    wholesaleDiscounts
-  )
-    .forEach(
-      productId => {
-
-        wholesaleDiscounts[
-          productId
-        ] = "geen";
-
-      }
-    );
-
-
-
-  /*
-    PRODUCTLIJST OPNIEUW TONEN
-  */
-
-  renderWholesaleProducts();
-
 }
 
-
-/* ============================================================
-   SCHERM OPENEN
-============================================================ */
 
 async function openWholesaleOrder() {
 
   closeMenu();
 
-
-  hideWholesaleOtherScreens();
-
-
-  document
-    .getElementById(
-      "wholesaleScreen"
-    )
-    .classList
-    .remove("hidden");
-
+  showOnly(
+    "wholesaleScreen"
+  );
 
   document
     .getElementById(
       "wholesaleRepName"
     )
     .innerText =
-      currentProfile?.naam
-      ||
+      currentProfile?.naam ||
       "";
-
 
   document
     .getElementById(
       "wholesaleRepEmail"
     )
     .innerText =
-      currentProfile?.email
-      ||
-      currentUser?.email
-      ||
+      currentProfile?.email ||
+      currentUser?.email ||
       "";
 
-
   await loadWholesaleProducts();
-
 }
 
-
-
-/* ============================================================
-   ANDERE SCHERMEN VERBERGEN
-============================================================ */
-
-function hideWholesaleOtherScreens() {
-
-  [
-
-    "homeScreen",
-
-    "orderScreen",
-
-    "summaryScreen",
-
-    "successScreen",
-
-    "ordersScreen",
-
-    "adminScreen",
-
-    "adminDetailScreen",
-
-    "wholesaleScreen",
-
-    "wholesaleSummaryScreen"
-
-  ]
-
-    .forEach(
-      id => {
-
-        document
-          .getElementById(id)
-          ?.classList
-          .add("hidden");
-
-      }
-    );
-
-}
-
-
-
-/* ============================================================
-   TERUG
-============================================================ */
 
 function closeWholesaleOrder() {
-
-  hideWholesaleOtherScreens();
-
   goHome();
-
 }
-
 
 
 function backToWholesaleOrder() {
 
-  hideWholesaleOtherScreens();
-
-
-  document
-    .getElementById(
-      "wholesaleScreen"
-    )
-    .classList
-    .remove("hidden");
-
+  showOnly(
+    "wholesaleScreen"
+  );
 }
 
-
-
-/* ============================================================
-   DRANKENHANDEL
-============================================================ */
 
 function toggleWholesaleDealerInput() {
 
   const value =
-
     document
       .getElementById(
         "wholesaleDealerSelect"
       )
       .value;
-
 
   document
     .getElementById(
@@ -705,21 +393,17 @@ function toggleWholesaleDealerInput() {
       "hidden",
       value !== "other"
     );
-
 }
-
 
 
 function getWholesaleDealer() {
 
   const selectValue =
-
     document
       .getElementById(
         "wholesaleDealerSelect"
       )
       .value;
-
 
   if (
     selectValue === "other"
@@ -734,190 +418,135 @@ function getWholesaleDealer() {
 
   }
 
-
   return selectValue;
-
 }
 
-
-
-/* ============================================================
-   PRODUCTEN LADEN
-============================================================ */
 
 async function loadWholesaleProducts() {
 
   const container =
-
     document
       .getElementById(
         "wholesaleProductsList"
       );
 
-
-  container.innerHTML = `
-
+  container.innerHTML =
+    `
     <div class="empty">
       Bieren laden...
     </div>
-
-  `;
-
+    `;
 
   const {
     data,
     error
   } =
-
     await supabaseClient
-
-      .from(
-        "products"
-      )
-
+      .from("products")
       .select(
         "id, naam, categorie, eenheid, sort_order"
       )
-
       .eq(
         "actief",
         true
       )
-
       .eq(
         "categorie",
         "bier"
       )
-
       .order(
         "sort_order",
         {
-          ascending:
-            true
+          ascending: true
         }
       );
 
-
   if (error) {
 
-    container.innerHTML = `
-
+    container.innerHTML =
+      `
       <div class="info error">
-
         Bieren konden niet worden geladen:
-
         ${wholesaleEscapeHtml(
           error.message
         )}
-
       </div>
-
-    `;
-
+      `;
 
     return;
-
   }
-
 
   wholesaleProducts =
     data || [];
 
+  wholesaleProducts.forEach(
+    product => {
 
-  wholesaleProducts
-    .forEach(
-      product => {
-
-        if (
-          wholesaleQuantities[
-            product.id
-          ] === undefined
-        ) {
-
-          wholesaleQuantities[
-            product.id
-          ] = 0;
-
-        }
-
-
-        if (
-          wholesaleDiscounts[
-            product.id
-          ] === undefined
-        ) {
-
-          wholesaleDiscounts[
-            product.id
-          ] =
-            "geen";
-
-        }
-
+      if (
+        wholesaleQuantities[
+          product.id
+        ] === undefined
+      ) {
+        wholesaleQuantities[
+          product.id
+        ] = 0;
       }
-    );
 
+      if (
+        wholesaleDiscounts[
+          product.id
+        ] === undefined
+      ) {
+        wholesaleDiscounts[
+          product.id
+        ] = "geen";
+      }
+
+    }
+  );
 
   renderWholesaleProducts();
-
 }
 
-
-
-/* ============================================================
-   PRODUCTEN TONEN
-============================================================ */
 
 function renderWholesaleProducts() {
 
   const container =
-
     document
       .getElementById(
         "wholesaleProductsList"
       );
 
-
   if (
     !wholesaleProducts.length
   ) {
 
-    container.innerHTML = `
-
+    container.innerHTML =
+      `
       <div class="empty">
         Geen bierproducten gevonden.
       </div>
-
-    `;
-
+      `;
 
     return;
-
   }
 
-
   container.innerHTML =
-
     wholesaleProducts
-
       .map(
         product => {
 
-          const isKeg =
+          const keg =
             isWholesaleKeg(
               product
             );
 
-
-          const calculation =
-
+          const calc =
             calculateWholesaleProduct(
               product
             );
 
-
           return `
-
             <div
               style="
                 border:1px solid var(--border);
@@ -928,20 +557,16 @@ function renderWholesaleProducts() {
               "
             >
 
-
               <div
                 style="
                   font-weight:850;
                   font-size:16px;
                 "
               >
-
                 ${wholesaleEscapeHtml(
                   product.naam
                 )}
-
               </div>
-
 
               <div
                 style="
@@ -950,18 +575,11 @@ function renderWholesaleProducts() {
                   margin-top:3px;
                 "
               >
-
-                ${
-                  wholesaleEscapeHtml(
-                    product.eenheid
-                    ||
-                    ""
-                  )
-                }
-
+                ${wholesaleEscapeHtml(
+                  product.eenheid ||
+                  ""
+                )}
               </div>
-
-
 
               <div
                 style="
@@ -973,61 +591,41 @@ function renderWholesaleProducts() {
                 "
               >
 
-
                 <div
                   style="
                     font-size:13px;
                     font-weight:750;
                   "
                 >
-
                   ${
-                    isKeg
+                    keg
                       ? "Betaalde vaten"
                       : "Aantal"
                   }
-
                 </div>
-
 
                 <div class="qty">
 
                   <button
                     type="button"
-                    onclick="
-                      changeWholesaleQty(
-                        ${product.id},
-                        -1
-                      )
-                    "
+                    onclick="changeWholesaleQty(${product.id}, -1)"
                   >
                     −
                   </button>
 
-
                   <span
                     id="wholesaleQty-${product.id}"
                   >
-
                     ${
                       wholesaleQuantities[
                         product.id
-                      ]
-                      ||
-                      0
+                      ] || 0
                     }
-
                   </span>
-
 
                   <button
                     type="button"
-                    onclick="
-                      changeWholesaleQty(
-                        ${product.id},
-                        1
-                      )
-                    "
+                    onclick="changeWholesaleQty(${product.id}, 1)"
                   >
                     +
                   </button>
@@ -1036,31 +634,18 @@ function renderWholesaleProducts() {
 
               </div>
 
-
-
               ${
-                isKeg
-
+                keg
                   ? `
-
                     <label
                       for="wholesaleDiscount-${product.id}"
-                      style="margin-top:14px;"
                     >
-
                       Commerciële tegemoetkoming
-
                     </label>
-
 
                     <select
                       id="wholesaleDiscount-${product.id}"
-                      onchange="
-                        changeWholesaleDiscount(
-                          ${product.id},
-                          this.value
-                        )
-                      "
+                      onchange="changeWholesaleDiscount(${product.id}, this.value)"
                     >
 
                       <option
@@ -1076,7 +661,6 @@ function renderWholesaleProducts() {
                         Geen
                       </option>
 
-
                       <option
                         value="5+1"
                         ${
@@ -1089,7 +673,6 @@ function renderWholesaleProducts() {
                       >
                         5 + 1
                       </option>
-
 
                       <option
                         value="10+2"
@@ -1106,100 +689,53 @@ function renderWholesaleProducts() {
 
                     </select>
 
-
-
                     <div
                       id="wholesaleCalc-${product.id}"
                       class="info ${
-                        calculation.free > 0
+                        calc.free > 0
                           ? "ok"
                           : ""
                       }"
                     >
-
-                      ${buildWholesaleCalculationText(
-                        calculation
-                      )}
-
+                      ${buildWholesaleCalculationText(calc)}
                     </div>
-
                   `
-
                   : ""
               }
 
-
             </div>
-
           `;
-
         }
       )
-
       .join("");
 
-
   updateWholesaleReviewButton();
-
 }
 
-
-
-/* ============================================================
-   VAT HERKENNEN
-============================================================ */
 
 function isWholesaleKeg(
   product
 ) {
 
   const unit =
-
     String(
-      product.eenheid
-      ||
+      product.eenheid ||
       ""
-    )
-      .toLowerCase();
-
+    ).toLowerCase();
 
   const name =
-
     String(
-      product.naam
-      ||
+      product.naam ||
       ""
-    )
-      .toLowerCase();
-
+    ).toLowerCase();
 
   return (
-
-    unit.includes(
-      "vat"
-    )
-
-    ||
-
-    name.includes(
-      "20l"
-    )
-
-    ||
-
-    name.includes(
-      "20 l"
-    )
-
+    unit.includes("vat") ||
+    name.includes("20l") ||
+    name.includes("20 l")
   );
-
 }
 
-
-
-/* ============================================================
-   AANTAL WIJZIGEN
-============================================================ */
 
 function changeWholesaleQty(
   productId,
@@ -1209,59 +745,37 @@ function changeWholesaleQty(
   wholesaleQuantities[
     productId
   ] =
-
     Math.max(
-
       0,
-
       (
         wholesaleQuantities[
           productId
-        ]
-        ||
-        0
-      )
-
-      +
-
-      amount
-
+        ] || 0
+      ) + amount
     );
 
-
   const qtyElement =
-
     document
       .getElementById(
         `wholesaleQty-${productId}`
       );
 
-
   if (qtyElement) {
 
     qtyElement.innerText =
-
       wholesaleQuantities[
         productId
       ];
 
   }
 
-
   updateWholesaleCalculation(
     productId
   );
 
-
   updateWholesaleReviewButton();
-
 }
 
-
-
-/* ============================================================
-   KORTING WIJZIGEN
-============================================================ */
 
 function changeWholesaleDiscount(
   productId,
@@ -1273,110 +787,66 @@ function changeWholesaleDiscount(
   ] =
     discount;
 
-
   updateWholesaleCalculation(
     productId
   );
-
 }
 
-
-
-/* ============================================================
-   BEREKENING
-============================================================ */
 
 function calculateWholesaleProduct(
   product
 ) {
 
   const paid =
-
     Number(
       wholesaleQuantities[
         product.id
-      ]
-      ||
-      0
+      ] || 0
     );
 
-
   const discount =
-
-    isWholesaleKeg(
-      product
-    )
-
+    isWholesaleKeg(product)
       ? (
           wholesaleDiscounts[
             product.id
-          ]
-          ||
-          "geen"
+          ] || "geen"
         )
-
       : "geen";
-
 
   let free =
     0;
 
-
   if (
-    discount ===
-    "5+1"
+    discount === "5+1"
   ) {
 
     free =
-
       Math.floor(
         paid / 5
       );
 
   }
 
-
   if (
-    discount ===
-    "10+2"
+    discount === "10+2"
   ) {
 
     free =
-
       Math.floor(
         paid / 10
-      )
-
-      *
-
-      2;
+      ) * 2;
 
   }
 
-
   return {
-
-    paid:
-      paid,
-
-    discount:
-      discount,
-
-    free:
-      free,
-
+    paid,
+    discount,
+    free,
     total:
       paid + free
-
   };
-
 }
 
-
-
-/* ============================================================
-   BEREKENING TEKST
-============================================================ */
 
 function buildWholesaleCalculationText(
   calculation
@@ -1388,245 +858,148 @@ function buildWholesaleCalculationText(
   ) {
 
     return (
-
       `Te leveren: ${calculation.paid} vat(en)`
-
     );
 
   }
-
 
   if (
     calculation.free === 0
   ) {
 
     return (
-
-      `Actie ${calculation.discount} geselecteerd. `
-
-      +
-
+      `Actie ${calculation.discount} geselecteerd. ` +
       `Het ingegeven aantal geeft momenteel nog geen gratis vat.`
-
     );
 
   }
 
-
   return (
-
-    `${calculation.paid} betaald + `
-
-    +
-
-    `${calculation.free} gratis = `
-
-    +
-
-    `${calculation.total} vaten totaal te leveren. `
-
-    +
-
+    `${calculation.paid} betaald + ` +
+    `${calculation.free} gratis = ` +
+    `${calculation.total} vaten totaal te leveren. ` +
     `Gratis vat(en): commerciële tegemoetkoming, enkel leeggoed factureren.`
-
   );
-
 }
 
-
-
-/* ============================================================
-   BEREKENING OP SCHERM BIJWERKEN
-============================================================ */
 
 function updateWholesaleCalculation(
   productId
 ) {
 
   const product =
-
     wholesaleProducts.find(
       item =>
         item.id ===
         productId
     );
 
-
   if (
-    !product
-    ||
-    !isWholesaleKeg(
-      product
-    )
+    !product ||
+    !isWholesaleKeg(product)
   ) {
-
     return;
-
   }
 
-
   const calculation =
-
     calculateWholesaleProduct(
       product
     );
 
-
   const element =
-
     document
       .getElementById(
         `wholesaleCalc-${productId}`
       );
 
-
   if (!element) {
-
     return;
-
   }
 
-
   element.className =
-
     calculation.free > 0
-
       ? "info ok"
-
       : "info";
 
-
   element.innerText =
-
     buildWholesaleCalculationText(
       calculation
     );
-
 }
 
-
-
-/* ============================================================
-   GESELECTEERDE PRODUCTEN
-============================================================ */
 
 function getSelectedWholesaleProducts() {
 
   return wholesaleProducts
-
     .filter(
       product =>
-
         (
           wholesaleQuantities[
             product.id
-          ]
-          ||
-          0
-        )
-
-        >
-
-        0
+          ] || 0
+        ) > 0
     )
-
     .map(
       product => {
 
-        const calculation =
-
+        const calc =
           calculateWholesaleProduct(
             product
           );
 
-
         return {
-
           ...product,
-
           paid:
-            calculation.paid,
-
+            calc.paid,
           discount:
-            calculation.discount,
-
+            calc.discount,
           free:
-            calculation.free,
-
+            calc.free,
           total:
-            calculation.total
-
+            calc.total
         };
 
       }
     );
-
 }
 
-
-
-/* ============================================================
-   BESTELKNOP
-============================================================ */
 
 function updateWholesaleReviewButton() {
 
   const products =
-
     getSelectedWholesaleProducts();
 
-
   const total =
-
     products.reduce(
       (
         sum,
         product
       ) =>
-
-        sum
-        +
+        sum +
         product.total,
-
       0
     );
 
-
   const button =
-
     document
       .getElementById(
         "wholesaleReviewButton"
       );
 
-
   if (!button) {
-
     return;
-
   }
 
-
   button.innerText =
-
     total > 0
-
       ? `Bestelling controleren · ${total}`
-
       : "Bestelling controleren";
-
 }
 
-
-
-/* ============================================================
-   CONTROLE SCHERM
-============================================================ */
 
 function showWholesaleSummary() {
 
   const reference =
-
     document
       .getElementById(
         "wholesaleReference"
@@ -1634,13 +1007,10 @@ function showWholesaleSummary() {
       .value
       .trim();
 
-
   const dealer =
     getWholesaleDealer();
 
-
   const note =
-
     document
       .getElementById(
         "wholesaleNote"
@@ -1648,61 +1018,43 @@ function showWholesaleSummary() {
       .value
       .trim();
 
-
   const products =
-
     getSelectedWholesaleProducts();
 
-
-  if (
-    !reference
-  ) {
+  if (!reference) {
 
     alert(
       "Vul een referentie of klantnaam in."
     );
 
     return;
-
   }
 
-
-  if (
-    !dealer
-  ) {
+  if (!dealer) {
 
     alert(
       "Vul de drankenhandel in."
     );
 
     return;
-
   }
 
-
-  if (
-    !products.length
-  ) {
+  if (!products.length) {
 
     alert(
       "Selecteer minstens één bier."
     );
 
     return;
-
   }
-
 
   document
     .getElementById(
       "wholesaleSummaryRep"
     )
     .innerText =
-
-      currentProfile?.naam
-      ||
+      currentProfile?.naam ||
       "";
-
 
   document
     .getElementById(
@@ -1711,7 +1063,6 @@ function showWholesaleSummary() {
     .innerText =
       reference;
 
-
   document
     .getElementById(
       "wholesaleSummaryDealer"
@@ -1719,91 +1070,58 @@ function showWholesaleSummary() {
     .innerText =
       dealer;
 
-
   document
     .getElementById(
       "wholesaleSummaryProducts"
     )
     .innerHTML =
-
       products
-
         .map(
           product =>
-
             buildWholesaleSummaryProduct(
               product
             )
         )
-
         .join("");
-
 
   document
     .getElementById(
       "wholesaleSummaryNote"
     )
     .innerText =
-
       note
-
         ? `Opmerking: ${note}`
-
         : "";
 
-
-  hideWholesaleOtherScreens();
-
-
-  document
-    .getElementById(
-      "wholesaleSummaryScreen"
-    )
-    .classList
-    .remove("hidden");
-
+  showOnly(
+    "wholesaleSummaryScreen"
+  );
 }
 
-
-
-/* ============================================================
-   SAMENVATTING PRODUCT
-============================================================ */
 
 function buildWholesaleSummaryProduct(
   product
 ) {
 
-  const isKeg =
+  const keg =
     isWholesaleKeg(
       product
     );
 
-
   return `
+    <div class="summary-section">
 
-    <div
-      class="summary-section"
-    >
-
-      <div
-        class="summary-section-title"
-      >
-
+      <div class="summary-section-title">
         ${wholesaleEscapeHtml(
           product.naam
         )}
-
       </div>
 
-
-      <div
-        class="summary-line"
-      >
+      <div class="summary-line">
 
         <span>
           ${
-            isKeg
+            keg
               ? "Betaald"
               : "Aantal"
           }
@@ -1815,116 +1133,61 @@ function buildWholesaleSummaryProduct(
 
       </div>
 
-
       ${
-        isKeg
-        &&
+        keg &&
         product.discount !==
-        "geen"
-
+          "geen"
           ? `
-
-            <div
-              class="summary-line"
-            >
-
-              <span>
-                Actie
-              </span>
-
+            <div class="summary-line">
+              <span>Actie</span>
               <strong>
                 ${product.discount}
               </strong>
-
             </div>
 
-
-            <div
-              class="summary-line"
-            >
-
-              <span>
-                Gratis
-              </span>
-
+            <div class="summary-line">
+              <span>Gratis</span>
               <strong>
                 ${product.free}
               </strong>
-
             </div>
 
-
-            <div
-              class="summary-line"
-            >
-
+            <div class="summary-line">
               <span>
                 Totaal te leveren
               </span>
-
               <strong>
                 ${product.total}
               </strong>
-
             </div>
-
           `
-
           : ""
       }
-
 
       ${
         product.free > 0
-
           ? `
-
-            <div
-              class="info ok"
-            >
-
+            <div class="info ok">
               Gratis vat(en) zijn commerciële tegemoetkoming.
               Enkel leeggoed factureren voor de gratis vaten.
-
             </div>
-
           `
-
           : ""
       }
 
-
     </div>
-
   `;
-
 }
-
-
-
-/* ============================================================
-   BESTELLING OPSLAAN
-============================================================ */
-
-let wholesaleSubmitting = false;
 
 
 async function submitWholesaleOrder() {
 
-  /*
-    DUBBELKLIK BEVEILIGING
-  */
-
   if (wholesaleSubmitting) {
-
     return;
-
   }
-
 
   const products =
     getSelectedWholesaleProducts();
-
 
   const reference =
     document
@@ -1934,10 +1197,8 @@ async function submitWholesaleOrder() {
       .value
       .trim();
 
-
   const dealer =
     getWholesaleDealer();
-
 
   const note =
     document
@@ -1947,7 +1208,6 @@ async function submitWholesaleOrder() {
       .value
       .trim();
 
-
   if (!reference) {
 
     alert(
@@ -1955,9 +1215,7 @@ async function submitWholesaleOrder() {
     );
 
     return;
-
   }
-
 
   if (!dealer) {
 
@@ -1966,9 +1224,7 @@ async function submitWholesaleOrder() {
     );
 
     return;
-
   }
-
 
   if (!products.length) {
 
@@ -1977,39 +1233,26 @@ async function submitWholesaleOrder() {
     );
 
     return;
-
   }
 
-
-
   const button =
-    document.getElementById(
-      "wholesaleSubmitButton"
-    );
-
+    document
+      .getElementById(
+        "wholesaleSubmitButton"
+      );
 
   wholesaleSubmitting =
     true;
 
-
   button.disabled =
     true;
-
 
   button.innerText =
     "Bestelling wordt verwerkt...";
 
-
-
-  /*
-    BESTELREGELS VOOR SUPABASE
-  */
-
   const items =
-
     products.map(
       product => ({
-
         product_id:
           product.id,
 
@@ -2030,26 +1273,17 @@ async function submitWholesaleOrder() {
 
         totaal_aantal:
           product.total
-
       })
     );
-
-
-
-  /*
-    ALLES IN 1 DATABASE TRANSACTIE
-  */
 
   const {
     data: orderId,
     error
   } =
-
     await supabaseClient
       .rpc(
         "create_wholesale_order",
         {
-
           p_referentie:
             reference,
 
@@ -2061,346 +1295,136 @@ async function submitWholesaleOrder() {
 
           p_items:
             items
-
         }
       );
-
-
 
   if (error) {
 
     wholesaleSubmitting =
       false;
 
-
     button.disabled =
       false;
-
 
     button.innerText =
       "Bestelling verzenden";
 
-
     alert(
-      "Bestelling kon niet worden opgeslagen: "
-      +
+      "Bestelling kon niet worden opgeslagen: " +
       error.message
     );
 
-
     return;
-
   }
 
-
-
-  /*
-    REFERENTIENUMMER
-  */
-
   const orderReference =
-
     `GH-${new Date().getFullYear()}-${String(orderId)
-      .slice(0, 8)
+      .slice(0,8)
       .toUpperCase()}`;
 
-
-
   /*
-    KNOP DEFINITIEF BLOKKEREN
-  */
-
-  button.disabled =
-    true;
-
-
-  button.innerText =
-    "Bestelling opgeslagen";
-
-
-
-  /*
-    EERST DATA RESETTEN
-    zodat dezelfde bestelling
-    niet opnieuw verstuurd kan worden.
+    Belangrijk:
+    bestelling is nu opgeslagen.
+    Eerst scherm resetten en verlaten.
+    Daarna pas mail openen.
   */
 
   resetWholesaleOrder();
 
-
-
-  /*
-    MAIL PAS DAARNA OPENEN
-  */
-
-  openWholesaleEmail(
-
-    orderReference,
-
-    reference,
-
-    dealer,
-
-    note,
-
-    products
-
-  );
-
-
-
-  /*
-    SUCCESMELDING
-  */
-
-  setTimeout(
-
-    () => {
-
-      wholesaleSubmitting =
-        false;
-
-
-      alert(
-        "De bestelling is opgeslagen. Een nieuwe bestelling kan via het menu worden gestart."
-      );
-
-
-      goHome();
-
-    },
-
-    700
-
-  );
-
-}
-
-
-  const button =
-
-    document
-      .getElementById(
-        "wholesaleSubmitButton"
-      );
-
-
-  button.disabled =
-    true;
-
-
-  button.innerText =
-    "Bestelling opslaan...";
-
-
-  const {
-    data: order,
-    error: orderError
-  } =
-
-    await supabaseClient
-
-      .from(
-        "wholesale_orders"
-      )
-
-      .insert({
-
-        user_id:
-          currentUser.id,
-
-        referentie:
-          reference,
-
-        drankenhandel:
-          dealer,
-
-        opmerking:
-          note || null,
-
-        status:
-          "besteld"
-
-      })
-
-      .select(
-        "id, created_at"
-      )
-
-      .single();
-
-
-  if (
-    orderError
-    ||
-    !order
-  ) {
-
-    button.disabled =
-      false;
-
-
-    button.innerText =
-      "Bestelling verzenden";
-
-
-    alert(
-
-      "Bestelling kon niet worden opgeslagen: "
-
-      +
-
-      (
-        orderError?.message
-        ||
-        "Onbekende fout"
-      )
-
-    );
-
-
-    return;
-
-  }
-
-
-
-  const rows =
-
-    products.map(
-      product => ({
-
-        wholesale_order_id:
-          order.id,
-
-        product_id:
-          product.id,
-
-        product_naam:
-          product.naam,
-
-        eenheid:
-          product.eenheid
-          ||
-          null,
-
-        betaald_aantal:
-          product.paid,
-
-        actie:
-          product.discount,
-
-        gratis_aantal:
-          product.free,
-
-        totaal_aantal:
-          product.total
-
-      })
-    );
-
-
-  const {
-    error: itemsError
-  } =
-
-    await supabaseClient
-
-      .from(
-        "wholesale_order_items"
-      )
-
-      .insert(
-        rows
-      );
-
-
-  button.disabled =
+  wholesaleSubmitting =
     false;
 
-
-  button.innerText =
-    "Bestelling verzenden";
-
-
-  if (
-    itemsError
-  ) {
-
-    alert(
-
-      "Bestelling is aangemaakt, maar de bestelregels konden niet worden opgeslagen: "
-
-      +
-
-      itemsError.message
-
-    );
-
-
-    return;
-
-  }
-
-
-  const referenceNumber =
-
-    createWholesaleReference(
-      order.id,
-      order.created_at
-    );
-
+  goHome();
 
   openWholesaleEmail(
-
-    referenceNumber,
-
+    orderReference,
     reference,
-
     dealer,
-
     note,
-
     products
-
   );
-
 }
 
 
+function resetWholesaleOrder() {
 
-/* ============================================================
-   REFERENTIENUMMER
-============================================================ */
+  const reference =
+    document.getElementById(
+      "wholesaleReference"
+    );
 
-function createWholesaleReference(
-  id,
-  createdAt
-) {
+  const dealerSelect =
+    document.getElementById(
+      "wholesaleDealerSelect"
+    );
 
-  const year =
+  const dealerOther =
+    document.getElementById(
+      "wholesaleDealerOther"
+    );
 
-    new Date(
-      createdAt
-      ||
-      Date.now()
+  const note =
+    document.getElementById(
+      "wholesaleNote"
+    );
+
+  if (reference) {
+    reference.value = "";
+  }
+
+  if (dealerSelect) {
+    dealerSelect.value = "";
+  }
+
+  if (dealerOther) {
+    dealerOther.value = "";
+  }
+
+  if (note) {
+    note.value = "";
+  }
+
+  document
+    .getElementById(
+      "wholesaleDealerOtherBox"
     )
-      .getFullYear();
+    ?.classList
+    .add("hidden");
 
-
-  return (
-
-    `GH-${year}-${id.slice(0,8).toUpperCase()}`
-
+  Object.keys(
+    wholesaleQuantities
+  ).forEach(
+    productId => {
+      wholesaleQuantities[
+        productId
+      ] = 0;
+    }
   );
 
+  Object.keys(
+    wholesaleDiscounts
+  ).forEach(
+    productId => {
+      wholesaleDiscounts[
+        productId
+      ] = "geen";
+    }
+  );
+
+  const button =
+    document.getElementById(
+      "wholesaleSubmitButton"
+    );
+
+  if (button) {
+    button.disabled = false;
+    button.innerText =
+      "Bestelling verzenden";
+  }
+
+  renderWholesaleProducts();
 }
 
-
-
-/* ============================================================
-   MAIL
-============================================================ */
 
 function openWholesaleEmail(
   orderNumber,
@@ -2413,79 +1437,64 @@ function openWholesaleEmail(
   let orderText =
     "";
 
+  products.forEach(
+    product => {
 
-  products
-    .forEach(
-      product => {
-
-        orderText +=
-
-`${product.product_naam || product.naam}
+      orderText +=
+`${product.naam}
 --------------------
 `;
 
+      if (
+        isWholesaleKeg(
+          product
+        )
+      ) {
 
-        if (
-          isWholesaleKeg(
-            product
-          )
-        ) {
-
-          orderText +=
+        orderText +=
 `Betaalde vaten: ${product.paid}
 `;
 
+        if (
+          product.discount !==
+          "geen"
+        ) {
 
-          if (
-            product.discount !==
-            "geen"
-          ) {
-
-            orderText +=
+          orderText +=
 `Actie: ${product.discount}
 Gratis vaten: ${product.free}
 Totaal te leveren: ${product.total}
 `;
 
+          if (
+            product.free > 0
+          ) {
 
-            if (
-              product.free > 0
-            ) {
-
-              orderText +=
+            orderText +=
 `Gratis vat(en) zijn commerciële tegemoetkoming.
 Enkel leeggoed factureren voor de gratis vaten.
 `;
 
-            }
-
           }
-
         }
 
-        else {
+      } else {
 
-          orderText +=
+        orderText +=
 `Aantal: ${product.paid}
 `;
 
-        }
-
-
-        orderText +=
-`\n`;
-
       }
-    );
 
+      orderText +=
+        "\n";
+    }
+  );
 
   const subject =
-
     `Bestelling groothandel ${orderNumber} - ${reference}`;
 
-
   const body =
-
 `ACHEL - BESTELLING GROOTHANDEL
 
 Bestelnummer:
@@ -2515,23 +1524,10 @@ ${note || "Geen opmerkingen"}
 
 Deze bestelling is centraal opgeslagen in Achel POS.`;
 
-
   const mailto =
-
-    `mailto:${WHOLESALE_EMAIL}`
-
-    +
-
-    `?subject=${encodeURIComponent(
-      subject
-    )}`
-
-    +
-
-    `&body=${encodeURIComponent(
-      body
-    )}`;
-
+    `mailto:${WHOLESALE_EMAIL}` +
+    `?subject=${encodeURIComponent(subject)}` +
+    `&body=${encodeURIComponent(body)}`;
 
   setTimeout(
     () => {
@@ -2542,14 +1538,8 @@ Deze bestelling is centraal opgeslagen in Achel POS.`;
     },
     350
   );
-
 }
 
-
-
-/* ============================================================
-   VEILIGE HTML
-============================================================ */
 
 function wholesaleEscapeHtml(
   value
@@ -2558,30 +1548,24 @@ function wholesaleEscapeHtml(
   return String(
     value ?? ""
   )
-
     .replaceAll(
       "&",
       "&amp;"
     )
-
     .replaceAll(
       "<",
       "&lt;"
     )
-
     .replaceAll(
       ">",
       "&gt;"
     )
-
     .replaceAll(
       '"',
       "&quot;"
     )
-
     .replaceAll(
       "'",
       "&#039;"
     );
-
 }
