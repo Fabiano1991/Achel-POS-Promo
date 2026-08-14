@@ -1,5 +1,5 @@
 const CACHE_NAME =
-  "achel-pos-v9";
+  "achel-pos-v10";
 
 
 const STATIC_FILES = [
@@ -10,10 +10,15 @@ const STATIC_FILES = [
 
   "./manifest.json",
 
-  "./admin.js"
+  "./admin.js",
+
+  "./wholesale.js",
+
+  "./achel-kluis-home.jpg",
+
+  "./achel-logo.png"
 
 ];
-
 
 
 self.addEventListener(
@@ -41,7 +46,6 @@ self.addEventListener(
 
   }
 );
-
 
 
 self.addEventListener(
@@ -86,14 +90,12 @@ self.addEventListener(
 );
 
 
-
 self.addEventListener(
   "fetch",
   event => {
 
     if (
-      event.request.method
-      !==
+      event.request.method !==
       "GET"
     ) {
 
@@ -102,15 +104,8 @@ self.addEventListener(
     }
 
 
-
-    /*
-      PAGINA'S:
-      ALTIJD EERST ONLINE CONTROLEREN
-    */
-
     if (
-      event.request.mode
-      ===
+      event.request.mode ===
       "navigate"
     ) {
 
@@ -135,12 +130,6 @@ self.addEventListener(
     }
 
 
-
-    /*
-      ANDERE BESTANDEN:
-      NETWORK FIRST
-    */
-
     event.respondWith(
 
       fetch(
@@ -161,12 +150,10 @@ self.addEventListener(
 
               .then(
                 cache =>
-
                   cache.put(
                     event.request,
                     copy
                   )
-
               );
 
 
@@ -177,11 +164,9 @@ self.addEventListener(
 
         .catch(
           () =>
-
             caches.match(
               event.request
             )
-
         )
 
     );
