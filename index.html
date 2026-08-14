@@ -3879,51 +3879,33 @@ function updateReviewButton() {
    SCHERMEN
 ============================================================ */
 
-function showOnly(
-  screenId
-) {
+function showOnly(screenId) {
 
- [
-  "homeScreen",
-  "orderScreen",
-  "summaryScreen",
-  "successScreen",
-  "ordersScreen",
+  const screens = [
+    "homeScreen",
+    "orderScreen",
+    "summaryScreen",
+    "successScreen",
+    "ordersScreen",
+    "adminScreen",
+    "adminDetailScreen",
+    "wholesaleScreen",
+    "wholesaleSummaryScreen"
+  ];
 
-  "adminScreen",
-  "adminDetailScreen",
+  screens.forEach(id => {
 
-  "wholesaleScreen",
-  "wholesaleSummaryScreen"
-]
+    const screen = document.getElementById(id);
 
-    .forEach(
-      id => {
+    if (!screen) return;
 
-        document
-          .getElementById(id)
-          ?.classList
-          .add("hidden");
+    if (id === screenId) {
+      screen.classList.remove("hidden");
+    } else {
+      screen.classList.add("hidden");
+    }
 
-      }
-    );
-
-
-  document
-    .getElementById(
-      screenId
-    )
-    ?.classList
-    .remove("hidden");
-
-}
-
-
-function goHome() {
-
-  showOnly(
-    "homeScreen"
-  );
+  });
 
 }
 
