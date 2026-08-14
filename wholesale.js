@@ -448,7 +448,116 @@ function createWholesaleSummaryScreen() {
   );
 
 }
+function resetWholesaleOrder() {
 
+  /*
+    VELDEN
+  */
+
+  const reference =
+    document.getElementById(
+      "wholesaleReference"
+    );
+
+
+  const dealerSelect =
+    document.getElementById(
+      "wholesaleDealerSelect"
+    );
+
+
+  const dealerOther =
+    document.getElementById(
+      "wholesaleDealerOther"
+    );
+
+
+  const note =
+    document.getElementById(
+      "wholesaleNote"
+    );
+
+
+  if (reference) {
+    reference.value = "";
+  }
+
+
+  if (dealerSelect) {
+    dealerSelect.value = "";
+  }
+
+
+  if (dealerOther) {
+    dealerOther.value = "";
+  }
+
+
+  if (note) {
+    note.value = "";
+  }
+
+
+
+  /*
+    ANDERE DRANKENHANDEL
+    VELD VERBERGEN
+  */
+
+  document
+    .getElementById(
+      "wholesaleDealerOtherBox"
+    )
+    ?.classList
+    .add("hidden");
+
+
+
+  /*
+    AANTALLEN RESETTEN
+  */
+
+  Object.keys(
+    wholesaleQuantities
+  )
+    .forEach(
+      productId => {
+
+        wholesaleQuantities[
+          productId
+        ] = 0;
+
+      }
+    );
+
+
+
+  /*
+    KORTINGEN RESETTEN
+  */
+
+  Object.keys(
+    wholesaleDiscounts
+  )
+    .forEach(
+      productId => {
+
+        wholesaleDiscounts[
+          productId
+        ] = "geen";
+
+      }
+    );
+
+
+
+  /*
+    PRODUCTLIJST OPNIEUW TONEN
+  */
+
+  renderWholesaleProducts();
+
+}
 
 
 /* ============================================================
@@ -1797,15 +1906,27 @@ function buildWholesaleSummaryProduct(
    BESTELLING OPSLAAN
 ============================================================ */
 
+let wholesaleSubmitting = false;
+
+
 async function submitWholesaleOrder() {
 
-  const products =
+  /*
+    DUBBELKLIK BEVEILIGING
+  */
 
+  if (wholesaleSubmitting) {
+
+    return;
+
+  }
+
+
+  const products =
     getSelectedWholesaleProducts();
 
 
   const reference =
-
     document
       .getElementById(
         "wholesaleReference"
@@ -1819,7 +1940,6 @@ async function submitWholesaleOrder() {
 
 
   const note =
-
     document
       .getElementById(
         "wholesaleNote"
@@ -1828,13 +1948,233 @@ async function submitWholesaleOrder() {
       .trim();
 
 
-  if (
-    !products.length
-  ) {
+  if (!reference) {
+
+    alert(
+      "Vul een referentie of klantnaam in."
+    );
 
     return;
 
   }
+
+
+  if (!dealer) {
+
+    alert(
+      "Vul een drankenhandel in."
+    );
+
+    return;
+
+  }
+
+
+  if (!products.length) {
+
+    alert(
+      "Selecteer minstens één bier."
+    );
+
+    return;
+
+  }
+
+
+
+  const button =
+    document.getElementById(
+      "wholesaleSubmitButton"
+    );
+
+
+  wholesaleSubmitting =
+    true;
+
+
+  button.disabled =
+    true;
+
+
+  button.innerText =
+    "Bestelling wordt verwerkt...";
+
+
+
+  /*
+    BESTELREGELS VOOR SUPABASE
+  */
+
+  const items =
+
+    products.map(
+      product => ({
+
+        product_id:
+          product.id,
+
+        product_naam:
+          product.naam,
+
+        eenheid:
+          product.eenheid || "",
+
+        betaald_aantal:
+          product.paid,
+
+        actie:
+          product.discount,
+
+        gratis_aantal:
+          product.free,
+
+        totaal_aantal:
+          product.total
+
+      })
+    );
+
+
+
+  /*
+    ALLES IN 1 DATABASE TRANSACTIE
+  */
+
+  const {
+    data: orderId,
+    error
+  } =
+
+    await supabaseClient
+      .rpc(
+        "create_wholesale_order",
+        {
+
+          p_referentie:
+            reference,
+
+          p_drankenhandel:
+            dealer,
+
+          p_opmerking:
+            note || null,
+
+          p_items:
+            items
+
+        }
+      );
+
+
+
+  if (error) {
+
+    wholesaleSubmitting =
+      false;
+
+
+    button.disabled =
+      false;
+
+
+    button.innerText =
+      "Bestelling verzenden";
+
+
+    alert(
+      "Bestelling kon niet worden opgeslagen: "
+      +
+      error.message
+    );
+
+
+    return;
+
+  }
+
+
+
+  /*
+    REFERENTIENUMMER
+  */
+
+  const orderReference =
+
+    `GH-${new Date().getFullYear()}-${String(orderId)
+      .slice(0, 8)
+      .toUpperCase()}`;
+
+
+
+  /*
+    KNOP DEFINITIEF BLOKKEREN
+  */
+
+  button.disabled =
+    true;
+
+
+  button.innerText =
+    "Bestelling opgeslagen";
+
+
+
+  /*
+    EERST DATA RESETTEN
+    zodat dezelfde bestelling
+    niet opnieuw verstuurd kan worden.
+  */
+
+  resetWholesaleOrder();
+
+
+
+  /*
+    MAIL PAS DAARNA OPENEN
+  */
+
+  openWholesaleEmail(
+
+    orderReference,
+
+    reference,
+
+    dealer,
+
+    note,
+
+    products
+
+  );
+
+
+
+  /*
+    SUCCESMELDING
+  */
+
+  setTimeout(
+
+    () => {
+
+      wholesaleSubmitting =
+        false;
+
+
+      alert(
+        "De bestelling is opgeslagen. Een nieuwe bestelling kan via het menu worden gestart."
+      );
+
+
+      goHome();
+
+    },
+
+    700
+
+  );
+
+}
 
 
   const button =
