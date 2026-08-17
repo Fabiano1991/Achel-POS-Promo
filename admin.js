@@ -1,20 +1,27 @@
 /* ============================================================
-   ACHEL POS - ADMIN DASHBOARD V5
+   ACHEL POS - ADMIN DASHBOARD V6
 
    FUNCTIES
    ------------------------------------------------------------
    - Actieve POS & bier aanvragen
    - Actieve evenementaanvragen
    - Materiaal momenteel buiten
+   - Retourregistratie per materiaal
+   - Goed terug / beschadigd / ontbreekt
+   - Nog buiten automatisch berekenen
+   - Schade & ontbrekend overzicht
    - Groothandelbestellingen
    - Rapportering per vertegenwoordiger
    - Maand / jaar rapport
-   - Grafiek afgehaalde materialen
+   - Grafiek
    - Excel export
-   - Archief afgehandelde aanvragen
-   - Evenementmateriaal terugmelden
+   - Archief afgehandeld
 ============================================================ */
 
+
+/* ============================================================
+   GLOBALE DATA
+============================================================ */
 
 let adminOrders = [];
 
@@ -22,18 +29,15 @@ let adminProfiles = [];
 
 let adminItems = [];
 
-
 let adminWholesaleOrders = [];
 
 let adminWholesaleItems = [];
 
+let adminEventReturns = [];
 
-let selectedAdminOrder =
-  null;
+let selectedAdminOrder = null;
 
-
-let adminReportChart =
-  null;
+let adminReportChart = null;
 
 
 
@@ -99,13 +103,9 @@ async function initAdminModule() {
 
 
     if (
-      profile.rol !==
-      "admin"
-
+      profile.rol !== "admin"
       &&
-
-      profile.rol !==
-      "verantwoordelijke"
+      profile.rol !== "verantwoordelijke"
     ) {
 
       return;
@@ -189,10 +189,9 @@ function createAdminScreen() {
     </button>
 
 
-
-    <!-- ===============================
-         DASHBOARD BOVENAAN
-    ================================ -->
+    <!-- ============================================
+         DASHBOARD
+    ============================================= -->
 
     <div class="card">
 
@@ -208,7 +207,7 @@ function createAdminScreen() {
         "
       >
         Centraal overzicht van aanvragen,
-        materialen en rapportering.
+        materialen, retouren en rapportering.
       </p>
 
 
@@ -227,9 +226,9 @@ function createAdminScreen() {
 
 
 
-    <!-- ===============================
+    <!-- ============================================
          FILTERS
-    ================================ -->
+    ============================================= -->
 
     <details
       class="card dashboard-fold"
@@ -319,9 +318,9 @@ function createAdminScreen() {
 
 
 
-    <!-- ===============================
+    <!-- ============================================
          ACTIEVE POS / BIER
-    ================================ -->
+    ============================================= -->
 
     <details
       class="card dashboard-fold"
@@ -346,7 +345,9 @@ function createAdminScreen() {
 
       <div class="dashboard-fold-body">
 
-        <div id="adminRegularOrdersList">
+        <div
+          id="adminRegularOrdersList"
+        >
 
           <div class="empty">
             Aanvragen laden...
@@ -360,9 +361,9 @@ function createAdminScreen() {
 
 
 
-    <!-- ===============================
+    <!-- ============================================
          ACTIEVE EVENEMENTEN
-    ================================ -->
+    ============================================= -->
 
     <details
       class="card dashboard-fold"
@@ -387,7 +388,9 @@ function createAdminScreen() {
 
       <div class="dashboard-fold-body">
 
-        <div id="adminEventOrdersList">
+        <div
+          id="adminEventOrdersList"
+        >
 
           <div class="empty">
             Evenementen laden...
@@ -401,9 +404,9 @@ function createAdminScreen() {
 
 
 
-    <!-- ===============================
+    <!-- ============================================
          MATERIAAL BUITEN
-    ================================ -->
+    ============================================= -->
 
     <details
       class="card dashboard-fold"
@@ -433,7 +436,7 @@ function createAdminScreen() {
         >
 
           <div class="empty">
-            Materialen laden...
+            Materiaal laden...
           </div>
 
         </div>
@@ -444,9 +447,52 @@ function createAdminScreen() {
 
 
 
-    <!-- ===============================
+    <!-- ============================================
+         SCHADE / ONTBREEKT
+    ============================================= -->
+
+    <details
+      class="card dashboard-fold"
+    >
+
+      <summary>
+
+        <span>
+          Schade & ontbrekend materiaal
+        </span>
+
+
+        <span
+          id="adminProblemsCount"
+          class="dashboard-count"
+        >
+          0
+        </span>
+
+      </summary>
+
+
+      <div class="dashboard-fold-body">
+
+        <div
+          id="adminProblemsList"
+        >
+
+          <div class="empty">
+            Retourgegevens laden...
+          </div>
+
+        </div>
+
+      </div>
+
+    </details>
+
+
+
+    <!-- ============================================
          GROOTHANDEL
-    ================================ -->
+    ============================================= -->
 
     <details
       class="card dashboard-fold"
@@ -487,9 +533,9 @@ function createAdminScreen() {
 
 
 
-    <!-- ===============================
+    <!-- ============================================
          RAPPORTERING
-    ================================ -->
+    ============================================= -->
 
     <details
       class="card dashboard-fold"
@@ -643,7 +689,7 @@ function createAdminScreen() {
           style="
             margin-top:18px;
             position:relative;
-            min-height:280px;
+            min-height:300px;
           "
         >
 
@@ -667,16 +713,15 @@ function createAdminScreen() {
           Download Excel
         </button>
 
-
       </div>
 
     </details>
 
 
 
-    <!-- ===============================
+    <!-- ============================================
          ARCHIEF
-    ================================ -->
+    ============================================= -->
 
     <details
       class="card dashboard-fold"
@@ -701,7 +746,9 @@ function createAdminScreen() {
 
       <div class="dashboard-fold-body">
 
-        <div id="adminArchiveList">
+        <div
+          id="adminArchiveList"
+        >
 
           <div class="empty">
             Archief laden...
@@ -741,7 +788,7 @@ function createAdminScreen() {
 
 
 /* ============================================================
-   DETAIL SCREEN
+   DETAIL SCHERM
 ============================================================ */
 
 function createAdminDetailScreen() {
@@ -814,7 +861,7 @@ function createAdminDetailScreen() {
 
 
 /* ============================================================
-   OPEN DASHBOARD
+   DASHBOARD OPENEN
 ============================================================ */
 
 async function openAdminDashboard() {
@@ -842,7 +889,7 @@ async function openAdminDashboard() {
 
 
 /* ============================================================
-   SLUIT
+   DASHBOARD SLUITEN
 ============================================================ */
 
 function closeAdminDashboard() {
@@ -854,7 +901,7 @@ function closeAdminDashboard() {
 
 
 /* ============================================================
-   TERUG
+   TERUG NAAR DASHBOARD
 ============================================================ */
 
 function backToAdminDashboard() {
@@ -862,6 +909,9 @@ function backToAdminDashboard() {
   showOnly(
     "adminScreen"
   );
+
+
+  renderAdminStatistics();
 
 
   renderAdminSections();
@@ -877,11 +927,19 @@ function backToAdminDashboard() {
 async function loadAdminDashboard() {
 
   const [
+
     profilesResult,
+
     ordersResult,
+
     itemsResult,
+
+    eventReturnsResult,
+
     wholesaleResult,
+
     wholesaleItemsResult
+
   ] =
     await Promise.all([
 
@@ -950,6 +1008,28 @@ async function loadAdminDashboard() {
       supabaseClient
 
         .from(
+          "event_material_returns"
+        )
+
+        .select(`
+          id,
+          order_id,
+          product_naam,
+          uitgeleend_aantal,
+          goed_terug,
+          beschadigd,
+          ontbreekt,
+          opmerking,
+          updated_by,
+          created_at,
+          updated_at
+        `),
+
+
+
+      supabaseClient
+
+        .from(
           "wholesale_orders"
         )
 
@@ -986,17 +1066,21 @@ async function loadAdminDashboard() {
     ordersResult.error
     ||
     itemsResult.error
+    ||
+    eventReturnsResult.error
   ) {
 
-    alert(
-      "Dashboard kon niet volledig worden geladen."
+    console.log(
+      "Dashboard laadfout:",
+      profilesResult.error,
+      ordersResult.error,
+      itemsResult.error,
+      eventReturnsResult.error
     );
 
 
-    console.log(
-      profilesResult.error,
-      ordersResult.error,
-      itemsResult.error
+    alert(
+      "Het beheerdersdashboard kon niet volledig worden geladen."
     );
 
 
@@ -1019,6 +1103,12 @@ async function loadAdminDashboard() {
 
   adminItems =
     itemsResult.data
+    ||
+    [];
+
+
+  adminEventReturns =
+    eventReturnsResult.data
     ||
     [];
 
@@ -1071,7 +1161,7 @@ async function loadAdminDashboard() {
 
 
 /* ============================================================
-   FILTERS
+   VERTEGENWOORDIGER FILTERS
 ============================================================ */
 
 function fillRepresentativeFilters() {
@@ -1101,7 +1191,7 @@ function fillRepresentativeFilters() {
       }
 
 
-      const value =
+      const current =
         select.value;
 
 
@@ -1166,7 +1256,7 @@ function fillRepresentativeFilters() {
 
 
       select.value =
-        value;
+        current;
 
     }
   );
@@ -1196,17 +1286,8 @@ function renderAdminStatistics() {
   }
 
 
-  const active =
-    adminOrders.filter(
-      order =>
-        !isArchivedOrder(
-          order
-        )
-    );
-
-
   const nieuw =
-    active.filter(
+    adminOrders.filter(
       order =>
         order.status ===
         "nieuw"
@@ -1214,7 +1295,7 @@ function renderAdminStatistics() {
 
 
   const processing =
-    active.filter(
+    adminOrders.filter(
       order =>
         order.status ===
         "in_behandeling"
@@ -1222,14 +1303,14 @@ function renderAdminStatistics() {
 
 
   const ready =
-    active.filter(
+    adminOrders.filter(
       order =>
         order.status ===
         "klaar"
     ).length;
 
 
-  const outside =
+  const materialOut =
     getMaterialOutOrders()
       .length;
 
@@ -1259,12 +1340,16 @@ function renderAdminStatistics() {
 
     adminStatCard(
       "Materiaal buiten",
-      outside
+      materialOut
     );
 
 }
 
 
+
+/* ============================================================
+   STAT KAART
+============================================================ */
 
 function adminStatCard(
   label,
@@ -1312,79 +1397,7 @@ function adminStatCard(
 
 
 /* ============================================================
-   ARCHIEFLOGICA
-============================================================ */
-
-function isArchivedOrder(
-  order
-) {
-
-  /*
-    Gewone POS / bier:
-    afgehaald = archief.
-
-    Evenement:
-    pas archief wanneer materiaal
-    effectief terug is.
-  */
-
-
-  if (
-    order.event_naam
-  ) {
-
-    return Boolean(
-      order.event_returned_at
-    );
-
-  }
-
-
-  return (
-
-    order.status ===
-    "afgehaald"
-
-    ||
-
-    order.status ===
-    "geannuleerd"
-
-  );
-
-}
-
-
-
-/* ============================================================
-   MATERIAAL BUITEN
-============================================================ */
-
-function getMaterialOutOrders() {
-
-  return adminOrders.filter(
-    order =>
-
-      Boolean(
-        order.event_naam
-      )
-
-      &&
-
-      order.status ===
-      "afgehaald"
-
-      &&
-
-      !order.event_returned_at
-  );
-
-}
-
-
-
-/* ============================================================
-   FILTER ACTIEVE ORDERS
+   FILTER ORDERS
 ============================================================ */
 
 function getFilteredAdminOrders() {
@@ -1526,6 +1539,218 @@ function getFilteredAdminOrders() {
 
 
 /* ============================================================
+   EVENT VOLLEDIG VERWERKT?
+============================================================ */
+
+function isEventLogisticallyClosed(
+  order
+) {
+
+  if (
+    !order.event_naam
+  ) {
+
+    return false;
+
+  }
+
+
+  return Boolean(
+    order.event_returned_at
+  );
+
+}
+
+
+
+/* ============================================================
+   ARCHIEF
+============================================================ */
+
+function isArchivedOrder(
+  order
+) {
+
+  if (
+    order.event_naam
+  ) {
+
+    return (
+
+      Boolean(
+        order.event_returned_at
+      )
+
+      ||
+
+      order.status ===
+      "geannuleerd"
+
+    );
+
+  }
+
+
+  return (
+
+    order.status ===
+    "afgehaald"
+
+    ||
+
+    order.status ===
+    "geannuleerd"
+
+  );
+
+}
+
+
+
+/* ============================================================
+   EVENT RETURN DATA OPHALEN
+============================================================ */
+
+function getEventReturnsForOrder(
+  orderId
+) {
+
+  return adminEventReturns.filter(
+    item =>
+      item.order_id ===
+      orderId
+  );
+
+}
+
+
+
+/* ============================================================
+   EVENTMATERIAAL NOG BUITEN
+============================================================ */
+
+function getEventMaterialOutsideCount(
+  orderId
+) {
+
+  const items =
+    getAdminOrderItems(
+      orderId
+    )
+      .filter(
+        item =>
+          item.categorie ===
+          "evenement"
+      );
+
+
+  let totalOutside =
+    0;
+
+
+  items.forEach(
+    item => {
+
+      const returnRow =
+        adminEventReturns.find(
+          row =>
+            row.order_id ===
+            orderId
+
+            &&
+
+            row.product_naam ===
+            item.product_naam
+        );
+
+
+      const good =
+        Number(
+          returnRow?.goed_terug
+          ||
+          0
+        );
+
+
+      const damaged =
+        Number(
+          returnRow?.beschadigd
+          ||
+          0
+        );
+
+
+      const missing =
+        Number(
+          returnRow?.ontbreekt
+          ||
+          0
+        );
+
+
+      const loaned =
+        Number(
+          item.aantal
+          ||
+          0
+        );
+
+
+      totalOutside +=
+
+        Math.max(
+
+          0,
+
+          loaned
+          -
+          good
+          -
+          damaged
+          -
+          missing
+
+        );
+
+    }
+  );
+
+
+  return totalOutside;
+
+}
+
+
+
+/* ============================================================
+   MATERIAL OUT ORDERS
+============================================================ */
+
+function getMaterialOutOrders() {
+
+  return adminOrders.filter(
+    order =>
+
+      Boolean(
+        order.event_naam
+      )
+
+      &&
+
+      order.status ===
+      "afgehaald"
+
+      &&
+
+      !order.event_returned_at
+
+  );
+
+}
+
+
+
+/* ============================================================
    DASHBOARD SECTIES
 ============================================================ */
 
@@ -1535,7 +1760,7 @@ function renderAdminSections() {
     getFilteredAdminOrders();
 
 
-  const activeRegular =
+  const regular =
     filtered.filter(
       order =>
 
@@ -1549,7 +1774,7 @@ function renderAdminSections() {
     );
 
 
-  const activeEvents =
+  const events =
     filtered.filter(
       order =>
 
@@ -1570,7 +1795,7 @@ function renderAdminSections() {
     );
 
 
-  const materialOut =
+  const materialOutside =
     filtered.filter(
       order =>
 
@@ -1600,19 +1825,19 @@ function renderAdminSections() {
 
   setAdminCount(
     "adminRegularCount",
-    activeRegular.length
+    regular.length
   );
 
 
   setAdminCount(
     "adminEventCount",
-    activeEvents.length
+    events.length
   );
 
 
   setAdminCount(
     "adminMaterialOutCount",
-    materialOut.length
+    materialOutside.length
   );
 
 
@@ -1630,21 +1855,24 @@ function renderAdminSections() {
 
   renderAdminOrderList(
     "adminRegularOrdersList",
-    activeRegular,
+    regular,
     "Geen actieve POS- of bieraanvragen."
   );
 
 
   renderAdminOrderList(
     "adminEventOrdersList",
-    activeEvents,
+    events,
     "Geen actieve evenementaanvragen."
   );
 
 
   renderMaterialOutList(
-    materialOut
+    materialOutside
   );
+
+
+  renderProblemMaterials();
 
 
   renderAdminWholesaleOrders();
@@ -1689,7 +1917,7 @@ function setAdminCount(
 
 
 /* ============================================================
-   ORDER LIST
+   ALGEMENE ORDER LIJST
 ============================================================ */
 
 function renderAdminOrderList(
@@ -1720,9 +1948,11 @@ function renderAdminOrderList(
     container.innerHTML = `
 
       <div class="empty">
+
         ${adminEscapeHtml(
           emptyMessage
         )}
+
       </div>
 
     `;
@@ -1751,7 +1981,7 @@ function renderAdminOrderList(
 
 
 /* ============================================================
-   ORDER CARD
+   ORDER KAART
 ============================================================ */
 
 function adminOrderCard(
@@ -1770,19 +2000,13 @@ function adminOrderCard(
     );
 
 
-  const reference =
-    createOrderReference(
-      order.id,
-      order.created_at
-    );
-
-
   const total =
     items.reduce(
       (
         sum,
         item
       ) =>
+
         sum
         +
         Number(
@@ -1790,8 +2014,22 @@ function adminOrderCard(
           ||
           0
         ),
+
       0
     );
+
+
+  const title =
+
+    order.event_naam
+
+    ||
+
+    order.referentie
+
+    ||
+
+    "Geen referentie";
 
 
   return `
@@ -1823,20 +2061,27 @@ function adminOrderCard(
         <div
           style="
             font-size:12px;
-            font-weight:900;
             color:var(--gold);
+            font-weight:900;
           "
         >
-          ${reference}
+
+          ${createOrderReference(
+            order.id,
+            order.created_at
+          )}
+
         </div>
 
 
         <div
           class="status ${adminStatusClass(order.status)}"
         >
+
           ${formatStatus(
             order.status
           )}
+
         </div>
 
       </div>
@@ -1849,13 +2094,11 @@ function adminOrderCard(
           font-weight:850;
         "
       >
+
         ${adminEscapeHtml(
-          order.event_naam
-          ||
-          order.referentie
-          ||
-          "Geen referentie"
+          title
         )}
+
       </div>
 
 
@@ -1929,7 +2172,7 @@ function adminOrderCard(
 
 
 /* ============================================================
-   MATERIAAL BUITEN
+   MATERIAAL BUITEN LIJST
 ============================================================ */
 
 function renderMaterialOutList(
@@ -1977,7 +2220,7 @@ function renderMaterialOutList(
 
       .map(
         order =>
-          materialOutCard(
+          buildMaterialOutCard(
             order
           )
       )
@@ -1989,10 +2232,10 @@ function renderMaterialOutList(
 
 
 /* ============================================================
-   MATERIAAL BUITEN CARD
+   MATERIAL OUT CARD
 ============================================================ */
 
-function materialOutCard(
+function buildMaterialOutCard(
   order
 ) {
 
@@ -2005,7 +2248,183 @@ function materialOutCard(
   const items =
     getAdminOrderItems(
       order.id
-    );
+    )
+      .filter(
+        item =>
+          item.categorie ===
+          "evenement"
+      );
+
+
+  const rows =
+
+    items
+
+      .map(
+        item => {
+
+          const returnRow =
+            adminEventReturns.find(
+              row =>
+
+                row.order_id ===
+                order.id
+
+                &&
+
+                row.product_naam ===
+                item.product_naam
+            );
+
+
+          const loaned =
+            Number(
+              item.aantal
+              ||
+              0
+            );
+
+
+          const good =
+            Number(
+              returnRow?.goed_terug
+              ||
+              0
+            );
+
+
+          const damaged =
+            Number(
+              returnRow?.beschadigd
+              ||
+              0
+            );
+
+
+          const missing =
+            Number(
+              returnRow?.ontbreekt
+              ||
+              0
+            );
+
+
+          const outside =
+
+            Math.max(
+
+              0,
+
+              loaned
+              -
+              good
+              -
+              damaged
+              -
+              missing
+
+            );
+
+
+          return `
+
+            <div
+              style="
+                padding:10px 0;
+                border-bottom:1px solid var(--border);
+              "
+            >
+
+              <strong>
+                ${adminEscapeHtml(
+                  item.product_naam
+                )}
+              </strong>
+
+
+              <div class="order-meta">
+
+                Uitgeleend:
+                ${loaned}
+
+                · Goed terug:
+                ${good}
+
+              </div>
+
+
+              ${
+                damaged > 0
+
+                  ? `
+
+                      <div
+                        class="order-meta"
+                        style="
+                          color:var(--red);
+                        "
+                      >
+
+                        Beschadigd:
+                        ${damaged}
+
+                      </div>
+
+                    `
+
+                  : ""
+              }
+
+
+              ${
+                missing > 0
+
+                  ? `
+
+                      <div
+                        class="order-meta"
+                        style="
+                          color:var(--red);
+                        "
+                      >
+
+                        Ontbreekt:
+                        ${missing}
+
+                      </div>
+
+                    `
+
+                  : ""
+              }
+
+
+              <div
+                style="
+                  margin-top:4px;
+                  font-size:13px;
+                  font-weight:850;
+                  color:${
+                    outside > 0
+                      ? "var(--gold)"
+                      : "var(--green)"
+                  };
+                "
+              >
+
+                Nog buiten:
+                ${outside}
+
+              </div>
+
+            </div>
+
+          `;
+
+        }
+      )
+
+      .join("");
 
 
   return `
@@ -2026,9 +2445,11 @@ function materialOutCard(
           font-weight:900;
         "
       >
+
         ${adminEscapeHtml(
           order.event_naam
         )}
+
       </div>
 
 
@@ -2044,8 +2465,6 @@ function materialOutCard(
 
 
       <div class="order-meta">
-
-        Evenement:
 
         ${adminEscapeHtml(
           order.event_vanaf
@@ -2064,56 +2483,20 @@ function materialOutCard(
       </div>
 
 
-      ${
-        items
-
-          .map(
-            item => `
-
-              <div class="summary-line">
-
-                <span>
-
-                  ${adminEscapeHtml(
-                    item.product_naam
-                  )}
-
-                </span>
-
-
-                <strong>
-
-                  ${item.aantal}
-
-                </strong>
-
-              </div>
-
-            `
-          )
-
-          .join("")
-      }
+      ${rows}
 
 
       <button
         class="primary"
         type="button"
-        onclick="markEventMaterialReturned('${order.id}')"
+        onclick="openAdminOrder('${order.id}')"
         style="
           margin-top:14px;
         "
       >
-        Materiaal volledig terug
-      </button>
 
+        Retour registreren
 
-      <button
-        class="secondary"
-        type="button"
-        onclick="openAdminOrder('${order.id}')"
-      >
-        Bekijk aanvraag
       </button>
 
     </div>
@@ -2125,23 +2508,19 @@ function materialOutCard(
 
 
 /* ============================================================
-   EVENT TERUG
+   SCHADE & ONTBREEKT
 ============================================================ */
 
-async function markEventMaterialReturned(
-  orderId
-) {
+function renderProblemMaterials() {
 
-  const confirmed =
-    window.confirm(
-
-      "Bevestig dat al het materiaal van dit evenement terug in Achel is."
-
+  const container =
+    document.getElementById(
+      "adminProblemsList"
     );
 
 
   if (
-    !confirmed
+    !container
   ) {
 
     return;
@@ -2149,103 +2528,227 @@ async function markEventMaterialReturned(
   }
 
 
-  const {
-    error
-  } =
-    await supabaseClient
+  const problems =
+    adminEventReturns.filter(
+      item =>
 
-      .rpc(
-        "mark_event_material_returned",
-        {
-          p_order_id:
-            orderId
-        }
-      );
+        Number(
+          item.beschadigd
+          ||
+          0
+        )
+        >
+        0
 
+        ||
 
-  if (
-    error
-  ) {
-
-    alert(
-
-      "Materiaal kon niet als terug gemarkeerd worden: "
-
-      +
-
-      error.message
-
+        Number(
+          item.ontbreekt
+          ||
+          0
+        )
+        >
+        0
     );
 
 
-    return;
-
-  }
-
-
-  await loadAdminDashboard();
-
-
-  alert(
-    "Materiaal is geregistreerd als terug."
+  setAdminCount(
+    "adminProblemsCount",
+    problems.length
   );
 
-}
-
-
-
-/* ============================================================
-   EVENT TERUG ONGEDAAN
-============================================================ */
-
-async function undoEventMaterialReturned(
-  orderId
-) {
-
-  const confirmed =
-    window.confirm(
-      "Wil je de terugmelding ongedaan maken?"
-    );
-
 
   if (
-    !confirmed
+    !problems.length
   ) {
+
+    container.innerHTML = `
+
+      <div class="info ok">
+
+        Geen schade of ontbrekend materiaal geregistreerd.
+
+      </div>
+
+    `;
+
 
     return;
 
   }
 
 
-  const {
-    error
-  } =
-    await supabaseClient
+  container.innerHTML =
 
-      .rpc(
-        "undo_event_material_returned",
-        {
-          p_order_id:
-            orderId
+    problems
+
+      .map(
+        item => {
+
+          const order =
+            adminOrders.find(
+              order =>
+                order.id ===
+                item.order_id
+            );
+
+
+          const profile =
+            order
+
+              ? getAdminProfile(
+                  order.user_id
+                )
+
+              : null;
+
+
+          return `
+
+            <div
+              style="
+                border:1px solid var(--border);
+                border-radius:14px;
+                padding:13px;
+                margin-top:10px;
+              "
+            >
+
+              <strong>
+
+                ${adminEscapeHtml(
+                  item.product_naam
+                )}
+
+              </strong>
+
+
+              <div class="order-meta">
+
+                ${adminEscapeHtml(
+                  order?.event_naam
+                  ||
+                  "Onbekend evenement"
+                )}
+
+              </div>
+
+
+              <div class="order-meta">
+
+                ${adminEscapeHtml(
+                  profile?.naam
+                  ||
+                  ""
+                )}
+
+              </div>
+
+
+              ${
+                Number(
+                  item.beschadigd
+                  ||
+                  0
+                )
+                >
+                0
+
+                  ? `
+
+                      <div
+                        class="info error"
+                      >
+
+                        Beschadigd / kapot:
+                        <strong>
+                          ${item.beschadigd}
+                        </strong>
+
+                      </div>
+
+                    `
+
+                  : ""
+              }
+
+
+              ${
+                Number(
+                  item.ontbreekt
+                  ||
+                  0
+                )
+                >
+                0
+
+                  ? `
+
+                      <div
+                        class="info error"
+                      >
+
+                        Ontbreekt:
+                        <strong>
+                          ${item.ontbreekt}
+                        </strong>
+
+                      </div>
+
+                    `
+
+                  : ""
+              }
+
+
+              ${
+                item.opmerking
+
+                  ? `
+
+                      <div class="order-meta">
+
+                        Opmerking:
+                        ${adminEscapeHtml(
+                          item.opmerking
+                        )}
+
+                      </div>
+
+                    `
+
+                  : ""
+              }
+
+
+              ${
+                order
+
+                  ? `
+
+                      <button
+                        class="secondary"
+                        type="button"
+                        onclick="openAdminOrder('${order.id}')"
+                      >
+
+                        Bekijk evenement
+
+                      </button>
+
+                    `
+
+                  : ""
+              }
+
+            </div>
+
+          `;
+
         }
-      );
+      )
 
-
-  if (
-    error
-  ) {
-
-    alert(
-      error.message
-    );
-
-
-    return;
-
-  }
-
-
-  await loadAdminDashboard();
+      .join("");
 
 }
 
@@ -2299,7 +2802,7 @@ function renderAdminWholesaleOrders() {
       .map(
         order => {
 
-          const rep =
+          const profile =
             getAdminProfile(
               order.user_id
             );
@@ -2325,6 +2828,8 @@ function renderAdminWholesaleOrders() {
 
                   ${adminEscapeHtml(
                     order.referentie
+                    ||
+                    "Geen referentie"
                   )}
 
                 </strong>
@@ -2333,9 +2838,9 @@ function renderAdminWholesaleOrders() {
                 <div class="order-meta">
 
                   ${adminEscapeHtml(
-                    rep?.naam
+                    profile?.naam
                     ||
-                    "Onbekend"
+                    ""
                   )}
 
                   ·
@@ -2353,14 +2858,15 @@ function renderAdminWholesaleOrders() {
 
               <div class="wholesale-admin-body">
 
-
                 ${
                   items
 
                     .map(
                       item => `
 
-                        <div class="summary-line">
+                        <div
+                          class="summary-line"
+                        >
 
                           <span>
 
@@ -2384,6 +2890,7 @@ function renderAdminWholesaleOrders() {
                           </strong>
 
                         </div>
+
 
                         ${
                           item.actie
@@ -2459,11 +2966,6 @@ async function openAdminOrder(
   }
 
 
-  /*
-    Alleen NIEUW automatisch
-    naar IN BEHANDELING.
-  */
-
   if (
     order.status ===
     "nieuw"
@@ -2480,8 +2982,10 @@ async function openAdminOrder(
         )
 
         .update({
+
           status:
             "in_behandeling"
+
         })
 
         .eq(
@@ -2514,18 +3018,28 @@ async function openAdminOrder(
 
 
     if (
-      !error
+      error
     ) {
 
-      order =
-        data;
-
-
-      updateLocalAdminOrder(
-        data
+      alert(
+        "De aanvraag kon niet worden geopend: "
+        +
+        error.message
       );
 
+
+      return;
+
     }
+
+
+    order =
+      data;
+
+
+    updateLocalAdminOrder(
+      data
+    );
 
   }
 
@@ -2551,7 +3065,7 @@ async function openAdminOrder(
 
 
 /* ============================================================
-   DETAIL
+   ORDER DETAIL
 ============================================================ */
 
 function renderAdminDetail(
@@ -2757,9 +3271,12 @@ function renderAdminDetail(
                 Opmerking
               </h2>
 
-              ${adminEscapeHtml(
-                order.opmerking
-              )}
+
+              <p>
+                ${adminEscapeHtml(
+                  order.opmerking
+                )}
+              </p>
 
             </div>
 
@@ -2769,11 +3286,9 @@ function renderAdminDetail(
     }
 
 
-    ${
-      buildEventReturnCard(
-        order
-      )
-    }
+    ${buildEventReturnEditor(
+      order
+    )}
 
 
     <div class="card">
@@ -2796,111 +3311,19 @@ function renderAdminDetail(
 
   `;
 
-}
-
-
-
-/* ============================================================
-   EVENT RETURN CARD
-============================================================ */
-
-function buildEventReturnCard(
-  order
-) {
 
   if (
-    !order.event_naam
-  ) {
-
-    return "";
-
-  }
-
-
-  if (
-    order.event_returned_at
-  ) {
-
-    return `
-
-      <div class="card">
-
-        <h2>
-          Materiaal retour
-        </h2>
-
-
-        <div class="info ok">
-
-          Materiaal terug sinds:
-
-          <strong>
-
-            ${adminFormatDateTime(
-              order.event_returned_at
-            )}
-
-          </strong>
-
-        </div>
-
-
-        <button
-          class="secondary"
-          type="button"
-          onclick="undoEventMaterialReturned('${order.id}')"
-        >
-
-          Terugmelding ongedaan maken
-
-        </button>
-
-      </div>
-
-    `;
-
-  }
-
-
-  if (
+    order.event_naam
+    &&
     order.status ===
     "afgehaald"
   ) {
 
-    return `
-
-      <div class="card">
-
-        <h2>
-          Materiaal retour
-        </h2>
-
-
-        <div class="info">
-
-          Dit materiaal staat nog geregistreerd als buiten.
-
-        </div>
-
-
-        <button
-          class="primary"
-          type="button"
-          onclick="markEventMaterialReturned('${order.id}')"
-        >
-
-          Materiaal volledig terug
-
-        </button>
-
-      </div>
-
-    `;
+    updateAllReturnCalculations(
+      order.id
+    );
 
   }
-
-
-  return "";
 
 }
 
@@ -2931,7 +3354,9 @@ function adminDetailRow(
           text-transform:uppercase;
         "
       >
+
         ${label}
+
       </div>
 
 
@@ -3023,6 +3448,1031 @@ function adminCategoryCard(
 
 
 /* ============================================================
+   RETOUR EDITOR
+============================================================ */
+
+function buildEventReturnEditor(
+  order
+) {
+
+  if (
+    !order.event_naam
+  ) {
+
+    return "";
+
+  }
+
+
+  if (
+    order.status !==
+    "afgehaald"
+  ) {
+
+    return `
+
+      <div class="card">
+
+        <h2>
+          Retour evenementmateriaal
+        </h2>
+
+
+        <div class="info">
+
+          Retourregistratie wordt beschikbaar zodra
+          het evenementmateriaal als afgehaald is geregistreerd.
+
+        </div>
+
+      </div>
+
+    `;
+
+  }
+
+
+  const items =
+    getAdminOrderItems(
+      order.id
+    )
+      .filter(
+        item =>
+          item.categorie ===
+          "evenement"
+      );
+
+
+  const rows =
+
+    items
+
+      .map(
+        item => {
+
+          const existing =
+            adminEventReturns.find(
+              row =>
+
+                row.order_id ===
+                order.id
+
+                &&
+
+                row.product_naam ===
+                item.product_naam
+            );
+
+
+          const good =
+            Number(
+              existing?.goed_terug
+              ||
+              0
+            );
+
+
+          const damaged =
+            Number(
+              existing?.beschadigd
+              ||
+              0
+            );
+
+
+          const missing =
+            Number(
+              existing?.ontbreekt
+              ||
+              0
+            );
+
+
+          return `
+
+            <div
+              style="
+                border:1px solid var(--border);
+                border-radius:16px;
+                padding:14px;
+                margin-top:12px;
+              "
+            >
+
+              <div
+                style="
+                  font-size:17px;
+                  font-weight:900;
+                "
+              >
+
+                ${adminEscapeHtml(
+                  item.product_naam
+                )}
+
+              </div>
+
+
+              <div class="order-meta">
+
+                Uitgeleend:
+
+                <strong>
+                  ${item.aantal}
+                </strong>
+
+              </div>
+
+
+
+              ${buildReturnQuantityControl(
+                order.id,
+                item.product_naam,
+                "good",
+                "Goed terug",
+                good
+              )}
+
+
+              ${buildReturnQuantityControl(
+                order.id,
+                item.product_naam,
+                "damaged",
+                "Beschadigd / kapot",
+                damaged
+              )}
+
+
+              ${buildReturnQuantityControl(
+                order.id,
+                item.product_naam,
+                "missing",
+                "Ontbreekt",
+                missing
+              )}
+
+
+
+              <div
+                id="${returnDomId(
+                  order.id,
+                  item.product_naam,
+                  "outside"
+                )}"
+                class="info"
+                style="
+                  margin-top:14px;
+                  font-weight:850;
+                "
+              >
+
+                Nog buiten:
+                0
+
+              </div>
+
+
+
+              <label>
+                Opmerking
+              </label>
+
+
+              <textarea
+                id="${returnDomId(
+                  order.id,
+                  item.product_naam,
+                  "note"
+                )}"
+                placeholder="Bijv. scheur in zijwand, poot afgebroken, nog bij klant..."
+              >${adminEscapeHtml(existing?.opmerking || "")}</textarea>
+
+            </div>
+
+          `;
+
+        }
+      )
+
+      .join("");
+
+
+  return `
+
+    <div class="card">
+
+      <h2>
+        Retour evenementmateriaal
+      </h2>
+
+
+      <p
+        style="
+          color:var(--muted);
+          line-height:1.5;
+        "
+      >
+
+        Registreer per materiaal wat goed is teruggekomen,
+        wat beschadigd is en wat definitief ontbreekt.
+        Het resterende aantal wordt automatisch als
+        <strong>Nog buiten</strong> berekend.
+
+      </p>
+
+
+      ${
+        order.event_returned_at
+
+          ? `
+
+              <div class="info ok">
+
+                Dit evenement is logistiek volledig verwerkt.
+
+                <br>
+
+                Laatste afsluiting:
+
+                <strong>
+
+                  ${adminFormatDateTime(
+                    order.event_returned_at
+                  )}
+
+                </strong>
+
+              </div>
+
+            `
+
+          : ""
+      }
+
+
+      ${rows}
+
+
+      <button
+        class="primary"
+        type="button"
+        onclick="saveEventReturnRegistration('${order.id}')"
+        style="
+          margin-top:18px;
+        "
+      >
+
+        Retourregistratie opslaan
+
+      </button>
+
+
+      ${
+        getEventReturnsForOrder(
+          order.id
+        ).length
+
+          ? `
+
+              <button
+                class="secondary"
+                type="button"
+                onclick="resetEventReturnRegistration('${order.id}')"
+              >
+
+                Retourregistratie volledig wissen
+
+              </button>
+
+            `
+
+          : ""
+      }
+
+    </div>
+
+  `;
+
+}
+
+
+
+/* ============================================================
+   RETOUR AANTAL CONTROL
+============================================================ */
+
+function buildReturnQuantityControl(
+  orderId,
+  productName,
+  type,
+  label,
+  value
+) {
+
+  return `
+
+    <div
+      style="
+        display:flex;
+        align-items:center;
+        justify-content:space-between;
+        gap:12px;
+        margin-top:14px;
+      "
+    >
+
+      <div
+        style="
+          font-size:13px;
+          font-weight:800;
+        "
+      >
+
+        ${label}
+
+      </div>
+
+
+      <div class="qty">
+
+        <button
+          type="button"
+          onclick="changeReturnQuantity(
+            '${orderId}',
+            '${escapeJsString(productName)}',
+            '${type}',
+            -1
+          )"
+        >
+          −
+        </button>
+
+
+        <span
+          id="${returnDomId(
+            orderId,
+            productName,
+            type
+          )}"
+        >
+
+          ${value}
+
+        </span>
+
+
+        <button
+          type="button"
+          onclick="changeReturnQuantity(
+            '${orderId}',
+            '${escapeJsString(productName)}',
+            '${type}',
+            1
+          )"
+        >
+          +
+        </button>
+
+      </div>
+
+    </div>
+
+  `;
+
+}
+
+
+
+/* ============================================================
+   DOM ID RETOUR
+============================================================ */
+
+function returnDomId(
+  orderId,
+  productName,
+  type
+) {
+
+  const safeProduct =
+    String(
+      productName
+      ||
+      ""
+    )
+      .replace(
+        /[^a-zA-Z0-9]/g,
+        "_"
+      );
+
+
+  return (
+
+    `return_${String(orderId).replace(/-/g,"_")}_${safeProduct}_${type}`
+
+  );
+
+}
+
+
+
+/* ============================================================
+   RETOUR +/- VERANDEREN
+============================================================ */
+
+function changeReturnQuantity(
+  orderId,
+  productName,
+  type,
+  amount
+) {
+
+  const order =
+    adminOrders.find(
+      item =>
+        item.id ===
+        orderId
+    );
+
+
+  if (
+    !order
+  ) {
+
+    return;
+
+  }
+
+
+  const item =
+    getAdminOrderItems(
+      orderId
+    )
+      .find(
+        row =>
+          row.product_naam ===
+          productName
+
+          &&
+
+          row.categorie ===
+          "evenement"
+      );
+
+
+  if (
+    !item
+  ) {
+
+    return;
+
+  }
+
+
+  const element =
+    document.getElementById(
+      returnDomId(
+        orderId,
+        productName,
+        type
+      )
+    );
+
+
+  if (
+    !element
+  ) {
+
+    return;
+
+  }
+
+
+  const current =
+    Number(
+      element.innerText
+      ||
+      0
+    );
+
+
+  const next =
+    Math.max(
+      0,
+      current + amount
+    );
+
+
+  const good =
+    type === "good"
+
+      ? next
+
+      : getReturnScreenValue(
+          orderId,
+          productName,
+          "good"
+        );
+
+
+  const damaged =
+    type === "damaged"
+
+      ? next
+
+      : getReturnScreenValue(
+          orderId,
+          productName,
+          "damaged"
+        );
+
+
+  const missing =
+    type === "missing"
+
+      ? next
+
+      : getReturnScreenValue(
+          orderId,
+          productName,
+          "missing"
+        );
+
+
+  const totalProcessed =
+    good
+    +
+    damaged
+    +
+    missing;
+
+
+  if (
+    totalProcessed >
+    Number(
+      item.aantal
+      ||
+      0
+    )
+  ) {
+
+    alert(
+
+      `Je kunt voor ${productName} niet meer registreren dan het uitgeleende aantal (${item.aantal}).`
+
+    );
+
+
+    return;
+
+  }
+
+
+  element.innerText =
+    next;
+
+
+  updateReturnCalculation(
+    orderId,
+    productName
+  );
+
+}
+
+
+
+/* ============================================================
+   RETOUR VALUE LEZEN
+============================================================ */
+
+function getReturnScreenValue(
+  orderId,
+  productName,
+  type
+) {
+
+  const element =
+    document.getElementById(
+      returnDomId(
+        orderId,
+        productName,
+        type
+      )
+    );
+
+
+  return Number(
+    element?.innerText
+    ||
+    0
+  );
+
+}
+
+
+
+/* ============================================================
+   NOG BUITEN BEREKENEN
+============================================================ */
+
+function updateReturnCalculation(
+  orderId,
+  productName
+) {
+
+  const item =
+    getAdminOrderItems(
+      orderId
+    )
+      .find(
+        row =>
+          row.product_naam ===
+          productName
+
+          &&
+
+          row.categorie ===
+          "evenement"
+      );
+
+
+  if (
+    !item
+  ) {
+
+    return;
+
+  }
+
+
+  const good =
+    getReturnScreenValue(
+      orderId,
+      productName,
+      "good"
+    );
+
+
+  const damaged =
+    getReturnScreenValue(
+      orderId,
+      productName,
+      "damaged"
+    );
+
+
+  const missing =
+    getReturnScreenValue(
+      orderId,
+      productName,
+      "missing"
+    );
+
+
+  const outside =
+
+    Math.max(
+
+      0,
+
+      Number(
+        item.aantal
+        ||
+        0
+      )
+
+      -
+
+      good
+
+      -
+
+      damaged
+
+      -
+
+      missing
+
+    );
+
+
+  const element =
+    document.getElementById(
+      returnDomId(
+        orderId,
+        productName,
+        "outside"
+      )
+    );
+
+
+  if (
+    element
+  ) {
+
+    element.innerText =
+      `Nog buiten: ${outside}`;
+
+
+    element.className =
+
+      outside === 0
+
+        ? "info ok"
+
+        : "info";
+
+  }
+
+}
+
+
+
+/* ============================================================
+   ALLE RETOURBEREKENINGEN
+============================================================ */
+
+function updateAllReturnCalculations(
+  orderId
+) {
+
+  getAdminOrderItems(
+    orderId
+  )
+
+    .filter(
+      item =>
+        item.categorie ===
+        "evenement"
+    )
+
+    .forEach(
+      item => {
+
+        updateReturnCalculation(
+          orderId,
+          item.product_naam
+        );
+
+      }
+    );
+
+}
+
+
+
+/* ============================================================
+   RETOUR OPSLAAN
+============================================================ */
+
+async function saveEventReturnRegistration(
+  orderId
+) {
+
+  const eventItems =
+    getAdminOrderItems(
+      orderId
+    )
+      .filter(
+        item =>
+          item.categorie ===
+          "evenement"
+      );
+
+
+  if (
+    !eventItems.length
+  ) {
+
+    return;
+
+  }
+
+
+  const returns =
+    eventItems.map(
+      item => {
+
+        const noteElement =
+          document.getElementById(
+            returnDomId(
+              orderId,
+              item.product_naam,
+              "note"
+            )
+          );
+
+
+        return {
+
+          product_naam:
+            item.product_naam,
+
+          goed_terug:
+            getReturnScreenValue(
+              orderId,
+              item.product_naam,
+              "good"
+            ),
+
+          beschadigd:
+            getReturnScreenValue(
+              orderId,
+              item.product_naam,
+              "damaged"
+            ),
+
+          ontbreekt:
+            getReturnScreenValue(
+              orderId,
+              item.product_naam,
+              "missing"
+            ),
+
+          opmerking:
+            noteElement?.value
+              ?.trim()
+            ||
+            ""
+
+        };
+
+      }
+    );
+
+
+  const {
+    error
+  } =
+    await supabaseClient
+
+      .rpc(
+        "save_event_material_returns",
+        {
+
+          p_order_id:
+            orderId,
+
+          p_returns:
+            returns
+
+        }
+      );
+
+
+  if (
+    error
+  ) {
+
+    alert(
+
+      "Retourregistratie kon niet worden opgeslagen: "
+
+      +
+
+      error.message
+
+    );
+
+
+    return;
+
+  }
+
+
+  await loadAdminDashboard();
+
+
+  const refreshedOrder =
+    adminOrders.find(
+      order =>
+        order.id ===
+        orderId
+    );
+
+
+  if (
+    refreshedOrder
+  ) {
+
+    selectedAdminOrder =
+      refreshedOrder;
+
+
+    renderAdminDetail(
+      refreshedOrder
+    );
+
+
+    showOnly(
+      "adminDetailScreen"
+    );
+
+  }
+
+
+  alert(
+    "Retourregistratie is opgeslagen."
+  );
+
+}
+
+
+
+/* ============================================================
+   RETOUR WISSEN
+============================================================ */
+
+async function resetEventReturnRegistration(
+  orderId
+) {
+
+  const confirmed =
+    window.confirm(
+
+      "Wil je de volledige retourregistratie voor dit evenement wissen?"
+
+    );
+
+
+  if (
+    !confirmed
+  ) {
+
+    return;
+
+  }
+
+
+  const {
+    error
+  } =
+    await supabaseClient
+
+      .rpc(
+        "reset_event_material_returns",
+        {
+
+          p_order_id:
+            orderId
+
+        }
+      );
+
+
+  if (
+    error
+  ) {
+
+    alert(
+      error.message
+    );
+
+
+    return;
+
+  }
+
+
+  await loadAdminDashboard();
+
+
+  const refreshedOrder =
+    adminOrders.find(
+      order =>
+        order.id ===
+        orderId
+    );
+
+
+  if (
+    refreshedOrder
+  ) {
+
+    selectedAdminOrder =
+      refreshedOrder;
+
+
+    renderAdminDetail(
+      refreshedOrder
+    );
+
+
+    showOnly(
+      "adminDetailScreen"
+    );
+
+  }
+
+
+  alert(
+    "Retourregistratie is gewist."
+  );
+
+}
+
+
+
+/* ============================================================
    STATUS TIMELINE
 ============================================================ */
 
@@ -3078,7 +4528,7 @@ function adminStatusTimeline(
         order.event_naam
 
           ? adminTimelineRow(
-              "Materiaal terug",
+              "Logistiek afgehandeld",
               order.event_returned_at,
               Boolean(
                 order.event_returned_at
@@ -3097,7 +4547,7 @@ function adminStatusTimeline(
 
 
 /* ============================================================
-   TIMELINE ROW
+   TIMELINE RIJ
 ============================================================ */
 
 function adminTimelineRow(
@@ -3168,7 +4618,7 @@ function adminTimelineRow(
 
 
 /* ============================================================
-   ACTION BUTTONS
+   STATUS BUTTONS
 ============================================================ */
 
 function adminActionButtons(
@@ -3189,6 +4639,17 @@ function adminActionButtons(
       >
 
         Voltooid · Klaar voor afhaling
+
+      </button>
+
+
+      <button
+        class="secondary"
+        type="button"
+        onclick="cancelAdminOrder()"
+      >
+
+        Aanvraag annuleren
 
       </button>
 
@@ -3219,6 +4680,46 @@ function adminActionButtons(
   }
 
 
+  if (
+    order.status ===
+    "afgehaald"
+
+    &&
+
+    !order.event_naam
+  ) {
+
+    return `
+
+      <div class="info ok">
+
+        Deze aanvraag is afgehandeld.
+
+      </div>
+
+    `;
+
+  }
+
+
+  if (
+    order.status ===
+    "geannuleerd"
+  ) {
+
+    return `
+
+      <div class="info error">
+
+        Deze aanvraag werd geannuleerd.
+
+      </div>
+
+    `;
+
+  }
+
+
   return "";
 
 }
@@ -3226,7 +4727,7 @@ function adminActionButtons(
 
 
 /* ============================================================
-   STATUS UPDATE
+   STATUS AANPASSEN
 ============================================================ */
 
 async function markAdminOrderCompleted() {
@@ -3238,7 +4739,6 @@ async function markAdminOrderCompleted() {
 }
 
 
-
 async function markAdminOrderCollected() {
 
   await updateSelectedAdminOrderStatus(
@@ -3248,6 +4748,43 @@ async function markAdminOrderCollected() {
 }
 
 
+async function cancelAdminOrder() {
+
+  if (
+    !selectedAdminOrder
+  ) {
+
+    return;
+
+  }
+
+
+  const confirmed =
+    window.confirm(
+      "Wil je deze aanvraag annuleren?"
+    );
+
+
+  if (
+    !confirmed
+  ) {
+
+    return;
+
+  }
+
+
+  await updateSelectedAdminOrderStatus(
+    "geannuleerd"
+  );
+
+}
+
+
+
+/* ============================================================
+   STATUS UPDATE
+============================================================ */
 
 async function updateSelectedAdminOrderStatus(
   status
@@ -3273,8 +4810,10 @@ async function updateSelectedAdminOrderStatus(
       )
 
       .update({
+
         status:
           status
+
       })
 
       .eq(
@@ -3311,6 +4850,8 @@ async function updateSelectedAdminOrderStatus(
   ) {
 
     alert(
+      "Status kon niet worden gewijzigd: "
+      +
       error.message
     );
 
@@ -3335,6 +4876,9 @@ async function updateSelectedAdminOrderStatus(
 
 
   renderAdminStatistics();
+
+
+  renderAdminSections();
 
 }
 
@@ -3361,9 +4905,13 @@ function fillReportYears() {
   }
 
 
-  const currentYear =
+  const current =
     new Date()
       .getFullYear();
+
+
+  const oldValue =
+    select.value;
 
 
   select.innerHTML =
@@ -3372,10 +4920,10 @@ function fillReportYears() {
 
   for (
     let year =
-      currentYear;
+      current;
 
     year >=
-    currentYear - 5;
+    current - 5;
 
     year--
   ) {
@@ -3400,6 +4948,16 @@ function fillReportYears() {
 
   }
 
+
+  if (
+    oldValue
+  ) {
+
+    select.value =
+      oldValue;
+
+  }
+
 }
 
 
@@ -3418,6 +4976,8 @@ function setCurrentReportMonth() {
 
   if (
     month
+    &&
+    !month.dataset.initialized
   ) {
 
     month.value =
@@ -3426,6 +4986,10 @@ function setCurrentReportMonth() {
       +
       1;
 
+
+    month.dataset.initialized =
+      "1";
+
   }
 
 }
@@ -3433,7 +4997,7 @@ function setCurrentReportMonth() {
 
 
 /* ============================================================
-   REPORT PERIOD
+   PERIODE SWITCH
 ============================================================ */
 
 function toggleReportPeriod() {
@@ -3471,22 +5035,28 @@ function toggleReportPeriod() {
 function getReportOrders() {
 
   const representative =
+
     document
       .getElementById(
         "reportRepresentative"
       )
       ?.value
+
     ||
+
     "";
 
 
   const type =
+
     document
       .getElementById(
         "reportPeriodType"
       )
       ?.value
+
     ||
+
     "month";
 
 
@@ -3513,10 +5083,6 @@ function getReportOrders() {
   return adminOrders.filter(
     order => {
 
-
-      /*
-        Alleen werkelijk afgehaald.
-      */
 
       if (
         order.status !==
@@ -3592,7 +5158,7 @@ function getReportOrders() {
 
 
 /* ============================================================
-   AGGREGATIE MATERIALEN
+   RAPPORT TOTALEN
 ============================================================ */
 
 function getReportMaterialTotals() {
@@ -3666,7 +5232,7 @@ function getReportMaterialTotals() {
 
 
 /* ============================================================
-   UPDATE REPORT
+   REPORT UPDATE
 ============================================================ */
 
 function updateAdminReport() {
@@ -3694,7 +5260,7 @@ function updateAdminReport() {
     getReportMaterialTotals();
 
 
-  const totalMaterials =
+  const totalProducts =
     Object.values(
       totals
     )
@@ -3703,9 +5269,8 @@ function updateAdminReport() {
           sum,
           amount
         ) =>
-          sum
-          +
-          amount,
+          sum + amount,
+
         0
       );
 
@@ -3728,7 +5293,7 @@ function updateAdminReport() {
 
       ${adminStatCard(
         "Materialen / producten",
-        totalMaterials
+        totalProducts
       )}
 
     </div>
@@ -3813,9 +5378,11 @@ function renderAdminReportChart(
                 item[0]
             ),
 
+
           datasets: [
 
             {
+
               label:
                 "Afgehaald aantal",
 
@@ -3824,6 +5391,7 @@ function renderAdminReportChart(
                   item =>
                     item[1]
                 )
+
             }
 
           ]
@@ -3842,20 +5410,26 @@ function renderAdminReportChart(
           indexAxis:
             "y",
 
+
           plugins: {
 
             legend: {
+
               display:
                 false
+
             }
 
           },
 
+
           scales: {
 
             x: {
+
               beginAtZero:
                 true
+
             }
 
           }
@@ -3930,6 +5504,70 @@ function exportAdminReportExcel() {
       items.forEach(
         item => {
 
+          const returnRow =
+            adminEventReturns.find(
+              row =>
+
+                row.order_id ===
+                order.id
+
+                &&
+
+                row.product_naam ===
+                item.product_naam
+            );
+
+
+          const loaned =
+            Number(
+              item.aantal
+              ||
+              0
+            );
+
+
+          const good =
+            Number(
+              returnRow?.goed_terug
+              ||
+              0
+            );
+
+
+          const damaged =
+            Number(
+              returnRow?.beschadigd
+              ||
+              0
+            );
+
+
+          const missing =
+            Number(
+              returnRow?.ontbreekt
+              ||
+              0
+            );
+
+
+          const outside =
+
+            order.event_naam
+
+              ? Math.max(
+                  0,
+                  loaned
+                  -
+                  good
+                  -
+                  damaged
+                  -
+                  missing
+                )
+
+              : "";
+
+
           rows.push({
 
             "Afhaaldatum":
@@ -3983,15 +5621,31 @@ function exportAdminReportExcel() {
               ||
               "",
 
-            "Aantal":
-              Number(
-                item.aantal
-                ||
-                0
-              ),
+            "Aantal uitgeleend / afgehaald":
+              loaned,
 
-            "Status":
-              "Afgehaald",
+            "Goed terug":
+              order.event_naam
+                ? good
+                : "",
+
+            "Beschadigd":
+              order.event_naam
+                ? damaged
+                : "",
+
+            "Ontbreekt":
+              order.event_naam
+                ? missing
+                : "",
+
+            "Nog buiten":
+              outside,
+
+            "Retour opmerking":
+              returnRow?.opmerking
+              ||
+              "",
 
             "Event vanaf":
               order.event_vanaf
@@ -4003,7 +5657,7 @@ function exportAdminReportExcel() {
               ||
               "",
 
-            "Materiaal terug":
+            "Logistiek afgehandeld":
               order.event_returned_at
 
                 ? formatExcelDate(
@@ -4032,19 +5686,39 @@ function exportAdminReportExcel() {
     "!cols"
   ] = [
 
-    { wch: 16 },
-    { wch: 22 },
-    { wch: 32 },
-    { wch: 15 },
-    { wch: 30 },
-    { wch: 20 },
-    { wch: 32 },
-    { wch: 16 },
-    { wch: 10 },
-    { wch: 14 },
-    { wch: 14 },
-    { wch: 14 },
-    { wch: 20 }
+    { wch:18 },
+
+    { wch:24 },
+
+    { wch:32 },
+
+    { wch:15 },
+
+    { wch:30 },
+
+    { wch:20 },
+
+    { wch:30 },
+
+    { wch:18 },
+
+    { wch:18 },
+
+    { wch:12 },
+
+    { wch:12 },
+
+    { wch:12 },
+
+    { wch:12 },
+
+    { wch:35 },
+
+    { wch:14 },
+
+    { wch:14 },
+
+    { wch:20 }
 
   ];
 
@@ -4061,10 +5735,6 @@ function exportAdminReportExcel() {
       "Afgehaald"
     );
 
-
-  /*
-    Extra samenvattingssheet.
-  */
 
   const totals =
     getReportMaterialTotals();
@@ -4111,6 +5781,109 @@ function exportAdminReportExcel() {
       summarySheet,
       "Samenvatting"
     );
+
+
+  const problemRows =
+    adminEventReturns
+
+      .filter(
+        item =>
+
+          Number(
+            item.beschadigd
+            ||
+            0
+          )
+          >
+          0
+
+          ||
+
+          Number(
+            item.ontbreekt
+            ||
+            0
+          )
+          >
+          0
+      )
+
+      .map(
+        item => {
+
+          const order =
+            adminOrders.find(
+              order =>
+                order.id ===
+                item.order_id
+            );
+
+
+          const profile =
+            order
+              ? getAdminProfile(
+                  order.user_id
+                )
+              : null;
+
+
+          return {
+
+            "Evenement":
+              order?.event_naam
+              ||
+              "",
+
+            "Vertegenwoordiger":
+              profile?.naam
+              ||
+              "",
+
+            "Materiaal":
+              item.product_naam,
+
+            "Uitgeleend":
+              item.uitgeleend_aantal,
+
+            "Goed terug":
+              item.goed_terug,
+
+            "Beschadigd":
+              item.beschadigd,
+
+            "Ontbreekt":
+              item.ontbreekt,
+
+            "Opmerking":
+              item.opmerking
+              ||
+              ""
+
+          };
+
+        }
+      );
+
+
+  if (
+    problemRows.length
+  ) {
+
+    const problemSheet =
+      XLSX.utils
+        .json_to_sheet(
+          problemRows
+        );
+
+
+    XLSX.utils
+      .book_append_sheet(
+        workbook,
+        problemSheet,
+        "Schade & ontbreekt"
+      );
+
+  }
 
 
   const representativeId =
@@ -4168,7 +5941,13 @@ function exportAdminReportExcel() {
   ) {
 
     filename +=
-      `_${String(month).padStart(2,"0")}`;
+
+      `_${String(
+        month
+      ).padStart(
+        2,
+        "0"
+      )}`;
 
   }
 
@@ -4187,7 +5966,7 @@ function exportAdminReportExcel() {
 
 
 /* ============================================================
-   EXCEL HELPERS
+   EXCEL DATE
 ============================================================ */
 
 function formatExcelDate(
@@ -4213,6 +5992,10 @@ function formatExcelDate(
 }
 
 
+
+/* ============================================================
+   VEILIGE BESTANDSNAAM
+============================================================ */
 
 function safeFilename(
   value
@@ -4251,7 +6034,7 @@ function getAdminOrderItems(
 
 
 /* ============================================================
-   UPDATE LOCAL
+   LOCAL ORDER UPDATE
 ============================================================ */
 
 function updateLocalAdminOrder(
@@ -4340,7 +6123,7 @@ function adminStatusClass(
 
 
 /* ============================================================
-   DATE
+   DATUM
 ============================================================ */
 
 function adminFormatDateTime(
@@ -4356,29 +6139,79 @@ function adminFormatDateTime(
   }
 
 
-  return new Date(
-    date
+  try {
+
+    return new Date(
+      date
+    )
+      .toLocaleString(
+        "nl-BE",
+        {
+
+          day:
+            "2-digit",
+
+          month:
+            "2-digit",
+
+          year:
+            "numeric",
+
+          hour:
+            "2-digit",
+
+          minute:
+            "2-digit"
+
+        }
+      );
+
+  }
+
+  catch {
+
+    return String(
+      date
+    );
+
+  }
+
+}
+
+
+
+/* ============================================================
+   JS STRING ESCAPE
+============================================================ */
+
+function escapeJsString(
+  value
+) {
+
+  return String(
+    value
+    ||
+    ""
   )
-    .toLocaleString(
-      "nl-BE",
-      {
 
-        day:
-          "2-digit",
+    .replaceAll(
+      "\\",
+      "\\\\"
+    )
 
-        month:
-          "2-digit",
+    .replaceAll(
+      "'",
+      "\\'"
+    )
 
-        year:
-          "numeric",
+    .replaceAll(
+      "\n",
+      " "
+    )
 
-        hour:
-          "2-digit",
-
-        minute:
-          "2-digit"
-
-      }
+    .replaceAll(
+      "\r",
+      " "
     );
 
 }
@@ -4386,7 +6219,7 @@ function adminFormatDateTime(
 
 
 /* ============================================================
-   ESCAPE HTML
+   HTML ESCAPE
 ============================================================ */
 
 function adminEscapeHtml(
@@ -4429,7 +6262,7 @@ function adminEscapeHtml(
 
 
 /* ============================================================
-   AUTOMATISCH STARTEN
+   AUTO START
 ============================================================ */
 
 document.addEventListener(
