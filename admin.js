@@ -5942,6 +5942,12 @@ function adminReadableError(
 
 }
 
+/* ============================================================
+   ADMIN GLOBAAL BESCHIKBAAR MAKEN
+============================================================ */
+
+window.openAdminDashboard =
+  openAdminDashboard;
 
 /* ============================================================
    AUTO START
