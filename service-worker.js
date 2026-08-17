@@ -1,5 +1,5 @@
 const CACHE_NAME =
-  "achel-pos-v15";
+  "achel-pos-v16";
 
 
 const STATIC_FILES = [
