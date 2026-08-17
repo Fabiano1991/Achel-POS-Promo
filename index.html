@@ -2795,37 +2795,28 @@ function menuLogout() {
    ADMIN MENU
 ================================ */
 
-async function openAdminFromMenu() {
+/* ===============================
+   ADMIN DASHBOARD
+================================ */
+
+async function openAdminDashboard() {
 
   closeMenu();
 
+  if (typeof window.renderAdminDashboard !== "function") {
 
-  if (
-    typeof initAdminModule ===
-    "function"
-  ) {
-
-    await initAdminModule();
-
-  }
-
-
-  if (
-    typeof openAdminDashboard ===
-    "function"
-  ) {
-
-    await openAdminDashboard();
-
-  }
-
-  else {
-
-    alert(
-      "Het beheerdersdashboard kon niet worden geladen."
+    console.error(
+      "renderAdminDashboard is niet beschikbaar in admin.js"
     );
 
+    alert(
+      "Het beheerdersdashboard kon niet worden gestart."
+    );
+
+    return;
   }
+
+  await window.renderAdminDashboard();
 
 }
 
