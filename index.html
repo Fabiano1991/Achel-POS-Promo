@@ -2795,28 +2795,32 @@ function menuLogout() {
    ADMIN MENU
 ================================ */
 
-/* ===============================
-   ADMIN DASHBOARD
-================================ */
-
-async function openAdminDashboard() {
+function openAdminFromMenu() {
 
   closeMenu();
 
-  if (typeof window.renderAdminDashboard !== "function") {
+
+  if (
+    typeof window.openAdminDashboard !==
+    "function"
+  ) {
 
     console.error(
-      "renderAdminDashboard is niet beschikbaar in admin.js"
+      "openAdminDashboard is niet beschikbaar in admin.js"
     );
+
 
     alert(
       "Het beheerdersdashboard kon niet worden gestart."
     );
 
+
     return;
+
   }
 
-  await window.renderAdminDashboard();
+
+  window.openAdminDashboard();
 
 }
 
@@ -5719,7 +5723,7 @@ checkExistingSession();
 </script>
 
 
-<script src="./admin.js"></script>
+<script src="./admin.js?v=21"></script>
 
 <script src="./wholesale.js"></script>
 
