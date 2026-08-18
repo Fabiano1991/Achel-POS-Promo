@@ -3245,7 +3245,49 @@ function backToAdminDashboard() {
 
 
   renderAdminStatistics();
+function adminStatCard(
+  label,
+  value
+) {
 
+  return `
+
+    <div
+      style="
+        background:#2f3830;
+        border:1px solid #444d45;
+        border-radius:14px;
+        padding:14px;
+      "
+    >
+
+      <div
+        style="
+          font-size:26px;
+          font-weight:900;
+          color:#d8b66a;
+        "
+      >
+        ${value}
+      </div>
+
+
+      <div
+        style="
+          font-size:11px;
+          color:#b6beb7;
+          margin-top:4px;
+        "
+      >
+        ${label}
+      </div>
+
+    </div>
+
+  `;
+
+}
+   
   renderAdminSections();
 
 }
