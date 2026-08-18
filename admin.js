@@ -95,7 +95,2028 @@ async function initAdminModule() {
 
 
     createAdminScreen();
+/* ============================================================
+   ADMIN DASHBOARD NAVIGATIE
+============================================================ */
 
+function switchAdminTab(
+  tab
+) {
+
+  const tabs = {
+
+    overview:
+      "adminPaneOverview",
+
+    requests:
+      "adminPaneRequests",
+
+    material:
+      "adminPaneMaterial",
+
+    reports:
+      "adminPaneReports"
+
+  };
+
+
+  const buttons = {
+
+    overview:
+      "adminTabOverview",
+
+    requests:
+      "adminTabRequests",
+
+    material:
+      "adminTabMaterial",
+
+    reports:
+      "adminTabReports"
+
+  };
+
+
+  Object
+    .values(
+      tabs
+    )
+    .forEach(
+      id => {
+
+        document
+          .getElementById(
+            id
+          )
+          ?.classList
+          .add(
+            "hidden"
+          );
+
+      }
+    );
+
+
+  Object
+    .values(
+      buttons
+    )
+    .forEach(
+      id => {
+
+        document
+          .getElementById(
+            id
+          )
+          ?.classList
+          .remove(
+            "active"
+          );
+
+      }
+    );
+
+
+  document
+    .getElementById(
+      tabs[
+        tab
+      ]
+    )
+    ?.classList
+    .remove(
+      "hidden"
+    );
+
+
+  document
+    .getElementById(
+      buttons[
+        tab
+      ]
+    )
+    ?.classList
+    .add(
+      "active"
+    );
+
+
+  window.scrollTo({
+    top:
+      0,
+
+    behavior:
+      "smooth"
+  });
+
+}
+
+
+/* ============================================================
+   FILTERS OPEN / DICHT
+============================================================ */
+
+function toggleAdminFilters() {
+
+  document
+    .getElementById(
+      "adminFiltersPanel"
+    )
+    ?.classList
+    .toggle(
+      "hidden"
+    );
+
+}
+
+
+/* ============================================================
+   ARCHIEF OPENEN
+============================================================ */
+
+function openAdminArchive() {
+
+  setTimeout(
+    () => {
+
+      const panel =
+        document.getElementById(
+          "adminArchivePanel"
+        );
+
+
+      if (
+        panel
+      ) {
+
+        panel.open =
+          true;
+
+
+        panel.scrollIntoView({
+          behavior:
+            "smooth",
+
+          block:
+            "start"
+        });
+
+      }
+
+    },
+    100
+  );
+
+}
+
+
+/* ============================================================
+   ACTIEPANEEL
+============================================================ */
+
+function renderAdminAttentionPanel() {
+
+  const container =
+    document.getElementById(
+      "adminAttentionPanel"
+    );
+
+
+  if (!container) {
+
+    return;
+
+  }
+
+
+  const materialOutside =
+    getMaterialOutOrders()
+      .length;
+
+
+  const problems =
+    adminEventReturns
+      .filter(
+        item =>
+
+          Number(
+            item.beschadigd
+            ||
+            0
+          )
+          >
+          0
+
+          ||
+
+          Number(
+            item.ontbreekt
+            ||
+            0
+          )
+          >
+          0
+      )
+      .length;
+
+
+  const processing =
+    adminOrders
+      .filter(
+        order =>
+          order.status ===
+          "in_behandeling"
+      )
+      .length;
+
+
+  let html =
+    "";
+
+
+  if (
+    problems >
+    0
+  ) {
+
+    html += `
+
+      <button
+        class="admin-attention-card red"
+        type="button"
+        onclick="switchAdminTab('material')"
+      >
+
+        <div class="admin-attention-symbol">
+          !
+        </div>
+
+
+        <div>
+
+          <strong>
+            ${problems}
+            materiaalprobleem${problems === 1 ? "" : "en"}
+          </strong>
+
+          <span>
+            Beschadigd of ontbrekend materiaal
+          </span>
+
+        </div>
+
+
+        <div class="admin-card-arrow">
+          ›
+        </div>
+
+      </button>
+
+    `;
+
+  }
+
+
+  if (
+    materialOutside >
+    0
+  ) {
+
+    html += `
+
+      <button
+        class="admin-attention-card orange"
+        type="button"
+        onclick="switchAdminTab('material')"
+      >
+
+        <div class="admin-attention-symbol">
+          ↩
+        </div>
+
+
+        <div>
+
+          <strong>
+            ${materialOutside}
+            retour${materialOutside === 1 ? "" : "s"}
+            te verwerken
+          </strong>
+
+          <span>
+            Evenementmateriaal staat nog buiten
+          </span>
+
+        </div>
+
+
+        <div class="admin-card-arrow">
+          ›
+        </div>
+
+      </button>
+
+    `;
+
+  }
+
+
+  if (
+    processing >
+    0
+  ) {
+
+    html += `
+
+      <button
+        class="admin-attention-card yellow"
+        type="button"
+        onclick="switchAdminTab('requests')"
+      >
+
+        <div class="admin-attention-symbol">
+          •
+        </div>
+
+
+        <div>
+
+          <strong>
+            ${processing}
+            in behandeling
+          </strong>
+
+          <span>
+            Aanvragen wachten op verwerking
+          </span>
+
+        </div>
+
+
+        <div class="admin-card-arrow">
+          ›
+        </div>
+
+      </button>
+
+    `;
+
+  }
+
+
+  if (
+    !html
+  ) {
+
+    html = `
+
+      <div class="admin-all-clear">
+
+        <strong>
+          Alles onder controle
+        </strong>
+
+        <span>
+          Momenteel zijn er geen dringende acties.
+        </span>
+
+      </div>
+
+    `;
+
+  }
+
+
+  container.innerHTML =
+    html;
+
+}
+
+
+/* ============================================================
+   DASHBOARD STYLING
+============================================================ */
+
+function injectAdminDashboardStyles() {
+
+  if (
+    document.getElementById(
+      "achelAdminStyles"
+    )
+  ) {
+
+    return;
+
+  }
+
+
+  const style =
+    document.createElement(
+      "style"
+    );
+
+
+  style.id =
+    "achelAdminStyles";
+
+
+  style.innerHTML = `
+
+    /* =====================================
+       ADMIN BASIS
+    ====================================== */
+
+    #adminScreen.admin-shell {
+
+      margin:
+        -18px -16px -36px;
+
+      max-width:
+        none;
+
+      min-height:
+        100vh;
+
+      background:
+        #151c16;
+
+      color:
+        #f4f1e8;
+
+      padding-bottom:
+        30px;
+
+    }
+
+
+    .admin-topbar {
+
+      position:
+        relative;
+
+      min-height:
+        68px;
+
+      display:
+        flex;
+
+      justify-content:
+        center;
+
+      align-items:
+        center;
+
+      padding:
+        12px 54px;
+
+      background:
+        linear-gradient(
+          180deg,
+          #1d271f,
+          #182019
+        );
+
+      border-bottom:
+        1px solid
+        rgba(
+          255,
+          255,
+          255,
+          .06
+        );
+
+    }
+
+
+    .admin-topbar-title {
+
+      text-align:
+        center;
+
+    }
+
+
+    .admin-topbar-title strong {
+
+      display:
+        block;
+
+      color:
+        #ffffff;
+
+      font-size:
+        19px;
+
+      font-weight:
+        900;
+
+    }
+
+
+    .admin-topbar-title span {
+
+      display:
+        block;
+
+      margin-top:
+        2px;
+
+      font-size:
+        11px;
+
+      color:
+        #9ea69f;
+
+    }
+
+
+    .admin-refresh-button {
+
+      position:
+        absolute;
+
+      right:
+        12px;
+
+      top:
+        14px;
+
+      width:
+        40px;
+
+      height:
+        40px;
+
+      border:
+        1px solid
+        rgba(
+          255,
+          255,
+          255,
+          .1
+        );
+
+      border-radius:
+        12px;
+
+      background:
+        #293229;
+
+      color:
+        #d9bd7b;
+
+      font-size:
+        22px;
+
+      font-weight:
+        800;
+
+    }
+
+
+    /* =====================================
+       TABS
+    ====================================== */
+
+    .admin-tabs {
+
+      position:
+        sticky;
+
+      top:
+        calc(
+          64px +
+          env(safe-area-inset-top)
+        );
+
+      z-index:
+        30;
+
+      display:
+        grid;
+
+      grid-template-columns:
+        repeat(
+          4,
+          1fr
+        );
+
+      background:
+        #f5f2e9;
+
+      border-bottom:
+        1px solid
+        #cfc9ba;
+
+    }
+
+
+    .admin-tab {
+
+      position:
+        relative;
+
+      min-height:
+        48px;
+
+      padding:
+        0 4px;
+
+      border:
+        0;
+
+      background:
+        transparent;
+
+      color:
+        #242922;
+
+      font-size:
+        11px;
+
+      font-weight:
+        850;
+
+      text-transform:
+        uppercase;
+
+      letter-spacing:
+        .025em;
+
+    }
+
+
+    .admin-tab.active {
+
+      color:
+        #8c692f;
+
+    }
+
+
+    .admin-tab.active::after {
+
+      content:
+        "";
+
+      position:
+        absolute;
+
+      left:
+        10%;
+
+      right:
+        10%;
+
+      bottom:
+        0;
+
+      height:
+        3px;
+
+      border-radius:
+        3px 3px 0 0;
+
+      background:
+        #b4883c;
+
+    }
+
+
+    .admin-pane {
+
+      padding:
+        15px;
+
+    }
+
+
+    /* =====================================
+       KPI
+    ====================================== */
+
+    .admin-kpi-grid {
+
+      display:
+        grid;
+
+      grid-template-columns:
+        repeat(
+          2,
+          minmax(
+            0,
+            1fr
+          )
+        );
+
+      gap:
+        10px;
+
+    }
+
+
+    .admin-kpi {
+
+      position:
+        relative;
+
+      overflow:
+        hidden;
+
+      min-height:
+        92px;
+
+      padding:
+        14px;
+
+      border-radius:
+        15px;
+
+      background:
+        #303931;
+
+      box-shadow:
+        0 5px 18px
+        rgba(
+          0,
+          0,
+          0,
+          .22
+        );
+
+      border:
+        1px solid
+        rgba(
+          255,
+          255,
+          255,
+          .05
+        );
+
+    }
+
+
+    .admin-kpi::after {
+
+      content:
+        "";
+
+      position:
+        absolute;
+
+      left:
+        0;
+
+      right:
+        0;
+
+      bottom:
+        0;
+
+      height:
+        4px;
+
+      background:
+        var(
+          --kpi-color
+        );
+
+    }
+
+
+    .admin-kpi-number {
+
+      display:
+        block;
+
+      font-size:
+        29px;
+
+      font-weight:
+        950;
+
+      color:
+        var(
+          --kpi-color
+        );
+
+      line-height:
+        1;
+
+    }
+
+
+    .admin-kpi-label {
+
+      display:
+        block;
+
+      margin-top:
+        9px;
+
+      color:
+        #ffffff;
+
+      font-size:
+        13px;
+
+      font-weight:
+        700;
+
+    }
+
+
+    .admin-kpi.green {
+      --kpi-color:
+        #71b67a;
+    }
+
+
+    .admin-kpi.orange {
+      --kpi-color:
+        #e0a447;
+    }
+
+
+    .admin-kpi.gold {
+      --kpi-color:
+        #d4c09a;
+    }
+
+
+    .admin-kpi.red {
+      --kpi-color:
+        #df6a56;
+    }
+
+
+    /* =====================================
+       SECTIONS
+    ====================================== */
+
+    .admin-section {
+
+      margin-top:
+        22px;
+
+    }
+
+
+    .admin-section.compact {
+
+      margin-top:
+        15px;
+
+    }
+
+
+    .admin-section-heading {
+
+      display:
+        flex;
+
+      justify-content:
+        space-between;
+
+      align-items:
+        end;
+
+      gap:
+        12px;
+
+      margin-bottom:
+        9px;
+
+    }
+
+
+    .admin-section-heading h3,
+    .admin-page-heading h2 {
+
+      margin:
+        0;
+
+      color:
+        #f8f6ef;
+
+      font-size:
+        19px;
+
+      font-weight:
+        900;
+
+    }
+
+
+    .admin-eyebrow {
+
+      display:
+        block;
+
+      margin-bottom:
+        3px;
+
+      color:
+        #c6b17c;
+
+      font-size:
+        10px;
+
+      font-weight:
+        900;
+
+      text-transform:
+        uppercase;
+
+      letter-spacing:
+        .08em;
+
+    }
+
+
+    .admin-inline-link {
+
+      border:
+        0;
+
+      background:
+        transparent;
+
+      color:
+        #d1b56f;
+
+      font-size:
+        12px;
+
+      font-weight:
+        800;
+
+    }
+
+
+    /* =====================================
+       ACTION CARDS
+    ====================================== */
+
+    .admin-action-card {
+
+      width:
+        100%;
+
+      display:
+        grid;
+
+      grid-template-columns:
+        44px
+        1fr
+        auto
+        18px;
+
+      align-items:
+        center;
+
+      gap:
+        11px;
+
+      padding:
+        13px;
+
+      margin-bottom:
+        8px;
+
+      text-align:
+        left;
+
+      color:
+        #f7f5ee;
+
+      background:
+        #343d35;
+
+      border:
+        1px solid
+        rgba(
+          255,
+          255,
+          255,
+          .06
+        );
+
+      border-radius:
+        16px;
+
+      box-shadow:
+        0 6px 18px
+        rgba(
+          0,
+          0,
+          0,
+          .18
+        );
+
+    }
+
+
+    .admin-card-icon {
+
+      width:
+        42px;
+
+      height:
+        42px;
+
+      display:
+        grid;
+
+      place-items:
+        center;
+
+      border-radius:
+        11px;
+
+      background:
+        #1d271f;
+
+      color:
+        #d7ba70;
+
+      font-size:
+        20px;
+
+      font-weight:
+        900;
+
+    }
+
+
+    .admin-card-main {
+
+      min-width:
+        0;
+
+    }
+
+
+    .admin-card-main strong {
+
+      display:
+        block;
+
+      color:
+        #ffffff;
+
+      font-size:
+        16px;
+
+      font-weight:
+        900;
+
+    }
+
+
+    .admin-card-main > span {
+
+      display:
+        block;
+
+      margin-top:
+        3px;
+
+      color:
+        #adb5ae;
+
+      font-size:
+        11px;
+
+    }
+
+
+    .admin-card-arrow {
+
+      color:
+        #cdb77d;
+
+      font-size:
+        25px;
+
+      font-weight:
+        400;
+
+    }
+
+
+    .admin-side-count {
+
+      min-width:
+        30px;
+
+      padding:
+        5px 9px;
+
+      text-align:
+        center;
+
+      border-radius:
+        999px;
+
+      background:
+        #d1b777;
+
+      color:
+        #252b25;
+
+      font-weight:
+        900;
+
+      font-size:
+        12px;
+
+    }
+
+
+    /* =====================================
+       MINI BADGES
+    ====================================== */
+
+    .admin-mini-badges {
+
+      display:
+        flex;
+
+      flex-wrap:
+        wrap;
+
+      gap:
+        5px;
+
+      margin-top:
+        6px;
+
+    }
+
+
+    .admin-mini-badge {
+
+      display:
+        inline-flex;
+
+      align-items:
+        center;
+
+      gap:
+        5px;
+
+      padding:
+        4px 7px;
+
+      border-radius:
+        999px;
+
+      font-size:
+        10px;
+
+      font-weight:
+        800;
+
+    }
+
+
+    .admin-mini-badge b {
+
+      font-size:
+        11px;
+
+    }
+
+
+    .admin-mini-badge.green {
+
+      background:
+        #dff0e1;
+
+      color:
+        #367243;
+
+    }
+
+
+    .admin-mini-badge.orange {
+
+      background:
+        #f6e4c6;
+
+      color:
+        #9a611e;
+
+    }
+
+
+    .admin-mini-badge.red {
+
+      background:
+        #f5d6d1;
+
+      color:
+        #a44437;
+
+    }
+
+
+    .admin-mini-badge.purple {
+
+      background:
+        #e7ddf1;
+
+      color:
+        #6f4c8b;
+
+    }
+
+
+    /* =====================================
+       ATTENTION
+    ====================================== */
+
+    .admin-attention-grid {
+
+      display:
+        grid;
+
+      gap:
+        7px;
+
+    }
+
+
+    .admin-attention-card {
+
+      width:
+        100%;
+
+      display:
+        grid;
+
+      grid-template-columns:
+        36px 1fr 18px;
+
+      align-items:
+        center;
+
+      gap:
+        10px;
+
+      padding:
+        11px;
+
+      border:
+        0;
+
+      border-radius:
+        14px;
+
+      text-align:
+        left;
+
+    }
+
+
+    .admin-attention-card strong {
+
+      display:
+        block;
+
+      font-size:
+        13px;
+
+      font-weight:
+        900;
+
+    }
+
+
+    .admin-attention-card span {
+
+      display:
+        block;
+
+      margin-top:
+        2px;
+
+      font-size:
+        10px;
+
+      opacity:
+        .78;
+
+    }
+
+
+    .admin-attention-symbol {
+
+      width:
+        34px;
+
+      height:
+        34px;
+
+      display:
+        grid;
+
+      place-items:
+        center;
+
+      border-radius:
+        10px;
+
+      font-size:
+        18px;
+
+      font-weight:
+        950;
+
+      background:
+        rgba(
+          255,
+          255,
+          255,
+          .25
+        );
+
+    }
+
+
+    .admin-attention-card.red {
+
+      background:
+        #e06654;
+
+      color:
+        #fff;
+
+    }
+
+
+    .admin-attention-card.orange {
+
+      background:
+        #d99a3e;
+
+      color:
+        #2f2516;
+
+    }
+
+
+    .admin-attention-card.yellow {
+
+      background:
+        #d8c38f;
+
+      color:
+        #312b20;
+
+    }
+
+
+    .admin-all-clear {
+
+      padding:
+        12px;
+
+      border-radius:
+        14px;
+
+      background:
+        #2c4632;
+
+      color:
+        #d9f0dd;
+
+    }
+
+
+    .admin-all-clear strong {
+
+      display:
+        block;
+
+      font-size:
+        13px;
+
+    }
+
+
+    .admin-all-clear span {
+
+      display:
+        block;
+
+      margin-top:
+        3px;
+
+      font-size:
+        10px;
+
+      opacity:
+        .8;
+
+    }
+
+
+    /* =====================================
+       PAGE HEADING
+    ====================================== */
+
+    .admin-page-heading {
+
+      margin:
+        3px 0 13px;
+
+    }
+
+
+    /* =====================================
+       SEARCH & FILTER
+    ====================================== */
+
+    .admin-search-row {
+
+      display:
+        grid;
+
+      grid-template-columns:
+        1fr 46px;
+
+      gap:
+        8px;
+
+      margin-bottom:
+        10px;
+
+    }
+
+
+    .admin-search {
+
+      min-height:
+        46px !important;
+
+      border:
+        1px solid
+        #485149 !important;
+
+      background:
+        #303930 !important;
+
+      color:
+        white !important;
+
+      border-radius:
+        999px !important;
+
+    }
+
+
+    .admin-search::placeholder {
+
+      color:
+        #9da59e;
+
+    }
+
+
+    .admin-filter-button {
+
+      width:
+        46px;
+
+      height:
+        46px;
+
+      border:
+        1px solid
+        #485149;
+
+      border-radius:
+        50%;
+
+      background:
+        #303930;
+
+      color:
+        #d3b46d;
+
+      font-size:
+        18px;
+
+    }
+
+
+    .admin-filter-panel {
+
+      margin-bottom:
+        10px;
+
+      padding:
+        12px;
+
+      border-radius:
+        14px;
+
+      background:
+        #2a322b;
+
+      border:
+        1px solid
+        #414941;
+
+    }
+
+
+    .admin-filter-grid {
+
+      display:
+        grid;
+
+      grid-template-columns:
+        1fr 1fr;
+
+      gap:
+        9px;
+
+    }
+
+
+    .admin-filter-panel label,
+    .admin-report-panel label {
+
+      color:
+        #b8c0b9;
+
+      font-size:
+        10px;
+
+      margin:
+        8px 0 5px;
+
+    }
+
+
+    .admin-filter-panel select,
+    .admin-report-panel select {
+
+      min-height:
+        43px;
+
+      border-color:
+        #4a534b;
+
+      background:
+        #202721;
+
+      color:
+        #fff;
+
+    }
+
+
+    /* =====================================
+       LIST PANELS
+    ====================================== */
+
+    .admin-list-panel {
+
+      overflow:
+        hidden;
+
+      margin-bottom:
+        8px;
+
+      border:
+        1px solid
+        #414a42;
+
+      border-radius:
+        15px;
+
+      background:
+        #2d352e;
+
+    }
+
+
+    .admin-list-panel > summary {
+
+      list-style:
+        none;
+
+      min-height:
+        54px;
+
+      display:
+        flex;
+
+      align-items:
+        center;
+
+      justify-content:
+        space-between;
+
+      padding:
+        0 13px;
+
+      color:
+        #fff;
+
+      font-size:
+        14px;
+
+      font-weight:
+        850;
+
+    }
+
+
+    .admin-list-panel > summary::-webkit-details-marker {
+
+      display:
+        none;
+
+    }
+
+
+    .admin-list-panel > summary > div {
+
+      display:
+        flex;
+
+      align-items:
+        center;
+
+      gap:
+        8px;
+
+    }
+
+
+    .admin-list-content {
+
+      padding:
+        4px 10px 10px;
+
+      border-top:
+        1px solid
+        #424b43;
+
+      background:
+        #202721;
+
+    }
+
+
+    .admin-dot {
+
+      width:
+        9px;
+
+      height:
+        9px;
+
+      border-radius:
+        50%;
+
+    }
+
+
+    .admin-dot.green {
+      background:
+        #70b77b;
+    }
+
+
+    .admin-dot.orange {
+      background:
+        #dfa047;
+    }
+
+
+    .admin-dot.purple {
+      background:
+        #a77ac5;
+    }
+
+
+    .admin-dot.grey {
+      background:
+        #a2aaa3;
+    }
+
+
+    .admin-count {
+
+      min-width:
+        30px;
+
+      padding:
+        4px 8px;
+
+      text-align:
+        center;
+
+      border-radius:
+        999px;
+
+      font-size:
+        11px;
+
+      font-weight:
+        900;
+
+    }
+
+
+    .admin-count.green {
+
+      background:
+        #dff0e1;
+
+      color:
+        #387443;
+
+    }
+
+
+    .admin-count.orange {
+
+      background:
+        #f4dfbf;
+
+      color:
+        #99601c;
+
+    }
+
+
+    .admin-count.purple {
+
+      background:
+        #e7daf0;
+
+      color:
+        #704e89;
+
+    }
+
+
+    .admin-count.grey {
+
+      background:
+        #dfe1dc;
+
+      color:
+        #565d57;
+
+    }
+
+
+    /* =====================================
+       MATERIAL
+    ====================================== */
+
+    .admin-material-summary {
+
+      display:
+        grid;
+
+      grid-template-columns:
+        1fr 1fr;
+
+      gap:
+        8px;
+
+      margin-bottom:
+        15px;
+
+    }
+
+
+    .admin-material-summary-card {
+
+      padding:
+        12px;
+
+      border-radius:
+        14px;
+
+    }
+
+
+    .admin-material-summary-card span {
+
+      display:
+        block;
+
+      font-size:
+        10px;
+
+      font-weight:
+        800;
+
+    }
+
+
+    .admin-material-summary-card strong {
+
+      display:
+        block;
+
+      margin-top:
+        5px;
+
+      font-size:
+        25px;
+
+      font-weight:
+        950;
+
+    }
+
+
+    .admin-material-summary-card.orange {
+
+      background:
+        #e0a045;
+
+      color:
+        #322716;
+
+    }
+
+
+    .admin-material-summary-card.red {
+
+      background:
+        #db6655;
+
+      color:
+        #fff;
+
+    }
+
+
+    /* =====================================
+       REPORT
+    ====================================== */
+
+    .admin-report-panel {
+
+      padding:
+        14px;
+
+      border-radius:
+        16px;
+
+      background:
+        #2e372f;
+
+      border:
+        1px solid
+        #424b43;
+
+    }
+
+
+    .admin-chart-box {
+
+      position:
+        relative;
+
+      min-height:
+        300px;
+
+      margin-top:
+        15px;
+
+      padding:
+        8px;
+
+      border-radius:
+        12px;
+
+      background:
+        #f4f1e8;
+
+    }
+
+
+    .admin-export-button {
+
+      width:
+        100%;
+
+      min-height:
+        48px;
+
+      margin-top:
+        13px;
+
+      border:
+        0;
+
+      border-radius:
+        13px;
+
+      background:
+        #b48a42;
+
+      color:
+        #fff;
+
+      font-weight:
+        900;
+
+    }
+
+
+    /* =====================================
+       OUDE KAARTEN IN NIEUWE DARK UI
+    ====================================== */
+
+    #adminScreen
+    .admin-list-content
+    button {
+
+      box-shadow:
+        none !important;
+
+    }
+
+
+    #adminScreen
+    .admin-list-content
+    .order-meta {
+
+      color:
+        #737b74;
+
+    }
+
+
+    #adminScreen
+    .admin-list-content
+    .empty {
+
+      color:
+        #a3aba4;
+
+    }
+
+
+    /* =====================================
+       MOBILE
+    ====================================== */
+
+    @media (
+      max-width:
+      390px
+    ) {
+
+      .admin-tab {
+
+        font-size:
+          10px;
+
+      }
+
+
+      .admin-pane {
+
+        padding:
+          12px;
+
+      }
+
+
+      .admin-filter-grid {
+
+        grid-template-columns:
+          1fr;
+
+      }
+
+    }
+
+  `;
+
+
+  document
+    .head
+    .appendChild(
+      style
+    );
+
+}
+     
   }
 
   catch (error) {
@@ -1655,34 +3676,38 @@ function renderAdminStatistics() {
 
 
   if (!container) {
-
     return;
-
   }
 
 
   const nieuw =
-    adminOrders.filter(
-      order =>
-        order.status ===
-        "nieuw"
-    ).length;
+    adminOrders
+      .filter(
+        order =>
+          order.status ===
+          "nieuw"
+      )
+      .length;
 
 
   const processing =
-    adminOrders.filter(
-      order =>
-        order.status ===
-        "in_behandeling"
-    ).length;
+    adminOrders
+      .filter(
+        order =>
+          order.status ===
+          "in_behandeling"
+      )
+      .length;
 
 
   const ready =
-    adminOrders.filter(
-      order =>
-        order.status ===
-        "klaar"
-    ).length;
+    adminOrders
+      .filter(
+        order =>
+          order.status ===
+          "klaar"
+      )
+      .length;
 
 
   const outside =
@@ -1690,77 +3715,113 @@ function renderAdminStatistics() {
       .length;
 
 
-  container.innerHTML =
+  container.innerHTML = `
 
-    adminStatCard(
-      "Nieuw",
-      nieuw
-    )
+    <button
+      class="admin-kpi green"
+      type="button"
+      onclick="setAdminStatusAndOpen('nieuw')"
+    >
 
-    +
+      <span class="admin-kpi-number">
+        ${nieuw}
+      </span>
 
-    adminStatCard(
-      "In behandeling",
-      processing
-    )
+      <span class="admin-kpi-label">
+        Nieuw
+      </span>
 
-    +
+    </button>
 
-    adminStatCard(
-      "Klaar",
-      ready
-    )
 
-    +
+    <button
+      class="admin-kpi orange"
+      type="button"
+      onclick="setAdminStatusAndOpen('in_behandeling')"
+    >
 
-    adminStatCard(
-      "Materiaal buiten",
-      outside
-    );
+      <span class="admin-kpi-number">
+        ${processing}
+      </span>
+
+      <span class="admin-kpi-label">
+        In behandeling
+      </span>
+
+    </button>
+
+
+    <button
+      class="admin-kpi red"
+      type="button"
+      onclick="switchAdminTab('material')"
+    >
+
+      <span class="admin-kpi-number">
+        ${outside}
+      </span>
+
+      <span class="admin-kpi-label">
+        Materiaal buiten
+      </span>
+
+    </button>
+
+
+    <button
+      class="admin-kpi gold"
+      type="button"
+      onclick="setAdminStatusAndOpen('klaar')"
+    >
+
+      <span class="admin-kpi-number">
+        ${ready}
+      </span>
+
+      <span class="admin-kpi-label">
+        Klaar
+      </span>
+
+    </button>
+
+  `;
+
+
+  renderAdminAttentionPanel();
 
 }
 
 
-function adminStatCard(
-  label,
-  number
+/* ============================================================
+   KPI → FILTER
+============================================================ */
+
+function setAdminStatusAndOpen(
+  status
 ) {
 
-  return `
-
-    <div
-      style="
-        background:var(--surface-soft);
-        border:1px solid var(--border);
-        border-radius:14px;
-        padding:15px;
-      "
-    >
-
-      <div
-        style="
-          font-size:28px;
-          font-weight:900;
-          color:var(--gold);
-        "
-      >
-        ${number}
-      </div>
+  switchAdminTab(
+    "requests"
+  );
 
 
-      <div
-        style="
-          font-size:12px;
-          color:var(--muted);
-          margin-top:4px;
-        "
-      >
-        ${label}
-      </div>
+  const select =
+    document.getElementById(
+      "adminStatusFilter"
+    );
 
-    </div>
 
-  `;
+  if (
+    select
+  ) {
+
+    select.value =
+      status;
+
+  }
+
+
+  renderAdminSections();
 
 }
 
