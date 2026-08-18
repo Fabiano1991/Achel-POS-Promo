@@ -5684,35 +5684,121 @@ function escapeHtml(
 ================================ */
 
 if (
-  "serviceWorker"
-  in navigator
+  "serviceWorker" in navigator
 ) {
 
   window.addEventListener(
     "load",
-    () => {
+    async () => {
 
-      navigator
-        .serviceWorker
-        .register(
-          "./service-worker.js"
-        )
-        .catch(
-          error => {
+      try {
 
-            console.log(
-              "Service worker fout:",
-              error
+        const registration =
+          await navigator
+            .serviceWorker
+            .register(
+              "./service-worker.js",
+              {
+                updateViaCache:
+                  "none"
+              }
             );
 
-          }
+
+        /*
+          Meteen controleren of GitHub
+          een nieuwere worker heeft.
+        */
+
+        await registration.update();
+
+
+        /*
+          Ook wanneer de app al open staat,
+          controleren we regelmatig op updates.
+        */
+
+        setInterval(
+          () => {
+
+            registration
+              .update()
+              .catch(
+                error =>
+                  console.log(
+                    "Updatecontrole fout:",
+                    error
+                  )
+              );
+
+          },
+          60000
         );
+
+      }
+
+      catch (error) {
+
+        console.error(
+          "Service worker fout:",
+          error
+        );
+
+      }
 
     }
   );
 
+
+  /*
+    Zodra een nieuwe service worker
+    de app overneemt:
+    één automatische refresh.
+
+    sessionStorage voorkomt
+    een refresh-loop.
+  */
+
+  navigator
+    .serviceWorker
+    .addEventListener(
+      "controllerchange",
+      () => {
+
+        if (
+          sessionStorage.getItem(
+            "achel-sw-reloaded"
+          )
+        ) {
+
+          return;
+
+        }
+
+
+        sessionStorage.setItem(
+          "achel-sw-reloaded",
+          "1"
+        );
+
+
+        window.location.reload();
+
+      }
+    );
+
 }
 
+  window.addEventListener(
+  "pageshow",
+  () => {
+
+    sessionStorage.removeItem(
+      "achel-sw-reloaded"
+    );
+
+  }
+);
 
 /* ===============================
    START
