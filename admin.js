@@ -121,9 +121,7 @@ function createAdminScreen() {
       "adminScreen"
     )
   ) {
-
     return;
-
   }
 
 
@@ -134,10 +132,11 @@ function createAdminScreen() {
 
 
   if (!appMain) {
-
     return;
-
   }
+
+
+  injectAdminDashboardStyles();
 
 
   const section =
@@ -151,231 +150,765 @@ function createAdminScreen() {
 
 
   section.className =
-    "hidden";
+    "hidden admin-shell";
 
 
   section.innerHTML = `
 
-    <button
-      class="top-back"
-      type="button"
-      onclick="closeAdminDashboard()"
-    >
-      ← Terug
-    </button>
+    <!-- =========================
+         ADMIN TOP
+    ========================== -->
+
+    <div class="admin-topbar">
+
+      <div class="admin-topbar-title">
+
+        <strong>
+          Achel POS
+        </strong>
+
+        <span>
+          Beheerdersoverzicht
+        </span>
+
+      </div>
 
 
-    <div class="card">
-
-      <h2>
-        Beheerdersdashboard
-      </h2>
-
-      <p
-        style="
-          color:var(--muted);
-          margin-top:-5px;
-        "
+      <button
+        class="admin-refresh-button"
+        type="button"
+        onclick="loadAdminDashboard()"
+        aria-label="Dashboard vernieuwen"
       >
-        Centraal overzicht van aanvragen,
-        evenementen, materiaal en rapportering.
-      </p>
-
-      <div
-        id="adminStatistics"
-        style="
-          display:grid;
-          grid-template-columns:1fr 1fr;
-          gap:10px;
-          margin-top:15px;
-        "
-      ></div>
+        ↻
+      </button>
 
     </div>
 
 
-    <!-- FILTERS -->
+    <!-- =========================
+         NAVIGATIE
+    ========================== -->
 
-    <details
-      class="card dashboard-fold"
+    <div class="admin-tabs">
+
+      <button
+        id="adminTabOverview"
+        class="admin-tab active"
+        type="button"
+        onclick="switchAdminTab('overview')"
+      >
+        Overzicht
+      </button>
+
+
+      <button
+        id="adminTabRequests"
+        class="admin-tab"
+        type="button"
+        onclick="switchAdminTab('requests')"
+      >
+        Aanvragen
+      </button>
+
+
+      <button
+        id="adminTabMaterial"
+        class="admin-tab"
+        type="button"
+        onclick="switchAdminTab('material')"
+      >
+        Materiaal
+      </button>
+
+
+      <button
+        id="adminTabReports"
+        class="admin-tab"
+        type="button"
+        onclick="switchAdminTab('reports')"
+      >
+        Rapporten
+      </button>
+
+    </div>
+
+
+    <!-- =====================================================
+         TAB 1 - OVERZICHT
+    ====================================================== -->
+
+    <div
+      id="adminPaneOverview"
+      class="admin-pane"
     >
 
-      <summary>
+      <!-- KPI -->
 
-        <span>
-          Filters
-        </span>
+      <div
+        id="adminStatistics"
+        class="admin-kpi-grid"
+      ></div>
 
-      </summary>
+
+      <!-- ACTIE NODIG -->
+
+      <section class="admin-section">
+
+        <div class="admin-section-heading">
+
+          <div>
+
+            <span class="admin-eyebrow">
+              Prioriteit
+            </span>
+
+            <h3>
+              Actie nodig
+            </h3>
+
+          </div>
+
+        </div>
 
 
-      <div class="dashboard-fold-body">
+        <div
+          id="adminAttentionPanel"
+          class="admin-attention-grid"
+        ></div>
 
-        <label>
-          Vertegenwoordiger
-        </label>
+      </section>
 
-        <select
-          id="adminRepFilter"
-          onchange="renderAdminSections()"
+
+      <!-- AANVRAGEN -->
+
+      <section class="admin-section">
+
+        <div class="admin-section-heading">
+
+          <div>
+
+            <span class="admin-eyebrow">
+              Beheer aanvragen
+            </span>
+
+            <h3>
+              Aanvragen
+            </h3>
+
+          </div>
+
+
+          <button
+            class="admin-inline-link"
+            type="button"
+            onclick="switchAdminTab('requests')"
+          >
+            Bekijk alles ›
+          </button>
+
+        </div>
+
+
+        <button
+          class="admin-action-card requests"
+          type="button"
+          onclick="switchAdminTab('requests')"
         >
 
-          <option value="">
-            Alle vertegenwoordigers
-          </option>
-
-        </select>
+          <div class="admin-card-icon">
+            ▣
+          </div>
 
 
-        <label>
-          Status
-        </label>
+          <div class="admin-card-main">
 
-        <select
-          id="adminStatusFilter"
-          onchange="renderAdminSections()"
+            <strong>
+              Alle aanvragen
+            </strong>
+
+            <div class="admin-mini-badges">
+
+              <span class="admin-mini-badge green">
+
+                POS
+
+                <b id="overviewRegularCount">
+                  0
+                </b>
+
+              </span>
+
+
+              <span class="admin-mini-badge orange">
+
+                Event
+
+                <b id="overviewEventCount">
+                  0
+                </b>
+
+              </span>
+
+
+              <span class="admin-mini-badge purple">
+
+                Groothandel
+
+                <b id="overviewWholesaleCount">
+                  0
+                </b>
+
+              </span>
+
+            </div>
+
+          </div>
+
+
+          <div class="admin-card-arrow">
+            ›
+          </div>
+
+        </button>
+
+      </section>
+
+
+      <!-- MATERIAAL -->
+
+      <section class="admin-section">
+
+        <div class="admin-section-heading">
+
+          <div>
+
+            <span class="admin-eyebrow">
+              Logistiek
+            </span>
+
+            <h3>
+              Materiaalbeheer
+            </h3>
+
+          </div>
+
+
+          <button
+            class="admin-inline-link"
+            type="button"
+            onclick="switchAdminTab('material')"
+          >
+            Open ›
+          </button>
+
+        </div>
+
+
+        <button
+          class="admin-action-card material"
+          type="button"
+          onclick="switchAdminTab('material')"
         >
 
-          <option value="">
-            Alle statussen
-          </option>
-
-          <option value="nieuw">
-            Nieuw
-          </option>
-
-          <option value="in_behandeling">
-            In behandeling
-          </option>
-
-          <option value="klaar">
-            Klaar
-          </option>
-
-          <option value="afgehaald">
-            Afgehaald
-          </option>
-
-          <option value="geannuleerd">
-            Geannuleerd
-          </option>
-
-        </select>
+          <div class="admin-card-icon">
+            ◈
+          </div>
 
 
-        <label>
-          Zoeken
-        </label>
+          <div class="admin-card-main">
+
+            <strong>
+              Materiaal
+            </strong>
+
+
+            <div class="admin-mini-badges">
+
+              <span class="admin-mini-badge orange">
+
+                Buiten
+
+                <b id="overviewMaterialOutCount">
+                  0
+                </b>
+
+              </span>
+
+
+              <span class="admin-mini-badge red">
+
+                Schade / ontbreekt
+
+                <b id="overviewProblemsCount">
+                  0
+                </b>
+
+              </span>
+
+            </div>
+
+          </div>
+
+
+          <div class="admin-card-arrow">
+            ›
+          </div>
+
+        </button>
+
+      </section>
+
+
+      <!-- RAPPORTAGE -->
+
+      <section class="admin-section">
+
+        <div class="admin-section-heading">
+
+          <div>
+
+            <span class="admin-eyebrow">
+              Analyse
+            </span>
+
+            <h3>
+              Beheer
+            </h3>
+
+          </div>
+
+        </div>
+
+
+        <button
+          class="admin-action-card reports"
+          type="button"
+          onclick="switchAdminTab('reports')"
+        >
+
+          <div class="admin-card-icon">
+            ↗
+          </div>
+
+
+          <div class="admin-card-main">
+
+            <strong>
+              Rapportage
+            </strong>
+
+            <span>
+              Maand, jaar, vertegenwoordiger en Excel
+            </span>
+
+          </div>
+
+
+          <div class="admin-card-arrow">
+            ›
+          </div>
+
+        </button>
+
+
+        <button
+          class="admin-action-card archive"
+          type="button"
+          onclick="switchAdminTab('requests'); openAdminArchive();"
+        >
+
+          <div class="admin-card-icon">
+            ▤
+          </div>
+
+
+          <div class="admin-card-main">
+
+            <strong>
+              Archief
+            </strong>
+
+            <span>
+              Afgehandelde aanvragen
+            </span>
+
+          </div>
+
+
+          <div
+            id="overviewArchiveCount"
+            class="admin-side-count"
+          >
+            0
+          </div>
+
+
+          <div class="admin-card-arrow">
+            ›
+          </div>
+
+        </button>
+
+      </section>
+
+    </div>
+
+
+    <!-- =====================================================
+         TAB 2 - AANVRAGEN
+    ====================================================== -->
+
+    <div
+      id="adminPaneRequests"
+      class="admin-pane hidden"
+    >
+
+      <div class="admin-page-heading">
+
+        <div>
+
+          <span class="admin-eyebrow">
+            Operationeel
+          </span>
+
+          <h2>
+            Aanvragen
+          </h2>
+
+        </div>
+
+      </div>
+
+
+      <!-- ZOEKEN -->
+
+      <div class="admin-search-row">
 
         <input
           id="adminSearch"
+          class="admin-search"
           type="text"
-          placeholder="Referentie, evenement, gemeente..."
+          placeholder="Zoeken..."
           oninput="renderAdminSections()"
         >
 
+
+        <button
+          class="admin-filter-button"
+          type="button"
+          onclick="toggleAdminFilters()"
+        >
+          ☰
+        </button>
+
       </div>
 
-    </details>
+
+      <div
+        id="adminFiltersPanel"
+        class="admin-filter-panel hidden"
+      >
+
+        <div class="admin-filter-grid">
+
+          <div>
+
+            <label>
+              Vertegenwoordiger
+            </label>
+
+            <select
+              id="adminRepFilter"
+              onchange="renderAdminSections()"
+            >
+
+              <option value="">
+                Alle vertegenwoordigers
+              </option>
+
+            </select>
+
+          </div>
 
 
-    <!-- ACTIEVE POS / BIER -->
+          <div>
 
-    <details
-      class="card dashboard-fold"
-    >
+            <label>
+              Status
+            </label>
 
-      <summary>
+            <select
+              id="adminStatusFilter"
+              onchange="renderAdminSections()"
+            >
 
-        <span>
-          Actieve POS & bier aanvragen
-        </span>
+              <option value="">
+                Alle statussen
+              </option>
 
-        <span
-          id="adminRegularCount"
-          class="dashboard-count"
-        >
-          0
-        </span>
+              <option value="nieuw">
+                Nieuw
+              </option>
 
-      </summary>
+              <option value="in_behandeling">
+                In behandeling
+              </option>
 
+              <option value="klaar">
+                Klaar
+              </option>
 
-      <div class="dashboard-fold-body">
+              <option value="afgehaald">
+                Afgehaald
+              </option>
 
-        <div id="adminRegularOrdersList">
+              <option value="geannuleerd">
+                Geannuleerd
+              </option>
 
-          <div class="empty">
-            Laden...
+            </select>
+
           </div>
 
         </div>
 
       </div>
 
-    </details>
+
+      <!-- POS / BIER -->
+
+      <details
+        class="admin-list-panel"
+        open
+      >
+
+        <summary>
+
+          <div>
+
+            <span class="admin-dot green"></span>
+
+            POS & bier
+
+          </div>
 
 
-    <!-- ACTIEVE EVENEMENTEN -->
+          <span
+            id="adminRegularCount"
+            class="admin-count green"
+          >
+            0
+          </span>
 
-    <details
-      class="card dashboard-fold"
+        </summary>
+
+
+        <div class="admin-list-content">
+
+          <div id="adminRegularOrdersList">
+
+            <div class="empty">
+              Laden...
+            </div>
+
+          </div>
+
+        </div>
+
+      </details>
+
+
+      <!-- EVENT -->
+
+      <details class="admin-list-panel">
+
+        <summary>
+
+          <div>
+
+            <span class="admin-dot orange"></span>
+
+            Evenementen
+
+          </div>
+
+
+          <span
+            id="adminEventCount"
+            class="admin-count orange"
+          >
+            0
+          </span>
+
+        </summary>
+
+
+        <div class="admin-list-content">
+
+          <div id="adminEventOrdersList">
+
+            <div class="empty">
+              Laden...
+            </div>
+
+          </div>
+
+        </div>
+
+      </details>
+
+
+      <!-- GROOTHANDEL -->
+
+      <details class="admin-list-panel">
+
+        <summary>
+
+          <div>
+
+            <span class="admin-dot purple"></span>
+
+            Groothandel
+
+          </div>
+
+
+          <span
+            id="adminWholesaleCount"
+            class="admin-count purple"
+          >
+            0
+          </span>
+
+        </summary>
+
+
+        <div class="admin-list-content">
+
+          <div id="adminWholesaleOrdersList">
+
+            <div class="empty">
+              Laden...
+            </div>
+
+          </div>
+
+        </div>
+
+      </details>
+
+
+      <!-- ARCHIEF -->
+
+      <details
+        id="adminArchivePanel"
+        class="admin-list-panel"
+      >
+
+        <summary>
+
+          <div>
+
+            <span class="admin-dot grey"></span>
+
+            Archief
+          </div>
+
+
+          <span
+            id="adminArchiveCount"
+            class="admin-count grey"
+          >
+            0
+          </span>
+
+        </summary>
+
+
+        <div class="admin-list-content">
+
+          <div id="adminArchiveList">
+
+            <div class="empty">
+              Laden...
+            </div>
+
+          </div>
+
+        </div>
+
+      </details>
+
+    </div>
+
+
+    <!-- =====================================================
+         TAB 3 - MATERIAAL
+    ====================================================== -->
+
+    <div
+      id="adminPaneMaterial"
+      class="admin-pane hidden"
     >
 
-      <summary>
+      <div class="admin-page-heading">
 
-        <span>
-          Actieve evenementaanvragen
-        </span>
+        <div>
 
-        <span
-          id="adminEventCount"
-          class="dashboard-count"
-        >
-          0
-        </span>
+          <span class="admin-eyebrow">
+            Logistiek
+          </span>
 
-      </summary>
-
-
-      <div class="dashboard-fold-body">
-
-        <div id="adminEventOrdersList">
-
-          <div class="empty">
-            Laden...
-          </div>
+          <h2>
+            Materiaal
+          </h2>
 
         </div>
 
       </div>
 
-    </details>
+
+      <div class="admin-material-summary">
+
+        <div class="admin-material-summary-card orange">
+
+          <span>
+            Momenteel buiten
+          </span>
+
+          <strong id="adminMaterialOutCount">
+            0
+          </strong>
+
+        </div>
 
 
-    <!-- MATERIAAL BUITEN -->
+        <div class="admin-material-summary-card red">
 
-    <details
-      class="card dashboard-fold"
-    >
+          <span>
+            Schade / ontbreekt
+          </span>
 
-      <summary>
+          <strong id="adminProblemsCount">
+            0
+          </strong>
 
-        <span>
-          Materiaal momenteel buiten
-        </span>
+        </div>
 
-        <span
-          id="adminMaterialOutCount"
-          class="dashboard-count"
-        >
-          0
-        </span>
-
-      </summary>
+      </div>
 
 
-      <div class="dashboard-fold-body">
+      <section class="admin-section compact">
+
+        <div class="admin-section-heading">
+
+          <h3>
+            Materiaal buiten
+          </h3>
+
+        </div>
+
 
         <div id="adminMaterialOutList">
 
@@ -385,34 +918,19 @@ function createAdminScreen() {
 
         </div>
 
-      </div>
-
-    </details>
+      </section>
 
 
-    <!-- SCHADE / ONTBREEKT -->
+      <section class="admin-section compact">
 
-    <details
-      class="card dashboard-fold"
-    >
+        <div class="admin-section-heading">
 
-      <summary>
+          <h3>
+            Schade & ontbrekend
+          </h3>
 
-        <span>
-          Schade & ontbrekend materiaal
-        </span>
+        </div>
 
-        <span
-          id="adminProblemsCount"
-          class="dashboard-count"
-        >
-          0
-        </span>
-
-      </summary>
-
-
-      <div class="dashboard-fold-body">
 
         <div id="adminProblemsList">
 
@@ -422,70 +940,43 @@ function createAdminScreen() {
 
         </div>
 
-      </div>
+      </section>
 
-    </details>
+    </div>
 
 
-    <!-- GROOTHANDEL -->
+    <!-- =====================================================
+         TAB 4 - RAPPORTEN
+    ====================================================== -->
 
-    <details
-      class="card dashboard-fold"
+    <div
+      id="adminPaneReports"
+      class="admin-pane hidden"
     >
 
-      <summary>
+      <div class="admin-page-heading">
 
-        <span>
-          Groothandelbestellingen
-        </span>
+        <div>
 
-        <span
-          id="adminWholesaleCount"
-          class="dashboard-count"
-        >
-          0
-        </span>
+          <span class="admin-eyebrow">
+            Analyse
+          </span>
 
-      </summary>
-
-
-      <div class="dashboard-fold-body">
-
-        <div id="adminWholesaleOrdersList">
-
-          <div class="empty">
-            Laden...
-          </div>
+          <h2>
+            Rapportage
+          </h2>
 
         </div>
 
       </div>
 
-    </details>
 
-
-    <!-- RAPPORTERING -->
-
-    <details
-      class="card dashboard-fold"
-      id="adminReportingFold"
-    >
-
-      <summary>
-
-        <span>
-          Rapportering
-        </span>
-
-      </summary>
-
-
-      <div class="dashboard-fold-body">
-
+      <div class="admin-report-panel">
 
         <label>
           Vertegenwoordiger
         </label>
+
 
         <select
           id="reportRepresentative"
@@ -499,86 +990,61 @@ function createAdminScreen() {
         </select>
 
 
-        <label>
-          Periode
-        </label>
+        <div class="admin-filter-grid">
 
-        <select
-          id="reportPeriodType"
-          onchange="toggleReportPeriod()"
-        >
+          <div>
 
-          <option value="month">
-            Per maand
-          </option>
-
-          <option value="year">
-            Per jaar
-          </option>
-
-        </select>
+            <label>
+              Periode
+            </label>
 
 
-        <div id="reportMonthBox">
+            <select
+              id="reportPeriodType"
+              onchange="toggleReportPeriod()"
+            >
 
-          <label>
-            Maand
-          </label>
+              <option value="month">
+                Per maand
+              </option>
 
-          <select
-            id="reportMonth"
-            onchange="updateAdminReport()"
-          >
+              <option value="year">
+                Per jaar
+              </option>
 
-            <option value="1">
-              Januari
-            </option>
+            </select>
 
-            <option value="2">
-              Februari
-            </option>
+          </div>
 
-            <option value="3">
-              Maart
-            </option>
 
-            <option value="4">
-              April
-            </option>
+          <div id="reportMonthBox">
 
-            <option value="5">
-              Mei
-            </option>
+            <label>
+              Maand
+            </label>
 
-            <option value="6">
-              Juni
-            </option>
 
-            <option value="7">
-              Juli
-            </option>
+            <select
+              id="reportMonth"
+              onchange="updateAdminReport()"
+            >
 
-            <option value="8">
-              Augustus
-            </option>
+              <option value="1">Januari</option>
+              <option value="2">Februari</option>
+              <option value="3">Maart</option>
+              <option value="4">April</option>
+              <option value="5">Mei</option>
+              <option value="6">Juni</option>
+              <option value="7">Juli</option>
+              <option value="8">Augustus</option>
+              <option value="9">September</option>
+              <option value="10">Oktober</option>
+              <option value="11">November</option>
+              <option value="12">December</option>
 
-            <option value="9">
-              September
-            </option>
+            </select>
 
-            <option value="10">
-              Oktober
-            </option>
-
-            <option value="11">
-              November
-            </option>
-
-            <option value="12">
-              December
-            </option>
-
-          </select>
+          </div>
 
         </div>
 
@@ -587,27 +1053,17 @@ function createAdminScreen() {
           Jaar
         </label>
 
+
         <select
           id="reportYear"
           onchange="updateAdminReport()"
         ></select>
 
 
-        <div
-          id="adminReportSummary"
-          style="
-            margin-top:18px;
-          "
-        ></div>
+        <div id="adminReportSummary"></div>
 
 
-        <div
-          style="
-            position:relative;
-            min-height:300px;
-            margin-top:20px;
-          "
-        >
+        <div class="admin-chart-box">
 
           <canvas
             id="adminMaterialsChart"
@@ -617,68 +1073,16 @@ function createAdminScreen() {
 
 
         <button
-          class="primary"
+          class="admin-export-button"
           type="button"
           onclick="exportAdminReportExcel()"
-          style="
-            margin-top:20px;
-          "
         >
-          Download Excel
+          Excel downloaden
         </button>
 
       </div>
 
-    </details>
-
-
-    <!-- ARCHIEF -->
-
-    <details
-      class="card dashboard-fold"
-    >
-
-      <summary>
-
-        <span>
-          Archief afgehandeld
-        </span>
-
-        <span
-          id="adminArchiveCount"
-          class="dashboard-count"
-        >
-          0
-        </span>
-
-      </summary>
-
-
-      <div class="dashboard-fold-body">
-
-        <div id="adminArchiveList">
-
-          <div class="empty">
-            Laden...
-          </div>
-
-        </div>
-
-      </div>
-
-    </details>
-
-
-    <button
-      class="secondary"
-      type="button"
-      onclick="loadAdminDashboard()"
-      style="
-        margin-bottom:25px;
-      "
-    >
-      Dashboard vernieuwen
-    </button>
+    </div>
 
   `;
 
