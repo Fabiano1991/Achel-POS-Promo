@@ -4153,7 +4153,62 @@ function renderAdminSections() {
     archive,
     "Nog geen afgehandelde aanvragen."
   );
+  setAdminCount(
+    "overviewRegularCount",
+    regular.length
+  );
 
+
+  setAdminCount(
+    "overviewEventCount",
+    events.length
+  );
+
+
+  setAdminCount(
+    "overviewWholesaleCount",
+    adminWholesaleOrders.length
+  );
+
+
+  setAdminCount(
+    "overviewMaterialOutCount",
+    materialOutside.length
+  );
+
+
+  setAdminCount(
+    "overviewArchiveCount",
+    archive.length
+  );
+
+
+  const problemCount =
+    adminEventReturns
+      .filter(
+        item =>
+
+          Number(
+            item.beschadigd || 0
+          ) > 0
+
+          ||
+
+          Number(
+            item.ontbreekt || 0
+          ) > 0
+      )
+      .length;
+
+
+  setAdminCount(
+    "overviewProblemsCount",
+    problemCount
+  );
+
+
+  renderAdminAttentionPanel();
+   
 }
 
 
