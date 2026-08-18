@@ -1,5 +1,5 @@
 const CACHE_NAME =
-  "achel-pos-v20";
+  "achel-pos-v23";
 
 
 const STATIC_FILES = [
@@ -20,6 +20,10 @@ const STATIC_FILES = [
 
 ];
 
+
+/* ============================================================
+   INSTALL
+============================================================ */
 
 self.addEventListener(
   "install",
@@ -47,6 +51,10 @@ self.addEventListener(
   }
 );
 
+
+/* ============================================================
+   ACTIVATE
+============================================================ */
 
 self.addEventListener(
   "activate",
@@ -81,14 +89,21 @@ self.addEventListener(
 
         )
 
+        .then(
+          () =>
+            self.clients.claim()
+        )
+
     );
-
-
-    self.clients.claim();
 
   }
 );
 
+
+/* ============================================================
+   FETCH
+   NETWORK FIRST
+============================================================ */
 
 self.addEventListener(
   "fetch",
@@ -104,22 +119,110 @@ self.addEventListener(
     }
 
 
-    if (
+    const requestUrl =
+      new URL(
+        event.request.url
+      );
+
+
+    /*
+      HTML + JS:
+      altijd eerst nieuwste versie online proberen.
+    */
+
+    const isImportantFile =
+
       event.request.mode ===
       "navigate"
+
+      ||
+
+      requestUrl.pathname.endsWith(
+        ".js"
+      )
+
+      ||
+
+      requestUrl.pathname.endsWith(
+        ".html"
+      );
+
+
+    if (
+      isImportantFile
     ) {
 
       event.respondWith(
 
         fetch(
-          event.request
+          event.request,
+          {
+            cache:
+              "no-store"
+          }
         )
 
+          .then(
+            response => {
+
+              const copy =
+                response.clone();
+
+
+              caches
+                .open(
+                  CACHE_NAME
+                )
+
+                .then(
+                  cache =>
+                    cache.put(
+                      event.request,
+                      copy
+                    )
+                );
+
+
+              return response;
+
+            }
+          )
+
           .catch(
-            () =>
-              caches.match(
-                "./index.html"
-              )
+            async () => {
+
+              const cached =
+                await caches.match(
+                  event.request
+                );
+
+
+              if (
+                cached
+              ) {
+
+                return cached;
+
+              }
+
+
+              if (
+                event.request.mode ===
+                "navigate"
+              ) {
+
+                return caches.match(
+                  "./index.html"
+                );
+
+              }
+
+
+              throw new Error(
+                "Bestand niet beschikbaar"
+              );
+
+            }
           )
 
       );
@@ -129,6 +232,12 @@ self.addEventListener(
 
     }
 
+
+    /*
+      Afbeeldingen / overige bestanden:
+      cache mag gebruikt worden,
+      maar online versie krijgt voorkeur.
+    */
 
     event.respondWith(
 
