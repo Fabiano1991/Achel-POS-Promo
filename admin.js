@@ -1,29 +1,17 @@
-/* ============================================================
-   ACHEL POS - ADMIN.JS
-   DASHBOARD + RETOURBEHEER + RAPPORTERING
-============================================================ */
-
-
-/* ============================================================
-   DATA
-============================================================ */
+/* ACHEL POS - ADMIN.JS */
 
 let adminOrders = [];
 let adminProfiles = [];
 let adminItems = [];
-
 let adminEventReturns = [];
-
 let adminWholesaleOrders = [];
 let adminWholesaleItems = [];
-
 let selectedAdminOrder = null;
-
 let adminReportChart = null;
 
 
 /* ============================================================
-   START ADMIN
+   ADMIN START
 ============================================================ */
 
 async function initAdminModule() {
@@ -43,9 +31,7 @@ async function initAdminModule() {
       userError ||
       !userData?.user
     ) {
-
       return;
-
     }
 
 
@@ -54,18 +40,14 @@ async function initAdminModule() {
       error: profileError
     } =
       await supabaseClient
-
         .from("profiles")
-
         .select(
           "id, naam, email, rol, actief"
         )
-
         .eq(
           "id",
           userData.user.id
         )
-
         .single();
 
 
@@ -80,7 +62,6 @@ async function initAdminModule() {
       );
 
       return;
-
     }
 
 
@@ -88,2035 +69,12 @@ async function initAdminModule() {
       profile.rol !== "admin" &&
       profile.rol !== "verantwoordelijke"
     ) {
-
       return;
-
     }
 
 
     createAdminScreen();
-/* ============================================================
-   ADMIN DASHBOARD NAVIGATIE
-============================================================ */
 
-function switchAdminTab(
-  tab
-) {
-
-  const tabs = {
-
-    overview:
-      "adminPaneOverview",
-
-    requests:
-      "adminPaneRequests",
-
-    material:
-      "adminPaneMaterial",
-
-    reports:
-      "adminPaneReports"
-
-  };
-
-
-  const buttons = {
-
-    overview:
-      "adminTabOverview",
-
-    requests:
-      "adminTabRequests",
-
-    material:
-      "adminTabMaterial",
-
-    reports:
-      "adminTabReports"
-
-  };
-
-
-  Object
-    .values(
-      tabs
-    )
-    .forEach(
-      id => {
-
-        document
-          .getElementById(
-            id
-          )
-          ?.classList
-          .add(
-            "hidden"
-          );
-
-      }
-    );
-
-
-  Object
-    .values(
-      buttons
-    )
-    .forEach(
-      id => {
-
-        document
-          .getElementById(
-            id
-          )
-          ?.classList
-          .remove(
-            "active"
-          );
-
-      }
-    );
-
-
-  document
-    .getElementById(
-      tabs[
-        tab
-      ]
-    )
-    ?.classList
-    .remove(
-      "hidden"
-    );
-
-
-  document
-    .getElementById(
-      buttons[
-        tab
-      ]
-    )
-    ?.classList
-    .add(
-      "active"
-    );
-
-
-  window.scrollTo({
-    top:
-      0,
-
-    behavior:
-      "smooth"
-  });
-
-}
-
-
-/* ============================================================
-   FILTERS OPEN / DICHT
-============================================================ */
-
-function toggleAdminFilters() {
-
-  document
-    .getElementById(
-      "adminFiltersPanel"
-    )
-    ?.classList
-    .toggle(
-      "hidden"
-    );
-
-}
-
-
-/* ============================================================
-   ARCHIEF OPENEN
-============================================================ */
-
-function openAdminArchive() {
-
-  setTimeout(
-    () => {
-
-      const panel =
-        document.getElementById(
-          "adminArchivePanel"
-        );
-
-
-      if (
-        panel
-      ) {
-
-        panel.open =
-          true;
-
-
-        panel.scrollIntoView({
-          behavior:
-            "smooth",
-
-          block:
-            "start"
-        });
-
-      }
-
-    },
-    100
-  );
-
-}
-
-
-/* ============================================================
-   ACTIEPANEEL
-============================================================ */
-
-function renderAdminAttentionPanel() {
-
-  const container =
-    document.getElementById(
-      "adminAttentionPanel"
-    );
-
-
-  if (!container) {
-
-    return;
-
-  }
-
-
-  const materialOutside =
-    getMaterialOutOrders()
-      .length;
-
-
-  const problems =
-    adminEventReturns
-      .filter(
-        item =>
-
-          Number(
-            item.beschadigd
-            ||
-            0
-          )
-          >
-          0
-
-          ||
-
-          Number(
-            item.ontbreekt
-            ||
-            0
-          )
-          >
-          0
-      )
-      .length;
-
-
-  const processing =
-    adminOrders
-      .filter(
-        order =>
-          order.status ===
-          "in_behandeling"
-      )
-      .length;
-
-
-  let html =
-    "";
-
-
-  if (
-    problems >
-    0
-  ) {
-
-    html += `
-
-      <button
-        class="admin-attention-card red"
-        type="button"
-        onclick="switchAdminTab('material')"
-      >
-
-        <div class="admin-attention-symbol">
-          !
-        </div>
-
-
-        <div>
-
-          <strong>
-            ${problems}
-            materiaalprobleem${problems === 1 ? "" : "en"}
-          </strong>
-
-          <span>
-            Beschadigd of ontbrekend materiaal
-          </span>
-
-        </div>
-
-
-        <div class="admin-card-arrow">
-          ›
-        </div>
-
-      </button>
-
-    `;
-
-  }
-
-
-  if (
-    materialOutside >
-    0
-  ) {
-
-    html += `
-
-      <button
-        class="admin-attention-card orange"
-        type="button"
-        onclick="switchAdminTab('material')"
-      >
-
-        <div class="admin-attention-symbol">
-          ↩
-        </div>
-
-
-        <div>
-
-          <strong>
-            ${materialOutside}
-            retour${materialOutside === 1 ? "" : "s"}
-            te verwerken
-          </strong>
-
-          <span>
-            Evenementmateriaal staat nog buiten
-          </span>
-
-        </div>
-
-
-        <div class="admin-card-arrow">
-          ›
-        </div>
-
-      </button>
-
-    `;
-
-  }
-
-
-  if (
-    processing >
-    0
-  ) {
-
-    html += `
-
-      <button
-        class="admin-attention-card yellow"
-        type="button"
-        onclick="switchAdminTab('requests')"
-      >
-
-        <div class="admin-attention-symbol">
-          •
-        </div>
-
-
-        <div>
-
-          <strong>
-            ${processing}
-            in behandeling
-          </strong>
-
-          <span>
-            Aanvragen wachten op verwerking
-          </span>
-
-        </div>
-
-
-        <div class="admin-card-arrow">
-          ›
-        </div>
-
-      </button>
-
-    `;
-
-  }
-
-
-  if (
-    !html
-  ) {
-
-    html = `
-
-      <div class="admin-all-clear">
-
-        <strong>
-          Alles onder controle
-        </strong>
-
-        <span>
-          Momenteel zijn er geen dringende acties.
-        </span>
-
-      </div>
-
-    `;
-
-  }
-
-
-  container.innerHTML =
-    html;
-
-}
-
-
-/* ============================================================
-   DASHBOARD STYLING
-============================================================ */
-
-function injectAdminDashboardStyles() {
-
-  if (
-    document.getElementById(
-      "achelAdminStyles"
-    )
-  ) {
-
-    return;
-
-  }
-
-
-  const style =
-    document.createElement(
-      "style"
-    );
-
-
-  style.id =
-    "achelAdminStyles";
-
-
-  style.innerHTML = `
-
-    /* =====================================
-       ADMIN BASIS
-    ====================================== */
-
-    #adminScreen.admin-shell {
-
-      margin:
-        -18px -16px -36px;
-
-      max-width:
-        none;
-
-      min-height:
-        100vh;
-
-      background:
-        #151c16;
-
-      color:
-        #f4f1e8;
-
-      padding-bottom:
-        30px;
-
-    }
-
-
-    .admin-topbar {
-
-      position:
-        relative;
-
-      min-height:
-        68px;
-
-      display:
-        flex;
-
-      justify-content:
-        center;
-
-      align-items:
-        center;
-
-      padding:
-        12px 54px;
-
-      background:
-        linear-gradient(
-          180deg,
-          #1d271f,
-          #182019
-        );
-
-      border-bottom:
-        1px solid
-        rgba(
-          255,
-          255,
-          255,
-          .06
-        );
-
-    }
-
-
-    .admin-topbar-title {
-
-      text-align:
-        center;
-
-    }
-
-
-    .admin-topbar-title strong {
-
-      display:
-        block;
-
-      color:
-        #ffffff;
-
-      font-size:
-        19px;
-
-      font-weight:
-        900;
-
-    }
-
-
-    .admin-topbar-title span {
-
-      display:
-        block;
-
-      margin-top:
-        2px;
-
-      font-size:
-        11px;
-
-      color:
-        #9ea69f;
-
-    }
-
-
-    .admin-refresh-button {
-
-      position:
-        absolute;
-
-      right:
-        12px;
-
-      top:
-        14px;
-
-      width:
-        40px;
-
-      height:
-        40px;
-
-      border:
-        1px solid
-        rgba(
-          255,
-          255,
-          255,
-          .1
-        );
-
-      border-radius:
-        12px;
-
-      background:
-        #293229;
-
-      color:
-        #d9bd7b;
-
-      font-size:
-        22px;
-
-      font-weight:
-        800;
-
-    }
-
-
-    /* =====================================
-       TABS
-    ====================================== */
-
-    .admin-tabs {
-
-      position:
-        sticky;
-
-      top:
-        calc(
-          64px +
-          env(safe-area-inset-top)
-        );
-
-      z-index:
-        30;
-
-      display:
-        grid;
-
-      grid-template-columns:
-        repeat(
-          4,
-          1fr
-        );
-
-      background:
-        #f5f2e9;
-
-      border-bottom:
-        1px solid
-        #cfc9ba;
-
-    }
-
-
-    .admin-tab {
-
-      position:
-        relative;
-
-      min-height:
-        48px;
-
-      padding:
-        0 4px;
-
-      border:
-        0;
-
-      background:
-        transparent;
-
-      color:
-        #242922;
-
-      font-size:
-        11px;
-
-      font-weight:
-        850;
-
-      text-transform:
-        uppercase;
-
-      letter-spacing:
-        .025em;
-
-    }
-
-
-    .admin-tab.active {
-
-      color:
-        #8c692f;
-
-    }
-
-
-    .admin-tab.active::after {
-
-      content:
-        "";
-
-      position:
-        absolute;
-
-      left:
-        10%;
-
-      right:
-        10%;
-
-      bottom:
-        0;
-
-      height:
-        3px;
-
-      border-radius:
-        3px 3px 0 0;
-
-      background:
-        #b4883c;
-
-    }
-
-
-    .admin-pane {
-
-      padding:
-        15px;
-
-    }
-
-
-    /* =====================================
-       KPI
-    ====================================== */
-
-    .admin-kpi-grid {
-
-      display:
-        grid;
-
-      grid-template-columns:
-        repeat(
-          2,
-          minmax(
-            0,
-            1fr
-          )
-        );
-
-      gap:
-        10px;
-
-    }
-
-
-    .admin-kpi {
-
-      position:
-        relative;
-
-      overflow:
-        hidden;
-
-      min-height:
-        92px;
-
-      padding:
-        14px;
-
-      border-radius:
-        15px;
-
-      background:
-        #303931;
-
-      box-shadow:
-        0 5px 18px
-        rgba(
-          0,
-          0,
-          0,
-          .22
-        );
-
-      border:
-        1px solid
-        rgba(
-          255,
-          255,
-          255,
-          .05
-        );
-
-    }
-
-
-    .admin-kpi::after {
-
-      content:
-        "";
-
-      position:
-        absolute;
-
-      left:
-        0;
-
-      right:
-        0;
-
-      bottom:
-        0;
-
-      height:
-        4px;
-
-      background:
-        var(
-          --kpi-color
-        );
-
-    }
-
-
-    .admin-kpi-number {
-
-      display:
-        block;
-
-      font-size:
-        29px;
-
-      font-weight:
-        950;
-
-      color:
-        var(
-          --kpi-color
-        );
-
-      line-height:
-        1;
-
-    }
-
-
-    .admin-kpi-label {
-
-      display:
-        block;
-
-      margin-top:
-        9px;
-
-      color:
-        #ffffff;
-
-      font-size:
-        13px;
-
-      font-weight:
-        700;
-
-    }
-
-
-    .admin-kpi.green {
-      --kpi-color:
-        #71b67a;
-    }
-
-
-    .admin-kpi.orange {
-      --kpi-color:
-        #e0a447;
-    }
-
-
-    .admin-kpi.gold {
-      --kpi-color:
-        #d4c09a;
-    }
-
-
-    .admin-kpi.red {
-      --kpi-color:
-        #df6a56;
-    }
-
-
-    /* =====================================
-       SECTIONS
-    ====================================== */
-
-    .admin-section {
-
-      margin-top:
-        22px;
-
-    }
-
-
-    .admin-section.compact {
-
-      margin-top:
-        15px;
-
-    }
-
-
-    .admin-section-heading {
-
-      display:
-        flex;
-
-      justify-content:
-        space-between;
-
-      align-items:
-        end;
-
-      gap:
-        12px;
-
-      margin-bottom:
-        9px;
-
-    }
-
-
-    .admin-section-heading h3,
-    .admin-page-heading h2 {
-
-      margin:
-        0;
-
-      color:
-        #f8f6ef;
-
-      font-size:
-        19px;
-
-      font-weight:
-        900;
-
-    }
-
-
-    .admin-eyebrow {
-
-      display:
-        block;
-
-      margin-bottom:
-        3px;
-
-      color:
-        #c6b17c;
-
-      font-size:
-        10px;
-
-      font-weight:
-        900;
-
-      text-transform:
-        uppercase;
-
-      letter-spacing:
-        .08em;
-
-    }
-
-
-    .admin-inline-link {
-
-      border:
-        0;
-
-      background:
-        transparent;
-
-      color:
-        #d1b56f;
-
-      font-size:
-        12px;
-
-      font-weight:
-        800;
-
-    }
-
-
-    /* =====================================
-       ACTION CARDS
-    ====================================== */
-
-    .admin-action-card {
-
-      width:
-        100%;
-
-      display:
-        grid;
-
-      grid-template-columns:
-        44px
-        1fr
-        auto
-        18px;
-
-      align-items:
-        center;
-
-      gap:
-        11px;
-
-      padding:
-        13px;
-
-      margin-bottom:
-        8px;
-
-      text-align:
-        left;
-
-      color:
-        #f7f5ee;
-
-      background:
-        #343d35;
-
-      border:
-        1px solid
-        rgba(
-          255,
-          255,
-          255,
-          .06
-        );
-
-      border-radius:
-        16px;
-
-      box-shadow:
-        0 6px 18px
-        rgba(
-          0,
-          0,
-          0,
-          .18
-        );
-
-    }
-
-
-    .admin-card-icon {
-
-      width:
-        42px;
-
-      height:
-        42px;
-
-      display:
-        grid;
-
-      place-items:
-        center;
-
-      border-radius:
-        11px;
-
-      background:
-        #1d271f;
-
-      color:
-        #d7ba70;
-
-      font-size:
-        20px;
-
-      font-weight:
-        900;
-
-    }
-
-
-    .admin-card-main {
-
-      min-width:
-        0;
-
-    }
-
-
-    .admin-card-main strong {
-
-      display:
-        block;
-
-      color:
-        #ffffff;
-
-      font-size:
-        16px;
-
-      font-weight:
-        900;
-
-    }
-
-
-    .admin-card-main > span {
-
-      display:
-        block;
-
-      margin-top:
-        3px;
-
-      color:
-        #adb5ae;
-
-      font-size:
-        11px;
-
-    }
-
-
-    .admin-card-arrow {
-
-      color:
-        #cdb77d;
-
-      font-size:
-        25px;
-
-      font-weight:
-        400;
-
-    }
-
-
-    .admin-side-count {
-
-      min-width:
-        30px;
-
-      padding:
-        5px 9px;
-
-      text-align:
-        center;
-
-      border-radius:
-        999px;
-
-      background:
-        #d1b777;
-
-      color:
-        #252b25;
-
-      font-weight:
-        900;
-
-      font-size:
-        12px;
-
-    }
-
-
-    /* =====================================
-       MINI BADGES
-    ====================================== */
-
-    .admin-mini-badges {
-
-      display:
-        flex;
-
-      flex-wrap:
-        wrap;
-
-      gap:
-        5px;
-
-      margin-top:
-        6px;
-
-    }
-
-
-    .admin-mini-badge {
-
-      display:
-        inline-flex;
-
-      align-items:
-        center;
-
-      gap:
-        5px;
-
-      padding:
-        4px 7px;
-
-      border-radius:
-        999px;
-
-      font-size:
-        10px;
-
-      font-weight:
-        800;
-
-    }
-
-
-    .admin-mini-badge b {
-
-      font-size:
-        11px;
-
-    }
-
-
-    .admin-mini-badge.green {
-
-      background:
-        #dff0e1;
-
-      color:
-        #367243;
-
-    }
-
-
-    .admin-mini-badge.orange {
-
-      background:
-        #f6e4c6;
-
-      color:
-        #9a611e;
-
-    }
-
-
-    .admin-mini-badge.red {
-
-      background:
-        #f5d6d1;
-
-      color:
-        #a44437;
-
-    }
-
-
-    .admin-mini-badge.purple {
-
-      background:
-        #e7ddf1;
-
-      color:
-        #6f4c8b;
-
-    }
-
-
-    /* =====================================
-       ATTENTION
-    ====================================== */
-
-    .admin-attention-grid {
-
-      display:
-        grid;
-
-      gap:
-        7px;
-
-    }
-
-
-    .admin-attention-card {
-
-      width:
-        100%;
-
-      display:
-        grid;
-
-      grid-template-columns:
-        36px 1fr 18px;
-
-      align-items:
-        center;
-
-      gap:
-        10px;
-
-      padding:
-        11px;
-
-      border:
-        0;
-
-      border-radius:
-        14px;
-
-      text-align:
-        left;
-
-    }
-
-
-    .admin-attention-card strong {
-
-      display:
-        block;
-
-      font-size:
-        13px;
-
-      font-weight:
-        900;
-
-    }
-
-
-    .admin-attention-card span {
-
-      display:
-        block;
-
-      margin-top:
-        2px;
-
-      font-size:
-        10px;
-
-      opacity:
-        .78;
-
-    }
-
-
-    .admin-attention-symbol {
-
-      width:
-        34px;
-
-      height:
-        34px;
-
-      display:
-        grid;
-
-      place-items:
-        center;
-
-      border-radius:
-        10px;
-
-      font-size:
-        18px;
-
-      font-weight:
-        950;
-
-      background:
-        rgba(
-          255,
-          255,
-          255,
-          .25
-        );
-
-    }
-
-
-    .admin-attention-card.red {
-
-      background:
-        #e06654;
-
-      color:
-        #fff;
-
-    }
-
-
-    .admin-attention-card.orange {
-
-      background:
-        #d99a3e;
-
-      color:
-        #2f2516;
-
-    }
-
-
-    .admin-attention-card.yellow {
-
-      background:
-        #d8c38f;
-
-      color:
-        #312b20;
-
-    }
-
-
-    .admin-all-clear {
-
-      padding:
-        12px;
-
-      border-radius:
-        14px;
-
-      background:
-        #2c4632;
-
-      color:
-        #d9f0dd;
-
-    }
-
-
-    .admin-all-clear strong {
-
-      display:
-        block;
-
-      font-size:
-        13px;
-
-    }
-
-
-    .admin-all-clear span {
-
-      display:
-        block;
-
-      margin-top:
-        3px;
-
-      font-size:
-        10px;
-
-      opacity:
-        .8;
-
-    }
-
-
-    /* =====================================
-       PAGE HEADING
-    ====================================== */
-
-    .admin-page-heading {
-
-      margin:
-        3px 0 13px;
-
-    }
-
-
-    /* =====================================
-       SEARCH & FILTER
-    ====================================== */
-
-    .admin-search-row {
-
-      display:
-        grid;
-
-      grid-template-columns:
-        1fr 46px;
-
-      gap:
-        8px;
-
-      margin-bottom:
-        10px;
-
-    }
-
-
-    .admin-search {
-
-      min-height:
-        46px !important;
-
-      border:
-        1px solid
-        #485149 !important;
-
-      background:
-        #303930 !important;
-
-      color:
-        white !important;
-
-      border-radius:
-        999px !important;
-
-    }
-
-
-    .admin-search::placeholder {
-
-      color:
-        #9da59e;
-
-    }
-
-
-    .admin-filter-button {
-
-      width:
-        46px;
-
-      height:
-        46px;
-
-      border:
-        1px solid
-        #485149;
-
-      border-radius:
-        50%;
-
-      background:
-        #303930;
-
-      color:
-        #d3b46d;
-
-      font-size:
-        18px;
-
-    }
-
-
-    .admin-filter-panel {
-
-      margin-bottom:
-        10px;
-
-      padding:
-        12px;
-
-      border-radius:
-        14px;
-
-      background:
-        #2a322b;
-
-      border:
-        1px solid
-        #414941;
-
-    }
-
-
-    .admin-filter-grid {
-
-      display:
-        grid;
-
-      grid-template-columns:
-        1fr 1fr;
-
-      gap:
-        9px;
-
-    }
-
-
-    .admin-filter-panel label,
-    .admin-report-panel label {
-
-      color:
-        #b8c0b9;
-
-      font-size:
-        10px;
-
-      margin:
-        8px 0 5px;
-
-    }
-
-
-    .admin-filter-panel select,
-    .admin-report-panel select {
-
-      min-height:
-        43px;
-
-      border-color:
-        #4a534b;
-
-      background:
-        #202721;
-
-      color:
-        #fff;
-
-    }
-
-
-    /* =====================================
-       LIST PANELS
-    ====================================== */
-
-    .admin-list-panel {
-
-      overflow:
-        hidden;
-
-      margin-bottom:
-        8px;
-
-      border:
-        1px solid
-        #414a42;
-
-      border-radius:
-        15px;
-
-      background:
-        #2d352e;
-
-    }
-
-
-    .admin-list-panel > summary {
-
-      list-style:
-        none;
-
-      min-height:
-        54px;
-
-      display:
-        flex;
-
-      align-items:
-        center;
-
-      justify-content:
-        space-between;
-
-      padding:
-        0 13px;
-
-      color:
-        #fff;
-
-      font-size:
-        14px;
-
-      font-weight:
-        850;
-
-    }
-
-
-    .admin-list-panel > summary::-webkit-details-marker {
-
-      display:
-        none;
-
-    }
-
-
-    .admin-list-panel > summary > div {
-
-      display:
-        flex;
-
-      align-items:
-        center;
-
-      gap:
-        8px;
-
-    }
-
-
-    .admin-list-content {
-
-      padding:
-        4px 10px 10px;
-
-      border-top:
-        1px solid
-        #424b43;
-
-      background:
-        #202721;
-
-    }
-
-
-    .admin-dot {
-
-      width:
-        9px;
-
-      height:
-        9px;
-
-      border-radius:
-        50%;
-
-    }
-
-
-    .admin-dot.green {
-      background:
-        #70b77b;
-    }
-
-
-    .admin-dot.orange {
-      background:
-        #dfa047;
-    }
-
-
-    .admin-dot.purple {
-      background:
-        #a77ac5;
-    }
-
-
-    .admin-dot.grey {
-      background:
-        #a2aaa3;
-    }
-
-
-    .admin-count {
-
-      min-width:
-        30px;
-
-      padding:
-        4px 8px;
-
-      text-align:
-        center;
-
-      border-radius:
-        999px;
-
-      font-size:
-        11px;
-
-      font-weight:
-        900;
-
-    }
-
-
-    .admin-count.green {
-
-      background:
-        #dff0e1;
-
-      color:
-        #387443;
-
-    }
-
-
-    .admin-count.orange {
-
-      background:
-        #f4dfbf;
-
-      color:
-        #99601c;
-
-    }
-
-
-    .admin-count.purple {
-
-      background:
-        #e7daf0;
-
-      color:
-        #704e89;
-
-    }
-
-
-    .admin-count.grey {
-
-      background:
-        #dfe1dc;
-
-      color:
-        #565d57;
-
-    }
-
-
-    /* =====================================
-       MATERIAL
-    ====================================== */
-
-    .admin-material-summary {
-
-      display:
-        grid;
-
-      grid-template-columns:
-        1fr 1fr;
-
-      gap:
-        8px;
-
-      margin-bottom:
-        15px;
-
-    }
-
-
-    .admin-material-summary-card {
-
-      padding:
-        12px;
-
-      border-radius:
-        14px;
-
-    }
-
-
-    .admin-material-summary-card span {
-
-      display:
-        block;
-
-      font-size:
-        10px;
-
-      font-weight:
-        800;
-
-    }
-
-
-    .admin-material-summary-card strong {
-
-      display:
-        block;
-
-      margin-top:
-        5px;
-
-      font-size:
-        25px;
-
-      font-weight:
-        950;
-
-    }
-
-
-    .admin-material-summary-card.orange {
-
-      background:
-        #e0a045;
-
-      color:
-        #322716;
-
-    }
-
-
-    .admin-material-summary-card.red {
-
-      background:
-        #db6655;
-
-      color:
-        #fff;
-
-    }
-
-
-    /* =====================================
-       REPORT
-    ====================================== */
-
-    .admin-report-panel {
-
-      padding:
-        14px;
-
-      border-radius:
-        16px;
-
-      background:
-        #2e372f;
-
-      border:
-        1px solid
-        #424b43;
-
-    }
-
-
-    .admin-chart-box {
-
-      position:
-        relative;
-
-      min-height:
-        300px;
-
-      margin-top:
-        15px;
-
-      padding:
-        8px;
-
-      border-radius:
-        12px;
-
-      background:
-        #f4f1e8;
-
-    }
-
-
-    .admin-export-button {
-
-      width:
-        100%;
-
-      min-height:
-        48px;
-
-      margin-top:
-        13px;
-
-      border:
-        0;
-
-      border-radius:
-        13px;
-
-      background:
-        #b48a42;
-
-      color:
-        #fff;
-
-      font-weight:
-        900;
-
-    }
-
-
-    /* =====================================
-       OUDE KAARTEN IN NIEUWE DARK UI
-    ====================================== */
-
-    #adminScreen
-    .admin-list-content
-    button {
-
-      box-shadow:
-        none !important;
-
-    }
-
-
-    #adminScreen
-    .admin-list-content
-    .order-meta {
-
-      color:
-        #737b74;
-
-    }
-
-
-    #adminScreen
-    .admin-list-content
-    .empty {
-
-      color:
-        #a3aba4;
-
-    }
-
-
-    /* =====================================
-       MOBILE
-    ====================================== */
-
-    @media (
-      max-width:
-      390px
-    ) {
-
-      .admin-tab {
-
-        font-size:
-          10px;
-
-      }
-
-
-      .admin-pane {
-
-        padding:
-          12px;
-
-      }
-
-
-      .admin-filter-grid {
-
-        grid-template-columns:
-          1fr;
-
-      }
-
-    }
-
-  `;
-
-
-  document
-    .head
-    .appendChild(
-      style
-    );
-
-}
-     
   }
 
   catch (error) {
@@ -2132,7 +90,7 @@ function injectAdminDashboardStyles() {
 
 
 /* ============================================================
-   DASHBOARD SCHERM MAKEN
+   ADMIN SCHERM
 ============================================================ */
 
 function createAdminScreen() {
@@ -2176,10 +134,6 @@ function createAdminScreen() {
 
   section.innerHTML = `
 
-    <!-- =========================
-         ADMIN TOP
-    ========================== -->
-
     <div class="admin-topbar">
 
       <div class="admin-topbar-title">
@@ -2199,17 +153,13 @@ function createAdminScreen() {
         class="admin-refresh-button"
         type="button"
         onclick="loadAdminDashboard()"
-        aria-label="Dashboard vernieuwen"
+        aria-label="Vernieuwen"
       >
         ↻
       </button>
 
     </div>
 
-
-    <!-- =========================
-         NAVIGATIE
-    ========================== -->
 
     <div class="admin-tabs">
 
@@ -2255,24 +205,18 @@ function createAdminScreen() {
     </div>
 
 
-    <!-- =====================================================
-         TAB 1 - OVERZICHT
-    ====================================================== -->
+    <!-- OVERZICHT -->
 
     <div
       id="adminPaneOverview"
       class="admin-pane"
     >
 
-      <!-- KPI -->
-
       <div
         id="adminStatistics"
         class="admin-kpi-grid"
       ></div>
 
-
-      <!-- ACTIE NODIG -->
 
       <section class="admin-section">
 
@@ -2300,8 +244,6 @@ function createAdminScreen() {
 
       </section>
 
-
-      <!-- AANVRAGEN -->
 
       <section class="admin-section">
 
@@ -2332,12 +274,12 @@ function createAdminScreen() {
 
 
         <button
-          class="admin-action-card requests"
+          class="admin-action-card"
           type="button"
           onclick="switchAdminTab('requests')"
         >
 
-          <div class="admin-card-icon">
+          <div class="admin-card-icon purple">
             ▣
           </div>
 
@@ -2347,6 +289,7 @@ function createAdminScreen() {
             <strong>
               Alle aanvragen
             </strong>
+
 
             <div class="admin-mini-badges">
 
@@ -2396,8 +339,6 @@ function createAdminScreen() {
       </section>
 
 
-      <!-- MATERIAAL -->
-
       <section class="admin-section">
 
         <div class="admin-section-heading">
@@ -2427,12 +368,12 @@ function createAdminScreen() {
 
 
         <button
-          class="admin-action-card material"
+          class="admin-action-card"
           type="button"
           onclick="switchAdminTab('material')"
         >
 
-          <div class="admin-card-icon">
+          <div class="admin-card-icon orange">
             ◈
           </div>
 
@@ -2481,8 +422,6 @@ function createAdminScreen() {
       </section>
 
 
-      <!-- RAPPORTAGE -->
-
       <section class="admin-section">
 
         <div class="admin-section-heading">
@@ -2503,12 +442,12 @@ function createAdminScreen() {
 
 
         <button
-          class="admin-action-card reports"
+          class="admin-action-card"
           type="button"
           onclick="switchAdminTab('reports')"
         >
 
-          <div class="admin-card-icon">
+          <div class="admin-card-icon blue">
             ↗
           </div>
 
@@ -2534,12 +473,12 @@ function createAdminScreen() {
 
 
         <button
-          class="admin-action-card archive"
+          class="admin-action-card"
           type="button"
           onclick="switchAdminTab('requests'); openAdminArchive();"
         >
 
-          <div class="admin-card-icon">
+          <div class="admin-card-icon grey">
             ▤
           </div>
 
@@ -2576,9 +515,7 @@ function createAdminScreen() {
     </div>
 
 
-    <!-- =====================================================
-         TAB 2 - AANVRAGEN
-    ====================================================== -->
+    <!-- AANVRAGEN -->
 
     <div
       id="adminPaneRequests"
@@ -2587,22 +524,16 @@ function createAdminScreen() {
 
       <div class="admin-page-heading">
 
-        <div>
+        <span class="admin-eyebrow">
+          Operationeel
+        </span>
 
-          <span class="admin-eyebrow">
-            Operationeel
-          </span>
-
-          <h2>
-            Aanvragen
-          </h2>
-
-        </div>
+        <h2>
+          Aanvragen
+        </h2>
 
       </div>
 
-
-      <!-- ZOEKEN -->
 
       <div class="admin-search-row">
 
@@ -2697,176 +628,46 @@ function createAdminScreen() {
       </div>
 
 
-      <!-- POS / BIER -->
-
-      <details
-        class="admin-list-panel"
-        open
-      >
-
-        <summary>
-
-          <div>
-
-            <span class="admin-dot green"></span>
-
-            POS & bier
-
-          </div>
-
-
-          <span
-            id="adminRegularCount"
-            class="admin-count green"
-          >
-            0
-          </span>
-
-        </summary>
-
-
-        <div class="admin-list-content">
-
-          <div id="adminRegularOrdersList">
-
-            <div class="empty">
-              Laden...
-            </div>
-
-          </div>
-
-        </div>
-
-      </details>
-
-
-      <!-- EVENT -->
-
-      <details class="admin-list-panel">
-
-        <summary>
-
-          <div>
-
-            <span class="admin-dot orange"></span>
-
-            Evenementen
-
-          </div>
-
-
-          <span
-            id="adminEventCount"
-            class="admin-count orange"
-          >
-            0
-          </span>
-
-        </summary>
-
-
-        <div class="admin-list-content">
-
-          <div id="adminEventOrdersList">
-
-            <div class="empty">
-              Laden...
-            </div>
-
-          </div>
-
-        </div>
-
-      </details>
-
-
-      <!-- GROOTHANDEL -->
-
-      <details class="admin-list-panel">
-
-        <summary>
-
-          <div>
-
-            <span class="admin-dot purple"></span>
-
-            Groothandel
-
-          </div>
-
-
-          <span
-            id="adminWholesaleCount"
-            class="admin-count purple"
-          >
-            0
-          </span>
-
-        </summary>
-
-
-        <div class="admin-list-content">
-
-          <div id="adminWholesaleOrdersList">
-
-            <div class="empty">
-              Laden...
-            </div>
-
-          </div>
-
-        </div>
-
-      </details>
-
-
-      <!-- ARCHIEF -->
-
-      <details
-        id="adminArchivePanel"
-        class="admin-list-panel"
-      >
-
-        <summary>
-
-          <div>
-
-            <span class="admin-dot grey"></span>
-
-            Archief
-          </div>
-
-
-          <span
-            id="adminArchiveCount"
-            class="admin-count grey"
-          >
-            0
-          </span>
-
-        </summary>
-
-
-        <div class="admin-list-content">
-
-          <div id="adminArchiveList">
-
-            <div class="empty">
-              Laden...
-            </div>
-
-          </div>
-
-        </div>
-
-      </details>
+      ${adminListPanelHtml(
+        "adminRegularCount",
+        "green",
+        "POS & bier",
+        "adminRegularOrdersList",
+        true
+      )}
+
+
+      ${adminListPanelHtml(
+        "adminEventCount",
+        "orange",
+        "Evenementen",
+        "adminEventOrdersList",
+        false
+      )}
+
+
+      ${adminListPanelHtml(
+        "adminWholesaleCount",
+        "purple",
+        "Groothandel",
+        "adminWholesaleOrdersList",
+        false
+      )}
+
+
+      ${adminListPanelHtml(
+        "adminArchiveCount",
+        "grey",
+        "Archief",
+        "adminArchiveList",
+        false,
+        "adminArchivePanel"
+      )}
 
     </div>
 
 
-    <!-- =====================================================
-         TAB 3 - MATERIAAL
-    ====================================================== -->
+    <!-- MATERIAAL -->
 
     <div
       id="adminPaneMaterial"
@@ -2875,24 +676,23 @@ function createAdminScreen() {
 
       <div class="admin-page-heading">
 
-        <div>
+        <span class="admin-eyebrow">
+          Logistiek
+        </span>
 
-          <span class="admin-eyebrow">
-            Logistiek
-          </span>
-
-          <h2>
-            Materiaal
-          </h2>
-
-        </div>
+        <h2>
+          Materiaal
+        </h2>
 
       </div>
 
 
       <div class="admin-material-summary">
 
-        <div class="admin-material-summary-card orange">
+        <button
+          class="admin-material-summary-card orange"
+          type="button"
+        >
 
           <span>
             Momenteel buiten
@@ -2902,10 +702,13 @@ function createAdminScreen() {
             0
           </strong>
 
-        </div>
+        </button>
 
 
-        <div class="admin-material-summary-card red">
+        <button
+          class="admin-material-summary-card red"
+          type="button"
+        >
 
           <span>
             Schade / ontbreekt
@@ -2915,7 +718,7 @@ function createAdminScreen() {
             0
           </strong>
 
-        </div>
+        </button>
 
       </div>
 
@@ -2966,9 +769,7 @@ function createAdminScreen() {
     </div>
 
 
-    <!-- =====================================================
-         TAB 4 - RAPPORTEN
-    ====================================================== -->
+    <!-- RAPPORTEN -->
 
     <div
       id="adminPaneReports"
@@ -2977,17 +778,13 @@ function createAdminScreen() {
 
       <div class="admin-page-heading">
 
-        <div>
+        <span class="admin-eyebrow">
+          Analyse
+        </span>
 
-          <span class="admin-eyebrow">
-            Analyse
-          </span>
-
-          <h2>
-            Rapportage
-          </h2>
-
-        </div>
+        <h2>
+          Rapportage
+        </h2>
 
       </div>
 
@@ -3050,18 +847,53 @@ function createAdminScreen() {
               onchange="updateAdminReport()"
             >
 
-              <option value="1">Januari</option>
-              <option value="2">Februari</option>
-              <option value="3">Maart</option>
-              <option value="4">April</option>
-              <option value="5">Mei</option>
-              <option value="6">Juni</option>
-              <option value="7">Juli</option>
-              <option value="8">Augustus</option>
-              <option value="9">September</option>
-              <option value="10">Oktober</option>
-              <option value="11">November</option>
-              <option value="12">December</option>
+              <option value="1">
+                Januari
+              </option>
+
+              <option value="2">
+                Februari
+              </option>
+
+              <option value="3">
+                Maart
+              </option>
+
+              <option value="4">
+                April
+              </option>
+
+              <option value="5">
+                Mei
+              </option>
+
+              <option value="6">
+                Juni
+              </option>
+
+              <option value="7">
+                Juli
+              </option>
+
+              <option value="8">
+                Augustus
+              </option>
+
+              <option value="9">
+                September
+              </option>
+
+              <option value="10">
+                Oktober
+              </option>
+
+              <option value="11">
+                November
+              </option>
+
+              <option value="12">
+                December
+              </option>
 
             </select>
 
@@ -3086,9 +918,7 @@ function createAdminScreen() {
 
         <div class="admin-chart-box">
 
-          <canvas
-            id="adminMaterialsChart"
-          ></canvas>
+          <canvas id="adminMaterialsChart"></canvas>
 
         </div>
 
@@ -3119,6 +949,69 @@ function createAdminScreen() {
 
 
 /* ============================================================
+   LIST PANEL
+============================================================ */
+
+function adminListPanelHtml(
+  countId,
+  color,
+  title,
+  listId,
+  open,
+  panelId = ""
+) {
+
+  return `
+
+    <details
+      ${panelId ? `id="${panelId}"` : ""}
+      class="admin-list-panel"
+      ${open ? "open" : ""}
+    >
+
+      <summary>
+
+        <div>
+
+          <span
+            class="admin-dot ${color}"
+          ></span>
+
+          ${title}
+
+        </div>
+
+
+        <span
+          id="${countId}"
+          class="admin-count ${color}"
+        >
+          0
+        </span>
+
+      </summary>
+
+
+      <div class="admin-list-content">
+
+        <div id="${listId}">
+
+          <div class="empty">
+            Laden...
+          </div>
+
+        </div>
+
+      </div>
+
+    </details>
+
+  `;
+
+}
+
+
+/* ============================================================
    DETAIL SCHERM
 ============================================================ */
 
@@ -3129,9 +1022,7 @@ function createAdminDetailScreen() {
       "adminDetailScreen"
     )
   ) {
-
     return;
-
   }
 
 
@@ -3142,9 +1033,7 @@ function createAdminDetailScreen() {
 
 
   if (!appMain) {
-
     return;
-
   }
 
 
@@ -3159,7 +1048,7 @@ function createAdminDetailScreen() {
 
 
   section.className =
-    "hidden";
+    "hidden admin-detail-shell";
 
 
   section.innerHTML = `
@@ -3172,9 +1061,8 @@ function createAdminDetailScreen() {
       ← Terug naar dashboard
     </button>
 
-    <div
-      id="adminDetailContent"
-    ></div>
+
+    <div id="adminDetailContent"></div>
 
   `;
 
@@ -3187,7 +1075,7 @@ function createAdminDetailScreen() {
 
 
 /* ============================================================
-   OPEN DASHBOARD
+   OPEN ADMIN
 ============================================================ */
 
 async function openAdminDashboard() {
@@ -3205,8 +1093,27 @@ async function openAdminDashboard() {
     }
 
 
+    if (
+      !document.getElementById(
+        "adminScreen"
+      )
+    ) {
+
+      alert(
+        "Beheer is niet beschikbaar voor dit account."
+      );
+
+      return;
+    }
+
+
     showOnly(
       "adminScreen"
+    );
+
+
+    switchAdminTab(
+      "overview"
     );
 
 
@@ -3219,6 +1126,15 @@ async function openAdminDashboard() {
     console.error(
       "OPEN ADMIN FOUT:",
       error
+    );
+
+
+    alert(
+      "Beheer kon niet worden geopend.\n\n"
+      +
+      adminReadableError(
+        error
+      )
     );
 
   }
@@ -3245,72 +1161,226 @@ function backToAdminDashboard() {
 
 
   renderAdminStatistics();
-function adminStatCard(
-  label,
-  value
-) {
 
-  return `
-
-    <div
-      style="
-        background:#2f3830;
-        border:1px solid #444d45;
-        border-radius:14px;
-        padding:14px;
-      "
-    >
-
-      <div
-        style="
-          font-size:26px;
-          font-weight:900;
-          color:#d8b66a;
-        "
-      >
-        ${value}
-      </div>
-
-
-      <div
-        style="
-          font-size:11px;
-          color:#b6beb7;
-          margin-top:4px;
-        "
-      >
-        ${label}
-      </div>
-
-    </div>
-
-  `;
-
-}
-   
   renderAdminSections();
 
 }
 
 
 /* ============================================================
-   ALLE DATA LADEN
+   TABS
+============================================================ */
+
+function switchAdminTab(
+  tab
+) {
+
+  const panes = {
+
+    overview:
+      "adminPaneOverview",
+
+    requests:
+      "adminPaneRequests",
+
+    material:
+      "adminPaneMaterial",
+
+    reports:
+      "adminPaneReports"
+
+  };
+
+
+  const buttons = {
+
+    overview:
+      "adminTabOverview",
+
+    requests:
+      "adminTabRequests",
+
+    material:
+      "adminTabMaterial",
+
+    reports:
+      "adminTabReports"
+
+  };
+
+
+  if (
+    !panes[
+      tab
+    ]
+  ) {
+
+    tab =
+      "overview";
+
+  }
+
+
+  Object
+    .values(
+      panes
+    )
+    .forEach(
+      id => {
+
+        document
+          .getElementById(
+            id
+          )
+          ?.classList
+          .add(
+            "hidden"
+          );
+
+      }
+    );
+
+
+  Object
+    .values(
+      buttons
+    )
+    .forEach(
+      id => {
+
+        document
+          .getElementById(
+            id
+          )
+          ?.classList
+          .remove(
+            "active"
+          );
+
+      }
+    );
+
+
+  document
+    .getElementById(
+      panes[
+        tab
+      ]
+    )
+    ?.classList
+    .remove(
+      "hidden"
+    );
+
+
+  document
+    .getElementById(
+      buttons[
+        tab
+      ]
+    )
+    ?.classList
+    .add(
+      "active"
+    );
+
+
+  if (
+    tab ===
+    "reports"
+  ) {
+
+    updateAdminReport();
+
+  }
+
+
+  window.scrollTo({
+
+    top:
+      0,
+
+    behavior:
+      "smooth"
+
+  });
+
+}
+
+
+/* ============================================================
+   FILTERS
+============================================================ */
+
+function toggleAdminFilters() {
+
+  document
+    .getElementById(
+      "adminFiltersPanel"
+    )
+    ?.classList
+    .toggle(
+      "hidden"
+    );
+
+}
+
+
+/* ============================================================
+   ARCHIEF OPENEN
+============================================================ */
+
+function openAdminArchive() {
+
+  setTimeout(
+    () => {
+
+      const panel =
+        document.getElementById(
+          "adminArchivePanel"
+        );
+
+
+      if (
+        panel
+      ) {
+
+        panel.open =
+          true;
+
+
+        panel.scrollIntoView({
+
+          behavior:
+            "smooth",
+
+          block:
+            "start"
+
+        });
+
+      }
+
+    },
+    100
+  );
+
+}
+
+
+/* ============================================================
+   DATA LADEN
 ============================================================ */
 
 async function loadAdminDashboard() {
 
   try {
 
-    console.log(
-      "ADMIN: data laden..."
-    );
-
-
     const profilesResult =
       await supabaseClient
-
-        .from("profiles")
-
+        .from(
+          "profiles"
+        )
         .select(
           "id, naam, email, rol, actief"
         );
@@ -3321,7 +1391,8 @@ async function loadAdminDashboard() {
     ) {
 
       throw new Error(
-        "Fout bij profiles:\n" +
+        "Fout bij profiles: "
+        +
         adminReadableError(
           profilesResult.error
         )
@@ -3330,16 +1401,11 @@ async function loadAdminDashboard() {
     }
 
 
-    console.log(
-      "ADMIN: profiles OK"
-    );
-
-
     const ordersResult =
       await supabaseClient
-
-        .from("orders")
-
+        .from(
+          "orders"
+        )
         .select(`
           id,
           user_id,
@@ -3360,7 +1426,6 @@ async function loadAdminDashboard() {
           created_at,
           updated_at
         `)
-
         .order(
           "created_at",
           {
@@ -3375,7 +1440,8 @@ async function loadAdminDashboard() {
     ) {
 
       throw new Error(
-        "Fout bij orders:\n" +
+        "Fout bij orders: "
+        +
         adminReadableError(
           ordersResult.error
         )
@@ -3384,16 +1450,11 @@ async function loadAdminDashboard() {
     }
 
 
-    console.log(
-      "ADMIN: orders OK"
-    );
-
-
     const itemsResult =
       await supabaseClient
-
-        .from("order_items")
-
+        .from(
+          "order_items"
+        )
         .select(
           "order_id, product_naam, categorie, aantal"
         );
@@ -3404,7 +1465,8 @@ async function loadAdminDashboard() {
     ) {
 
       throw new Error(
-        "Fout bij order_items:\n" +
+        "Fout bij order_items: "
+        +
         adminReadableError(
           itemsResult.error
         )
@@ -3413,18 +1475,11 @@ async function loadAdminDashboard() {
     }
 
 
-    console.log(
-      "ADMIN: order_items OK"
-    );
-
-
-    const eventReturnsResult =
+    const returnsResult =
       await supabaseClient
-
         .from(
           "event_material_returns"
         )
-
         .select(`
           id,
           order_id,
@@ -3441,35 +1496,34 @@ async function loadAdminDashboard() {
 
 
     if (
-      eventReturnsResult.error
+      returnsResult.error
     ) {
 
       throw new Error(
-        "Fout bij event_material_returns:\n" +
+        "Fout bij event_material_returns: "
+        +
         adminReadableError(
-          eventReturnsResult.error
+          returnsResult.error
         )
       );
 
     }
 
 
-    console.log(
-      "ADMIN: event_material_returns OK"
-    );
-
-
     const wholesaleResult =
       await supabaseClient
-
         .from(
           "wholesale_orders"
         )
-
-        .select(
-          "id, user_id, referentie, drankenhandel, opmerking, status, created_at"
-        )
-
+        .select(`
+          id,
+          user_id,
+          referentie,
+          drankenhandel,
+          opmerking,
+          status,
+          created_at
+        `)
         .order(
           "created_at",
           {
@@ -3481,80 +1535,61 @@ async function loadAdminDashboard() {
 
     const wholesaleItemsResult =
       await supabaseClient
-
         .from(
           "wholesale_order_items"
         )
-
-        .select(
-          "wholesale_order_id, product_naam, eenheid, betaald_aantal, actie, gratis_aantal, totaal_aantal"
-        );
-
-
-    /*
-      Groothandel maken we NIET kritisch.
-
-      Als daar iets fout zit,
-      moet de rest van Beheer blijven werken.
-    */
-
-    if (
-      wholesaleResult.error
-    ) {
-
-      console.warn(
-        "WHOLESALE ORDERS:",
-        wholesaleResult.error
-      );
-
-    }
-
-
-    if (
-      wholesaleItemsResult.error
-    ) {
-
-      console.warn(
-        "WHOLESALE ITEMS:",
-        wholesaleItemsResult.error
-      );
-
-    }
+        .select(`
+          wholesale_order_id,
+          product_naam,
+          eenheid,
+          betaald_aantal,
+          actie,
+          gratis_aantal,
+          totaal_aantal
+        `);
 
 
     adminProfiles =
-      profilesResult.data || [];
+      profilesResult.data
+      ||
+      [];
 
 
     adminOrders =
-      ordersResult.data || [];
+      ordersResult.data
+      ||
+      [];
 
 
     adminItems =
-      itemsResult.data || [];
+      itemsResult.data
+      ||
+      [];
 
 
     adminEventReturns =
-      eventReturnsResult.data || [];
+      returnsResult.data
+      ||
+      [];
 
 
     adminWholesaleOrders =
       wholesaleResult.error
-
         ? []
-
         : (
-            wholesaleResult.data || []
+            wholesaleResult.data
+            ||
+            []
           );
 
 
     adminWholesaleItems =
       wholesaleItemsResult.error
-
         ? []
-
         : (
-            wholesaleItemsResult.data || []
+            wholesaleItemsResult.data
+            ||
+            []
           );
 
 
@@ -3570,29 +1605,22 @@ async function loadAdminDashboard() {
 
     updateAdminReport();
 
-
-    console.log(
-      "ADMIN: dashboard volledig geladen"
-    );
-
   }
 
   catch (error) {
 
     console.error(
-      "FOUT BIJ LADEN BEHEERDERSDASHBOARD:",
+      "FOUT BIJ LADEN BEHEER:",
       error
     );
 
 
     alert(
-
-      "Het beheerdersdashboard kon niet worden geladen.\n\n" +
-
+      "Het beheerdersdashboard kon niet worden geladen.\n\n"
+      +
       adminReadableError(
         error
       )
-
     );
 
   }
@@ -3606,7 +1634,7 @@ async function loadAdminDashboard() {
 
 function fillRepresentativeFilters() {
 
-  const selects = [
+  [
 
     document.getElementById(
       "adminRepFilter"
@@ -3616,97 +1644,107 @@ function fillRepresentativeFilters() {
       "reportRepresentative"
     )
 
-  ];
+  ]
+    .forEach(
+      select => {
+
+        if (!select) {
+          return;
+        }
 
 
-  selects.forEach(
-    select => {
-
-      if (!select) {
-
-        return;
-
-      }
+        const oldValue =
+          select.value;
 
 
-      const oldValue =
-        select.value;
+        select.innerHTML = `
+
+          <option value="">
+            Alle vertegenwoordigers
+          </option>
+
+        `;
 
 
-      select.innerHTML = `
+        adminProfiles
 
-        <option value="">
-          Alle vertegenwoordigers
-        </option>
+          .filter(
+            profile =>
+              profile.actief !== false
+          )
 
-      `;
-
-
-      adminProfiles
-
-        .filter(
-          profile =>
-            profile.actief !== false
-        )
-
-        .sort(
-          (a, b) =>
-
-            String(
-              a.naam || ""
-            )
-
-              .localeCompare(
-
-                String(
-                  b.naam || ""
-                )
-
+          .sort(
+            (
+              a,
+              b
+            ) =>
+              String(
+                a.naam
+                ||
+                ""
               )
-        )
+                .localeCompare(
+                  String(
+                    b.naam
+                    ||
+                    ""
+                  )
+                )
+          )
 
-        .forEach(
-          profile => {
+          .forEach(
+            profile => {
 
-            const option =
-              document.createElement(
-                "option"
+              const option =
+                document.createElement(
+                  "option"
+                );
+
+
+              option.value =
+                profile.id;
+
+
+              option.textContent =
+                profile.naam
+                ||
+                profile.email
+                ||
+                "Onbekend";
+
+
+              select.appendChild(
+                option
               );
 
-
-            option.value =
-              profile.id;
-
-
-            option.innerText =
-              profile.naam || profile.email;
+            }
+          );
 
 
-            select.appendChild(
-              option
-            );
+        if (
+          [
+            ...select.options
+          ]
+            .some(
+              option =>
+                option.value ===
+                oldValue
+            )
+        ) {
 
-          }
-        );
+          select.value =
+            oldValue;
 
-
-      if (
-        oldValue
-      ) {
-
-        select.value =
-          oldValue;
+        }
 
       }
-
-    }
-  );
+    );
 
 }
 
 
 /* ============================================================
-   STATISTIEKEN
+   KPI
 ============================================================ */
 
 function renderAdminStatistics() {
@@ -3757,76 +1795,41 @@ function renderAdminStatistics() {
       .length;
 
 
-  container.innerHTML = `
+  container.innerHTML =
 
-    <button
-      class="admin-kpi green"
-      type="button"
-      onclick="setAdminStatusAndOpen('nieuw')"
-    >
+    adminKpi(
+      "green",
+      nieuw,
+      "Nieuw",
+      "setAdminStatusAndOpen('nieuw')"
+    )
 
-      <span class="admin-kpi-number">
-        ${nieuw}
-      </span>
+    +
 
-      <span class="admin-kpi-label">
-        Nieuw
-      </span>
+    adminKpi(
+      "orange",
+      processing,
+      "In behandeling",
+      "setAdminStatusAndOpen('in_behandeling')"
+    )
 
-    </button>
+    +
 
+    adminKpi(
+      "red",
+      outside,
+      "Materiaal buiten",
+      "switchAdminTab('material')"
+    )
 
-    <button
-      class="admin-kpi orange"
-      type="button"
-      onclick="setAdminStatusAndOpen('in_behandeling')"
-    >
+    +
 
-      <span class="admin-kpi-number">
-        ${processing}
-      </span>
-
-      <span class="admin-kpi-label">
-        In behandeling
-      </span>
-
-    </button>
-
-
-    <button
-      class="admin-kpi red"
-      type="button"
-      onclick="switchAdminTab('material')"
-    >
-
-      <span class="admin-kpi-number">
-        ${outside}
-      </span>
-
-      <span class="admin-kpi-label">
-        Materiaal buiten
-      </span>
-
-    </button>
-
-
-    <button
-      class="admin-kpi gold"
-      type="button"
-      onclick="setAdminStatusAndOpen('klaar')"
-    >
-
-      <span class="admin-kpi-number">
-        ${ready}
-      </span>
-
-      <span class="admin-kpi-label">
-        Klaar
-      </span>
-
-    </button>
-
-  `;
+    adminKpi(
+      "gold",
+      ready,
+      "Klaar",
+      "setAdminStatusAndOpen('klaar')"
+    );
 
 
   renderAdminAttentionPanel();
@@ -3834,8 +1837,70 @@ function renderAdminStatistics() {
 }
 
 
+function adminKpi(
+  color,
+  number,
+  label,
+  action
+) {
+
+  return `
+
+    <button
+      class="admin-kpi ${color}"
+      type="button"
+      onclick="${action}"
+    >
+
+      <span class="admin-kpi-number">
+        ${number}
+      </span>
+
+
+      <span class="admin-kpi-label">
+        ${label}
+      </span>
+
+    </button>
+
+  `;
+
+}
+
+
 /* ============================================================
-   KPI → FILTER
+   RAPPORT KAART
+============================================================ */
+
+function adminStatCard(
+  label,
+  value
+) {
+
+  return `
+
+    <div class="admin-report-stat">
+
+      <strong>
+        ${value}
+      </strong>
+
+
+      <span>
+        ${adminEscapeHtml(
+          label
+        )}
+      </span>
+
+    </div>
+
+  `;
+
+}
+
+
+/* ============================================================
+   KPI FILTER
 ============================================================ */
 
 function setAdminStatusAndOpen(
@@ -3869,60 +1934,242 @@ function setAdminStatusAndOpen(
 
 
 /* ============================================================
-   FILTERS
+   ACTIES
+============================================================ */
+
+function renderAdminAttentionPanel() {
+
+  const container =
+    document.getElementById(
+      "adminAttentionPanel"
+    );
+
+
+  if (!container) {
+    return;
+  }
+
+
+  const outside =
+    getMaterialOutOrders()
+      .length;
+
+
+  const problems =
+    getProblemRows()
+      .length;
+
+
+  const processing =
+    adminOrders
+      .filter(
+        order =>
+          order.status ===
+          "in_behandeling"
+      )
+      .length;
+
+
+  const cards =
+    [];
+
+
+  if (
+    problems
+  ) {
+
+    cards.push(
+
+      adminAttentionCard(
+        "red",
+        "!",
+        `${problems} materiaalprobleem${problems === 1 ? "" : "en"}`,
+        "Beschadigd of ontbrekend materiaal",
+        "switchAdminTab('material')"
+      )
+
+    );
+
+  }
+
+
+  if (
+    outside
+  ) {
+
+    cards.push(
+
+      adminAttentionCard(
+        "orange",
+        "↩",
+        `${outside} retour${outside === 1 ? "" : "s"} te verwerken`,
+        "Evenementmateriaal staat nog buiten",
+        "switchAdminTab('material')"
+      )
+
+    );
+
+  }
+
+
+  if (
+    processing
+  ) {
+
+    cards.push(
+
+      adminAttentionCard(
+        "yellow",
+        "•",
+        `${processing} in behandeling`,
+        "Aanvragen wachten op verwerking",
+        "switchAdminTab('requests')"
+      )
+
+    );
+
+  }
+
+
+  container.innerHTML =
+    cards.length
+
+      ? cards.join("")
+
+      : `
+
+          <div class="admin-all-clear">
+
+            <strong>
+              Alles onder controle
+            </strong>
+
+            <span>
+              Momenteel zijn er geen dringende acties.
+            </span>
+
+          </div>
+
+        `;
+
+}
+
+
+/* ============================================================
+   ACTIE KAART
+============================================================ */
+
+function adminAttentionCard(
+  color,
+  symbol,
+  title,
+  text,
+  action
+) {
+
+  return `
+
+    <button
+      class="admin-attention-card ${color}"
+      type="button"
+      onclick="${action}"
+    >
+
+      <div class="admin-attention-symbol">
+        ${symbol}
+      </div>
+
+
+      <div>
+
+        <strong>
+          ${title}
+        </strong>
+
+        <span>
+          ${text}
+        </span>
+
+      </div>
+
+
+      <div class="admin-card-arrow">
+        ›
+      </div>
+
+    </button>
+
+  `;
+
+}
+
+
+/* ============================================================
+   FILTER DATA
 ============================================================ */
 
 function getFilteredAdminOrders() {
 
-  const representative =
-    document.getElementById(
-      "adminRepFilter"
-    )?.value || "";
+  const rep =
+    document
+      .getElementById(
+        "adminRepFilter"
+      )
+      ?.value
+    ||
+    "";
 
 
   const status =
-    document.getElementById(
-      "adminStatusFilter"
-    )?.value || "";
+    document
+      .getElementById(
+        "adminStatusFilter"
+      )
+      ?.value
+    ||
+    "";
 
 
   const search =
     (
-      document.getElementById(
-        "adminSearch"
-      )?.value || ""
+      document
+        .getElementById(
+          "adminSearch"
+        )
+        ?.value
+      ||
+      ""
     )
-
       .trim()
       .toLowerCase();
 
 
-  return adminOrders.filter(
-    order => {
+  return adminOrders
+    .filter(
+      order => {
 
-      if (
-        representative &&
-        order.user_id !== representative
-      ) {
-
-        return false;
-
-      }
-
-
-      if (
-        status &&
-        order.status !== status
-      ) {
-
-        return false;
-
-      }
+        if (
+          rep &&
+          order.user_id !==
+          rep
+        ) {
+          return false;
+        }
 
 
-      if (
-        search
-      ) {
+        if (
+          status &&
+          order.status !==
+          status
+        ) {
+          return false;
+        }
+
+
+        if (!search) {
+          return true;
+        }
+
 
         const profile =
           getAdminProfile(
@@ -3933,51 +2180,35 @@ function getFilteredAdminOrders() {
         const text = [
 
           order.referentie,
-
           order.gemeente,
-
           order.land,
-
           order.event_naam,
-
           order.opmerking,
-
           profile?.naam,
-
           profile?.email
 
         ]
-
-          .filter(Boolean)
-
-          .join(" ")
-
+          .filter(
+            Boolean
+          )
+          .join(
+            " "
+          )
           .toLowerCase();
 
 
-        if (
-          !text.includes(
-            search
-          )
-        ) {
-
-          return false;
-
-        }
+        return text.includes(
+          search
+        );
 
       }
-
-
-      return true;
-
-    }
-  );
+    );
 
 }
 
 
 /* ============================================================
-   ARCHIEF LOGICA
+   ARCHIEF
 ============================================================ */
 
 function isArchivedOrder(
@@ -3989,81 +2220,95 @@ function isArchivedOrder(
   ) {
 
     return (
-
       Boolean(
         order.event_returned_at
       )
-
       ||
-
       order.status ===
       "geannuleerd"
-
     );
 
   }
 
 
   return (
-
     order.status ===
     "afgehaald"
-
     ||
-
     order.status ===
     "geannuleerd"
-
   );
 
 }
 
 
 /* ============================================================
-   MATERIAAL BUITEN
+   BUITEN
 ============================================================ */
 
 function getMaterialOutOrders() {
 
-  return adminOrders.filter(
-    order =>
-
-      Boolean(
-        order.event_naam
-      )
-
-      &&
-
-      order.status ===
-      "afgehaald"
-
-      &&
-
-      !order.event_returned_at
-
-  );
+  return adminOrders
+    .filter(
+      order =>
+        Boolean(
+          order.event_naam
+        )
+        &&
+        order.status ===
+        "afgehaald"
+        &&
+        !order.event_returned_at
+    );
 
 }
 
 
 /* ============================================================
-   RETOURDATA PER EVENT
+   PROBLEMEN
 ============================================================ */
+
+function getProblemRows() {
+
+  return adminEventReturns
+    .filter(
+      row =>
+        Number(
+          row.beschadigd
+          ||
+          0
+        )
+        >
+        0
+        ||
+        Number(
+          row.ontbreekt
+          ||
+          0
+        )
+        >
+        0
+    );
+
+}
+
 
 function getEventReturnsForOrder(
   orderId
 ) {
 
-  return adminEventReturns.filter(
-    item =>
-      item.order_id === orderId
-  );
+  return adminEventReturns
+    .filter(
+      row =>
+        row.order_id ===
+        orderId
+    );
 
 }
 
 
 /* ============================================================
-   DASHBOARD ONDERDELEN
+   SECTIES
 ============================================================ */
 
 function renderAdminSections() {
@@ -4073,66 +2318,58 @@ function renderAdminSections() {
 
 
   const regular =
-    filtered.filter(
-      order =>
-
-        !order.event_naam
-
-        &&
-
-        !isArchivedOrder(
-          order
-        )
-    );
+    filtered
+      .filter(
+        order =>
+          !order.event_naam
+          &&
+          !isArchivedOrder(
+            order
+          )
+      );
 
 
   const events =
-    filtered.filter(
-      order =>
-
-        Boolean(
-          order.event_naam
-        )
-
-        &&
-
-        !isArchivedOrder(
-          order
-        )
-
-        &&
-
-        order.status !==
-        "afgehaald"
-    );
+    filtered
+      .filter(
+        order =>
+          Boolean(
+            order.event_naam
+          )
+          &&
+          !isArchivedOrder(
+            order
+          )
+          &&
+          order.status !==
+          "afgehaald"
+      );
 
 
   const materialOutside =
-    filtered.filter(
-      order =>
-
-        Boolean(
-          order.event_naam
-        )
-
-        &&
-
-        order.status ===
-        "afgehaald"
-
-        &&
-
-        !order.event_returned_at
-    );
+    filtered
+      .filter(
+        order =>
+          Boolean(
+            order.event_naam
+          )
+          &&
+          order.status ===
+          "afgehaald"
+          &&
+          !order.event_returned_at
+      );
 
 
   const archive =
-    filtered.filter(
-      order =>
-        isArchivedOrder(
-          order
-        )
-    );
+    filtered
+      .filter(
+        isArchivedOrder
+      );
+
+
+  const problems =
+    getProblemRows();
 
 
   setAdminCount(
@@ -4165,36 +2402,12 @@ function renderAdminSections() {
   );
 
 
-  renderAdminOrderList(
-    "adminRegularOrdersList",
-    regular,
-    "Geen actieve POS- of bieraanvragen."
+  setAdminCount(
+    "adminProblemsCount",
+    problems.length
   );
 
 
-  renderAdminOrderList(
-    "adminEventOrdersList",
-    events,
-    "Geen actieve evenementaanvragen."
-  );
-
-
-  renderMaterialOutList(
-    materialOutside
-  );
-
-
-  renderProblemMaterials();
-
-
-  renderAdminWholesaleOrders();
-
-
-  renderAdminOrderList(
-    "adminArchiveList",
-    archive,
-    "Nog geen afgehandelde aanvragen."
-  );
   setAdminCount(
     "overviewRegularCount",
     regular.length
@@ -4225,32 +2438,45 @@ function renderAdminSections() {
   );
 
 
-  const problemCount =
-    adminEventReturns
-      .filter(
-        item =>
-
-          Number(
-            item.beschadigd || 0
-          ) > 0
-
-          ||
-
-          Number(
-            item.ontbreekt || 0
-          ) > 0
-      )
-      .length;
-
-
   setAdminCount(
     "overviewProblemsCount",
-    problemCount
+    problems.length
+  );
+
+
+  renderAdminOrderList(
+    "adminRegularOrdersList",
+    regular,
+    "Geen actieve POS- of bieraanvragen."
+  );
+
+
+  renderAdminOrderList(
+    "adminEventOrdersList",
+    events,
+    "Geen actieve evenementaanvragen."
+  );
+
+
+  renderMaterialOutList(
+    materialOutside
+  );
+
+
+  renderProblemMaterials();
+
+  renderAdminWholesaleOrders();
+
+
+  renderAdminOrderList(
+    "adminArchiveList",
+    archive,
+    "Nog geen afgehandelde aanvragen."
   );
 
 
   renderAdminAttentionPanel();
-   
+
 }
 
 
@@ -4273,7 +2499,7 @@ function setAdminCount(
     element
   ) {
 
-    element.innerText =
+    element.textContent =
       value;
 
   }
@@ -4282,7 +2508,7 @@ function setAdminCount(
 
 
 /* ============================================================
-   AANVRAGEN LIJST
+   ORDER LIST
 ============================================================ */
 
 function renderAdminOrderList(
@@ -4298,52 +2524,34 @@ function renderAdminOrderList(
 
 
   if (!container) {
-
     return;
-
-  }
-
-
-  if (
-    !orders.length
-  ) {
-
-    container.innerHTML = `
-
-      <div class="empty">
-
-        ${adminEscapeHtml(
-          emptyText
-        )}
-
-      </div>
-
-    `;
-
-
-    return;
-
   }
 
 
   container.innerHTML =
+    orders.length
 
-    orders
-
-      .map(
-        order =>
-          adminOrderCard(
-            order
+      ? orders
+          .map(
+            adminOrderCard
           )
-      )
+          .join("")
 
-      .join("");
+      : `
+
+          <div class="empty">
+            ${adminEscapeHtml(
+              emptyText
+            )}
+          </div>
+
+        `;
 
 }
 
 
 /* ============================================================
-   AANVRAAG KAART
+   ORDER CARD
 ============================================================ */
 
 function adminOrderCard(
@@ -4363,60 +2571,66 @@ function adminOrderCard(
 
 
   const total =
-    items.reduce(
-      (sum, item) =>
-        sum +
-        Number(
-          item.aantal || 0
-        ),
-      0
-    );
+    items
+      .reduce(
+        (
+          sum,
+          item
+        ) =>
+          sum
+          +
+          Number(
+            item.aantal
+            ||
+            0
+          ),
+        0
+      );
+
+
+  const title =
+    order.event_naam
+    ||
+    order.referentie
+    ||
+    "Geen referentie";
+
+
+  const meta =
+    order.event_naam
+
+      ? `${order.event_vanaf || ""} t/m ${order.event_tot || ""}`
+
+      : (
+          order.gemeente
+          ||
+          order.land
+          ||
+          ""
+        );
 
 
   return `
 
     <button
+      class="admin-order-card"
       type="button"
       onclick="openAdminOrder('${order.id}')"
-      style="
-        display:block;
-        width:100%;
-        text-align:left;
-        background:white;
-        border:1px solid var(--border);
-        border-radius:16px;
-        padding:14px;
-        margin-top:10px;
-        color:var(--text);
-      "
     >
 
-      <div
-        style="
-          display:flex;
-          justify-content:space-between;
-          align-items:flex-start;
-          gap:10px;
-        "
-      >
+      <div class="admin-order-top">
 
-        <div
-          style="
-            font-size:12px;
-            font-weight:900;
-            color:var(--gold);
-          "
-        >
+        <span class="admin-order-id">
 
           ${createOrderReference(
             order.id,
             order.created_at
           )}
 
-        </div>
+        </span>
 
 
-        <div
+        <span
           class="status ${adminStatusClass(order.status)}"
         >
 
@@ -4424,84 +2638,39 @@ function adminOrderCard(
             order.status
           )}
 
-        </div>
+        </span>
 
       </div>
 
 
-      <div
-        style="
-          margin-top:8px;
-          font-size:17px;
-          font-weight:850;
-        "
-      >
+      <strong class="admin-order-title">
 
         ${adminEscapeHtml(
-
-          order.event_naam ||
-
-          order.referentie ||
-
-          "Geen referentie"
-
+          title
         )}
 
-      </div>
+      </strong>
 
 
-      <div class="order-meta">
+      <span class="admin-order-meta">
 
         ${adminEscapeHtml(
-          profile?.naam ||
+          profile?.naam
+          ||
           "Onbekende gebruiker"
         )}
 
-      </div>
+        ·
 
+        ${adminEscapeHtml(
+          meta
+        )}
 
-      ${
-        order.event_naam
-
-          ? `
-
-              <div class="order-meta">
-
-                ${adminEscapeHtml(
-                  order.event_vanaf || ""
-                )}
-
-                t/m
-
-                ${adminEscapeHtml(
-                  order.event_tot || ""
-                )}
-
-              </div>
-
-            `
-
-          : `
-
-              <div class="order-meta">
-
-                ${adminEscapeHtml(
-                  order.gemeente ||
-                  order.land ||
-                  ""
-                )}
-
-              </div>
-
-            `
-      }
-
-
-      <div class="order-meta">
+        ·
 
         ${total} item(s)
 
-      </div>
+      </span>
 
     </button>
 
@@ -4511,7 +2680,7 @@ function adminOrderCard(
 
 
 /* ============================================================
-   MATERIAAL BUITEN TONEN
+   MATERIAAL BUITEN
 ============================================================ */
 
 function renderMaterialOutList(
@@ -4525,50 +2694,32 @@ function renderMaterialOutList(
 
 
   if (!container) {
-
     return;
-
-  }
-
-
-  if (
-    !orders.length
-  ) {
-
-    container.innerHTML = `
-
-      <div class="info ok">
-
-        Momenteel staat er geen evenementmateriaal buiten.
-
-      </div>
-
-    `;
-
-
-    return;
-
   }
 
 
   container.innerHTML =
+    orders.length
 
-    orders
-
-      .map(
-        order =>
-          buildMaterialOutCard(
-            order
+      ? orders
+          .map(
+            buildMaterialOutCard
           )
-      )
+          .join("")
 
-      .join("");
+      : `
+
+          <div class="admin-empty-ok">
+            Geen evenementmateriaal buiten.
+          </div>
+
+        `;
 
 }
 
 
 /* ============================================================
-   MATERIAAL BUITEN KAART
+   MATERIAAL CARD
 ============================================================ */
 
 function buildMaterialOutCard(
@@ -4581,255 +2732,174 @@ function buildMaterialOutCard(
     );
 
 
-  const items =
+  const rows =
     getAdminOrderItems(
       order.id
     )
-
       .filter(
         item =>
           item.categorie ===
           "evenement"
-      );
+      )
+      .map(
+        item => {
+
+          const ret =
+            adminEventReturns
+              .find(
+                row =>
+                  row.order_id ===
+                  order.id
+                  &&
+                  row.product_naam ===
+                  item.product_naam
+              );
 
 
-  let materialHtml = "";
+          const loaned =
+            Number(
+              item.aantal
+              ||
+              0
+            );
 
 
-  items.forEach(
-    item => {
-
-      const returnRow =
-        adminEventReturns.find(
-          row =>
-
-            row.order_id ===
-            order.id
-
-            &&
-
-            row.product_naam ===
-            item.product_naam
-        );
+          const good =
+            Number(
+              ret?.goed_terug
+              ||
+              0
+            );
 
 
-      const loaned =
-        Number(
-          item.aantal || 0
-        );
+          const damaged =
+            Number(
+              ret?.beschadigd
+              ||
+              0
+            );
 
 
-      const good =
-        Number(
-          returnRow?.goed_terug || 0
-        );
+          const missing =
+            Number(
+              ret?.ontbreekt
+              ||
+              0
+            );
 
 
-      const damaged =
-        Number(
-          returnRow?.beschadigd || 0
-        );
+          const outside =
+            Math.max(
+              0,
+              loaned
+              -
+              good
+              -
+              damaged
+              -
+              missing
+            );
 
 
-      const missing =
-        Number(
-          returnRow?.ontbreekt || 0
-        );
+          return `
 
+            <div class="material-row">
 
-      const outside =
-        Math.max(
+              <strong>
+                ${adminEscapeHtml(
+                  item.product_naam
+                )}
+              </strong>
 
-          0,
+              <span>
+                Uit ${loaned}
+              </span>
 
-          loaned
-          -
-          good
-          -
-          damaged
-          -
-          missing
+              <span class="green-text">
+                Terug ${good}
+              </span>
 
-        );
+              ${
+                damaged
+                  ? `<span class="red-text">Kapot ${damaged}</span>`
+                  : ""
+              }
 
+              ${
+                missing
+                  ? `<span class="red-text">Ontbreekt ${missing}</span>`
+                  : ""
+              }
 
-      materialHtml += `
+              <b>
+                Nog buiten ${outside}
+              </b>
 
-        <div
-          style="
-            padding:10px 0;
-            border-bottom:1px solid var(--border);
-          "
-        >
+            </div>
 
-          <div
-            style="
-              display:flex;
-              justify-content:space-between;
-              gap:10px;
-            "
-          >
+          `;
 
-            <strong>
-
-              ${adminEscapeHtml(
-                item.product_naam
-              )}
-
-            </strong>
-
-
-            <strong>
-
-              ${loaned}
-
-            </strong>
-
-          </div>
-
-
-          <div class="order-meta">
-
-            Goed terug:
-            ${good}
-
-          </div>
-
-
-          ${
-            damaged > 0
-
-              ? `
-
-                  <div
-                    class="order-meta"
-                    style="
-                      color:#b2463f;
-                    "
-                  >
-
-                    Beschadigd:
-                    ${damaged}
-
-                  </div>
-
-                `
-
-              : ""
-          }
-
-
-          ${
-            missing > 0
-
-              ? `
-
-                  <div
-                    class="order-meta"
-                    style="
-                      color:#b2463f;
-                    "
-                  >
-
-                    Ontbreekt:
-                    ${missing}
-
-                  </div>
-
-                `
-
-              : ""
-          }
-
-
-          <div
-            style="
-              font-weight:850;
-              font-size:13px;
-              margin-top:4px;
-            "
-          >
-
-            Nog buiten:
-            ${outside}
-
-          </div>
-
-        </div>
-
-      `;
-
-    }
-  );
+        }
+      )
+      .join("");
 
 
   return `
 
-    <div
-      style="
-        background:white;
-        border:1px solid var(--border);
-        border-radius:16px;
-        padding:14px;
-        margin-top:10px;
-      "
-    >
+    <div class="admin-material-card">
 
-      <div
-        style="
-          font-size:18px;
-          font-weight:900;
-        "
-      >
+      <div class="admin-material-head">
 
-        ${adminEscapeHtml(
-          order.event_naam || ""
-        )}
+        <div>
+
+          <strong>
+            ${adminEscapeHtml(
+              order.event_naam
+              ||
+              "Evenement"
+            )}
+          </strong>
+
+          <span>
+
+            ${adminEscapeHtml(
+              profile?.naam
+              ||
+              ""
+            )}
+
+            ·
+
+            ${adminEscapeHtml(
+              order.event_vanaf
+              ||
+              ""
+            )}
+
+            t/m
+
+            ${adminEscapeHtml(
+              order.event_tot
+              ||
+              ""
+            )}
+
+          </span>
+
+        </div>
+
+
+        <button
+          type="button"
+          onclick="openAdminOrder('${order.id}')"
+        >
+          Retour verwerken ›
+        </button>
 
       </div>
 
 
-      <div class="order-meta">
-
-        ${adminEscapeHtml(
-          profile?.naam || ""
-        )}
-
-      </div>
-
-
-      <div class="order-meta">
-
-        Evenement:
-
-        ${adminEscapeHtml(
-          order.event_vanaf || ""
-        )}
-
-        t/m
-
-        ${adminEscapeHtml(
-          order.event_tot || ""
-        )}
-
-      </div>
-
-
-      ${materialHtml}
-
-
-      <button
-        class="primary"
-        type="button"
-        onclick="openAdminOrder('${order.id}')"
-        style="
-          margin-top:14px;
-        "
-      >
-
-        Retour registreren
-
-      </button>
+      ${rows}
 
     </div>
 
@@ -4839,7 +2909,7 @@ function buildMaterialOutCard(
 
 
 /* ============================================================
-   SCHADE / ONTBREEKT
+   PROBLEMEN TONEN
 ============================================================ */
 
 function renderProblemMaterials() {
@@ -4851,26 +2921,12 @@ function renderProblemMaterials() {
 
 
   if (!container) {
-
     return;
-
   }
 
 
   const problems =
-    adminEventReturns.filter(
-      row =>
-
-        Number(
-          row.beschadigd || 0
-        ) > 0
-
-        ||
-
-        Number(
-          row.ontbreekt || 0
-        ) > 0
-    );
+    getProblemRows();
 
 
   setAdminCount(
@@ -4879,193 +2935,122 @@ function renderProblemMaterials() {
   );
 
 
-  if (
-    !problems.length
-  ) {
-
-    container.innerHTML = `
-
-      <div class="info ok">
-
-        Geen schade of ontbrekend materiaal geregistreerd.
-
-      </div>
-
-    `;
-
-
-    return;
-
-  }
-
-
   container.innerHTML =
+    problems.length
 
-    problems
+      ? problems
+          .map(
+            row => {
 
-      .map(
-        row => {
+              const order =
+                adminOrders
+                  .find(
+                    item =>
+                      item.id ===
+                      row.order_id
+                  );
 
-          const order =
-            adminOrders.find(
-              item =>
-                item.id ===
-                row.order_id
-            );
 
+              return `
 
-          const profile =
-            order
+                <div class="admin-problem-card">
 
-              ? getAdminProfile(
-                  order.user_id
-                )
+                  <strong>
+                    ${adminEscapeHtml(
+                      row.product_naam
+                    )}
+                  </strong>
 
-              : null;
 
+                  <span>
 
-          return `
+                    ${adminEscapeHtml(
+                      order?.event_naam
+                      ||
+                      "Onbekend evenement"
+                    )}
 
-            <div
-              style="
-                border:1px solid var(--border);
-                border-radius:15px;
-                padding:14px;
-                margin-top:10px;
-                background:white;
-              "
-            >
+                  </span>
 
-              <strong>
 
-                ${adminEscapeHtml(
-                  row.product_naam
-                )}
+                  <div>
 
-              </strong>
+                    ${
+                      Number(
+                        row.beschadigd
+                        ||
+                        0
+                      )
+                      ?
+                        `<b>Beschadigd: ${row.beschadigd}</b>`
+                      :
+                        ""
+                    }
 
+                    ${
+                      Number(
+                        row.ontbreekt
+                        ||
+                        0
+                      )
+                      ?
+                        `<b>Ontbreekt: ${row.ontbreekt}</b>`
+                      :
+                        ""
+                    }
 
-              <div class="order-meta">
+                  </div>
 
-                ${adminEscapeHtml(
-                  order?.event_naam || ""
-                )}
 
-              </div>
+                  ${
+                    row.opmerking
 
+                      ? `
 
-              <div class="order-meta">
+                          <small>
+                            ${adminEscapeHtml(
+                              row.opmerking
+                            )}
+                          </small>
 
-                ${adminEscapeHtml(
-                  profile?.naam || ""
-                )}
+                        `
 
-              </div>
+                      : ""
+                  }
 
 
-              ${
-                Number(
-                  row.beschadigd || 0
-                ) > 0
+                  ${
+                    order
 
-                  ? `
+                      ? `
 
-                      <div
-                        class="info error"
-                      >
+                          <button
+                            type="button"
+                            onclick="openAdminOrder('${order.id}')"
+                          >
+                            Bekijk ›
+                          </button>
 
-                        Beschadigd / kapot:
+                        `
 
-                        <strong>
+                      : ""
+                  }
 
-                          ${row.beschadigd}
+                </div>
 
-                        </strong>
+              `;
 
-                      </div>
+            }
+          )
+          .join("")
 
-                    `
+      : `
 
-                  : ""
-              }
+          <div class="admin-empty-ok">
+            Geen schade of ontbrekend materiaal.
+          </div>
 
-
-              ${
-                Number(
-                  row.ontbreekt || 0
-                ) > 0
-
-                  ? `
-
-                      <div
-                        class="info error"
-                      >
-
-                        Ontbreekt:
-
-                        <strong>
-
-                          ${row.ontbreekt}
-
-                        </strong>
-
-                      </div>
-
-                    `
-
-                  : ""
-              }
-
-
-              ${
-                row.opmerking
-
-                  ? `
-
-                      <div class="order-meta">
-
-                        Opmerking:
-
-                        ${adminEscapeHtml(
-                          row.opmerking
-                        )}
-
-                      </div>
-
-                    `
-
-                  : ""
-              }
-
-
-              ${
-                order
-
-                  ? `
-
-                      <button
-                        class="secondary"
-                        type="button"
-                        onclick="openAdminOrder('${order.id}')"
-                      >
-
-                        Bekijk evenement
-
-                      </button>
-
-                    `
-
-                  : ""
-              }
-
-            </div>
-
-          `;
-
-        }
-      )
-
-      .join("");
+        `;
 
 }
 
@@ -5083,9 +3068,7 @@ function renderAdminWholesaleOrders() {
 
 
   if (!container) {
-
     return;
-
   }
 
 
@@ -5096,13 +3079,10 @@ function renderAdminWholesaleOrders() {
     container.innerHTML = `
 
       <div class="empty">
-
-        Geen groothandelbestellingen gevonden.
-
+        Geen groothandelbestellingen.
       </div>
 
     `;
-
 
     return;
 
@@ -5110,9 +3090,7 @@ function renderAdminWholesaleOrders() {
 
 
   container.innerHTML =
-
     adminWholesaleOrders
-
       .map(
         order => {
 
@@ -5123,89 +3101,73 @@ function renderAdminWholesaleOrders() {
 
 
           const items =
-            adminWholesaleItems.filter(
-              item =>
-                item.wholesale_order_id ===
-                order.id
-            );
+            adminWholesaleItems
+              .filter(
+                item =>
+                  item.wholesale_order_id ===
+                  order.id
+              );
 
 
           return `
 
-            <details
-              style="
-                border:1px solid var(--border);
-                border-radius:14px;
-                padding:13px;
-                margin-top:10px;
-                background:white;
-              "
-            >
+            <details class="admin-wholesale-card">
 
               <summary>
 
                 <strong>
-
                   ${adminEscapeHtml(
-                    order.referentie ||
+                    order.referentie
+                    ||
                     "Geen referentie"
                   )}
-
                 </strong>
 
 
-                <div class="order-meta">
+                <span>
 
                   ${adminEscapeHtml(
-                    profile?.naam || ""
+                    profile?.naam
+                    ||
+                    ""
                   )}
 
                   ·
 
                   ${adminEscapeHtml(
-                    order.drankenhandel || ""
+                    order.drankenhandel
+                    ||
+                    ""
                   )}
 
-                </div>
+                </span>
 
               </summary>
 
 
-              <div
-                style="
-                  margin-top:12px;
-                "
-              >
+              <div>
 
                 ${
                   items
-
                     .map(
                       item => `
 
-                        <div
-                          class="summary-line"
-                        >
+                        <div class="summary-line">
 
                           <span>
-
                             ${adminEscapeHtml(
                               item.product_naam
                             )}
-
                           </span>
-
 
                           <strong>
 
                             ${Number(
-
-                              item.totaal_aantal ||
-
-                              item.betaald_aantal ||
-
+                              item.totaal_aantal
+                              ||
+                              item.betaald_aantal
+                              ||
                               0
-
                             )}
 
                           </strong>
@@ -5214,7 +3176,6 @@ function renderAdminWholesaleOrders() {
 
                       `
                     )
-
                     .join("")
                 }
 
@@ -5226,14 +3187,13 @@ function renderAdminWholesaleOrders() {
 
         }
       )
-
       .join("");
 
 }
 
 
 /* ============================================================
-   AANVRAAG OPENEN
+   ORDER OPENEN
 ============================================================ */
 
 async function openAdminOrder(
@@ -5241,23 +3201,18 @@ async function openAdminOrder(
 ) {
 
   let order =
-    adminOrders.find(
-      item =>
-        item.id ===
-        orderId
-    );
+    adminOrders
+      .find(
+        item =>
+          item.id ===
+          orderId
+      );
 
 
   if (!order) {
-
     return;
-
   }
 
-
-  /*
-    NIEUW -> IN BEHANDELING
-  */
 
   if (
     order.status ===
@@ -5269,21 +3224,17 @@ async function openAdminOrder(
       error
     } =
       await supabaseClient
-
-        .from("orders")
-
+        .from(
+          "orders"
+        )
         .update({
-
           status:
             "in_behandeling"
-
         })
-
         .eq(
           "id",
           order.id
         )
-
         .select(`
           id,
           user_id,
@@ -5304,7 +3255,6 @@ async function openAdminOrder(
           created_at,
           updated_at
         `)
-
         .single();
 
 
@@ -5313,18 +3263,14 @@ async function openAdminOrder(
     ) {
 
       alert(
-
-        "Aanvraag kon niet worden geopend.\n\n" +
-
+        "Aanvraag kon niet worden geopend.\n\n"
+        +
         adminReadableError(
           error
         )
-
       );
 
-
       return;
-
     }
 
 
@@ -5356,7 +3302,7 @@ async function openAdminOrder(
 
 
 /* ============================================================
-   DETAIL SCHERM
+   DETAIL
 ============================================================ */
 
 function renderAdminDetail(
@@ -5370,9 +3316,7 @@ function renderAdminDetail(
 
 
   if (!container) {
-
     return;
-
   }
 
 
@@ -5391,14 +3335,16 @@ function renderAdminDetail(
   const beer =
     items.filter(
       item =>
-        item.categorie === "bier"
+        item.categorie ===
+        "bier"
     );
 
 
   const pos =
     items.filter(
       item =>
-        item.categorie === "pos"
+        item.categorie ===
+        "pos"
     );
 
 
@@ -5412,49 +3358,30 @@ function renderAdminDetail(
 
   container.innerHTML = `
 
-    <div class="card">
+    <div class="admin-detail-card">
 
-      <div
-        style="
-          display:flex;
-          justify-content:space-between;
-          align-items:flex-start;
-          gap:12px;
-        "
-      >
+      <div class="admin-detail-head">
 
         <div>
 
-          <div
-            style="
-              font-size:12px;
-              font-weight:900;
-              color:var(--gold);
-            "
-          >
+          <span>
 
             ${createOrderReference(
               order.id,
               order.created_at
             )}
 
-          </div>
+          </span>
 
 
-          <h2
-            style="
-              margin-top:7px;
-            "
-          >
+          <h2>
 
             ${adminEscapeHtml(
-
-              order.event_naam ||
-
-              order.referentie ||
-
+              order.event_naam
+              ||
+              order.referentie
+              ||
               "Aanvraag"
-
             )}
 
           </h2>
@@ -5462,7 +3389,7 @@ function renderAdminDetail(
         </div>
 
 
-        <div
+        <span
           class="status ${adminStatusClass(order.status)}"
         >
 
@@ -5470,58 +3397,66 @@ function renderAdminDetail(
             order.status
           )}
 
-        </div>
+        </span>
 
       </div>
 
 
       ${adminDetailRow(
         "Vertegenwoordiger",
-        profile?.naam || ""
+        profile?.naam
+        ||
+        ""
       )}
 
 
       ${adminDetailRow(
         "E-mail",
-        profile?.email || ""
+        profile?.email
+        ||
+        ""
       )}
 
 
       ${
         order.event_naam
 
-          ? `
+          ?
+            adminDetailRow(
+              "Materiaal vanaf",
+              order.event_vanaf
+              ||
+              ""
+            )
+            +
+            adminDetailRow(
+              "Materiaal t/m",
+              order.event_tot
+              ||
+              ""
+            )
 
-              ${adminDetailRow(
-                "Materiaal vanaf",
-                order.event_vanaf || ""
-              )}
-
-              ${adminDetailRow(
-                "Materiaal t/m",
-                order.event_tot || ""
-              )}
-
-            `
-
-          : `
-
-              ${adminDetailRow(
-                "Land",
-                order.land || ""
-              )}
-
-              ${adminDetailRow(
-                "Gemeente",
-                order.gemeente || ""
-              )}
-
-              ${adminDetailRow(
-                "Afhaaldatum",
-                order.afhaaldatum || ""
-              )}
-
-            `
+          :
+            adminDetailRow(
+              "Land",
+              order.land
+              ||
+              ""
+            )
+            +
+            adminDetailRow(
+              "Gemeente",
+              order.gemeente
+              ||
+              ""
+            )
+            +
+            adminDetailRow(
+              "Afhaaldatum",
+              order.afhaaldatum
+              ||
+              ""
+            )
       }
 
     </div>
@@ -5529,19 +3464,22 @@ function renderAdminDetail(
 
     ${adminCategoryCard(
       "BIER",
-      beer
+      beer,
+      "green"
     )}
 
 
     ${adminCategoryCard(
       "POS-MATERIALEN",
-      pos
+      pos,
+      "blue"
     )}
 
 
     ${adminCategoryCard(
       "EVENEMENTENMATERIAAL",
-      events
+      events,
+      "orange"
     )}
 
 
@@ -5550,18 +3488,16 @@ function renderAdminDetail(
 
         ? `
 
-            <div class="card">
+            <div class="admin-detail-card">
 
-              <h2>
+              <h3>
                 Opmerking
-              </h2>
+              </h3>
 
               <p>
-
                 ${adminEscapeHtml(
                   order.opmerking
                 )}
-
               </p>
 
             </div>
@@ -5577,11 +3513,11 @@ function renderAdminDetail(
     )}
 
 
-    <div class="card">
+    <div class="admin-detail-card">
 
-      <h2>
+      <h3>
         Status
-      </h2>
+      </h3>
 
 
       ${adminStatusTimeline(
@@ -5599,7 +3535,8 @@ function renderAdminDetail(
 
 
   if (
-    order.event_naam &&
+    order.event_naam
+    &&
     order.status ===
     "afgehaald"
   ) {
@@ -5624,39 +3561,19 @@ function adminDetailRow(
 
   return `
 
-    <div
-      style="
-        margin-top:14px;
-      "
-    >
+    <div class="admin-detail-row">
 
-      <div
-        style="
-          font-size:11px;
-          font-weight:900;
-          color:var(--muted);
-          text-transform:uppercase;
-        "
-      >
+      <span>
+        ${adminEscapeHtml(
+          label
+        )}
+      </span>
 
-        ${label}
-
-      </div>
-
-
-      <div
-        style="
-          font-size:16px;
-          font-weight:700;
-          margin-top:3px;
-        "
-      >
-
+      <strong>
         ${adminEscapeHtml(
           value
         )}
-
-      </div>
+      </strong>
 
     </div>
 
@@ -5666,62 +3583,54 @@ function adminDetailRow(
 
 
 /* ============================================================
-   PRODUCT CATEGORIE
+   CATEGORIE
 ============================================================ */
 
 function adminCategoryCard(
   title,
-  items
+  items,
+  color
 ) {
 
   if (
     !items.length
   ) {
-
     return "";
-
   }
 
 
   return `
 
-    <div class="card">
+    <div
+      class="admin-detail-card category-${color}"
+    >
 
-      <h2>
+      <h3>
         ${title}
-      </h2>
+      </h3>
 
 
       ${
         items
-
           .map(
             item => `
 
-              <div
-                class="summary-line"
-              >
+              <div class="summary-line">
 
                 <span>
-
                   ${adminEscapeHtml(
                     item.product_naam
                   )}
-
                 </span>
 
-
                 <strong>
-
                   ${item.aantal}
-
                 </strong>
 
               </div>
 
             `
           )
-
           .join("")
       }
 
@@ -5733,7 +3642,7 @@ function adminCategoryCard(
 
 
 /* ============================================================
-   EVENT RETOUR EDITOR
+   RETOUR
 ============================================================ */
 
 function buildEventReturnEditor(
@@ -5743,15 +3652,9 @@ function buildEventReturnEditor(
   if (
     !order.event_naam
   ) {
-
     return "";
-
   }
 
-
-  /*
-    RETOUR PAS NA AFHALING
-  */
 
   if (
     order.status !==
@@ -5760,17 +3663,17 @@ function buildEventReturnEditor(
 
     return `
 
-      <div class="card">
+      <div class="admin-detail-card">
 
-        <h2>
+        <h3>
           Retour evenementmateriaal
-        </h2>
+        </h3>
 
 
-        <div class="info">
+        <div class="admin-info orange">
 
-          Retourregistratie wordt beschikbaar
-          nadat het materiaal als afgehaald is geregistreerd.
+          Retour wordt beschikbaar zodra
+          materiaal is afgehaald.
 
         </div>
 
@@ -5785,7 +3688,6 @@ function buildEventReturnEditor(
     getAdminOrderItems(
       order.id
     )
-
       .filter(
         item =>
           item.categorie ===
@@ -5796,152 +3698,104 @@ function buildEventReturnEditor(
   if (
     !items.length
   ) {
-
-    return `
-
-      <div class="card">
-
-        <h2>
-          Retour evenementmateriaal
-        </h2>
-
-        <div class="info">
-
-          Geen evenementmaterialen gevonden.
-
-        </div>
-
-      </div>
-
-    `;
-
+    return "";
   }
 
 
   const rows =
     items
-
       .map(
         item => {
 
           const existing =
-            adminEventReturns.find(
-              row =>
-
-                row.order_id ===
-                order.id
-
-                &&
-
-                row.product_naam ===
-                item.product_naam
-            );
+            adminEventReturns
+              .find(
+                row =>
+                  row.order_id ===
+                  order.id
+                  &&
+                  row.product_naam ===
+                  item.product_naam
+              );
 
 
           const good =
             Number(
-              existing?.goed_terug || 0
+              existing?.goed_terug
+              ||
+              0
             );
 
 
           const damaged =
             Number(
-              existing?.beschadigd || 0
+              existing?.beschadigd
+              ||
+              0
             );
 
 
           const missing =
             Number(
-              existing?.ontbreekt || 0
+              existing?.ontbreekt
+              ||
+              0
             );
 
 
           return `
 
-            <div
-              style="
-                border:1px solid var(--border);
-                border-radius:16px;
-                padding:15px;
-                margin-top:14px;
-                background:#fff;
-              "
-            >
+            <div class="return-item">
 
-              <div
-                style="
-                  font-size:18px;
-                  font-weight:900;
-                "
-              >
-
-                ${adminEscapeHtml(
-                  item.product_naam
-                )}
-
-              </div>
-
-
-              <div
-                class="order-meta"
-                style="
-                  margin-top:4px;
-                "
-              >
-
-                Uitgeleend:
+              <div class="return-item-head">
 
                 <strong>
-
-                  ${item.aantal}
-
+                  ${adminEscapeHtml(
+                    item.product_naam
+                  )}
                 </strong>
+
+
+                <span>
+
+                  Uitgeleend
+
+                  <b>
+                    ${item.aantal}
+                  </b>
+
+                </span>
 
               </div>
 
 
               ${buildReturnQuantityControl(
-
                 order.id,
-
                 item.product_naam,
-
                 "good",
-
                 "Goed terug",
-
-                good
-
+                good,
+                "green"
               )}
 
 
               ${buildReturnQuantityControl(
-
                 order.id,
-
                 item.product_naam,
-
                 "damaged",
-
-                "Beschadigd / kapot",
-
-                damaged
-
+                "Beschadigd",
+                damaged,
+                "orange"
               )}
 
 
               ${buildReturnQuantityControl(
-
                 order.id,
-
                 item.product_naam,
-
                 "missing",
-
                 "Ontbreekt",
-
-                missing
-
+                missing,
+                "red"
               )}
 
 
@@ -5951,22 +3805,10 @@ function buildEventReturnEditor(
                   item.product_naam,
                   "outside"
                 )}"
-                class="info"
-                style="
-                  margin-top:14px;
-                  font-weight:900;
-                "
+                class="return-outside"
               >
-
-                Nog buiten:
-                0
-
+                Nog buiten: 0
               </div>
-
-
-              <label>
-                Opmerking
-              </label>
 
 
               <textarea
@@ -5975,7 +3817,7 @@ function buildEventReturnEditor(
                   item.product_naam,
                   "note"
                 )}"
-                placeholder="Bijv. beschadigde poot, scheur, materiaal nog bij klant..."
+                placeholder="Opmerking indien nodig"
               >${adminEscapeHtml(existing?.opmerking || "")}</textarea>
 
             </div>
@@ -5984,103 +3826,63 @@ function buildEventReturnEditor(
 
         }
       )
-
       .join("");
 
 
   return `
 
-    <div class="card">
+    <div class="admin-detail-card return-card">
 
-      <h2>
-        Retour evenementmateriaal
-      </h2>
+      <div class="return-title">
 
+        <div>
 
-      <p
-        style="
-          color:var(--muted);
-          line-height:1.5;
-        "
-      >
+          <span>
+            Logistiek
+          </span>
 
-        Registreer per materiaal hoeveel
-        goed teruggekomen is, hoeveel beschadigd
-        is en hoeveel definitief ontbreekt.
+          <h3>
+            Retour verwerken
+          </h3>
 
-      </p>
+        </div>
 
 
-      <div class="info">
-
-        Wat niet verwerkt is,
-        blijft automatisch als
-        <strong>Nog buiten</strong>
-        geregistreerd.
+        <button
+          type="button"
+          onclick="markEverythingReturned('${order.id}')"
+        >
+          Alles goed terug
+        </button>
 
       </div>
-
-
-      ${
-        order.event_returned_at
-
-          ? `
-
-              <div
-                class="info ok"
-                style="
-                  margin-top:10px;
-                "
-              >
-
-                Alle materialen zijn logistiek verwerkt.
-
-                <br>
-
-                ${adminFormatDateTime(
-                  order.event_returned_at
-                )}
-
-              </div>
-
-            `
-
-          : ""
-      }
 
 
       ${rows}
 
 
       <button
-        class="primary"
+        class="return-save"
         type="button"
         onclick="saveEventReturnRegistration('${order.id}')"
-        style="
-          margin-top:18px;
-        "
       >
-
-        Retourregistratie opslaan
-
+        Retour opslaan
       </button>
 
 
       ${
         getEventReturnsForOrder(
           order.id
-        ).length > 0
+        ).length
 
           ? `
 
               <button
-                class="secondary"
+                class="return-reset"
                 type="button"
                 onclick="resetEventReturnRegistration('${order.id}')"
               >
-
-                Retourregistratie wissen
-
+                Registratie wissen
               </button>
 
             `
@@ -6096,7 +3898,7 @@ function buildEventReturnEditor(
 
 
 /* ============================================================
-   RETOUR +/- KNOPPEN
+   RETOUR CONTROL
 ============================================================ */
 
 function buildReturnQuantityControl(
@@ -6104,10 +3906,11 @@ function buildReturnQuantityControl(
   productName,
   type,
   label,
-  value
+  value,
+  color
 ) {
 
-  const safeName =
+  const safe =
     escapeReturnJsString(
       productName
     );
@@ -6115,70 +3918,39 @@ function buildReturnQuantityControl(
 
   return `
 
-    <div
-      style="
-        display:flex;
-        justify-content:space-between;
-        align-items:center;
-        gap:12px;
-        margin-top:15px;
-      "
-    >
+    <div class="return-control ${color}">
 
-      <div
-        style="
-          font-size:14px;
-          font-weight:800;
-        "
-      >
-
+      <span>
         ${label}
+      </span>
 
-      </div>
 
-
-      <div class="qty">
+      <div class="return-stepper">
 
         <button
           type="button"
-          onclick="changeReturnQuantity(
-            '${orderId}',
-            '${safeName}',
-            '${type}',
-            -1
-          )"
+          onclick="changeReturnQuantity('${orderId}','${safe}','${type}',-1)"
         >
-
           −
-
         </button>
 
 
-        <span
+        <b
           id="${returnDomId(
             orderId,
             productName,
             type
           )}"
         >
-
           ${value}
-
-        </span>
+        </b>
 
 
         <button
           type="button"
-          onclick="changeReturnQuantity(
-            '${orderId}',
-            '${safeName}',
-            '${type}',
-            1
-          )"
+          onclick="changeReturnQuantity('${orderId}','${safe}','${type}',1)"
         >
-
           +
-
         </button>
 
       </div>
@@ -6191,7 +3963,7 @@ function buildReturnQuantityControl(
 
 
 /* ============================================================
-   VEILIGE HTML ID
+   RETOUR ID
 ============================================================ */
 
 function returnDomId(
@@ -6200,41 +3972,27 @@ function returnDomId(
   type
 ) {
 
-  const orderPart =
-    String(
-      orderId
-    )
-
-      .replace(
-        /[^a-zA-Z0-9]/g,
-        "_"
-      );
-
-
-  const productPart =
-    String(
-      productName || ""
-    )
-
-      .replace(
-        /[^a-zA-Z0-9]/g,
-        "_"
-      );
-
-
   return (
 
-    "return_" +
-
-    orderPart +
-
-    "_" +
-
-    productPart +
-
-    "_" +
-
-    type
+    `return_${
+      String(
+        orderId
+      )
+        .replace(
+          /[^a-zA-Z0-9]/g,
+          "_"
+        )
+    }_${
+      String(
+        productName
+        ||
+        ""
+      )
+        .replace(
+          /[^a-zA-Z0-9]/g,
+          "_"
+        )
+    }_${type}`
 
   );
 
@@ -6242,7 +4000,78 @@ function returnDomId(
 
 
 /* ============================================================
-   RETOURAANTAL WIJZIGEN
+   RETOUR WAARDE
+============================================================ */
+
+function getReturnScreenValue(
+  orderId,
+  productName,
+  type
+) {
+
+  return Number(
+
+    document
+      .getElementById(
+        returnDomId(
+          orderId,
+          productName,
+          type
+        )
+      )
+      ?.textContent
+
+    ||
+
+    0
+
+  );
+
+}
+
+
+/* ============================================================
+   RETOUR WAARDE ZETTEN
+============================================================ */
+
+function setReturnScreenValue(
+  orderId,
+  productName,
+  type,
+  value
+) {
+
+  const element =
+    document.getElementById(
+      returnDomId(
+        orderId,
+        productName,
+        type
+      )
+    );
+
+
+  if (
+    element
+  ) {
+
+    element.textContent =
+      Math.max(
+        0,
+        Number(
+          value
+          ||
+          0
+        )
+      );
+
+  }
+
+}
+
+
+/* ============================================================
+   RETOUR AANTAL
 ============================================================ */
 
 function changeReturnQuantity(
@@ -6256,139 +4085,108 @@ function changeReturnQuantity(
     getAdminOrderItems(
       orderId
     )
-
       .find(
-        row =>
-
-          row.product_naam ===
+        product =>
+          product.product_naam ===
           productName
-
           &&
-
-          row.categorie ===
+          product.categorie ===
           "evenement"
       );
 
 
   if (!item) {
-
-    alert(
-      "Materiaal kon niet worden gevonden."
-    );
-
     return;
-
   }
-
-
-  const element =
-    document.getElementById(
-      returnDomId(
-        orderId,
-        productName,
-        type
-      )
-    );
-
-
-  if (!element) {
-
-    return;
-
-  }
-
-
-  const current =
-    Number(
-      element.innerText || 0
-    );
 
 
   const next =
     Math.max(
+
       0,
-      current + amount
+
+      getReturnScreenValue(
+        orderId,
+        productName,
+        type
+      )
+      +
+      amount
+
     );
 
 
-  const good =
-    type === "good"
+  const values = {
 
-      ? next
+    good:
 
-      : getReturnScreenValue(
-          orderId,
-          productName,
-          "good"
-        );
+      type ===
+      "good"
 
+        ? next
 
-  const damaged =
-    type === "damaged"
-
-      ? next
-
-      : getReturnScreenValue(
-          orderId,
-          productName,
-          "damaged"
-        );
+        : getReturnScreenValue(
+            orderId,
+            productName,
+            "good"
+          ),
 
 
-  const missing =
-    type === "missing"
+    damaged:
 
-      ? next
+      type ===
+      "damaged"
 
-      : getReturnScreenValue(
-          orderId,
-          productName,
-          "missing"
-        );
+        ? next
 
-
-  const totalProcessed =
-
-    good
-    +
-    damaged
-    +
-    missing;
+        : getReturnScreenValue(
+            orderId,
+            productName,
+            "damaged"
+          ),
 
 
-  const loaned =
-    Number(
-      item.aantal || 0
-    );
+    missing:
+
+      type ===
+      "missing"
+
+        ? next
+
+        : getReturnScreenValue(
+            orderId,
+            productName,
+            "missing"
+          )
+
+  };
 
 
   if (
-    totalProcessed >
-    loaned
+    values.good
+    +
+    values.damaged
+    +
+    values.missing
+    >
+    Number(
+      item.aantal
+      ||
+      0
+    )
   ) {
-
-    alert(
-
-      "Je kunt voor " +
-
-      productName +
-
-      " maximaal " +
-
-      loaned +
-
-      " stuk(s) verwerken."
-
-    );
-
 
     return;
 
   }
 
 
-  element.innerText =
-    next;
+  setReturnScreenValue(
+    orderId,
+    productName,
+    type,
+    next
+  );
 
 
   updateReturnCalculation(
@@ -6400,34 +4198,7 @@ function changeReturnQuantity(
 
 
 /* ============================================================
-   WAARDE LEZEN
-============================================================ */
-
-function getReturnScreenValue(
-  orderId,
-  productName,
-  type
-) {
-
-  const element =
-    document.getElementById(
-      returnDomId(
-        orderId,
-        productName,
-        type
-      )
-    );
-
-
-  return Number(
-    element?.innerText || 0
-  );
-
-}
-
-
-/* ============================================================
-   NOG BUITEN BEREKENEN
+   NOG BUITEN
 ============================================================ */
 
 function updateReturnCalculation(
@@ -6439,49 +4210,19 @@ function updateReturnCalculation(
     getAdminOrderItems(
       orderId
     )
-
       .find(
-        row =>
-
-          row.product_naam ===
+        product =>
+          product.product_naam ===
           productName
-
           &&
-
-          row.categorie ===
+          product.categorie ===
           "evenement"
       );
 
 
   if (!item) {
-
     return;
-
   }
-
-
-  const good =
-    getReturnScreenValue(
-      orderId,
-      productName,
-      "good"
-    );
-
-
-  const damaged =
-    getReturnScreenValue(
-      orderId,
-      productName,
-      "damaged"
-    );
-
-
-  const missing =
-    getReturnScreenValue(
-      orderId,
-      productName,
-      "missing"
-    );
 
 
   const outside =
@@ -6490,20 +4231,34 @@ function updateReturnCalculation(
       0,
 
       Number(
-        item.aantal || 0
+        item.aantal
+        ||
+        0
       )
 
       -
 
-      good
+      getReturnScreenValue(
+        orderId,
+        productName,
+        "good"
+      )
 
       -
 
-      damaged
+      getReturnScreenValue(
+        orderId,
+        productName,
+        "damaged"
+      )
 
       -
 
-      missing
+      getReturnScreenValue(
+        orderId,
+        productName,
+        "missing"
+      )
 
     );
 
@@ -6522,20 +4277,15 @@ function updateReturnCalculation(
     element
   ) {
 
-    element.innerText =
-
-      "Nog buiten: " +
-
-      outside;
+    element.textContent =
+      `Nog buiten: ${outside}`;
 
 
-    element.className =
-
-      outside === 0
-
-        ? "info ok"
-
-        : "info";
+    element.classList.toggle(
+      "done",
+      outside ===
+      0
+    );
 
   }
 
@@ -6543,7 +4293,7 @@ function updateReturnCalculation(
 
 
 /* ============================================================
-   ALLE RETOURBEREKENINGEN
+   ALLE RETOUR BEREKENINGEN
 ============================================================ */
 
 function updateAllReturnCalculations(
@@ -6553,15 +4303,71 @@ function updateAllReturnCalculations(
   getAdminOrderItems(
     orderId
   )
-
     .filter(
       item =>
         item.categorie ===
         "evenement"
     )
-
     .forEach(
       item => {
+
+        updateReturnCalculation(
+          orderId,
+          item.product_naam
+        );
+
+      }
+    );
+
+}
+
+
+/* ============================================================
+   ALLES GOED TERUG
+============================================================ */
+
+function markEverythingReturned(
+  orderId
+) {
+
+  getAdminOrderItems(
+    orderId
+  )
+    .filter(
+      item =>
+        item.categorie ===
+        "evenement"
+    )
+    .forEach(
+      item => {
+
+        setReturnScreenValue(
+          orderId,
+          item.product_naam,
+          "good",
+          Number(
+            item.aantal
+            ||
+            0
+          )
+        );
+
+
+        setReturnScreenValue(
+          orderId,
+          item.product_naam,
+          "damaged",
+          0
+        );
+
+
+        setReturnScreenValue(
+          orderId,
+          item.product_naam,
+          "missing",
+          0
+        );
+
 
         updateReturnCalculation(
           orderId,
@@ -6588,7 +4394,6 @@ async function saveEventReturnRegistration(
       getAdminOrderItems(
         orderId
       )
-
         .filter(
           item =>
             item.categorie ===
@@ -6596,82 +4401,67 @@ async function saveEventReturnRegistration(
         );
 
 
-    if (
-      !eventItems.length
-    ) {
-
-      alert(
-        "Geen evenementmateriaal gevonden."
-      );
-
-      return;
-
-    }
-
-
     const returns =
-      eventItems.map(
-        item => {
-
-          const noteElement =
-            document.getElementById(
-              returnDomId(
-                orderId,
-                item.product_naam,
-                "note"
-              )
-            );
-
-
-          return {
+      eventItems
+        .map(
+          item => ({
 
             product_naam:
               item.product_naam,
 
+
             goed_terug:
+
               getReturnScreenValue(
                 orderId,
                 item.product_naam,
                 "good"
               ),
 
+
             beschadigd:
+
               getReturnScreenValue(
                 orderId,
                 item.product_naam,
                 "damaged"
               ),
 
+
             ontbreekt:
+
               getReturnScreenValue(
                 orderId,
                 item.product_naam,
                 "missing"
               ),
 
+
             opmerking:
-              noteElement?.value
+
+              document
+                .getElementById(
+                  returnDomId(
+                    orderId,
+                    item.product_naam,
+                    "note"
+                  )
+                )
+                ?.value
                 ?.trim()
+
               ||
+
               ""
 
-          };
-
-        }
-      );
-
-
-    console.log(
-      "RETOUR OPSLAAN:",
-      returns
-    );
+          })
+        );
 
 
     const {
       error
     } =
       await supabaseClient
-
         .rpc(
           "save_event_material_returns",
           {
@@ -6698,24 +4488,25 @@ async function saveEventReturnRegistration(
     await loadAdminDashboard();
 
 
-    const refreshedOrder =
-      adminOrders.find(
-        order =>
-          order.id ===
-          orderId
-      );
+    const refreshed =
+      adminOrders
+        .find(
+          order =>
+            order.id ===
+            orderId
+        );
 
 
     if (
-      refreshedOrder
+      refreshed
     ) {
 
       selectedAdminOrder =
-        refreshedOrder;
+        refreshed;
 
 
       renderAdminDetail(
-        refreshedOrder
+        refreshed
       );
 
 
@@ -6727,27 +4518,19 @@ async function saveEventReturnRegistration(
 
 
     alert(
-      "Retourregistratie is opgeslagen."
+      "Retourregistratie opgeslagen."
     );
 
   }
 
   catch (error) {
 
-    console.error(
-      "RETOUR OPSLAAN FOUT:",
-      error
-    );
-
-
     alert(
-
-      "Retourregistratie kon niet worden opgeslagen.\n\n" +
-
+      "Retourregistratie kon niet worden opgeslagen.\n\n"
+      +
       adminReadableError(
         error
       )
-
     );
 
   }
@@ -6763,97 +4546,69 @@ async function resetEventReturnRegistration(
   orderId
 ) {
 
-  const confirmed =
-    window.confirm(
-
-      "Wil je de volledige retourregistratie voor dit evenement wissen?"
-
-    );
-
-
   if (
-    !confirmed
+    !confirm(
+      "Volledige retourregistratie wissen?"
+    )
   ) {
-
     return;
-
   }
 
 
-  try {
-
-    const {
-      error
-    } =
-      await supabaseClient
-
-        .rpc(
-          "reset_event_material_returns",
-          {
-
-            p_order_id:
-              orderId
-
-          }
-        );
+  const {
+    error
+  } =
+    await supabaseClient
+      .rpc(
+        "reset_event_material_returns",
+        {
+          p_order_id:
+            orderId
+        }
+      );
 
 
-    if (
-      error
-    ) {
+  if (
+    error
+  ) {
 
-      throw error;
+    alert(
+      adminReadableError(
+        error
+      )
+    );
 
-    }
+    return;
+  }
 
 
-    await loadAdminDashboard();
+  await loadAdminDashboard();
 
 
-    const refreshedOrder =
-      adminOrders.find(
+  const refreshed =
+    adminOrders
+      .find(
         order =>
           order.id ===
           orderId
       );
 
 
-    if (
-      refreshedOrder
-    ) {
+  if (
+    refreshed
+  ) {
 
-      selectedAdminOrder =
-        refreshedOrder;
-
-
-      renderAdminDetail(
-        refreshedOrder
-      );
+    selectedAdminOrder =
+      refreshed;
 
 
-      showOnly(
-        "adminDetailScreen"
-      );
-
-    }
-
-
-    alert(
-      "Retourregistratie is gewist."
+    renderAdminDetail(
+      refreshed
     );
 
-  }
 
-  catch (error) {
-
-    alert(
-
-      "Retourregistratie kon niet worden gewist.\n\n" +
-
-      adminReadableError(
-        error
-      )
-
+    showOnly(
+      "adminDetailScreen"
     );
 
   }
@@ -6862,7 +4617,7 @@ async function resetEventReturnRegistration(
 
 
 /* ============================================================
-   STATUS TIMELINE
+   STATUS TIJDLIJN
 ============================================================ */
 
 function adminStatusTimeline(
@@ -6871,20 +4626,13 @@ function adminStatusTimeline(
 
   return `
 
-    <div
-      style="
-        display:grid;
-        gap:9px;
-        margin-bottom:18px;
-      "
-    >
+    <div class="admin-timeline">
 
       ${adminTimelineRow(
         "Aangevraagd",
         order.created_at,
         true
       )}
-
 
       ${adminTimelineRow(
         "In behandeling",
@@ -6894,7 +4642,6 @@ function adminStatusTimeline(
         )
       )}
 
-
       ${adminTimelineRow(
         "Klaar",
         order.completed_at,
@@ -6902,7 +4649,6 @@ function adminStatusTimeline(
           order.completed_at
         )
       )}
-
 
       ${adminTimelineRow(
         "Afgehaald",
@@ -6912,20 +4658,15 @@ function adminStatusTimeline(
         )
       )}
 
-
       ${
         order.event_naam
 
           ? adminTimelineRow(
-
               "Logistiek afgehandeld",
-
               order.event_returned_at,
-
               Boolean(
                 order.event_returned_at
               )
-
             )
 
           : ""
@@ -6951,34 +4692,16 @@ function adminTimelineRow(
   return `
 
     <div
-      style="
-        display:grid;
-        grid-template-columns:12px 1fr;
-        gap:10px;
-      "
+      class="timeline-row ${active ? "active" : ""}"
     >
 
-      <div
-        style="
-          width:10px;
-          height:10px;
-          border-radius:50%;
-          margin-top:5px;
-          background:${
-            active
-              ? "var(--green)"
-              : "var(--border)"
-          };
-        "
-      ></div>
+      <span></span>
 
 
       <div>
 
         <strong>
-
           ${label}
-
         </strong>
 
 
@@ -6987,13 +4710,11 @@ function adminTimelineRow(
 
             ? `
 
-                <div class="order-meta">
-
+                <small>
                   ${adminFormatDateTime(
                     date
                   )}
-
-                </div>
+                </small>
 
               `
 
@@ -7010,7 +4731,7 @@ function adminTimelineRow(
 
 
 /* ============================================================
-   STATUS ACTIES
+   STATUS KNOPPEN
 ============================================================ */
 
 function adminActionButtons(
@@ -7025,24 +4746,20 @@ function adminActionButtons(
     return `
 
       <button
-        class="primary"
+        class="admin-primary-action"
         type="button"
         onclick="markAdminOrderCompleted()"
       >
-
-        Voltooid · Klaar voor afhaling
-
+        Klaar voor afhaling
       </button>
 
 
       <button
-        class="secondary"
+        class="admin-secondary-action"
         type="button"
         onclick="cancelAdminOrder()"
       >
-
-        Aanvraag annuleren
-
+        Annuleren
       </button>
 
     `;
@@ -7058,13 +4775,11 @@ function adminActionButtons(
     return `
 
       <button
-        class="primary"
+        class="admin-primary-action"
         type="button"
         onclick="markAdminOrderCollected()"
       >
-
         Markeer als afgehaald
-
       </button>
 
     `;
@@ -7079,10 +4794,8 @@ function adminActionButtons(
 
     return `
 
-      <div class="info error">
-
+      <div class="admin-info red">
         Deze aanvraag is geannuleerd.
-
       </div>
 
     `;
@@ -7096,7 +4809,7 @@ function adminActionButtons(
 
 
 /* ============================================================
-   STATUS KLAAR
+   STATUS ACTIONS
 ============================================================ */
 
 async function markAdminOrderCompleted() {
@@ -7108,10 +4821,6 @@ async function markAdminOrderCompleted() {
 }
 
 
-/* ============================================================
-   STATUS AFGEHAALD
-============================================================ */
-
 async function markAdminOrderCollected() {
 
   await updateSelectedAdminOrderStatus(
@@ -7121,47 +4830,27 @@ async function markAdminOrderCollected() {
 }
 
 
-/* ============================================================
-   ANNULEREN
-============================================================ */
-
 async function cancelAdminOrder() {
 
   if (
-    !selectedAdminOrder
+    selectedAdminOrder
+    &&
+    confirm(
+      "Aanvraag annuleren?"
+    )
   ) {
 
-    return;
-
-  }
-
-
-  const confirmed =
-    window.confirm(
-
-      "Wil je deze aanvraag annuleren?"
-
+    await updateSelectedAdminOrderStatus(
+      "geannuleerd"
     );
 
-
-  if (
-    !confirmed
-  ) {
-
-    return;
-
   }
-
-
-  await updateSelectedAdminOrderStatus(
-    "geannuleerd"
-  );
 
 }
 
 
 /* ============================================================
-   STATUS UPDATE
+   STATUS OPSLAAN
 ============================================================ */
 
 async function updateSelectedAdminOrderStatus(
@@ -7171,106 +4860,88 @@ async function updateSelectedAdminOrderStatus(
   if (
     !selectedAdminOrder
   ) {
-
     return;
-
   }
 
 
-  try {
-
-    const {
-      data,
-      error
-    } =
-      await supabaseClient
-
-        .from("orders")
-
-        .update({
-
-          status:
-            status
-
-        })
-
-        .eq(
-          "id",
-          selectedAdminOrder.id
-        )
-
-        .select(`
-          id,
-          user_id,
-          referentie,
-          land,
-          gemeente,
-          afhaaldatum,
-          opmerking,
-          status,
-          event_naam,
-          event_vanaf,
-          event_tot,
-          event_returned_at,
-          event_returned_by,
-          opened_at,
-          completed_at,
-          collected_at,
-          created_at,
-          updated_at
-        `)
-
-        .single();
+  const {
+    data,
+    error
+  } =
+    await supabaseClient
+      .from(
+        "orders"
+      )
+      .update({
+        status:
+          status
+      })
+      .eq(
+        "id",
+        selectedAdminOrder.id
+      )
+      .select(`
+        id,
+        user_id,
+        referentie,
+        land,
+        gemeente,
+        afhaaldatum,
+        opmerking,
+        status,
+        event_naam,
+        event_vanaf,
+        event_tot,
+        event_returned_at,
+        event_returned_by,
+        opened_at,
+        completed_at,
+        collected_at,
+        created_at,
+        updated_at
+      `)
+      .single();
 
 
-    if (
-      error
-    ) {
-
-      throw error;
-
-    }
-
-
-    updateLocalAdminOrder(
-      data
-    );
-
-
-    selectedAdminOrder =
-      data;
-
-
-    renderAdminDetail(
-      data
-    );
-
-
-    renderAdminStatistics();
-
-    renderAdminSections();
-
-  }
-
-  catch (error) {
+  if (
+    error
+  ) {
 
     alert(
-
-      "Status kon niet gewijzigd worden.\n\n" +
-
+      "Status kon niet worden gewijzigd.\n\n"
+      +
       adminReadableError(
         error
       )
-
     );
 
+    return;
   }
+
+
+  updateLocalAdminOrder(
+    data
+  );
+
+
+  selectedAdminOrder =
+    data;
+
+
+  renderAdminDetail(
+    data
+  );
+
+
+  renderAdminStatistics();
+
+  renderAdminSections();
 
 }
 
 
 /* ============================================================
-   RAPPORT JAAR
+   RAPPORT JAREN
 ============================================================ */
 
 function fillReportYears() {
@@ -7282,18 +4953,16 @@ function fillReportYears() {
 
 
   if (!select) {
-
     return;
-
   }
 
 
-  const currentYear =
+  const current =
     new Date()
       .getFullYear();
 
 
-  const currentValue =
+  const old =
     select.value;
 
 
@@ -7303,41 +4972,28 @@ function fillReportYears() {
 
   for (
     let year =
-      currentYear;
+      current;
 
     year >=
-    currentYear - 5;
+    current - 5;
 
     year--
   ) {
 
-    const option =
-      document.createElement(
-        "option"
-      );
-
-
-    option.value =
-      year;
-
-
-    option.innerText =
-      year;
-
-
-    select.appendChild(
-      option
+    select.insertAdjacentHTML(
+      "beforeend",
+      `<option value="${year}">${year}</option>`
     );
 
   }
 
 
   if (
-    currentValue
+    old
   ) {
 
     select.value =
-      currentValue;
+      old;
 
   }
 
@@ -7357,15 +5013,8 @@ function setCurrentReportMonth() {
 
 
   if (
-    !select
-  ) {
-
-    return;
-
-  }
-
-
-  if (
+    select
+    &&
     !select.dataset.initialized
   ) {
 
@@ -7385,36 +5034,29 @@ function setCurrentReportMonth() {
 
 
 /* ============================================================
-   MAAND / JAAR
+   RAPPORT TYPE
 ============================================================ */
 
 function toggleReportPeriod() {
 
   const type =
-    document.getElementById(
-      "reportPeriodType"
-    )?.value;
+    document
+      .getElementById(
+        "reportPeriodType"
+      )
+      ?.value;
 
 
-  const monthBox =
-    document.getElementById(
+  document
+    .getElementById(
       "reportMonthBox"
-    );
-
-
-  if (
-    monthBox
-  ) {
-
-    monthBox.classList.toggle(
-
+    )
+    ?.classList
+    .toggle(
       "hidden",
-
-      type === "year"
-
+      type ===
+      "year"
     );
-
-  }
 
 
   updateAdminReport();
@@ -7429,95 +5071,90 @@ function toggleReportPeriod() {
 function getReportOrders() {
 
   const rep =
-    document.getElementById(
-      "reportRepresentative"
-    )?.value || "";
+    document
+      .getElementById(
+        "reportRepresentative"
+      )
+      ?.value
+    ||
+    "";
 
 
   const type =
-    document.getElementById(
-      "reportPeriodType"
-    )?.value || "month";
+    document
+      .getElementById(
+        "reportPeriodType"
+      )
+      ?.value
+    ||
+    "month";
 
 
   const year =
     Number(
-      document.getElementById(
-        "reportYear"
-      )?.value
+      document
+        .getElementById(
+          "reportYear"
+        )
+        ?.value
     );
 
 
   const month =
     Number(
-      document.getElementById(
-        "reportMonth"
-      )?.value
+      document
+        .getElementById(
+          "reportMonth"
+        )
+        ?.value
     );
 
 
-  return adminOrders.filter(
-    order => {
+  return adminOrders
+    .filter(
+      order => {
 
-      if (
-        order.status !==
-        "afgehaald"
-      ) {
-
-        return false;
-
-      }
-
-
-      if (
-        rep &&
-        order.user_id !== rep
-      ) {
-
-        return false;
-
-      }
+        if (
+          order.status !==
+          "afgehaald"
+          ||
+          !order.collected_at
+        ) {
+          return false;
+        }
 
 
-      if (
-        !order.collected_at
-      ) {
+        if (
+          rep
+          &&
+          order.user_id !==
+          rep
+        ) {
+          return false;
+        }
 
-        return false;
 
-      }
+        const date =
+          new Date(
+            order.collected_at
+          );
 
 
-      const date =
-        new Date(
-          order.collected_at
+        return (
+          date.getFullYear() ===
+          year
+          &&
+          (
+            type ===
+            "year"
+            ||
+            date.getMonth() + 1 ===
+            month
+          )
         );
 
-
-      if (
-        date.getFullYear() !==
-        year
-      ) {
-
-        return false;
-
       }
-
-
-      if (
-        type === "month" &&
-        date.getMonth() + 1 !== month
-      ) {
-
-        return false;
-
-      }
-
-
-      return true;
-
-    }
-  );
+    );
 
 }
 
@@ -7528,16 +5165,15 @@ function getReportOrders() {
 
 function getReportMaterialTotals() {
 
-  const orders =
-    getReportOrders();
-
-
-  const orderIds =
+  const ids =
     new Set(
-      orders.map(
-        order =>
-          order.id
-      )
+
+      getReportOrders()
+        .map(
+          order =>
+            order.id
+        )
+
     );
 
 
@@ -7549,7 +5185,7 @@ function getReportMaterialTotals() {
 
     .filter(
       item =>
-        orderIds.has(
+        ids.has(
           item.order_id
         )
     )
@@ -7558,23 +5194,26 @@ function getReportMaterialTotals() {
       item => {
 
         const name =
-          item.product_naam ||
+          item.product_naam
+          ||
           "Onbekend";
 
 
-        if (
-          !totals[name]
-        ) {
-
-          totals[name] =
-            0;
-
-        }
-
-
-        totals[name] +=
+        totals[
+          name
+        ] =
+          (
+            totals[
+              name
+            ]
+            ||
+            0
+          )
+          +
           Number(
-            item.aantal || 0
+            item.aantal
+            ||
+            0
           );
 
       }
@@ -7599,9 +5238,7 @@ function updateAdminReport() {
 
 
   if (!summary) {
-
     return;
-
   }
 
 
@@ -7614,32 +5251,30 @@ function updateAdminReport() {
 
 
   const totalProducts =
-    Object.values(
-      totals
-    )
-
+    Object
+      .values(
+        totals
+      )
       .reduce(
-        (sum, value) =>
-          sum + value,
+        (
+          first,
+          second
+        ) =>
+          first
+          +
+          second,
         0
       );
 
 
   summary.innerHTML = `
 
-    <div
-      style="
-        display:grid;
-        grid-template-columns:1fr 1fr;
-        gap:10px;
-      "
-    >
+    <div class="admin-report-stats">
 
       ${adminStatCard(
         "Afgehaalde aanvragen",
         orders.length
       )}
-
 
       ${adminStatCard(
         "Materialen / producten",
@@ -7672,19 +5307,13 @@ function renderAdminReportChart(
     );
 
 
-  /*
-    Chart.js niet geladen?
-
-    Dashboard blijft gewoon werken.
-  */
-
   if (
-    !canvas ||
-    typeof Chart === "undefined"
+    !canvas
+    ||
+    typeof Chart ===
+    "undefined"
   ) {
-
     return;
-
   }
 
 
@@ -7698,13 +5327,18 @@ function renderAdminReportChart(
 
 
   const entries =
-    Object.entries(
-      totals
-    )
-
+    Object
+      .entries(
+        totals
+      )
       .sort(
-        (a, b) =>
-          b[1] - a[1]
+        (
+          first,
+          second
+        ) =>
+          second[1]
+          -
+          first[1]
       );
 
 
@@ -7716,13 +5350,16 @@ function renderAdminReportChart(
         type:
           "bar",
 
+
         data: {
 
           labels:
+
             entries.map(
               item =>
                 item[0]
             ),
+
 
           datasets: [
 
@@ -7731,7 +5368,9 @@ function renderAdminReportChart(
               label:
                 "Afgehaald aantal",
 
+
               data:
+
                 entries.map(
                   item =>
                     item[1]
@@ -7743,35 +5382,36 @@ function renderAdminReportChart(
 
         },
 
+
         options: {
 
           responsive:
             true,
 
+
           maintainAspectRatio:
             false,
+
 
           indexAxis:
             "y",
 
+
           plugins: {
 
             legend: {
-
               display:
                 false
-
             }
 
           },
 
+
           scales: {
 
             x: {
-
               beginAtZero:
                 true
-
             }
 
           }
@@ -7796,13 +5436,10 @@ function exportAdminReportExcel() {
   ) {
 
     alert(
-
-      "De Excel-module is niet geladen."
-
+      "Excel-module niet geladen."
     );
 
     return;
-
   }
 
 
@@ -7815,13 +5452,10 @@ function exportAdminReportExcel() {
   ) {
 
     alert(
-
-      "Geen afgehaalde aanvragen gevonden voor deze periode."
-
+      "Geen afgehaalde aanvragen voor deze periode."
     );
 
     return;
-
   }
 
 
@@ -7829,172 +5463,183 @@ function exportAdminReportExcel() {
     [];
 
 
-  orders.forEach(
-    order => {
+  orders
+    .forEach(
+      order => {
 
-      const profile =
-        getAdminProfile(
-          order.user_id
-        );
+        const profile =
+          getAdminProfile(
+            order.user_id
+          );
 
 
-      const items =
         getAdminOrderItems(
           order.id
-        );
+        )
+          .forEach(
+            item => {
+
+              const ret =
+                adminEventReturns
+                  .find(
+                    row =>
+                      row.order_id ===
+                      order.id
+                      &&
+                      row.product_naam ===
+                      item.product_naam
+                  );
 
 
-      items.forEach(
-        item => {
-
-          const returnRow =
-            adminEventReturns.find(
-              row =>
-
-                row.order_id ===
-                order.id
-
-                &&
-
-                row.product_naam ===
-                item.product_naam
-            );
+              const loaned =
+                Number(
+                  item.aantal
+                  ||
+                  0
+                );
 
 
-          const loaned =
-            Number(
-              item.aantal || 0
-            );
+              const good =
+                Number(
+                  ret?.goed_terug
+                  ||
+                  0
+                );
 
 
-          const good =
-            Number(
-              returnRow?.goed_terug || 0
-            );
+              const damaged =
+                Number(
+                  ret?.beschadigd
+                  ||
+                  0
+                );
 
 
-          const damaged =
-            Number(
-              returnRow?.beschadigd || 0
-            );
+              const missing =
+                Number(
+                  ret?.ontbreekt
+                  ||
+                  0
+                );
 
 
-          const missing =
-            Number(
-              returnRow?.ontbreekt || 0
-            );
+              rows.push({
 
-
-          const outside =
-            order.event_naam
-
-              ? Math.max(
-
-                  0,
-
-                  loaned -
-                  good -
-                  damaged -
-                  missing
-
-                )
-
-              : "";
-
-
-          rows.push({
-
-            "Afhaaldatum":
-              formatExcelDate(
-                order.collected_at
-              ),
-
-            "Vertegenwoordiger":
-              profile?.naam || "",
-
-            "E-mail":
-              profile?.email || "",
-
-            "Type":
-              order.event_naam
-
-                ? "Evenement"
-
-                : (
-                    item.categorie === "bier"
-
-                      ? "Bier"
-
-                      : "POS"
+                "Afhaaldatum":
+                  formatExcelDate(
+                    order.collected_at
                   ),
 
-            "Referentie / evenement":
-              order.event_naam ||
-              order.referentie ||
-              "",
 
-            "Gemeente":
-              order.gemeente || "",
-
-            "Product / materiaal":
-              item.product_naam || "",
-
-            "Categorie":
-              item.categorie || "",
-
-            "Aantal":
-              loaned,
-
-            "Goed terug":
-              order.event_naam
-                ? good
-                : "",
-
-            "Beschadigd":
-              order.event_naam
-                ? damaged
-                : "",
-
-            "Ontbreekt":
-              order.event_naam
-                ? missing
-                : "",
-
-            "Nog buiten":
-              outside,
-
-            "Retour opmerking":
-              returnRow?.opmerking || "",
-
-            "Event vanaf":
-              order.event_vanaf || "",
-
-            "Event tot":
-              order.event_tot || "",
-
-            "Logistiek afgehandeld":
-              order.event_returned_at
-
-                ? formatExcelDate(
-                    order.event_returned_at
-                  )
-
-                : ""
-
-          });
-
-        }
-      );
-
-    }
-  );
+                "Vertegenwoordiger":
+                  profile?.naam
+                  ||
+                  "",
 
 
-  const worksheet =
-    XLSX.utils
-      .json_to_sheet(
-        rows
-      );
+                "E-mail":
+                  profile?.email
+                  ||
+                  "",
+
+
+                "Type":
+
+                  order.event_naam
+
+                    ? "Evenement"
+
+                    : (
+                        item.categorie ===
+                        "bier"
+
+                          ? "Bier"
+
+                          : "POS"
+                      ),
+
+
+                "Referentie / evenement":
+                  order.event_naam
+                  ||
+                  order.referentie
+                  ||
+                  "",
+
+
+                "Gemeente":
+                  order.gemeente
+                  ||
+                  "",
+
+
+                "Product / materiaal":
+                  item.product_naam
+                  ||
+                  "",
+
+
+                "Categorie":
+                  item.categorie
+                  ||
+                  "",
+
+
+                "Aantal":
+                  loaned,
+
+
+                "Goed terug":
+
+                  order.event_naam
+                    ? good
+                    : "",
+
+
+                "Beschadigd":
+
+                  order.event_naam
+                    ? damaged
+                    : "",
+
+
+                "Ontbreekt":
+
+                  order.event_naam
+                    ? missing
+                    : "",
+
+
+                "Nog buiten":
+
+                  order.event_naam
+
+                    ? Math.max(
+                        0,
+                        loaned
+                        -
+                        good
+                        -
+                        damaged
+                        -
+                        missing
+                      )
+
+                    : "",
+
+
+                "Retour opmerking":
+                  ret?.opmerking
+                  ||
+                  ""
+
+              });
+
+            }
+          );
+
+      }
+    );
 
 
   const workbook =
@@ -8005,52 +5650,54 @@ function exportAdminReportExcel() {
   XLSX.utils
     .book_append_sheet(
       workbook,
-      worksheet,
+      XLSX.utils
+        .json_to_sheet(
+          rows
+        ),
       "Afgehaald"
     );
 
 
-  const totals =
-    getReportMaterialTotals();
-
-
-  const totalRows =
-    Object.entries(
-      totals
-    )
-
+  const summaryRows =
+    Object
+      .entries(
+        getReportMaterialTotals()
+      )
       .map(
-        item => ({
+        (
+          [
+            name,
+            total
+          ]
+        ) => ({
 
           "Materiaal / product":
-            item[0],
+            name,
 
           "Totaal":
-            item[1]
+            total
 
         })
-      );
-
-
-  const totalSheet =
-    XLSX.utils
-      .json_to_sheet(
-        totalRows
       );
 
 
   XLSX.utils
     .book_append_sheet(
       workbook,
-      totalSheet,
+      XLSX.utils
+        .json_to_sheet(
+          summaryRows
+        ),
       "Samenvatting"
     );
 
 
   const repId =
-    document.getElementById(
-      "reportRepresentative"
-    )?.value;
+    document
+      .getElementById(
+        "reportRepresentative"
+      )
+      ?.value;
 
 
   const rep =
@@ -8064,55 +5711,46 @@ function exportAdminReportExcel() {
 
 
   const year =
-    document.getElementById(
-      "reportYear"
-    )?.value;
+    document
+      .getElementById(
+        "reportYear"
+      )
+      ?.value;
 
 
   const type =
-    document.getElementById(
-      "reportPeriodType"
-    )?.value;
+    document
+      .getElementById(
+        "reportPeriodType"
+      )
+      ?.value;
 
 
   const month =
-    document.getElementById(
-      "reportMonth"
-    )?.value;
+    document
+      .getElementById(
+        "reportMonth"
+      )
+      ?.value;
 
 
-  let filename =
+  const filename =
 
-    "Achel_" +
+    `Achel_${safeFilename(rep)}_${year}`
 
-    safeFilename(
-      rep
-    ) +
+    +
 
-    "_" +
+    (
+      type ===
+      "month"
 
-    year;
+        ? `_${String(month).padStart(2,"0")}`
 
+        : ""
+    )
 
-  if (
-    type === "month"
-  ) {
+    +
 
-    filename +=
-
-      "_" +
-
-      String(
-        month
-      ).padStart(
-        2,
-        "0"
-      );
-
-  }
-
-
-  filename +=
     ".xlsx";
 
 
@@ -8125,78 +5763,75 @@ function exportAdminReportExcel() {
 
 
 /* ============================================================
-   ITEMS
+   HELPERS
 ============================================================ */
 
 function getAdminOrderItems(
   orderId
 ) {
 
-  return adminItems.filter(
-    item =>
-      item.order_id ===
-      orderId
-  );
+  return adminItems
+    .filter(
+      item =>
+        item.order_id ===
+        orderId
+    );
 
 }
 
-
-/* ============================================================
-   PROFILE
-============================================================ */
 
 function getAdminProfile(
   profileId
 ) {
 
-  return adminProfiles.find(
-    profile =>
-      profile.id ===
-      profileId
-  );
+  return adminProfiles
+    .find(
+      profile =>
+        profile.id ===
+        profileId
+    );
 
 }
 
 
-/* ============================================================
-   LOKALE ORDER BIJWERKEN
-============================================================ */
-
 function updateLocalAdminOrder(
-  updatedOrder
+  updated
 ) {
 
   const index =
-    adminOrders.findIndex(
-      order =>
-        order.id ===
-        updatedOrder.id
-    );
+    adminOrders
+      .findIndex(
+        order =>
+          order.id ===
+          updated.id
+      );
 
 
   if (
-    index !== -1
+    index !==
+    -1
   ) {
 
-    adminOrders[index] =
-      updatedOrder;
+    adminOrders[
+      index
+    ] =
+      updated;
 
   }
 
 }
 
 
-/* ============================================================
-   STATUS CLASS
-============================================================ */
-
 function adminStatusClass(
   status
 ) {
 
   if (
-    status === "klaar" ||
-    status === "afgehaald"
+    status ===
+    "klaar"
+    ||
+    status ===
+    "afgehaald"
   ) {
 
     return "status-klaar";
@@ -8219,27 +5854,18 @@ function adminStatusClass(
 }
 
 
-/* ============================================================
-   DATUM
-============================================================ */
-
 function adminFormatDateTime(
   date
 ) {
 
-  if (
-    !date
-  ) {
-
+  if (!date) {
     return "";
-
   }
 
 
   return new Date(
     date
   )
-
     .toLocaleString(
       "nl-BE",
       {
@@ -8269,38 +5895,29 @@ function formatExcelDate(
   date
 ) {
 
-  if (
-    !date
-  ) {
+  return date
 
-    return "";
+    ? new Date(
+        date
+      )
+        .toLocaleString(
+          "nl-BE"
+        )
 
-  }
-
-
-  return new Date(
-    date
-  )
-
-    .toLocaleString(
-      "nl-BE"
-    );
+    : "";
 
 }
 
-
-/* ============================================================
-   BESTANDSNAAM
-============================================================ */
 
 function safeFilename(
   value
 ) {
 
   return String(
-    value || "Rapport"
+    value
+    ||
+    "Rapport"
   )
-
     .replace(
       /[^a-z0-9_-]/gi,
       "_"
@@ -8309,33 +5926,27 @@ function safeFilename(
 }
 
 
-/* ============================================================
-   JAVASCRIPT STRING VEILIG
-============================================================ */
-
 function escapeReturnJsString(
   value
 ) {
 
   return String(
-    value || ""
+    value
+    ||
+    ""
   )
-
     .replaceAll(
       "\\",
       "\\\\"
     )
-
     .replaceAll(
       "'",
       "\\'"
     )
-
     .replaceAll(
       "\n",
       " "
     )
-
     .replaceAll(
       "\r",
       " "
@@ -8344,38 +5955,31 @@ function escapeReturnJsString(
 }
 
 
-/* ============================================================
-   HTML VEILIG
-============================================================ */
-
 function adminEscapeHtml(
   value
 ) {
 
   return String(
-    value ?? ""
+    value
+    ??
+    ""
   )
-
     .replaceAll(
       "&",
       "&amp;"
     )
-
     .replaceAll(
       "<",
       "&lt;"
     )
-
     .replaceAll(
       ">",
       "&gt;"
     )
-
     .replaceAll(
       '"',
       "&quot;"
     )
-
     .replaceAll(
       "'",
       "&#039;"
@@ -8384,17 +5988,11 @@ function adminEscapeHtml(
 }
 
 
-/* ============================================================
-   DUIDELIJKE FOUTMELDING
-============================================================ */
-
 function adminReadableError(
   error
 ) {
 
-  if (
-    !error
-  ) {
+  if (!error) {
 
     return "Onbekende fout.";
 
@@ -8411,138 +6009,1099 @@ function adminReadableError(
   }
 
 
-  const pieces =
-    [];
+  return [
 
-
-  if (
     error.message
-  ) {
-
-    pieces.push(
-
-      "Message: " +
-
-      error.message
-
-    );
-
-  }
+      &&
+      "Message: "
+      +
+      error.message,
 
 
-  if (
     error.details
-  ) {
-
-    pieces.push(
-
-      "Details: " +
-
-      error.details
-
-    );
-
-  }
+      &&
+      "Details: "
+      +
+      error.details,
 
 
-  if (
     error.hint
-  ) {
-
-    pieces.push(
-
-      "Hint: " +
-
-      error.hint
-
-    );
-
-  }
+      &&
+      "Hint: "
+      +
+      error.hint,
 
 
-  if (
     error.code
-  ) {
-
-    pieces.push(
-
-      "Code: " +
-
+      &&
+      "Code: "
+      +
       error.code
 
-    );
-
-  }
-
-
-  if (
-    pieces.length
-  ) {
-
-    return pieces.join(
+  ]
+    .filter(
+      Boolean
+    )
+    .join(
       "\n"
-    );
-
-  }
-
-
-  try {
-
-    return JSON.stringify(
+    )
+    ||
+    String(
       error
     );
-
-  }
-
-  catch {
-
-    return String(
-      error
-    );
-
-  }
 
 }
 
+
 /* ============================================================
-   ADMIN GLOBAAL BESCHIKBAAR MAKEN
+   STYLING
+============================================================ */
+
+function injectAdminDashboardStyles() {
+
+  if (
+    document.getElementById(
+      "achelAdminStyles"
+    )
+  ) {
+    return;
+  }
+
+
+  const style =
+    document.createElement(
+      "style"
+    );
+
+
+  style.id =
+    "achelAdminStyles";
+
+
+  style.textContent = `
+
+    #adminScreen.admin-shell {
+      margin:-18px -16px -36px;
+      min-height:100vh;
+      background:#151c16;
+      color:#f4f1e8;
+      padding-bottom:28px;
+    }
+
+    .admin-topbar {
+      position:relative;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      min-height:66px;
+      padding:10px 54px;
+      background:#182019;
+      border-bottom:1px solid #303830;
+    }
+
+    .admin-topbar-title {
+      text-align:center;
+    }
+
+    .admin-topbar-title strong {
+      display:block;
+      color:#fff;
+      font-size:19px;
+    }
+
+    .admin-topbar-title span {
+      font-size:11px;
+      color:#9da59e;
+    }
+
+    .admin-refresh-button {
+      position:absolute;
+      right:12px;
+      width:40px;
+      height:40px;
+      border:1px solid #414a42;
+      border-radius:11px;
+      background:#293229;
+      color:#d9bd7b;
+      font-size:22px;
+    }
+
+
+    .admin-tabs {
+      position:sticky;
+      top:64px;
+      z-index:30;
+      display:grid;
+      grid-template-columns:repeat(4,1fr);
+      background:#f4f1e8;
+      border-bottom:1px solid #cdc5b5;
+    }
+
+    .admin-tab {
+      position:relative;
+      min-height:47px;
+      border:0;
+      background:transparent;
+      color:#252b25;
+      font-size:10px;
+      font-weight:900;
+      text-transform:uppercase;
+    }
+
+    .admin-tab.active {
+      color:#8c692f;
+    }
+
+    .admin-tab.active:after {
+      content:"";
+      position:absolute;
+      left:10%;
+      right:10%;
+      bottom:0;
+      height:3px;
+      background:#b4883c;
+    }
+
+
+    .admin-pane {
+      padding:13px;
+    }
+
+
+    .admin-kpi-grid {
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:8px;
+    }
+
+    .admin-kpi {
+      --c:#fff;
+      min-height:82px;
+      border:1px solid #465047;
+      border-radius:14px;
+      background:#303930;
+      text-align:left;
+      padding:12px;
+      box-shadow:0 4px 14px #0005;
+    }
+
+    .admin-kpi.green {
+      --c:#71b67a;
+    }
+
+    .admin-kpi.orange {
+      --c:#e0a447;
+    }
+
+    .admin-kpi.red {
+      --c:#df6a56;
+    }
+
+    .admin-kpi.gold {
+      --c:#d4c09a;
+    }
+
+    .admin-kpi-number {
+      display:block;
+      color:var(--c);
+      font-size:28px;
+      font-weight:950;
+    }
+
+    .admin-kpi-label {
+      display:block;
+      color:#fff;
+      margin-top:5px;
+      font-size:12px;
+      font-weight:800;
+    }
+
+
+    .admin-section {
+      margin-top:17px;
+    }
+
+    .admin-section.compact {
+      margin-top:12px;
+    }
+
+    .admin-section-heading {
+      display:flex;
+      align-items:end;
+      justify-content:space-between;
+      gap:8px;
+      margin-bottom:7px;
+    }
+
+    .admin-section-heading h3,
+    .admin-page-heading h2 {
+      margin:0;
+      color:#fff;
+      font-size:18px;
+    }
+
+    .admin-eyebrow {
+      display:block;
+      color:#c6b17c;
+      font-size:9px;
+      font-weight:900;
+      text-transform:uppercase;
+      letter-spacing:.08em;
+    }
+
+    .admin-inline-link {
+      border:0;
+      background:none;
+      color:#d1b56f;
+      font-size:11px;
+      font-weight:850;
+    }
+
+
+    .admin-action-card {
+      width:100%;
+      display:grid;
+      grid-template-columns:40px 1fr auto 16px;
+      align-items:center;
+      gap:9px;
+      padding:11px;
+      margin-bottom:7px;
+      border:1px solid #465047;
+      border-radius:14px;
+      background:#343d35;
+      color:#fff;
+      text-align:left;
+    }
+
+    .admin-card-icon {
+      width:39px;
+      height:39px;
+      display:grid;
+      place-items:center;
+      border-radius:10px;
+      background:#232b24;
+      font-size:19px;
+    }
+
+    .admin-card-icon.purple {
+      color:#b995d1;
+    }
+
+    .admin-card-icon.orange {
+      color:#e1a650;
+    }
+
+    .admin-card-icon.blue {
+      color:#80aeda;
+    }
+
+    .admin-card-icon.grey {
+      color:#c3c8c3;
+    }
+
+    .admin-card-main strong {
+      display:block;
+      font-size:15px;
+    }
+
+    .admin-card-main > span {
+      display:block;
+      color:#aeb6af;
+      font-size:10px;
+      margin-top:2px;
+    }
+
+    .admin-card-arrow {
+      font-size:23px;
+      color:#cfb778;
+    }
+
+    .admin-side-count {
+      padding:4px 8px;
+      border-radius:999px;
+      background:#d1b777;
+      color:#222;
+      font-size:11px;
+      font-weight:900;
+    }
+
+
+    .admin-mini-badges {
+      display:flex;
+      flex-wrap:wrap;
+      gap:4px;
+      margin-top:5px;
+    }
+
+    .admin-mini-badge,
+    .admin-count {
+      padding:3px 7px;
+      border-radius:999px;
+      font-size:9px;
+      font-weight:900;
+    }
+
+    .admin-mini-badge.green,
+    .admin-count.green {
+      background:#dff0e1;
+      color:#367243;
+    }
+
+    .admin-mini-badge.orange,
+    .admin-count.orange {
+      background:#f6e4c6;
+      color:#9a611e;
+    }
+
+    .admin-mini-badge.red {
+      background:#f5d6d1;
+      color:#a44437;
+    }
+
+    .admin-mini-badge.purple,
+    .admin-count.purple {
+      background:#e7ddf1;
+      color:#6f4c8b;
+    }
+
+    .admin-count.grey {
+      background:#ddd;
+      color:#555;
+    }
+
+
+    .admin-attention-grid {
+      display:grid;
+      gap:6px;
+    }
+
+    .admin-attention-card {
+      width:100%;
+      display:grid;
+      grid-template-columns:34px 1fr 15px;
+      align-items:center;
+      gap:8px;
+      padding:9px;
+      border:0;
+      border-radius:12px;
+      text-align:left;
+    }
+
+    .admin-attention-card.red {
+      background:#df6655;
+      color:#fff;
+    }
+
+    .admin-attention-card.orange {
+      background:#dfa047;
+      color:#2c2112;
+    }
+
+    .admin-attention-card.yellow {
+      background:#d8c38f;
+      color:#30291e;
+    }
+
+    .admin-attention-symbol {
+      width:32px;
+      height:32px;
+      display:grid;
+      place-items:center;
+      border-radius:9px;
+      background:#ffffff38;
+      font-weight:950;
+    }
+
+    .admin-attention-card strong {
+      display:block;
+      font-size:12px;
+    }
+
+    .admin-attention-card span {
+      display:block;
+      font-size:9px;
+      margin-top:1px;
+    }
+
+    .admin-all-clear,
+    .admin-empty-ok {
+      padding:10px;
+      border-radius:12px;
+      background:#2c4632;
+      color:#d9f0dd;
+      font-size:11px;
+    }
+
+    .admin-all-clear span {
+      display:block;
+      font-size:9px;
+      margin-top:2px;
+    }
+
+
+    .admin-page-heading {
+      margin:0 0 10px;
+    }
+
+    .admin-search-row {
+      display:grid;
+      grid-template-columns:1fr 44px;
+      gap:7px;
+    }
+
+    .admin-search {
+      min-height:44px!important;
+      border:1px solid #485149!important;
+      background:#303930!important;
+      color:#fff!important;
+      border-radius:999px!important;
+    }
+
+    .admin-filter-button {
+      width:44px;
+      height:44px;
+      border:1px solid #485149;
+      border-radius:50%;
+      background:#303930;
+      color:#d3b46d;
+    }
+
+    .admin-filter-panel,
+    .admin-report-panel {
+      margin-top:8px;
+      padding:10px;
+      border:1px solid #414941;
+      border-radius:13px;
+      background:#2a322b;
+    }
+
+    .admin-filter-grid {
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:7px;
+    }
+
+    .admin-filter-panel label,
+    .admin-report-panel label {
+      color:#bac1bb;
+      font-size:9px;
+      margin:6px 0 4px;
+    }
+
+    .admin-filter-panel select,
+    .admin-report-panel select {
+      min-height:41px;
+      background:#202721;
+      color:#fff;
+      border-color:#4a534b;
+    }
+
+
+    .admin-list-panel {
+      margin-top:8px;
+      border:1px solid #414a42;
+      border-radius:13px;
+      background:#2d352e;
+      overflow:hidden;
+    }
+
+    .admin-list-panel > summary {
+      list-style:none;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      min-height:49px;
+      padding:0 11px;
+      color:#fff;
+      font-size:13px;
+      font-weight:850;
+    }
+
+    .admin-list-panel > summary::-webkit-details-marker {
+      display:none;
+    }
+
+    .admin-list-panel > summary > div {
+      display:flex;
+      align-items:center;
+      gap:7px;
+    }
+
+    .admin-dot {
+      width:8px;
+      height:8px;
+      border-radius:50%;
+    }
+
+    .admin-dot.green {
+      background:#70b77b;
+    }
+
+    .admin-dot.orange {
+      background:#dfa047;
+    }
+
+    .admin-dot.purple {
+      background:#a77ac5;
+    }
+
+    .admin-dot.grey {
+      background:#aaa;
+    }
+
+    .admin-list-content {
+      padding:4px 8px 8px;
+      background:#202721;
+      border-top:1px solid #424b43;
+    }
+
+
+    .admin-order-card {
+      width:100%;
+      margin-top:7px;
+      padding:11px;
+      border:1px solid #d8d5cd;
+      border-radius:12px;
+      background:#fff;
+      text-align:left;
+      color:#202722;
+    }
+
+    .admin-order-top {
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:8px;
+    }
+
+    .admin-order-id {
+      font-size:10px;
+      font-weight:900;
+      color:#8c692f;
+    }
+
+    .admin-order-title {
+      display:block;
+      margin-top:5px;
+      font-size:14px;
+    }
+
+    .admin-order-meta {
+      display:block;
+      margin-top:4px;
+      color:#747b75;
+      font-size:10px;
+    }
+
+
+    .admin-material-summary {
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:7px;
+    }
+
+    .admin-material-summary-card {
+      border:0;
+      border-radius:13px;
+      padding:10px;
+      text-align:left;
+    }
+
+    .admin-material-summary-card.orange {
+      background:#dfa047;
+      color:#2f2415;
+    }
+
+    .admin-material-summary-card.red {
+      background:#db6655;
+      color:#fff;
+    }
+
+    .admin-material-summary-card span {
+      display:block;
+      font-size:9px;
+      font-weight:850;
+    }
+
+    .admin-material-summary-card strong {
+      display:block;
+      font-size:24px;
+      margin-top:3px;
+    }
+
+    .admin-material-card,
+    .admin-problem-card {
+      margin-top:7px;
+      padding:10px;
+      border-radius:13px;
+      background:#fff;
+      color:#202722;
+    }
+
+    .admin-material-head {
+      display:flex;
+      justify-content:space-between;
+      gap:8px;
+      align-items:flex-start;
+    }
+
+    .admin-material-head strong {
+      display:block;
+    }
+
+    .admin-material-head span {
+      display:block;
+      color:#777;
+      font-size:9px;
+      margin-top:2px;
+    }
+
+    .admin-material-head button,
+    .admin-problem-card button {
+      border:0;
+      border-radius:9px;
+      background:#8c692f;
+      color:#fff;
+      padding:7px 9px;
+      font-size:9px;
+      font-weight:850;
+    }
+
+    .material-row {
+      display:flex;
+      flex-wrap:wrap;
+      gap:6px;
+      margin-top:7px;
+      padding-top:7px;
+      border-top:1px solid #eee;
+      font-size:9px;
+    }
+
+    .material-row strong {
+      min-width:100%;
+    }
+
+    .green-text {
+      color:#377744;
+    }
+
+    .red-text {
+      color:#a74646;
+    }
+
+    .admin-problem-card span,
+    .admin-problem-card small {
+      display:block;
+      color:#777;
+      font-size:9px;
+      margin-top:2px;
+    }
+
+    .admin-problem-card div {
+      margin-top:5px;
+      font-size:10px;
+      color:#a74646;
+    }
+
+
+    .admin-wholesale-card {
+      margin-top:7px;
+      padding:10px;
+      border-radius:12px;
+      background:#fff;
+      color:#202722;
+    }
+
+    .admin-wholesale-card summary strong,
+    .admin-wholesale-card summary span {
+      display:block;
+    }
+
+    .admin-wholesale-card summary span {
+      font-size:9px;
+      color:#777;
+      margin-top:2px;
+    }
+
+
+    .admin-report-stats {
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:7px;
+      margin-top:10px;
+    }
+
+    .admin-report-stat {
+      padding:10px;
+      border-radius:12px;
+      background:#202721;
+      border:1px solid #465047;
+    }
+
+    .admin-report-stat strong {
+      display:block;
+      color:#d8b66a;
+      font-size:22px;
+    }
+
+    .admin-report-stat span {
+      font-size:9px;
+      color:#b6beb7;
+    }
+
+    .admin-chart-box {
+      height:280px;
+      margin-top:10px;
+      padding:6px;
+      border-radius:10px;
+      background:#f4f1e8;
+    }
+
+    .admin-export-button {
+      width:100%;
+      min-height:45px;
+      margin-top:10px;
+      border:0;
+      border-radius:11px;
+      background:#b48a42;
+      color:#fff;
+      font-weight:900;
+    }
+
+
+    .admin-detail-shell {
+      padding-bottom:25px;
+    }
+
+    .admin-detail-card {
+      margin-bottom:10px;
+      padding:13px;
+      border:1px solid #ddd9cf;
+      border-radius:15px;
+      background:#fff;
+      color:#202722;
+    }
+
+    .admin-detail-head {
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+    }
+
+    .admin-detail-head > div > span {
+      color:#8c692f;
+      font-size:10px;
+      font-weight:900;
+    }
+
+    .admin-detail-head h2 {
+      font-size:19px;
+      margin:4px 0 0;
+    }
+
+    .admin-detail-row {
+      display:grid;
+      grid-template-columns:120px 1fr;
+      gap:8px;
+      margin-top:8px;
+    }
+
+    .admin-detail-row span {
+      font-size:9px;
+      color:#777;
+      text-transform:uppercase;
+      font-weight:850;
+    }
+
+    .admin-detail-row strong {
+      font-size:12px;
+    }
+
+    .admin-detail-card h3 {
+      margin:0 0 8px;
+      font-size:16px;
+    }
+
+    .category-green {
+      border-left:5px solid #71b67a;
+    }
+
+    .category-blue {
+      border-left:5px solid #719fc5;
+    }
+
+    .category-orange {
+      border-left:5px solid #dfa047;
+    }
+
+
+    .return-card {
+      border-top:5px solid #dfa047;
+    }
+
+    .return-title {
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:8px;
+    }
+
+    .return-title span {
+      font-size:9px;
+      color:#9a611e;
+      text-transform:uppercase;
+      font-weight:900;
+    }
+
+    .return-title h3 {
+      margin:2px 0;
+    }
+
+    .return-title button {
+      border:0;
+      border-radius:9px;
+      background:#367243;
+      color:#fff;
+      padding:8px;
+      font-size:9px;
+      font-weight:900;
+    }
+
+    .return-item {
+      margin-top:9px;
+      padding:10px;
+      border:1px solid #ddd;
+      border-radius:12px;
+      background:#f8f7f3;
+    }
+
+    .return-item-head {
+      display:flex;
+      justify-content:space-between;
+      gap:8px;
+    }
+
+    .return-item-head span {
+      font-size:9px;
+      color:#777;
+    }
+
+    .return-control {
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      margin-top:7px;
+      padding:6px 8px;
+      border-radius:9px;
+    }
+
+    .return-control.green {
+      background:#e1f0e4;
+      color:#367243;
+    }
+
+    .return-control.orange {
+      background:#f6e4c6;
+      color:#915c1d;
+    }
+
+    .return-control.red {
+      background:#f5d6d1;
+      color:#a44437;
+    }
+
+    .return-stepper {
+      display:flex;
+      align-items:center;
+      gap:5px;
+    }
+
+    .return-stepper button {
+      width:30px;
+      height:30px;
+      border:0;
+      border-radius:8px;
+      background:#fff;
+      font-size:18px;
+    }
+
+    .return-stepper b {
+      min-width:22px;
+      text-align:center;
+    }
+
+    .return-outside {
+      margin-top:7px;
+      padding:7px;
+      border-radius:9px;
+      background:#eee;
+      font-size:10px;
+      font-weight:900;
+    }
+
+    .return-outside.done {
+      background:#dff0e1;
+      color:#367243;
+    }
+
+    .return-item textarea {
+      min-height:55px;
+      margin-top:7px;
+      font-size:11px;
+    }
+
+    .return-save,
+    .admin-primary-action {
+      width:100%;
+      min-height:44px;
+      margin-top:10px;
+      border:0;
+      border-radius:11px;
+      background:#8c692f;
+      color:#fff;
+      font-weight:900;
+    }
+
+    .return-reset,
+    .admin-secondary-action {
+      width:100%;
+      min-height:42px;
+      margin-top:6px;
+      border:1px solid #ccc;
+      border-radius:11px;
+      background:#fff;
+      color:#555;
+      font-weight:850;
+    }
+
+
+    .admin-info {
+      padding:9px;
+      border-radius:10px;
+      font-size:10px;
+    }
+
+    .admin-info.orange {
+      background:#f6e4c6;
+      color:#915c1d;
+    }
+
+    .admin-info.red {
+      background:#f5d6d1;
+      color:#a44437;
+    }
+
+    .admin-timeline {
+      display:grid;
+      gap:6px;
+    }
+
+    .timeline-row {
+      display:grid;
+      grid-template-columns:10px 1fr;
+      gap:7px;
+    }
+
+    .timeline-row > span {
+      width:9px;
+      height:9px;
+      margin-top:3px;
+      border-radius:50%;
+      background:#ccc;
+    }
+
+    .timeline-row.active > span {
+      background:#367243;
+    }
+
+    .timeline-row strong {
+      font-size:11px;
+    }
+
+    .timeline-row small {
+      display:block;
+      color:#777;
+      font-size:9px;
+      margin-top:1px;
+    }
+
+
+    @media(max-width:390px) {
+
+      .admin-tab {
+        font-size:9px;
+      }
+
+      .admin-pane {
+        padding:10px;
+      }
+
+      .admin-filter-grid {
+        grid-template-columns:1fr;
+      }
+
+      .admin-detail-row {
+        grid-template-columns:100px 1fr;
+      }
+
+    }
+
+  `;
+
+
+  document
+    .head
+    .appendChild(
+      style
+    );
+
+}
+
+
+/* ============================================================
+   GLOBALE ADMIN FUNCTIE
 ============================================================ */
 
 window.openAdminDashboard =
   openAdminDashboard;
 
+
 /* ============================================================
    AUTO START
 ============================================================ */
 
-document.addEventListener(
-  "DOMContentLoaded",
-  () => {
+if (
+  document.readyState ===
+  "loading"
+) {
 
-    setTimeout(
-      initAdminModule,
-      400
-    );
+  document.addEventListener(
+    "DOMContentLoaded",
+    () =>
+      setTimeout(
+        initAdminModule,
+        300
+      )
+  );
 
-  }
-);
+}
+
+else {
+
+  setTimeout(
+    initAdminModule,
+    300
+  );
+
+}
 
 
 supabaseClient
   .auth
   .onAuthStateChange(
-    () => {
-
+    () =>
       setTimeout(
         initAdminModule,
-        400
-      );
-
-    }
+        300
+      )
   );
-
-
-setTimeout(
-  initAdminModule,
-  1000
-);
