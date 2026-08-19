@@ -1,6 +1,7 @@
 /* ============================================================
    ACHEL POS
-   BESTELLING GROOTHANDEL
+   GROOTHANDEL + KLANTHANDTEKENING + BEWIJS
+   V26
 ============================================================ */
 
 
@@ -24,23 +25,48 @@ let wholesaleSubmitting =
   false;
 
 
+let wholesaleSignatureHasInk =
+  false;
+
+
+let wholesaleSignatureDrawing =
+  false;
+
+
+let wholesaleSignatureLastPoint =
+  null;
+
+
 /* ============================================================
    MODULE START
 ============================================================ */
 
 function initWholesaleModule() {
 
-  createWholesaleMenuItem();
+  injectWholesaleStyles();
 
   createWholesaleScreen();
 
 }
 
 
-document.addEventListener(
-  "DOMContentLoaded",
-  initWholesaleModule
-);
+if (
+  document.readyState ===
+  "loading"
+) {
+
+  document.addEventListener(
+    "DOMContentLoaded",
+    initWholesaleModule
+  );
+
+}
+
+else {
+
+  initWholesaleModule();
+
+}
 
 
 setTimeout(
@@ -50,85 +76,7 @@ setTimeout(
 
 
 /* ============================================================
-   MENU ITEM
-============================================================ */
-
-function createWholesaleMenuItem() {
-
-  /*
-    In de nieuwe index.html staat de knop
-    al rechtstreeks in het menu.
-
-    Deze functie blijft als extra beveiliging
-    voor oudere versies.
-  */
-
-  if (
-    document.getElementById(
-      "menuWholesale"
-    )
-  ) {
-
-    return;
-
-  }
-
-
-  const adminButton =
-    document.getElementById(
-      "menuAdmin"
-    );
-
-
-  const menu =
-    adminButton?.parentElement;
-
-
-  if (
-    !menu
-  ) {
-
-    return;
-
-  }
-
-
-  const button =
-    document.createElement(
-      "button"
-    );
-
-
-  button.id =
-    "menuWholesale";
-
-
-  button.className =
-    "menu-item";
-
-
-  button.type =
-    "button";
-
-
-  button.innerText =
-    "Bestelling groothandel";
-
-
-  button.onclick =
-    openWholesaleOrder;
-
-
-  menu.insertBefore(
-    button,
-    adminButton
-  );
-
-}
-
-
-/* ============================================================
-   BESTELSCHERM MAKEN
+   HOOFDSCHERM
 ============================================================ */
 
 function createWholesaleScreen() {
@@ -186,19 +134,25 @@ function createWholesaleScreen() {
 
     <div class="card">
 
-      <h2>
-        Bestelling groothandel
-      </h2>
+      <div class="wholesale-title">
+
+        <span>
+          EXTERNE BESTELLING
+        </span>
+
+        <h2>
+          Bestelling groothandel
+        </h2>
+
+      </div>
 
 
-      <p
-        style="
-          color:var(--muted);
-          margin-top:-5px;
-          line-height:1.45;
-        "
-      >
-        Maak een bierbestelling voor levering via een drankenhandel.
+      <p class="wholesale-intro">
+
+        Stel de bestelling samen.
+        De klant controleert en ondertekent
+        de bestelling vóór verzending.
+
       </p>
 
 
@@ -217,7 +171,9 @@ function createWholesaleScreen() {
 
 
       <label for="wholesaleReference">
-        Referentie / klantnaam
+
+        Referentie / klant
+
       </label>
 
 
@@ -229,7 +185,9 @@ function createWholesaleScreen() {
 
 
       <label for="wholesaleDealerSelect">
-        Drankenhandel
+
+        Drankenhandel / leveradres
+
       </label>
 
 
@@ -239,11 +197,16 @@ function createWholesaleScreen() {
       >
 
         <option value="">
+
           Kies drankenhandel
+
         </option>
 
+
         <option value="other">
+
           Andere / zelf invullen
+
         </option>
 
       </select>
@@ -255,27 +218,31 @@ function createWholesaleScreen() {
       >
 
         <label for="wholesaleDealerOther">
-          Naam drankenhandel
+
+          Drankenhandel / leveradres
+
         </label>
 
 
         <input
           id="wholesaleDealerOther"
           type="text"
-          placeholder="Bijv. Domen Drinks"
+          placeholder="Naam drankenhandel of leveradres"
         >
 
       </div>
 
 
       <label for="wholesaleNote">
+
         Opmerking
+
       </label>
 
 
       <textarea
         id="wholesaleNote"
-        placeholder="Optionele informatie voor de bestelling"
+        placeholder="Optionele informatie voor deze bestelling"
       ></textarea>
 
     </div>
@@ -291,7 +258,9 @@ function createWholesaleScreen() {
       <div id="wholesaleProductsList">
 
         <div class="empty">
+
           Bieren laden...
+
         </div>
 
       </div>
@@ -307,7 +276,9 @@ function createWholesaleScreen() {
         type="button"
         onclick="showWholesaleSummary()"
       >
+
         Bestelling controleren
+
       </button>
 
     </div>
@@ -326,7 +297,7 @@ function createWholesaleScreen() {
 
 
 /* ============================================================
-   CONTROLE SCHERM
+   CONTROLE + HANDTEKENING SCHERM
 ============================================================ */
 
 function createWholesaleSummaryScreen() {
@@ -378,60 +349,212 @@ function createWholesaleSummaryScreen() {
       type="button"
       onclick="backToWholesaleOrder()"
     >
+
       ← Terug aanpassen
+
     </button>
 
 
-    <div class="card">
+    <div
+      id="wholesaleProofPreview"
+      class="card wholesale-proof-preview"
+    >
 
-      <h2>
-        Controleer bestelling
-      </h2>
+      <div class="wholesale-proof-header">
+
+        <div>
+
+          <span>
+            ACHEL POS
+          </span>
+
+          <h2>
+            Bestelbevestiging
+          </h2>
+
+        </div>
+
+
+        <strong>
+          CONCEPT
+        </strong>
+
+      </div>
+
+
+      <div class="wholesale-proof-grid">
+
+        <div>
+
+          <span>
+            Vertegenwoordiger
+          </span>
+
+          <strong id="wholesaleSummaryRep"></strong>
+
+        </div>
+
+
+        <div>
+
+          <span>
+            Referentie / klant
+          </span>
+
+          <strong id="wholesaleSummaryReference"></strong>
+
+        </div>
+
+
+        <div>
+
+          <span>
+            Drankenhandel
+          </span>
+
+          <strong id="wholesaleSummaryDealer"></strong>
+
+        </div>
+
+      </div>
+
+
+      <div
+        id="wholesaleSummaryProducts"
+      ></div>
+
+
+      <div
+        id="wholesaleSummaryNoteBox"
+        class="wholesale-proof-note hidden"
+      >
+
+        <span>
+          Opmerking
+        </span>
+
+        <strong id="wholesaleSummaryNote"></strong>
+
+      </div>
+
+
+      <div class="wholesale-commercial-note">
+
+        Eventuele gratis vaten zijn een
+        commerciële tegemoetkoming.
+
+        <strong>
+          Voor gratis vaten enkel leeggoed factureren.
+        </strong>
+
+      </div>
+
+    </div>
+
+
+    <div class="card wholesale-signature-card">
+
+      <div class="wholesale-signature-title">
+
+        <span>
+          KLANTGOEDKEURING
+        </span>
+
+        <h2>
+          Ondertekening
+        </h2>
+
+      </div>
 
 
       <p>
 
-        <strong>
-          Vertegenwoordiger
-        </strong>
-
-        <br>
-
-        <span id="wholesaleSummaryRep"></span>
+        Door te ondertekenen bevestigt de klant
+        de hierboven vermelde bestelling,
+        aantallen en eventuele commerciële
+        tegemoetkomingen.
 
       </p>
 
 
-      <p>
+      <label for="wholesaleSignerName">
 
-        <strong>
-          Referentie / klant
-        </strong>
+        Naam ondertekenaar
 
-        <br>
-
-        <span id="wholesaleSummaryReference"></span>
-
-      </p>
+      </label>
 
 
-      <p>
-
-        <strong>
-          Drankenhandel
-        </strong>
-
-        <br>
-
-        <span id="wholesaleSummaryDealer"></span>
-
-      </p>
+      <input
+        id="wholesaleSignerName"
+        type="text"
+        placeholder="Voornaam en achternaam klant"
+        oninput="updateWholesaleSignatureState()"
+      >
 
 
-      <div id="wholesaleSummaryProducts"></div>
+      <label>
+
+        Handtekening
+
+      </label>
 
 
-      <p id="wholesaleSummaryNote"></p>
+      <div class="wholesale-signature-box">
+
+        <canvas
+          id="wholesaleSignatureCanvas"
+        ></canvas>
+
+
+        <div
+          id="wholesaleSignaturePlaceholder"
+          class="wholesale-signature-placeholder"
+        >
+
+          Teken hier met vinger of muis
+
+        </div>
+
+      </div>
+
+
+      <button
+        class="wholesale-clear-signature"
+        type="button"
+        onclick="clearWholesaleSignature()"
+      >
+
+        Handtekening wissen
+
+      </button>
+
+
+      <label class="wholesale-approval">
+
+        <input
+          id="wholesaleApprovalCheckbox"
+          type="checkbox"
+          onchange="updateWholesaleSignatureState()"
+        >
+
+        <span>
+
+          Ik bevestig dat bovenstaande bestelling
+          correct is en door de klant werd goedgekeurd.
+
+        </span>
+
+      </label>
+
+
+      <div
+        id="wholesaleSignatureStatus"
+        class="wholesale-signature-status"
+      >
+
+        Nog niet ondertekend
+
+      </div>
 
 
       <button
@@ -439,8 +562,11 @@ function createWholesaleSummaryScreen() {
         class="primary"
         type="button"
         onclick="submitWholesaleOrder()"
+        disabled
       >
-        Bestelling verzenden
+
+        Ondertekenen & bestelling verzenden
+
       </button>
 
     </div>
@@ -456,7 +582,7 @@ function createWholesaleSummaryScreen() {
 
 
 /* ============================================================
-   SCHERM OPENEN
+   OPEN NIEUWE BESTELLING
 ============================================================ */
 
 async function openWholesaleOrder() {
@@ -472,8 +598,8 @@ async function openWholesaleOrder() {
       "wholesaleRepName"
     )
     .innerText =
-      currentProfile?.naam
-      ||
+
+      currentProfile?.naam ||
       "";
 
 
@@ -482,10 +608,11 @@ async function openWholesaleOrder() {
       "wholesaleRepEmail"
     )
     .innerText =
-      currentProfile?.email
-      ||
-      currentUser?.email
-      ||
+
+      currentProfile?.email ||
+
+      currentUser?.email ||
+
       "";
 
 
@@ -520,6 +647,182 @@ function backToWholesaleOrder() {
 
 
 /* ============================================================
+   RESET BESTELLING
+============================================================ */
+
+function resetWholesaleOrder() {
+
+  wholesaleSubmitting =
+    false;
+
+
+  wholesaleSignatureHasInk =
+    false;
+
+
+  wholesaleSignatureDrawing =
+    false;
+
+
+  wholesaleSignatureLastPoint =
+    null;
+
+
+  const reference =
+    document.getElementById(
+      "wholesaleReference"
+    );
+
+
+  const dealerSelect =
+    document.getElementById(
+      "wholesaleDealerSelect"
+    );
+
+
+  const dealerOther =
+    document.getElementById(
+      "wholesaleDealerOther"
+    );
+
+
+  const note =
+    document.getElementById(
+      "wholesaleNote"
+    );
+
+
+  const signer =
+    document.getElementById(
+      "wholesaleSignerName"
+    );
+
+
+  const approval =
+    document.getElementById(
+      "wholesaleApprovalCheckbox"
+    );
+
+
+  if (
+    reference
+  ) {
+
+    reference.value =
+      "";
+
+  }
+
+
+  if (
+    dealerSelect
+  ) {
+
+    dealerSelect.value =
+      "";
+
+  }
+
+
+  if (
+    dealerOther
+  ) {
+
+    dealerOther.value =
+      "";
+
+  }
+
+
+  if (
+    note
+  ) {
+
+    note.value =
+      "";
+
+  }
+
+
+  if (
+    signer
+  ) {
+
+    signer.value =
+      "";
+
+  }
+
+
+  if (
+    approval
+  ) {
+
+    approval.checked =
+      false;
+
+  }
+
+
+  document
+    .getElementById(
+      "wholesaleDealerOtherBox"
+    )
+    ?.classList
+    .add(
+      "hidden"
+    );
+
+
+  Object.keys(
+    wholesaleQuantities
+  )
+    .forEach(
+      productId => {
+
+        wholesaleQuantities[
+          productId
+        ] =
+          0;
+
+      }
+    );
+
+
+  Object.keys(
+    wholesaleDiscounts
+  )
+    .forEach(
+      productId => {
+
+        wholesaleDiscounts[
+          productId
+        ] =
+          "geen";
+
+      }
+    );
+
+
+  if (
+    document.getElementById(
+      "wholesaleSignatureCanvas"
+    )
+  ) {
+
+    clearWholesaleSignature();
+
+  }
+
+
+  renderWholesaleProducts();
+
+  updateWholesaleReviewButton();
+
+}
+
+
+/* ============================================================
    DRANKENHANDEL
 ============================================================ */
 
@@ -540,7 +843,8 @@ function toggleWholesaleDealerInput() {
     .classList
     .toggle(
       "hidden",
-      value !== "other"
+      value !==
+      "other"
     );
 
 }
@@ -589,10 +893,21 @@ async function loadWholesaleProducts() {
       );
 
 
+  if (
+    !container
+  ) {
+
+    return;
+
+  }
+
+
   container.innerHTML = `
 
     <div class="empty">
+
       Bieren laden...
+
     </div>
 
   `;
@@ -656,45 +971,45 @@ async function loadWholesaleProducts() {
 
 
   wholesaleProducts =
-    data
-    ||
+    data ||
     [];
 
 
-  wholesaleProducts.forEach(
-    product => {
+  wholesaleProducts
+    .forEach(
+      product => {
 
-      if (
-        wholesaleQuantities[
-          product.id
-        ] ===
-        undefined
-      ) {
+        if (
+          wholesaleQuantities[
+            product.id
+          ] ===
+          undefined
+        ) {
 
-        wholesaleQuantities[
-          product.id
-        ] =
-          0;
+          wholesaleQuantities[
+            product.id
+          ] =
+            0;
+
+        }
+
+
+        if (
+          wholesaleDiscounts[
+            product.id
+          ] ===
+          undefined
+        ) {
+
+          wholesaleDiscounts[
+            product.id
+          ] =
+            "geen";
+
+        }
 
       }
-
-
-      if (
-        wholesaleDiscounts[
-          product.id
-        ] ===
-        undefined
-      ) {
-
-        wholesaleDiscounts[
-          product.id
-        ] =
-          "geen";
-
-      }
-
-    }
-  );
+    );
 
 
   renderWholesaleProducts();
@@ -731,7 +1046,9 @@ function renderWholesaleProducts() {
     container.innerHTML = `
 
       <div class="empty">
+
         Geen bierproducten gevonden.
+
       </div>
 
     `;
@@ -763,73 +1080,29 @@ function renderWholesaleProducts() {
 
           return `
 
-            <div
-              style="
-                border:1px solid var(--border);
-                border-radius:16px;
-                padding:14px;
-                margin-bottom:10px;
-                background:white;
-              "
-            >
+            <div class="wholesale-product">
+
+              <div class="wholesale-product-head">
+
+                <div>
+
+                  <strong>
+
+                    ${wholesaleEscapeHtml(
+                      product.naam
+                    )}
+
+                  </strong>
 
 
-              <div
-                style="
-                  font-weight:850;
-                  font-size:16px;
-                "
-              >
+                  <span>
 
-                ${wholesaleEscapeHtml(
-                  product.naam
-                )}
+                    ${wholesaleEscapeHtml(
+                      product.eenheid ||
+                      ""
+                    )}
 
-              </div>
-
-
-              <div
-                style="
-                  font-size:11px;
-                  color:var(--muted);
-                  margin-top:3px;
-                "
-              >
-
-                ${wholesaleEscapeHtml(
-                  product.eenheid
-                  ||
-                  ""
-                )}
-
-              </div>
-
-
-              <div
-                style="
-                  display:flex;
-                  align-items:center;
-                  justify-content:space-between;
-                  gap:12px;
-                  margin-top:14px;
-                "
-              >
-
-
-                <div
-                  style="
-                    font-size:13px;
-                    font-weight:750;
-                  "
-                >
-
-                  ${
-                    isKeg
-
-                      ? "Betaalde vaten"
-
-                      : "Aantal"
-                  }
+                  </span>
 
                 </div>
 
@@ -838,9 +1111,11 @@ function renderWholesaleProducts() {
 
                   <button
                     type="button"
-                    onclick="changeWholesaleQty(${product.id}, -1)"
+                    onclick="changeWholesaleQty('${product.id}', -1)"
                   >
+
                     −
+
                   </button>
 
 
@@ -851,8 +1126,7 @@ function renderWholesaleProducts() {
                     ${
                       wholesaleQuantities[
                         product.id
-                      ]
-                      ||
+                      ] ||
                       0
                     }
 
@@ -861,9 +1135,11 @@ function renderWholesaleProducts() {
 
                   <button
                     type="button"
-                    onclick="changeWholesaleQty(${product.id}, 1)"
+                    onclick="changeWholesaleQty('${product.id}', 1)"
                   >
+
                     +
+
                   </button>
 
                 </div>
@@ -876,92 +1152,101 @@ function renderWholesaleProducts() {
 
                   ? `
 
-                    <label
-                      for="wholesaleDiscount-${product.id}"
-                      style="margin-top:14px;"
-                    >
-                      Commerciële tegemoetkoming
-                    </label>
+                      <label
+                        for="wholesaleDiscount-${product.id}"
+                      >
+
+                        Commerciële tegemoetkoming
+
+                      </label>
 
 
-                    <select
-                      id="wholesaleDiscount-${product.id}"
-                      onchange="changeWholesaleDiscount(${product.id}, this.value)"
-                    >
+                      <select
+                        id="wholesaleDiscount-${product.id}"
+                        onchange="changeWholesaleDiscount('${product.id}', this.value)"
+                      >
 
-                      <option
-                        value="geen"
-                        ${
-                          wholesaleDiscounts[
-                            product.id
-                          ] ===
-                          "geen"
+                        <option
+                          value="geen"
+                          ${
+                            wholesaleDiscounts[
+                              product.id
+                            ] ===
+                            "geen"
 
-                            ? "selected"
+                              ? "selected"
+
+                              : ""
+                          }
+                        >
+
+                          Geen
+
+                        </option>
+
+
+                        <option
+                          value="5+1"
+                          ${
+                            wholesaleDiscounts[
+                              product.id
+                            ] ===
+                            "5+1"
+
+                              ? "selected"
+
+                              : ""
+                          }
+                        >
+
+                          5 + 1
+
+                        </option>
+
+
+                        <option
+                          value="10+2"
+                          ${
+                            wholesaleDiscounts[
+                              product.id
+                            ] ===
+                            "10+2"
+
+                              ? "selected"
+
+                              : ""
+                          }
+                        >
+
+                          10 + 2
+
+                        </option>
+
+                      </select>
+
+
+                      <div
+                        id="wholesaleCalc-${product.id}"
+                        class="info ${
+                          calculation.free >
+                          0
+
+                            ? "ok"
 
                             : ""
-                        }
+                        }"
                       >
-                        Geen
-                      </option>
 
+                        ${buildWholesaleCalculationText(
+                          calculation
+                        )}
 
-                      <option
-                        value="5+1"
-                        ${
-                          wholesaleDiscounts[
-                            product.id
-                          ] ===
-                          "5+1"
+                      </div>
 
-                            ? "selected"
-
-                            : ""
-                        }
-                      >
-                        5 + 1
-                      </option>
-
-
-                      <option
-                        value="10+2"
-                        ${
-                          wholesaleDiscounts[
-                            product.id
-                          ] ===
-                          "10+2"
-
-                            ? "selected"
-
-                            : ""
-                        }
-                      >
-                        10 + 2
-                      </option>
-
-                    </select>
-
-
-                    <div
-                      id="wholesaleCalc-${product.id}"
-                      class="info ${
-                        calculation.free > 0
-                          ? "ok"
-                          : ""
-                      }"
-                    >
-
-                      ${buildWholesaleCalculationText(
-                        calculation
-                      )}
-
-                    </div>
-
-                  `
+                    `
 
                   : ""
               }
-
 
             </div>
 
@@ -988,8 +1273,7 @@ function isWholesaleKeg(
 
   const unit =
     String(
-      product.eenheid
-      ||
+      product.eenheid ||
       ""
     )
       .toLowerCase();
@@ -997,8 +1281,7 @@ function isWholesaleKeg(
 
   const name =
     String(
-      product.naam
-      ||
+      product.naam ||
       ""
     )
       .toLowerCase();
@@ -1028,7 +1311,7 @@ function isWholesaleKeg(
 
 
 /* ============================================================
-   AANTAL WIJZIGEN
+   AANTAL
 ============================================================ */
 
 function changeWholesaleQty(
@@ -1047,8 +1330,7 @@ function changeWholesaleQty(
       (
         wholesaleQuantities[
           productId
-        ]
-        ||
+        ] ||
         0
       )
 
@@ -1111,7 +1393,7 @@ function changeWholesaleDiscount(
 
 
 /* ============================================================
-   KORTINGSBEREKENING
+   KORTING BEREKENING
 ============================================================ */
 
 function calculateWholesaleProduct(
@@ -1122,8 +1404,7 @@ function calculateWholesaleProduct(
     Number(
       wholesaleQuantities[
         product.id
-      ]
-      ||
+      ] ||
       0
     );
 
@@ -1137,8 +1418,7 @@ function calculateWholesaleProduct(
       ? (
           wholesaleDiscounts[
             product.id
-          ]
-          ||
+          ] ||
           "geen"
         )
 
@@ -1156,7 +1436,8 @@ function calculateWholesaleProduct(
 
     free =
       Math.floor(
-        paid / 5
+        paid /
+        5
       );
 
   }
@@ -1168,10 +1449,14 @@ function calculateWholesaleProduct(
   ) {
 
     free =
+
       Math.floor(
-        paid / 10
+        paid /
+        10
       )
+
       *
+
       2;
 
   }
@@ -1189,7 +1474,8 @@ function calculateWholesaleProduct(
       free,
 
     total:
-      paid + free
+      paid +
+      free
 
   };
 
@@ -1197,7 +1483,7 @@ function calculateWholesaleProduct(
 
 
 /* ============================================================
-   BEREKENING TEKST
+   KORTING TEKST
 ============================================================ */
 
 function buildWholesaleCalculationText(
@@ -1210,7 +1496,9 @@ function buildWholesaleCalculationText(
   ) {
 
     return (
+
       `Te leveren: ${calculation.paid} vat(en)`
+
     );
 
   }
@@ -1227,7 +1515,7 @@ function buildWholesaleCalculationText(
 
       +
 
-      `Het ingegeven aantal geeft momenteel nog geen gratis vat.`
+      `Het ingegeven aantal geeft nog geen gratis vat.`
 
     );
 
@@ -1244,11 +1532,11 @@ function buildWholesaleCalculationText(
 
     +
 
-    `${calculation.total} vaten totaal te leveren. `
+    `${calculation.total} totaal te leveren. `
 
     +
 
-    `Gratis vat(en): commerciële tegemoetkoming, enkel leeggoed factureren.`
+    `Voor gratis vat(en) enkel leeggoed factureren.`
 
   );
 
@@ -1256,7 +1544,7 @@ function buildWholesaleCalculationText(
 
 
 /* ============================================================
-   BEREKENING BIJWERKEN
+   KORTING BIJWERKEN
 ============================================================ */
 
 function updateWholesaleCalculation(
@@ -1264,16 +1552,20 @@ function updateWholesaleCalculation(
 ) {
 
   const product =
-    wholesaleProducts.find(
-      item =>
-        item.id ===
-        productId
-    );
+    wholesaleProducts
+      .find(
+        item =>
+          String(
+            item.id
+          ) ===
+          String(
+            productId
+          )
+      );
 
 
   if (
-    !product
-    ||
+    !product ||
     !isWholesaleKeg(
       product
     )
@@ -1308,7 +1600,8 @@ function updateWholesaleCalculation(
 
   element.className =
 
-    calculation.free > 0
+    calculation.free >
+    0
 
       ? "info ok"
 
@@ -1337,8 +1630,7 @@ function getSelectedWholesaleProducts() {
         (
           wholesaleQuantities[
             product.id
-          ]
-          ||
+          ] ||
           0
         )
 
@@ -1358,7 +1650,15 @@ function getSelectedWholesaleProducts() {
 
         return {
 
-          ...product,
+          id:
+            product.id,
+
+          naam:
+            product.naam,
+
+          eenheid:
+            product.eenheid ||
+            "",
 
           paid:
             calculation.paid,
@@ -1381,29 +1681,10 @@ function getSelectedWholesaleProducts() {
 
 
 /* ============================================================
-   CONTROLEKNOP
+   REVIEW KNOP
 ============================================================ */
 
 function updateWholesaleReviewButton() {
-
-  const products =
-    getSelectedWholesaleProducts();
-
-
-  const total =
-    products.reduce(
-      (
-        sum,
-        product
-      ) =>
-
-        sum
-        +
-        product.total,
-
-      0
-    );
-
 
   const button =
     document
@@ -1421,9 +1702,26 @@ function updateWholesaleReviewButton() {
   }
 
 
+  const total =
+    getSelectedWholesaleProducts()
+
+      .reduce(
+        (
+          sum,
+          product
+        ) =>
+
+          sum +
+          product.total,
+
+        0
+      );
+
+
   button.innerText =
 
-    total > 0
+    total >
+    0
 
       ? `Bestelling controleren · ${total}`
 
@@ -1482,7 +1780,7 @@ function showWholesaleSummary() {
   ) {
 
     alert(
-      "Vul de drankenhandel in."
+      "Vul de drankenhandel of het leveradres in."
     );
 
     return;
@@ -1508,8 +1806,8 @@ function showWholesaleSummary() {
       "wholesaleSummaryRep"
     )
     .innerText =
-      currentProfile?.naam
-      ||
+
+      currentProfile?.naam ||
       "";
 
 
@@ -1536,62 +1834,95 @@ function showWholesaleSummary() {
     .innerHTML =
 
       products
-
         .map(
-          product =>
-            buildWholesaleSummaryProduct(
-              product
-            )
+          buildWholesaleSummaryProduct
         )
-
         .join("");
 
 
-  document
-    .getElementById(
-      "wholesaleSummaryNote"
-    )
-    .innerText =
+  const noteBox =
+    document
+      .getElementById(
+        "wholesaleSummaryNoteBox"
+      );
 
-      note
 
-        ? `Opmerking: ${note}`
+  const noteElement =
+    document
+      .getElementById(
+        "wholesaleSummaryNote"
+      );
 
-        : "";
+
+  if (
+    note
+  ) {
+
+    noteElement.innerText =
+      note;
+
+
+    noteBox.classList
+      .remove(
+        "hidden"
+      );
+
+  }
+
+  else {
+
+    noteElement.innerText =
+      "";
+
+
+    noteBox.classList
+      .add(
+        "hidden"
+      );
+
+  }
 
 
   showOnly(
     "wholesaleSummaryScreen"
   );
 
+
+  setTimeout(
+    () => {
+
+      setupWholesaleSignatureCanvas();
+
+      clearWholesaleSignature();
+
+      updateWholesaleSignatureState();
+
+    },
+    80
+  );
+
 }
 
 
 /* ============================================================
-   SAMENVATTING PRODUCT
+   PRODUCT OP CONTROLEPAGINA
 ============================================================ */
 
 function buildWholesaleSummaryProduct(
   product
 ) {
 
-  const isKeg =
-    isWholesaleKeg(
-      product
-    );
-
-
   return `
 
-    <div class="summary-section">
+    <div class="wholesale-summary-product">
 
-      <div class="summary-section-title">
+      <strong>
 
         ${wholesaleEscapeHtml(
           product.naam
         )}
 
-      </div>
+      </strong>
 
 
       <div class="summary-line">
@@ -1599,9 +1930,11 @@ function buildWholesaleSummaryProduct(
         <span>
 
           ${
-            isKeg
+            isWholesaleKeg(
+              product
+            )
 
-              ? "Betaald"
+              ? "Betaalde vaten"
 
               : "Aantal"
           }
@@ -1610,79 +1943,57 @@ function buildWholesaleSummaryProduct(
 
 
         <strong>
-
           ${product.paid}
-
         </strong>
 
       </div>
 
 
       ${
-        isKeg
-        &&
         product.discount !==
         "geen"
 
           ? `
 
-            <div class="summary-line">
+              <div class="summary-line">
 
-              <span>
-                Actie
-              </span>
+                <span>
+                  Actie
+                </span>
 
-              <strong>
-                ${product.discount}
-              </strong>
+                <strong>
+                  ${product.discount}
+                </strong>
 
-            </div>
-
-
-            <div class="summary-line">
-
-              <span>
-                Gratis
-              </span>
-
-              <strong>
-                ${product.free}
-              </strong>
-
-            </div>
+              </div>
 
 
-            <div class="summary-line">
+              <div class="summary-line">
 
-              <span>
-                Totaal te leveren
-              </span>
+                <span>
+                  Gratis
+                </span>
 
-              <strong>
-                ${product.total}
-              </strong>
+                <strong>
+                  ${product.free}
+                </strong>
 
-            </div>
-
-          `
-
-          : ""
-      }
+              </div>
 
 
-      ${
-        product.free > 0
+              <div class="summary-line">
 
-          ? `
+                <span>
+                  Totaal te leveren
+                </span>
 
-            <div class="info ok">
+                <strong>
+                  ${product.total}
+                </strong>
 
-              Gratis vat(en) zijn commerciële tegemoetkoming.
-              Enkel leeggoed factureren voor de gratis vaten.
+              </div>
 
-            </div>
-
-          `
+            `
 
           : ""
       }
@@ -1695,7 +2006,758 @@ function buildWholesaleSummaryProduct(
 
 
 /* ============================================================
-   BESTELLING OPSLAAN
+   SIGNATURE CANVAS
+============================================================ */
+
+function setupWholesaleSignatureCanvas() {
+
+  const canvas =
+    document
+      .getElementById(
+        "wholesaleSignatureCanvas"
+      );
+
+
+  if (
+    !canvas
+  ) {
+
+    return;
+
+  }
+
+
+  resizeWholesaleSignatureCanvas();
+
+
+  if (
+    canvas.dataset.ready ===
+    "1"
+  ) {
+
+    return;
+
+  }
+
+
+  canvas.dataset.ready =
+    "1";
+
+
+  canvas.style.touchAction =
+    "none";
+
+
+  canvas.addEventListener(
+    "pointerdown",
+    startWholesaleSignature
+  );
+
+
+  canvas.addEventListener(
+    "pointermove",
+    drawWholesaleSignature
+  );
+
+
+  canvas.addEventListener(
+    "pointerup",
+    endWholesaleSignature
+  );
+
+
+  canvas.addEventListener(
+    "pointercancel",
+    endWholesaleSignature
+  );
+
+
+  canvas.addEventListener(
+    "pointerleave",
+    event => {
+
+      if (
+        wholesaleSignatureDrawing
+      ) {
+
+        endWholesaleSignature(
+          event
+        );
+
+      }
+
+    }
+  );
+
+}
+
+
+/* ============================================================
+   CANVAS RESIZE
+============================================================ */
+
+function resizeWholesaleSignatureCanvas() {
+
+  const canvas =
+    document
+      .getElementById(
+        "wholesaleSignatureCanvas"
+      );
+
+
+  if (
+    !canvas
+  ) {
+
+    return;
+
+  }
+
+
+  const rect =
+    canvas.getBoundingClientRect();
+
+
+  const ratio =
+    Math.max(
+      1,
+      window.devicePixelRatio ||
+      1
+    );
+
+
+  canvas.width =
+    Math.round(
+      rect.width *
+      ratio
+    );
+
+
+  canvas.height =
+    Math.round(
+      rect.height *
+      ratio
+    );
+
+
+  const context =
+    canvas.getContext(
+      "2d"
+    );
+
+
+  context.setTransform(
+    ratio,
+    0,
+    0,
+    ratio,
+    0,
+    0
+  );
+
+
+  context.lineWidth =
+    2.2;
+
+
+  context.lineCap =
+    "round";
+
+
+  context.lineJoin =
+    "round";
+
+
+  context.strokeStyle =
+    "#182019";
+
+}
+
+
+/* ============================================================
+   SIGNATURE POINT
+============================================================ */
+
+function getWholesaleSignaturePoint(
+  event
+) {
+
+  const canvas =
+    document
+      .getElementById(
+        "wholesaleSignatureCanvas"
+      );
+
+
+  const rect =
+    canvas.getBoundingClientRect();
+
+
+  return {
+
+    x:
+      event.clientX -
+      rect.left,
+
+    y:
+      event.clientY -
+      rect.top
+
+  };
+
+}
+
+
+/* ============================================================
+   START TEKENEN
+============================================================ */
+
+function startWholesaleSignature(
+  event
+) {
+
+  event.preventDefault();
+
+
+  const canvas =
+    event.currentTarget;
+
+
+  canvas.setPointerCapture?.(
+    event.pointerId
+  );
+
+
+  wholesaleSignatureDrawing =
+    true;
+
+
+  wholesaleSignatureLastPoint =
+    getWholesaleSignaturePoint(
+      event
+    );
+
+
+  const context =
+    canvas.getContext(
+      "2d"
+    );
+
+
+  context.beginPath();
+
+
+  context.arc(
+
+    wholesaleSignatureLastPoint.x,
+
+    wholesaleSignatureLastPoint.y,
+
+    1.1,
+
+    0,
+
+    Math.PI *
+    2
+
+  );
+
+
+  context.fillStyle =
+    "#182019";
+
+
+  context.fill();
+
+
+  wholesaleSignatureHasInk =
+    true;
+
+
+  updateWholesaleSignatureState();
+
+}
+
+
+/* ============================================================
+   TEKENEN
+============================================================ */
+
+function drawWholesaleSignature(
+  event
+) {
+
+  if (
+    !wholesaleSignatureDrawing
+  ) {
+
+    return;
+
+  }
+
+
+  event.preventDefault();
+
+
+  const canvas =
+    event.currentTarget;
+
+
+  const point =
+    getWholesaleSignaturePoint(
+      event
+    );
+
+
+  const context =
+    canvas.getContext(
+      "2d"
+    );
+
+
+  context.beginPath();
+
+
+  context.moveTo(
+
+    wholesaleSignatureLastPoint.x,
+
+    wholesaleSignatureLastPoint.y
+
+  );
+
+
+  context.lineTo(
+
+    point.x,
+
+    point.y
+
+  );
+
+
+  context.stroke();
+
+
+  wholesaleSignatureLastPoint =
+    point;
+
+
+  wholesaleSignatureHasInk =
+    true;
+
+
+  updateWholesaleSignatureState();
+
+}
+
+
+/* ============================================================
+   STOP TEKENEN
+============================================================ */
+
+function endWholesaleSignature(
+  event
+) {
+
+  wholesaleSignatureDrawing =
+    false;
+
+
+  wholesaleSignatureLastPoint =
+    null;
+
+
+  try {
+
+    event.currentTarget
+      ?.releasePointerCapture?.(
+        event.pointerId
+      );
+
+  }
+
+  catch (
+    error
+  ) {
+
+    /* Geen actie nodig */
+
+  }
+
+}
+
+
+/* ============================================================
+   HANDTEKENING WISSEN
+============================================================ */
+
+function clearWholesaleSignature() {
+
+  const canvas =
+    document
+      .getElementById(
+        "wholesaleSignatureCanvas"
+      );
+
+
+  if (
+    canvas
+  ) {
+
+    const context =
+      canvas.getContext(
+        "2d"
+      );
+
+
+    context.clearRect(
+
+      0,
+
+      0,
+
+      canvas.width,
+
+      canvas.height
+
+    );
+
+  }
+
+
+  wholesaleSignatureHasInk =
+    false;
+
+
+  wholesaleSignatureDrawing =
+    false;
+
+
+  wholesaleSignatureLastPoint =
+    null;
+
+
+  updateWholesaleSignatureState();
+
+}
+
+
+/* ============================================================
+   SIGNATURE STATUS
+============================================================ */
+
+function updateWholesaleSignatureState() {
+
+  const signer =
+    document
+      .getElementById(
+        "wholesaleSignerName"
+      )
+      ?.value
+      .trim()
+
+    ||
+
+    "";
+
+
+  const approved =
+    Boolean(
+
+      document
+        .getElementById(
+          "wholesaleApprovalCheckbox"
+        )
+        ?.checked
+
+    );
+
+
+  const complete =
+
+    signer.length >=
+    2
+
+    &&
+
+    wholesaleSignatureHasInk
+
+    &&
+
+    approved;
+
+
+  const placeholder =
+    document
+      .getElementById(
+        "wholesaleSignaturePlaceholder"
+      );
+
+
+  if (
+    placeholder
+  ) {
+
+    placeholder.classList.toggle(
+
+      "hidden",
+
+      wholesaleSignatureHasInk
+
+    );
+
+  }
+
+
+  const status =
+    document
+      .getElementById(
+        "wholesaleSignatureStatus"
+      );
+
+
+  if (
+    status
+  ) {
+
+    status.className =
+
+      complete
+
+        ? "wholesale-signature-status signed"
+
+        : "wholesale-signature-status";
+
+
+    status.innerText =
+
+      complete
+
+        ? "✓ Klantgoedkeuring compleet"
+
+        : "Nog niet volledig ondertekend";
+
+  }
+
+
+  const button =
+    document
+      .getElementById(
+        "wholesaleSubmitButton"
+      );
+
+
+  if (
+    button
+  ) {
+
+    button.disabled =
+      !complete ||
+      wholesaleSubmitting;
+
+  }
+
+}
+
+
+/* ============================================================
+   HANDTEKENING DATA
+============================================================ */
+
+function getWholesaleSignatureData() {
+
+  const canvas =
+    document
+      .getElementById(
+        "wholesaleSignatureCanvas"
+      );
+
+
+  if (
+    !canvas ||
+    !wholesaleSignatureHasInk
+  ) {
+
+    return "";
+
+  }
+
+
+  return canvas.toDataURL(
+    "image/png"
+  );
+
+}
+
+
+/* ============================================================
+   SNAPSHOT
+============================================================ */
+
+function createWholesaleSnapshot(
+  reference,
+  dealer,
+  note,
+  products,
+  signerName
+) {
+
+  return {
+
+    document_type:
+      "achel_wholesale_order_confirmation",
+
+    document_version:
+      1,
+
+    reference:
+      reference,
+
+    dealer:
+      dealer,
+
+    note:
+      note ||
+      "",
+
+    representative: {
+
+      id:
+        currentUser?.id ||
+        "",
+
+      name:
+        currentProfile?.naam ||
+        "",
+
+      email:
+
+        currentProfile?.email ||
+
+        currentUser?.email ||
+
+        ""
+
+    },
+
+    signer: {
+
+      name:
+        signerName
+
+    },
+
+    products:
+
+      products.map(
+        product => ({
+
+          product_id:
+            String(
+              product.id
+            ),
+
+          name:
+            product.naam,
+
+          unit:
+            product.eenheid ||
+            "",
+
+          paid:
+            product.paid,
+
+          discount:
+            product.discount,
+
+          free:
+            product.free,
+
+          total:
+            product.total
+
+        })
+      ),
+
+    commercial_terms: {
+
+      free_keg_text:
+        "Gratis vat(en) zijn commerciële tegemoetkoming. Enkel leeggoed factureren voor de gratis vaten."
+
+    },
+
+    client_signed_at:
+      new Date()
+        .toISOString()
+
+  };
+
+}
+
+
+/* ============================================================
+   SHA-256
+============================================================ */
+
+async function createWholesaleProofHash(
+  snapshot,
+  signatureData
+) {
+
+  const source =
+    JSON.stringify(
+      snapshot
+    )
+
+    +
+
+    "|"
+
+    +
+
+    signatureData;
+
+
+  const bytes =
+    new TextEncoder()
+      .encode(
+        source
+      );
+
+
+  const digest =
+    await crypto.subtle
+      .digest(
+        "SHA-256",
+        bytes
+      );
+
+
+  return Array
+    .from(
+      new Uint8Array(
+        digest
+      )
+    )
+    .map(
+      byte =>
+        byte
+          .toString(
+            16
+          )
+          .padStart(
+            2,
+            "0"
+          )
+    )
+    .join("");
+
+}
+
+
+/* ============================================================
+   BESTELLING DEFINITIEF OPSLAAN
 ============================================================ */
 
 async function submitWholesaleOrder() {
@@ -1735,12 +2797,33 @@ async function submitWholesaleOrder() {
       .trim();
 
 
+  const signerName =
+    document
+      .getElementById(
+        "wholesaleSignerName"
+      )
+      .value
+      .trim();
+
+
+  const approved =
+    document
+      .getElementById(
+        "wholesaleApprovalCheckbox"
+      )
+      .checked;
+
+
+  const signatureData =
+    getWholesaleSignatureData();
+
+
   if (
     !reference
   ) {
 
     alert(
-      "Vul een referentie of klantnaam in."
+      "Referentie / klant ontbreekt."
     );
 
     return;
@@ -1753,7 +2836,7 @@ async function submitWholesaleOrder() {
   ) {
 
     alert(
-      "Vul een drankenhandel in."
+      "Drankenhandel ontbreekt."
     );
 
     return;
@@ -1766,12 +2849,135 @@ async function submitWholesaleOrder() {
   ) {
 
     alert(
-      "Selecteer minstens één bier."
+      "Er staan geen producten in de bestelling."
     );
 
     return;
 
   }
+
+
+  if (
+    signerName.length <
+    2
+  ) {
+
+    alert(
+      "Vul de naam van de klant die ondertekent in."
+    );
+
+    return;
+
+  }
+
+
+  if (
+    !signatureData
+  ) {
+
+    alert(
+      "Laat de klant eerst ondertekenen."
+    );
+
+    return;
+
+  }
+
+
+  if (
+    !approved
+  ) {
+
+    alert(
+      "Bevestig eerst dat de bestelling door de klant werd goedgekeurd."
+    );
+
+    return;
+
+  }
+
+
+  const snapshot =
+    createWholesaleSnapshot(
+
+      reference,
+
+      dealer,
+
+      note,
+
+      products,
+
+      signerName
+
+    );
+
+
+  let proofHash =
+    "";
+
+
+  try {
+
+    proofHash =
+      await createWholesaleProofHash(
+
+        snapshot,
+
+        signatureData
+
+      );
+
+  }
+
+  catch (
+    error
+  ) {
+
+    console.error(
+      "HASH FOUT:",
+      error
+    );
+
+
+    alert(
+      "Het bewijsdocument kon niet veilig worden voorbereid."
+    );
+
+    return;
+
+  }
+
+
+  const items =
+    products
+      .map(
+        product => ({
+
+          product_id:
+            product.id,
+
+          product_naam:
+            product.naam,
+
+          eenheid:
+            product.eenheid ||
+            "",
+
+          betaald_aantal:
+            product.paid,
+
+          actie:
+            product.discount,
+
+          gratis_aantal:
+            product.free,
+
+          totaal_aantal:
+            product.total
+
+        })
+      );
 
 
   const button =
@@ -1790,39 +2996,7 @@ async function submitWholesaleOrder() {
 
 
   button.innerText =
-    "Bestelling wordt verwerkt...";
-
-
-  const items =
-
-    products.map(
-      product => ({
-
-        product_id:
-          product.id,
-
-        product_naam:
-          product.naam,
-
-        eenheid:
-          product.eenheid
-          ||
-          "",
-
-        betaald_aantal:
-          product.paid,
-
-        actie:
-          product.discount,
-
-        gratis_aantal:
-          product.free,
-
-        totaal_aantal:
-          product.total
-
-      })
-    );
+    "Ondertekende bestelling opslaan...";
 
 
   const {
@@ -1832,7 +3006,7 @@ async function submitWholesaleOrder() {
     await supabaseClient
 
       .rpc(
-        "create_wholesale_order",
+        "create_signed_wholesale_order",
         {
 
           p_referentie:
@@ -1842,20 +3016,38 @@ async function submitWholesaleOrder() {
             dealer,
 
           p_opmerking:
-            note
-            ||
+            note ||
             null,
 
           p_items:
-            items
+            items,
+
+          p_signer_name:
+            signerName,
+
+          p_signature_data:
+            signatureData,
+
+          p_snapshot:
+            snapshot,
+
+          p_proof_hash:
+            proofHash
 
         }
       );
 
 
   if (
-    error
+    error ||
+    !orderId
   ) {
+
+    console.error(
+      "SIGNED WHOLESALE ERROR:",
+      error
+    );
+
 
     wholesaleSubmitting =
       false;
@@ -1866,16 +3058,19 @@ async function submitWholesaleOrder() {
 
 
     button.innerText =
-      "Bestelling verzenden";
+      "Ondertekenen & bestelling verzenden";
 
 
     alert(
 
-      "Bestelling kon niet worden opgeslagen: "
+      "De ondertekende bestelling kon niet worden opgeslagen.\n\n"
 
       +
 
-      error.message
+      (
+        error?.message ||
+        "Onbekende fout"
+      )
 
     );
 
@@ -1886,31 +3081,22 @@ async function submitWholesaleOrder() {
 
 
   const orderReference =
+    createWholesaleReference(
+      orderId
+    );
 
-    `GH-${new Date().getFullYear()}-${String(orderId)
-      .slice(0,8)
-      .toUpperCase()}`;
+
+  button.innerText =
+    "✓ Bestelling ondertekend";
 
 
   /*
-    BESTELLING IS NU DEFINITIEF OPGESLAGEN.
-
-    Eerst gegevens resetten en terug naar Home.
-    Daarna mail openen.
-
-    Hierdoor kan dezelfde bestelling
-    niet opnieuw per ongeluk worden verzonden.
+    E-mail pas openen NADAT:
+    - order bestaat
+    - bestelregels bestaan
+    - bewijs bestaat
+    - handtekening bestaat
   */
-
-  resetWholesaleOrder();
-
-
-  wholesaleSubmitting =
-    false;
-
-
-  goHome();
-
 
   openWholesaleEmail(
 
@@ -1922,176 +3108,69 @@ async function submitWholesaleOrder() {
 
     note,
 
-    products
+    products,
+
+    signerName
 
   );
 
-}
 
+  setTimeout(
+    () => {
 
-/* ============================================================
-   RESET
-============================================================ */
+      alert(
 
-function resetWholesaleOrder() {
+        "De bestelling is ondertekend en veilig opgeslagen.\n\n"
 
-  const reference =
-    document.getElementById(
-      "wholesaleReference"
-    );
+        +
 
+        `Bestelnummer: ${orderReference}\n`
 
-  const dealerSelect =
-    document.getElementById(
-      "wholesaleDealerSelect"
-    );
+        +
 
+        `Ondertekend door: ${signerName}\n\n`
 
-  const dealerOther =
-    document.getElementById(
-      "wholesaleDealerOther"
-    );
+        +
 
+        "Het bewijs kan later opnieuw als PDF worden geopend vanuit Beheer."
 
-  const note =
-    document.getElementById(
-      "wholesaleNote"
-    );
-
-
-  if (
-    reference
-  ) {
-
-    reference.value =
-      "";
-
-  }
-
-
-  if (
-    dealerSelect
-  ) {
-
-    dealerSelect.value =
-      "";
-
-  }
-
-
-  if (
-    dealerOther
-  ) {
-
-    dealerOther.value =
-      "";
-
-  }
-
-
-  if (
-    note
-  ) {
-
-    note.value =
-      "";
-
-  }
-
-
-  document
-    .getElementById(
-      "wholesaleDealerOtherBox"
-    )
-    ?.classList
-    .add("hidden");
-
-
-  Object.keys(
-    wholesaleQuantities
-  )
-    .forEach(
-      productId => {
-
-        wholesaleQuantities[
-          productId
-        ] =
-          0;
-
-      }
-    );
-
-
-  Object.keys(
-    wholesaleDiscounts
-  )
-    .forEach(
-      productId => {
-
-        wholesaleDiscounts[
-          productId
-        ] =
-          "geen";
-
-      }
-    );
-
-
-  const button =
-    document
-      .getElementById(
-        "wholesaleSubmitButton"
       );
 
 
-  if (
-    button
-  ) {
-
-    button.disabled =
-      false;
+      resetWholesaleOrder();
 
 
-    button.innerText =
-      "Bestelling verzenden";
-
-  }
+      wholesaleSubmitting =
+        false;
 
 
-  if (
-    document.getElementById(
-      "wholesaleProductsList"
-    )
-  ) {
+      goHome();
 
-    renderWholesaleProducts();
-
-  }
+    },
+    650
+  );
 
 }
 
 
 /* ============================================================
-   REFERENTIE
+   REFERENTIENUMMER
 ============================================================ */
 
 function createWholesaleReference(
-  id,
-  createdAt
+  id
 ) {
-
-  const year =
-    new Date(
-      createdAt
-      ||
-      Date.now()
-    )
-      .getFullYear();
-
 
   return (
 
-    `GH-${year}-${String(id).slice(0,8).toUpperCase()}`
+    `GH-${new Date().getFullYear()}-${String(
+      id
+    )
+      .slice(
+        0,
+        8
+      )
+      .toUpperCase()}`
 
   );
 
@@ -2099,7 +3178,7 @@ function createWholesaleReference(
 
 
 /* ============================================================
-   MAIL
+   E-MAIL
 ============================================================ */
 
 function openWholesaleEmail(
@@ -2107,75 +3186,78 @@ function openWholesaleEmail(
   reference,
   dealer,
   note,
-  products
+  products,
+  signerName
 ) {
 
   let orderText =
     "";
 
 
-  products.forEach(
-    product => {
+  products
+    .forEach(
+      product => {
 
-      orderText +=
+        orderText +=
 
 `${product.naam}
 --------------------
 `;
 
 
-      if (
-        isWholesaleKeg(
-          product
-        )
-      ) {
+        if (
+          isWholesaleKeg(
+            product
+          )
+        ) {
 
-        orderText +=
+          orderText +=
 `Betaalde vaten: ${product.paid}
 `;
 
 
-        if (
-          product.discount !==
-          "geen"
-        ) {
+          if (
+            product.discount !==
+            "geen"
+          ) {
 
-          orderText +=
+            orderText +=
 `Actie: ${product.discount}
 Gratis vaten: ${product.free}
 Totaal te leveren: ${product.total}
 `;
 
 
-          if (
-            product.free > 0
-          ) {
+            if (
+              product.free >
+              0
+            ) {
 
-            orderText +=
+              orderText +=
 `Gratis vat(en) zijn commerciële tegemoetkoming.
 Enkel leeggoed factureren voor de gratis vaten.
 `;
+
+            }
 
           }
 
         }
 
-      }
+        else {
 
-      else {
-
-        orderText +=
+          orderText +=
 `Aantal: ${product.paid}
 `;
 
+        }
+
+
+        orderText +=
+          "\n";
+
       }
-
-
-      orderText +=
-        "\n";
-
-    }
-  );
+    );
 
 
   const subject =
@@ -2202,6 +3284,13 @@ ${reference}
 Drankenhandel / levering:
 ${dealer}
 
+KLANTGOEDKEURING
+====================
+Ondertekend door:
+${signerName}
+
+De ondertekende bestelbevestiging is centraal opgeslagen in Achel POS.
+
 BESTELLING
 ====================
 
@@ -2209,10 +3298,9 @@ ${orderText}
 
 OPMERKING
 ====================
-
 ${note || "Geen opmerkingen"}
 
-Deze bestelling is centraal opgeslagen in Achel POS.`;
+Deze bestelling werd vóór verzending door de klant ondertekend.`;
 
 
   const mailto =
@@ -2239,14 +3327,944 @@ Deze bestelling is centraal opgeslagen in Achel POS.`;
         mailto;
 
     },
-    350
+    250
   );
 
 }
 
 
 /* ============================================================
-   ESCAPE HTML
+   BEWIJS OPHALEN
+============================================================ */
+
+async function getWholesaleProof(
+  orderId
+) {
+
+  const {
+    data,
+    error
+  } =
+    await supabaseClient
+
+      .from(
+        "wholesale_order_proofs"
+      )
+
+      .select(
+        "order_id, user_id, signer_name, signed_at, snapshot, signature_data, proof_hash, created_at"
+      )
+
+      .eq(
+        "order_id",
+        orderId
+      )
+
+      .maybeSingle();
+
+
+  if (
+    error
+  ) {
+
+    throw error;
+
+  }
+
+
+  return data;
+
+}
+
+
+/* ============================================================
+   PDF VAN BEWIJS
+============================================================ */
+
+async function downloadWholesaleProofPdf(
+  orderId
+) {
+
+  try {
+
+    const proof =
+      await getWholesaleProof(
+        orderId
+      );
+
+
+    if (
+      !proof
+    ) {
+
+      alert(
+        "Voor deze oude bestelling is geen ondertekend bewijs beschikbaar."
+      );
+
+      return;
+
+    }
+
+
+    if (
+      !window.jspdf?.jsPDF
+    ) {
+
+      alert(
+        "PDF-module is niet geladen."
+      );
+
+      return;
+
+    }
+
+
+    const {
+      jsPDF
+    } =
+      window.jspdf;
+
+
+    const documentPdf =
+      new jsPDF({
+
+        orientation:
+          "portrait",
+
+        unit:
+          "mm",
+
+        format:
+          "a4"
+
+      });
+
+
+    const snapshot =
+      proof.snapshot ||
+      {};
+
+
+    const products =
+      Array.isArray(
+        snapshot.products
+      )
+
+        ? snapshot.products
+
+        : [];
+
+
+    const margin =
+      16;
+
+
+    const pageWidth =
+      210;
+
+
+    const contentWidth =
+      pageWidth -
+      margin * 2;
+
+
+    let y =
+      18;
+
+
+/* ============================================================
+   PDF HELPERS
+============================================================ */
+
+    function ensureSpace(
+      needed
+    ) {
+
+      if (
+        y +
+        needed >
+        280
+      ) {
+
+        documentPdf.addPage();
+
+        y =
+          18;
+
+      }
+
+    }
+
+
+    function line(
+      label,
+      value
+    ) {
+
+      ensureSpace(
+        12
+      );
+
+
+      documentPdf
+        .setFont(
+          "helvetica",
+          "bold"
+        );
+
+
+      documentPdf
+        .setFontSize(
+          9
+        );
+
+
+      documentPdf.text(
+        label,
+        margin,
+        y
+      );
+
+
+      documentPdf
+        .setFont(
+          "helvetica",
+          "normal"
+        );
+
+
+      const text =
+        documentPdf.splitTextToSize(
+
+          String(
+            value ||
+            "-"
+          ),
+
+          118
+
+        );
+
+
+      documentPdf.text(
+        text,
+        76,
+        y
+      );
+
+
+      y +=
+        Math.max(
+          7,
+          text.length *
+          5
+        );
+
+    }
+
+
+/* ============================================================
+   PDF HEADER
+============================================================ */
+
+    documentPdf
+      .setFont(
+        "helvetica",
+        "bold"
+      );
+
+
+    documentPdf
+      .setFontSize(
+        20
+      );
+
+
+    documentPdf.text(
+      "ACHEL",
+      margin,
+      y
+    );
+
+
+    documentPdf
+      .setFontSize(
+        9
+      );
+
+
+    documentPdf
+      .setFont(
+        "helvetica",
+        "normal"
+      );
+
+
+    documentPdf.text(
+      "Achel POS - Ondertekende bestelbevestiging",
+      margin,
+      y +
+      6
+    );
+
+
+    documentPdf
+      .setDrawColor(
+        140,
+        105,
+        47
+      );
+
+
+    documentPdf
+      .setLineWidth(
+        0.7
+      );
+
+
+    documentPdf.line(
+      margin,
+      y +
+      10,
+      pageWidth -
+      margin,
+      y +
+      10
+    );
+
+
+    y +=
+      20;
+
+
+/* ============================================================
+   ORDER INFO
+============================================================ */
+
+    documentPdf
+      .setFont(
+        "helvetica",
+        "bold"
+      );
+
+
+    documentPdf
+      .setFontSize(
+        14
+      );
+
+
+    documentPdf.text(
+      "Bestelbevestiging",
+      margin,
+      y
+    );
+
+
+    y +=
+      10;
+
+
+    line(
+      "Bestelnummer",
+      createWholesaleReference(
+        orderId
+      )
+    );
+
+
+    line(
+      "Referentie / klant",
+      snapshot.reference
+    );
+
+
+    line(
+      "Drankenhandel",
+      snapshot.dealer
+    );
+
+
+    line(
+      "Vertegenwoordiger",
+      snapshot.representative?.name
+    );
+
+
+    line(
+      "E-mail",
+      snapshot.representative?.email
+    );
+
+
+    line(
+      "Ondertekend door",
+      proof.signer_name
+    );
+
+
+    line(
+
+      "Datum / tijd",
+
+      new Date(
+        proof.signed_at
+      )
+        .toLocaleString(
+          "nl-BE"
+        )
+
+    );
+
+
+/* ============================================================
+   PRODUCTEN
+============================================================ */
+
+    y +=
+      4;
+
+
+    ensureSpace(
+      18
+    );
+
+
+    documentPdf
+      .setFont(
+        "helvetica",
+        "bold"
+      );
+
+
+    documentPdf
+      .setFontSize(
+        13
+      );
+
+
+    documentPdf.text(
+      "Bestelling",
+      margin,
+      y
+    );
+
+
+    y +=
+      8;
+
+
+    products
+      .forEach(
+        product => {
+
+          ensureSpace(
+            24
+          );
+
+
+          documentPdf
+            .setFont(
+              "helvetica",
+              "bold"
+            );
+
+
+          documentPdf
+            .setFontSize(
+              10
+            );
+
+
+          documentPdf.text(
+
+            String(
+              product.name ||
+              ""
+            ),
+
+            margin,
+
+            y
+
+          );
+
+
+          y +=
+            5;
+
+
+          documentPdf
+            .setFont(
+              "helvetica",
+              "normal"
+            );
+
+
+          documentPdf
+            .setFontSize(
+              9
+            );
+
+
+          documentPdf.text(
+
+            `Betaald/aantal: ${product.paid}`,
+
+            margin +
+            3,
+
+            y
+
+          );
+
+
+          y +=
+            5;
+
+
+          if (
+            product.discount &&
+            product.discount !==
+            "geen"
+          ) {
+
+            documentPdf.text(
+
+              `Actie: ${product.discount}`,
+
+              margin +
+              3,
+
+              y
+
+            );
+
+
+            y +=
+              5;
+
+
+            documentPdf.text(
+
+              `Gratis: ${product.free} | Totaal te leveren: ${product.total}`,
+
+              margin +
+              3,
+
+              y
+
+            );
+
+
+            y +=
+              5;
+
+          }
+
+
+          y +=
+            3;
+
+        }
+      );
+
+
+/* ============================================================
+   OPMERKING
+============================================================ */
+
+    if (
+      snapshot.note
+    ) {
+
+      ensureSpace(
+        25
+      );
+
+
+      documentPdf
+        .setFont(
+          "helvetica",
+          "bold"
+        );
+
+
+      documentPdf.text(
+        "Opmerking",
+        margin,
+        y
+      );
+
+
+      y +=
+        6;
+
+
+      documentPdf
+        .setFont(
+          "helvetica",
+          "normal"
+        );
+
+
+      const noteLines =
+        documentPdf.splitTextToSize(
+
+          snapshot.note,
+
+          contentWidth
+
+        );
+
+
+      documentPdf.text(
+        noteLines,
+        margin,
+        y
+      );
+
+
+      y +=
+        noteLines.length *
+        5 +
+        5;
+
+    }
+
+
+/* ============================================================
+   COMMERCIELE TEGEMOETKOMING
+============================================================ */
+
+    ensureSpace(
+      24
+    );
+
+
+    documentPdf
+      .setFont(
+        "helvetica",
+        "bold"
+      );
+
+
+    documentPdf
+      .setFontSize(
+        9
+      );
+
+
+    documentPdf.text(
+      "Commerciële tegemoetkoming",
+      margin,
+      y
+    );
+
+
+    y +=
+      5;
+
+
+    documentPdf
+      .setFont(
+        "helvetica",
+        "normal"
+      );
+
+
+    const termLines =
+      documentPdf.splitTextToSize(
+
+        snapshot
+          .commercial_terms
+          ?.free_keg_text
+
+        ||
+
+        "Gratis vat(en) zijn commerciële tegemoetkoming. Enkel leeggoed factureren voor de gratis vaten.",
+
+        contentWidth
+
+      );
+
+
+    documentPdf.text(
+      termLines,
+      margin,
+      y
+    );
+
+
+    y +=
+      termLines.length *
+      5 +
+      7;
+
+
+/* ============================================================
+   HANDTEKENING
+============================================================ */
+
+    ensureSpace(
+      55
+    );
+
+
+    documentPdf
+      .setFont(
+        "helvetica",
+        "bold"
+      );
+
+
+    documentPdf
+      .setFontSize(
+        12
+      );
+
+
+    documentPdf.text(
+      "Klantgoedkeuring",
+      margin,
+      y
+    );
+
+
+    y +=
+      7;
+
+
+    documentPdf
+      .setDrawColor(
+        190,
+        190,
+        190
+      );
+
+
+    documentPdf.rect(
+      margin,
+      y,
+      90,
+      35
+    );
+
+
+    try {
+
+      documentPdf.addImage(
+
+        proof.signature_data,
+
+        "PNG",
+
+        margin +
+        3,
+
+        y +
+        3,
+
+        84,
+
+        29
+
+      );
+
+    }
+
+    catch (
+      error
+    ) {
+
+      console.warn(
+        "Handtekening kon niet in PDF worden geplaatst:",
+        error
+      );
+
+    }
+
+
+    documentPdf
+      .setFont(
+        "helvetica",
+        "normal"
+      );
+
+
+    documentPdf
+      .setFontSize(
+        9
+      );
+
+
+    documentPdf.text(
+
+      `Ondertekend door: ${proof.signer_name}`,
+
+      112,
+
+      y +
+      8
+
+    );
+
+
+    documentPdf.text(
+
+      new Date(
+        proof.signed_at
+      )
+        .toLocaleString(
+          "nl-BE"
+        ),
+
+      112,
+
+      y +
+      15
+
+    );
+
+
+    y +=
+      45;
+
+
+/* ============================================================
+   HASH
+============================================================ */
+
+    ensureSpace(
+      18
+    );
+
+
+    documentPdf
+      .setFontSize(
+        7
+      );
+
+
+    documentPdf
+      .setTextColor(
+        110,
+        110,
+        110
+      );
+
+
+    const hashLines =
+      documentPdf.splitTextToSize(
+
+        `Controlehash SHA-256: ${proof.proof_hash}`,
+
+        contentWidth
+
+      );
+
+
+    documentPdf.text(
+      hashLines,
+      margin,
+      y
+    );
+
+
+    y +=
+      hashLines.length *
+      4;
+
+
+/* ============================================================
+   FOOTER
+============================================================ */
+
+    documentPdf
+      .setFontSize(
+        7
+      );
+
+
+    documentPdf.text(
+
+      "Dit document werd gegenereerd uit het onveranderbare bestelbewijs in Achel POS.",
+
+      margin,
+
+      289
+
+    );
+
+
+/* ============================================================
+   SAVE
+============================================================ */
+
+    documentPdf.save(
+
+      `${createWholesaleReference(orderId)}_${safeWholesaleFilename(snapshot.reference)}.pdf`
+
+    );
+
+  }
+
+  catch (
+    error
+  ) {
+
+    console.error(
+      "PDF FOUT:",
+      error
+    );
+
+
+    alert(
+
+      "Het bewijs kon niet als PDF worden geopend.\n\n"
+
+      +
+
+      (
+        error?.message ||
+        "Onbekende fout"
+      )
+
+    );
+
+  }
+
+}
+
+
+/* ============================================================
+   SAFE FILE NAME
+============================================================ */
+
+function safeWholesaleFilename(
+  value
+) {
+
+  return String(
+    value ||
+    "bestelling"
+  )
+
+    .replace(
+      /[^a-z0-9_-]/gi,
+      "_"
+    )
+
+    .slice(
+      0,
+      60
+    );
+
+}
+
+
+/* ============================================================
+   HTML ESCAPE
 ============================================================ */
 
 function wholesaleEscapeHtml(
@@ -2254,8 +4272,7 @@ function wholesaleEscapeHtml(
 ) {
 
   return String(
-    value
-    ??
+    value ??
     ""
   )
 
@@ -2285,3 +4302,552 @@ function wholesaleEscapeHtml(
     );
 
 }
+
+
+/* ============================================================
+   STYLING
+============================================================ */
+
+function injectWholesaleStyles() {
+
+  if (
+    document.getElementById(
+      "achelWholesaleStyles"
+    )
+  ) {
+
+    return;
+
+  }
+
+
+  const style =
+    document.createElement(
+      "style"
+    );
+
+
+  style.id =
+    "achelWholesaleStyles";
+
+
+  style.textContent = `
+
+    .wholesale-title span,
+    .wholesale-signature-title span {
+
+      display:block;
+
+      color:var(--gold);
+
+      font-size:9px;
+
+      font-weight:900;
+
+      letter-spacing:.08em;
+
+    }
+
+
+    .wholesale-title h2,
+    .wholesale-signature-title h2 {
+
+      margin:
+        2px 0 0;
+
+    }
+
+
+    .wholesale-intro {
+
+      margin:
+        6px 0 0;
+
+      color:var(--muted);
+
+      font-size:12px;
+
+      line-height:1.4;
+
+    }
+
+
+    .wholesale-product {
+
+      border:
+        1px solid
+        var(--border);
+
+      border-radius:
+        13px;
+
+      padding:11px;
+
+      margin-bottom:
+        7px;
+
+      background:white;
+
+    }
+
+
+    .wholesale-product-head {
+
+      display:flex;
+
+      align-items:center;
+
+      justify-content:
+        space-between;
+
+      gap:10px;
+
+    }
+
+
+    .wholesale-product-head
+    > div:first-child
+    > strong {
+
+      display:block;
+
+      font-size:14px;
+
+    }
+
+
+    .wholesale-product-head
+    > div:first-child
+    > span {
+
+      display:block;
+
+      margin-top:2px;
+
+      color:var(--muted);
+
+      font-size:9px;
+
+    }
+
+
+    .wholesale-proof-preview {
+
+      border-top:
+        5px solid
+        var(--gold);
+
+    }
+
+
+    .wholesale-proof-header {
+
+      display:flex;
+
+      justify-content:
+        space-between;
+
+      align-items:flex-start;
+
+      gap:10px;
+
+      padding-bottom:
+        10px;
+
+      border-bottom:
+        1px solid
+        var(--border);
+
+    }
+
+
+    .wholesale-proof-header
+    span {
+
+      display:block;
+
+      color:var(--gold);
+
+      font-size:9px;
+
+      font-weight:900;
+
+      letter-spacing:.08em;
+
+    }
+
+
+    .wholesale-proof-header
+    h2 {
+
+      margin:
+        2px 0 0;
+
+    }
+
+
+    .wholesale-proof-header
+    > strong {
+
+      padding:
+        4px 7px;
+
+      border-radius:
+        999px;
+
+      background:
+        #f1e8d7;
+
+      color:var(--gold);
+
+      font-size:9px;
+
+    }
+
+
+    .wholesale-proof-grid {
+
+      display:grid;
+
+      gap:6px;
+
+      margin-top:10px;
+
+    }
+
+
+    .wholesale-proof-grid
+    > div {
+
+      display:grid;
+
+      grid-template-columns:
+        120px 1fr;
+
+      gap:8px;
+
+      align-items:start;
+
+    }
+
+
+    .wholesale-proof-grid
+    span,
+    .wholesale-proof-note
+    span {
+
+      color:var(--muted);
+
+      font-size:9px;
+
+      font-weight:850;
+
+      text-transform:uppercase;
+
+    }
+
+
+    .wholesale-proof-grid
+    strong,
+    .wholesale-proof-note
+    strong {
+
+      font-size:12px;
+
+    }
+
+
+    .wholesale-summary-product {
+
+      margin-top:10px;
+
+      padding-top:9px;
+
+      border-top:
+        1px solid
+        var(--border);
+
+    }
+
+
+    .wholesale-summary-product
+    > strong {
+
+      display:block;
+
+      font-size:14px;
+
+    }
+
+
+    .wholesale-proof-note {
+
+      display:grid;
+
+      grid-template-columns:
+        120px 1fr;
+
+      gap:8px;
+
+      margin-top:10px;
+
+      padding-top:9px;
+
+      border-top:
+        1px solid
+        var(--border);
+
+    }
+
+
+    .wholesale-commercial-note {
+
+      margin-top:11px;
+
+      padding:9px;
+
+      border-radius:10px;
+
+      background:#f8f0e1;
+
+      color:#6d5227;
+
+      font-size:10px;
+
+      line-height:1.4;
+
+    }
+
+
+    .wholesale-commercial-note
+    strong {
+
+      display:block;
+
+      margin-top:2px;
+
+    }
+
+
+    .wholesale-signature-card {
+
+      border-top:
+        5px solid
+        #2f7449;
+
+    }
+
+
+    .wholesale-signature-card
+    > p {
+
+      color:var(--muted);
+
+      font-size:11px;
+
+      line-height:1.45;
+
+    }
+
+
+    .wholesale-signature-box {
+
+      position:relative;
+
+      width:100%;
+
+      height:190px;
+
+      overflow:hidden;
+
+      border:
+        2px dashed
+        #c7c0b0;
+
+      border-radius:
+        13px;
+
+      background:#fff;
+
+    }
+
+
+    #wholesaleSignatureCanvas {
+
+      display:block;
+
+      width:100%;
+
+      height:100%;
+
+      touch-action:none;
+
+    }
+
+
+    .wholesale-signature-placeholder {
+
+      position:absolute;
+
+      inset:0;
+
+      display:grid;
+
+      place-items:center;
+
+      pointer-events:none;
+
+      color:#a39b8b;
+
+      font-size:12px;
+
+    }
+
+
+    .wholesale-clear-signature {
+
+      width:100%;
+
+      min-height:40px;
+
+      margin-top:6px;
+
+      border:
+        1px solid
+        var(--border);
+
+      border-radius:10px;
+
+      background:white;
+
+      color:var(--dark);
+
+      font-size:11px;
+
+      font-weight:850;
+
+    }
+
+
+    .wholesale-approval {
+
+      display:flex;
+
+      align-items:flex-start;
+
+      gap:9px;
+
+      margin-top:13px;
+
+      padding:10px;
+
+      border-radius:11px;
+
+      background:#f8f7f3;
+
+      border:
+        1px solid
+        var(--border);
+
+    }
+
+
+    .wholesale-approval
+    input {
+
+      width:21px;
+
+      height:21px;
+
+      min-width:21px;
+
+      margin:0;
+
+    }
+
+
+    .wholesale-approval
+    span {
+
+      font-size:11px;
+
+      line-height:1.4;
+
+    }
+
+
+    .wholesale-signature-status {
+
+      margin:
+        8px 0;
+
+      padding:8px;
+
+      border-radius:9px;
+
+      background:#f1e8d7;
+
+      color:#8c692f;
+
+      text-align:center;
+
+      font-size:10px;
+
+      font-weight:900;
+
+    }
+
+
+    .wholesale-signature-status.signed {
+
+      background:#e7f3eb;
+
+      color:#2f7449;
+
+    }
+
+
+    @media(
+      max-width:480px
+    ) {
+
+      .wholesale-proof-grid
+      > div,
+
+      .wholesale-proof-note {
+
+        grid-template-columns:
+          105px 1fr;
+
+      }
+
+
+      .wholesale-signature-box {
+
+        height:175px;
+
+      }
+
+    }
+
+  `;
+
+
+  document.head
+    .appendChild(
+      style
+    );
+
+}
+
+
+/* ============================================================
+   GLOBAAL BESCHIKBAAR
+============================================================ */
+
+window.openWholesaleOrder =
+  openWholesaleOrder;
+
+
+window.downloadWholesaleProofPdf =
+  downloadWholesaleProofPdf;
