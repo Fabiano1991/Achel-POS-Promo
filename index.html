@@ -1227,7 +1227,406 @@ textarea {
     var(--border);
 }
 
+/* ===============================
+   EVENT RANGE CALENDAR
+================================ */
 
+.event-date-range {
+  margin-top:7px;
+}
+
+.event-date-range-display {
+  width:100%;
+
+  display:grid;
+  grid-template-columns:1fr 30px 1fr;
+
+  align-items:center;
+
+  gap:8px;
+
+  border:
+    1px solid
+    var(--border);
+
+  border-radius:14px;
+
+  background:white;
+
+  padding:11px 13px;
+
+  text-align:left;
+
+  color:var(--text);
+}
+
+.event-date-range-display > div:not(.event-date-arrow) {
+  min-width:0;
+}
+
+.event-date-range-display span {
+  display:block;
+
+  font-size:9px;
+  font-weight:900;
+
+  color:var(--muted);
+
+  letter-spacing:.06em;
+}
+
+.event-date-range-display strong {
+  display:block;
+
+  margin-top:3px;
+
+  font-size:14px;
+
+  color:var(--dark);
+}
+
+.event-date-arrow {
+  text-align:center;
+
+  color:var(--gold);
+
+  font-size:20px;
+  font-weight:900;
+}
+
+
+/* OVERLAY */
+
+.event-calendar-overlay {
+  position:fixed;
+
+  inset:0;
+
+  z-index:200;
+
+  display:flex;
+
+  align-items:flex-end;
+
+  background:
+    rgba(
+      0,
+      0,
+      0,
+      .45
+    );
+}
+
+
+/* SHEET */
+
+.event-calendar-sheet {
+  width:100%;
+
+  max-width:560px;
+
+  margin:0 auto;
+
+  padding:
+    15px
+    14px
+    calc(
+      14px +
+      env(safe-area-inset-bottom)
+    );
+
+  border-radius:
+    22px
+    22px
+    0
+    0;
+
+  background:
+    #f6f4ed;
+
+  box-shadow:
+    0 -12px 40px
+    rgba(
+      0,
+      0,
+      0,
+      .25
+    );
+}
+
+
+/* HEADER */
+
+.event-calendar-header {
+  display:flex;
+
+  align-items:flex-start;
+  justify-content:space-between;
+
+  gap:10px;
+}
+
+.event-calendar-header span {
+  display:block;
+
+  color:var(--gold);
+
+  font-size:9px;
+  font-weight:900;
+
+  text-transform:uppercase;
+
+  letter-spacing:.08em;
+}
+
+.event-calendar-header strong {
+  display:block;
+
+  margin-top:2px;
+
+  color:var(--dark);
+
+  font-size:18px;
+}
+
+.event-calendar-header button {
+  width:38px;
+  height:38px;
+
+  border:0;
+  border-radius:11px;
+
+  background:#e8e3d8;
+
+  color:var(--dark);
+
+  font-size:24px;
+}
+
+
+/* SELECTIE */
+
+.event-calendar-selection {
+  display:grid;
+
+  grid-template-columns:
+    1fr 26px 1fr;
+
+  align-items:center;
+
+  gap:6px;
+
+  margin-top:12px;
+
+  padding:9px;
+
+  border-radius:12px;
+
+  background:#ebe6db;
+}
+
+.event-calendar-selection span {
+  display:block;
+
+  font-size:8px;
+  font-weight:900;
+
+  color:var(--muted);
+
+  text-transform:uppercase;
+}
+
+.event-calendar-selection strong {
+  display:block;
+
+  margin-top:2px;
+
+  font-size:12px;
+
+  color:var(--dark);
+}
+
+.event-calendar-selection-arrow {
+  text-align:center;
+
+  color:var(--gold);
+
+  font-weight:900;
+}
+
+
+/* MONTH NAV */
+
+.event-calendar-navigation {
+  display:grid;
+
+  grid-template-columns:42px 1fr 42px;
+
+  align-items:center;
+
+  margin-top:12px;
+}
+
+.event-calendar-navigation strong {
+  text-align:center;
+
+  color:var(--dark);
+
+  font-size:16px;
+
+  text-transform:capitalize;
+}
+
+.event-calendar-navigation button {
+  width:38px;
+  height:38px;
+
+  border:1px solid var(--border);
+
+  border-radius:10px;
+
+  background:white;
+
+  color:var(--gold);
+
+  font-size:24px;
+}
+
+
+/* DAYS */
+
+.event-calendar-weekdays,
+.event-calendar-days {
+  display:grid;
+
+  grid-template-columns:
+    repeat(
+      7,
+      1fr
+    );
+}
+
+.event-calendar-weekdays {
+  margin-top:9px;
+}
+
+.event-calendar-weekdays span {
+  padding:5px 0;
+
+  text-align:center;
+
+  font-size:8px;
+  font-weight:900;
+
+  color:var(--muted);
+}
+
+.event-calendar-days {
+  gap:3px;
+}
+
+.event-calendar-day {
+  position:relative;
+
+  aspect-ratio:1 / 1;
+
+  min-width:0;
+
+  border:0;
+
+  border-radius:10px;
+
+  background:transparent;
+
+  color:var(--dark);
+
+  font-size:13px;
+  font-weight:750;
+}
+
+.event-calendar-day.other-month {
+  opacity:.22;
+}
+
+.event-calendar-day.disabled {
+  opacity:.22;
+
+  pointer-events:none;
+}
+
+.event-calendar-day.in-range {
+  background:
+    #eadfc8;
+
+  color:#694e20;
+
+  border-radius:5px;
+}
+
+.event-calendar-day.range-start,
+.event-calendar-day.range-end {
+  background:
+    var(--gold);
+
+  color:white;
+
+  border-radius:10px;
+
+  font-weight:900;
+}
+
+.event-calendar-day.today {
+  box-shadow:
+    inset 0 0 0 1px
+    var(--gold);
+}
+
+
+/* ACTIONS */
+
+.event-calendar-actions {
+  display:grid;
+
+  grid-template-columns:
+    .7fr 1.3fr;
+
+  gap:7px;
+
+  margin-top:12px;
+}
+
+.event-calendar-reset,
+.event-calendar-confirm {
+  min-height:45px;
+
+  border-radius:11px;
+
+  font-weight:900;
+}
+
+.event-calendar-reset {
+  border:
+    1px solid
+    var(--border);
+
+  background:white;
+
+  color:var(--dark);
+}
+
+.event-calendar-confirm {
+  border:0;
+
+  background:
+    var(--gold);
+
+  color:white;
+}
+
+.event-calendar-confirm:disabled {
+  opacity:.4;
+}
+  
 /* ===============================
    RESPONSIVE
 ================================ */
@@ -1563,31 +1962,66 @@ Referentie
 >
 
 
-<div class="field-grid">
-
-
-<div>
-
-<label for="country">
-Land
+<label>
+Periode materiaal
 </label>
 
-<select id="country">
+<div
+  id="eventDateRange"
+  class="event-date-range"
+>
 
-<option value="België">
-België
-</option>
+  <button
+    class="event-date-range-display"
+    type="button"
+    onclick="openEventCalendar()"
+  >
 
-<option value="Nederland">
-Nederland
-</option>
+    <div>
 
-</select>
+      <span>
+        VANAF
+      </span>
+
+      <strong id="eventFromDisplay">
+        Kies datum
+      </strong>
+
+    </div>
+
+
+    <div class="event-date-arrow">
+      →
+    </div>
+
+
+    <div>
+
+      <span>
+        TOT
+      </span>
+
+      <strong id="eventUntilDisplay">
+        Kies datum
+      </strong>
+
+    </div>
+
+  </button>
+
+
+  <input
+    id="eventFrom"
+    type="hidden"
+  >
+
+
+  <input
+    id="eventUntil"
+    type="hidden"
+  >
 
 </div>
-
-
-<div>
 
 <label for="municipality">
 Stad / gemeente
@@ -1909,6 +2343,151 @@ Evenementaanvraag controleren
 
 </section>
 
+  <!-- ===============================
+     EVENT DATUM KALENDER
+================================ -->
+
+<div
+  id="eventCalendarOverlay"
+  class="event-calendar-overlay hidden"
+  onclick="closeEventCalendarFromOverlay(event)"
+>
+
+  <div
+    class="event-calendar-sheet"
+    onclick="event.stopPropagation()"
+  >
+
+    <div class="event-calendar-header">
+
+      <div>
+
+        <span>
+          Evenementperiode
+        </span>
+
+        <strong id="eventCalendarInstruction">
+          Kies de eerste dag
+        </strong>
+
+      </div>
+
+
+      <button
+        type="button"
+        onclick="closeEventCalendar()"
+      >
+        ×
+      </button>
+
+    </div>
+
+
+    <div class="event-calendar-selection">
+
+      <div>
+
+        <span>
+          Vanaf
+        </span>
+
+        <strong id="calendarSelectedFrom">
+          —
+        </strong>
+
+      </div>
+
+
+      <div class="event-calendar-selection-arrow">
+        →
+      </div>
+
+
+      <div>
+
+        <span>
+          Tot
+        </span>
+
+        <strong id="calendarSelectedUntil">
+          —
+        </strong>
+
+      </div>
+
+    </div>
+
+
+    <div class="event-calendar-navigation">
+
+      <button
+        type="button"
+        onclick="changeEventCalendarMonth(-1)"
+      >
+        ‹
+      </button>
+
+
+      <strong id="eventCalendarMonthTitle">
+        Maand
+      </strong>
+
+
+      <button
+        type="button"
+        onclick="changeEventCalendarMonth(1)"
+      >
+        ›
+      </button>
+
+    </div>
+
+
+    <div class="event-calendar-weekdays">
+
+      <span>MA</span>
+      <span>DI</span>
+      <span>WO</span>
+      <span>DO</span>
+      <span>VR</span>
+      <span>ZA</span>
+      <span>ZO</span>
+
+    </div>
+
+
+    <div
+      id="eventCalendarDays"
+      class="event-calendar-days"
+    ></div>
+
+
+    <div class="event-calendar-actions">
+
+      <button
+        class="event-calendar-reset"
+        type="button"
+        onclick="resetEventCalendarSelection()"
+      >
+        Wissen
+      </button>
+
+
+      <button
+        id="eventCalendarConfirm"
+        class="event-calendar-confirm"
+        type="button"
+        onclick="confirmEventCalendar()"
+        disabled
+      >
+        Periode gebruiken
+      </button>
+
+    </div>
+
+  </div>
+
+</div>
 
 <!-- ===============================
      EVENT CONTROLE
@@ -4346,7 +4925,851 @@ function newOrder() {
 
 }
 
+/* ============================================================
+   EVENT DATUM RANGE CALENDAR
+============================================================ */
 
+let eventCalendarViewDate =
+  new Date();
+
+let eventCalendarTempFrom =
+  null;
+
+let eventCalendarTempUntil =
+  null;
+
+
+/* ============================================================
+   OPEN KALENDER
+============================================================ */
+
+function openEventCalendar() {
+
+  const from =
+    document
+      .getElementById(
+        "eventFrom"
+      )
+      ?.value;
+
+
+  const until =
+    document
+      .getElementById(
+        "eventUntil"
+      )
+      ?.value;
+
+
+  eventCalendarTempFrom =
+    from
+      ? parseEventISODate(
+          from
+        )
+      : null;
+
+
+  eventCalendarTempUntil =
+    until
+      ? parseEventISODate(
+          until
+        )
+      : null;
+
+
+  eventCalendarViewDate =
+    eventCalendarTempFrom
+
+      ? new Date(
+          eventCalendarTempFrom
+        )
+
+      : new Date();
+
+
+  eventCalendarViewDate.setDate(
+    1
+  );
+
+
+  renderEventCalendar();
+
+
+  document
+    .getElementById(
+      "eventCalendarOverlay"
+    )
+    ?.classList
+    .remove(
+      "hidden"
+    );
+
+
+  document.body.style.overflow =
+    "hidden";
+
+}
+
+
+/* ============================================================
+   SLUIT KALENDER
+============================================================ */
+
+function closeEventCalendar() {
+
+  document
+    .getElementById(
+      "eventCalendarOverlay"
+    )
+    ?.classList
+    .add(
+      "hidden"
+    );
+
+
+  document.body.style.overflow =
+    "";
+
+}
+
+
+function closeEventCalendarFromOverlay(
+  event
+) {
+
+  if (
+    event.target.id ===
+    "eventCalendarOverlay"
+  ) {
+
+    closeEventCalendar();
+
+  }
+
+}
+
+
+/* ============================================================
+   MAAND VERANDEREN
+============================================================ */
+
+function changeEventCalendarMonth(
+  amount
+) {
+
+  eventCalendarViewDate =
+    new Date(
+
+      eventCalendarViewDate.getFullYear(),
+
+      eventCalendarViewDate.getMonth()
+      +
+      amount,
+
+      1
+
+    );
+
+
+  renderEventCalendar();
+
+}
+
+
+/* ============================================================
+   KALENDER TEKENEN
+============================================================ */
+
+function renderEventCalendar() {
+
+  const container =
+    document.getElementById(
+      "eventCalendarDays"
+    );
+
+
+  if (!container) {
+    return;
+  }
+
+
+  const year =
+    eventCalendarViewDate
+      .getFullYear();
+
+
+  const month =
+    eventCalendarViewDate
+      .getMonth();
+
+
+  document
+    .getElementById(
+      "eventCalendarMonthTitle"
+    )
+    .innerText =
+
+      eventCalendarViewDate
+        .toLocaleDateString(
+          "nl-BE",
+          {
+            month:
+              "long",
+
+            year:
+              "numeric"
+          }
+        );
+
+
+  const firstDay =
+    new Date(
+      year,
+      month,
+      1
+    );
+
+
+  /*
+    JS:
+    zondag = 0
+    maandag = 1
+
+    Wij willen:
+    maandag = 0
+  */
+
+  const weekday =
+    (
+      firstDay.getDay()
+      +
+      6
+    )
+    %
+    7;
+
+
+  const gridStart =
+    new Date(
+      year,
+      month,
+      1 - weekday
+    );
+
+
+  const today =
+    eventStartOfDay(
+      new Date()
+    );
+
+
+  let html =
+    "";
+
+
+  for (
+    let i =
+      0;
+
+    i <
+    42;
+
+    i++
+  ) {
+
+    const date =
+      new Date(
+        gridStart
+      );
+
+
+    date.setDate(
+      gridStart.getDate()
+      +
+      i
+    );
+
+
+    const normalized =
+      eventStartOfDay(
+        date
+      );
+
+
+    const isOtherMonth =
+      normalized.getMonth() !==
+      month;
+
+
+    /*
+      Voorlopig geen datums
+      in het verleden toestaan.
+    */
+
+    const isDisabled =
+      normalized <
+      today;
+
+
+    const isToday =
+      sameEventDate(
+        normalized,
+        today
+      );
+
+
+    const isStart =
+      eventCalendarTempFrom
+      &&
+      sameEventDate(
+        normalized,
+        eventCalendarTempFrom
+      );
+
+
+    const isEnd =
+      eventCalendarTempUntil
+      &&
+      sameEventDate(
+        normalized,
+        eventCalendarTempUntil
+      );
+
+
+    const inRange =
+      eventCalendarTempFrom
+      &&
+      eventCalendarTempUntil
+      &&
+      normalized >
+      eventCalendarTempFrom
+      &&
+      normalized <
+      eventCalendarTempUntil;
+
+
+    const classes = [
+
+      "event-calendar-day",
+
+      isOtherMonth
+        ? "other-month"
+        : "",
+
+      isDisabled
+        ? "disabled"
+        : "",
+
+      isToday
+        ? "today"
+        : "",
+
+      inRange
+        ? "in-range"
+        : "",
+
+      isStart
+        ? "range-start"
+        : "",
+
+      isEnd
+        ? "range-end"
+        : ""
+
+    ]
+      .filter(
+        Boolean
+      )
+      .join(
+        " "
+      );
+
+
+    html += `
+
+      <button
+        class="${classes}"
+        type="button"
+        ${
+          isDisabled
+            ? "disabled"
+            : ""
+        }
+        onclick="selectEventCalendarDate('${formatISO(normalized)}')"
+      >
+
+        ${normalized.getDate()}
+
+      </button>
+
+    `;
+
+  }
+
+
+  container.innerHTML =
+    html;
+
+
+  updateEventCalendarHeader();
+
+}
+
+
+/* ============================================================
+   DATUM SELECTEREN
+============================================================ */
+
+function selectEventCalendarDate(
+  iso
+) {
+
+  const selected =
+    parseEventISODate(
+      iso
+    );
+
+
+  /*
+    Geen startdatum:
+    eerste tik = VANAF
+  */
+
+  if (
+    !eventCalendarTempFrom
+  ) {
+
+    eventCalendarTempFrom =
+      selected;
+
+
+    eventCalendarTempUntil =
+      null;
+
+
+    renderEventCalendar();
+
+    return;
+
+  }
+
+
+  /*
+    Start bestaat maar eind niet.
+  */
+
+  if (
+    !eventCalendarTempUntil
+  ) {
+
+    /*
+      Tik vóór start:
+      die datum wordt nieuwe start.
+    */
+
+    if (
+      selected <
+      eventCalendarTempFrom
+    ) {
+
+      eventCalendarTempFrom =
+        selected;
+
+
+      eventCalendarTempUntil =
+        null;
+
+    }
+
+    else {
+
+      eventCalendarTempUntil =
+        selected;
+
+    }
+
+
+    renderEventCalendar();
+
+    return;
+
+  }
+
+
+  /*
+    Er stond al een volledige periode.
+    Nieuwe tik start een nieuwe selectie.
+  */
+
+  eventCalendarTempFrom =
+    selected;
+
+
+  eventCalendarTempUntil =
+    null;
+
+
+  renderEventCalendar();
+
+}
+
+
+/* ============================================================
+   HEADER
+============================================================ */
+
+function updateEventCalendarHeader() {
+
+  const fromElement =
+    document.getElementById(
+      "calendarSelectedFrom"
+    );
+
+
+  const untilElement =
+    document.getElementById(
+      "calendarSelectedUntil"
+    );
+
+
+  const instruction =
+    document.getElementById(
+      "eventCalendarInstruction"
+    );
+
+
+  const confirm =
+    document.getElementById(
+      "eventCalendarConfirm"
+    );
+
+
+  if (
+    fromElement
+  ) {
+
+    fromElement.innerText =
+      eventCalendarTempFrom
+
+        ? formatEventReadableDate(
+            eventCalendarTempFrom
+          )
+
+        : "—";
+
+  }
+
+
+  if (
+    untilElement
+  ) {
+
+    untilElement.innerText =
+      eventCalendarTempUntil
+
+        ? formatEventReadableDate(
+            eventCalendarTempUntil
+          )
+
+        : "—";
+
+  }
+
+
+  if (
+    instruction
+  ) {
+
+    if (
+      !eventCalendarTempFrom
+    ) {
+
+      instruction.innerText =
+        "Kies de eerste dag";
+
+    }
+
+    else if (
+      !eventCalendarTempUntil
+    ) {
+
+      instruction.innerText =
+        "Kies nu de laatste dag";
+
+    }
+
+    else {
+
+      instruction.innerText =
+        "Periode geselecteerd";
+
+    }
+
+  }
+
+
+  if (
+    confirm
+  ) {
+
+    confirm.disabled =
+      !(
+        eventCalendarTempFrom
+        &&
+        eventCalendarTempUntil
+      );
+
+  }
+
+}
+
+
+/* ============================================================
+   SELECTIE BEVESTIGEN
+============================================================ */
+
+function confirmEventCalendar() {
+
+  if (
+    !eventCalendarTempFrom
+    ||
+    !eventCalendarTempUntil
+  ) {
+
+    return;
+
+  }
+
+
+  const from =
+    formatISO(
+      eventCalendarTempFrom
+    );
+
+
+  const until =
+    formatISO(
+      eventCalendarTempUntil
+    );
+
+
+  document
+    .getElementById(
+      "eventFrom"
+    )
+    .value =
+      from;
+
+
+  document
+    .getElementById(
+      "eventUntil"
+    )
+    .value =
+      until;
+
+
+  updateEventDateRangeDisplay();
+
+
+  closeEventCalendar();
+
+}
+
+
+/* ============================================================
+   SELECTIE WISSEN
+============================================================ */
+
+function resetEventCalendarSelection() {
+
+  eventCalendarTempFrom =
+    null;
+
+
+  eventCalendarTempUntil =
+    null;
+
+
+  renderEventCalendar();
+
+}
+
+
+/* ============================================================
+   DISPLAY BIJWERKEN
+============================================================ */
+
+function updateEventDateRangeDisplay() {
+
+  const fromValue =
+    document
+      .getElementById(
+        "eventFrom"
+      )
+      ?.value;
+
+
+  const untilValue =
+    document
+      .getElementById(
+        "eventUntil"
+      )
+      ?.value;
+
+
+  const fromDisplay =
+    document.getElementById(
+      "eventFromDisplay"
+    );
+
+
+  const untilDisplay =
+    document.getElementById(
+      "eventUntilDisplay"
+    );
+
+
+  if (
+    fromDisplay
+  ) {
+
+    fromDisplay.innerText =
+      fromValue
+
+        ? formatEventReadableDate(
+            parseEventISODate(
+              fromValue
+            )
+          )
+
+        : "Kies datum";
+
+  }
+
+
+  if (
+    untilDisplay
+  ) {
+
+    untilDisplay.innerText =
+      untilValue
+
+        ? formatEventReadableDate(
+            parseEventISODate(
+              untilValue
+            )
+          )
+
+        : "Kies datum";
+
+  }
+
+}
+
+
+/* ============================================================
+   DATUM HELPERS
+============================================================ */
+
+function parseEventISODate(
+  iso
+) {
+
+  const [
+    year,
+    month,
+    day
+  ] =
+    String(
+      iso
+    )
+      .split(
+        "-"
+      )
+      .map(
+        Number
+      );
+
+
+  return new Date(
+    year,
+    month - 1,
+    day
+  );
+
+}
+
+
+function eventStartOfDay(
+  date
+) {
+
+  const result =
+    new Date(
+      date
+    );
+
+
+  result.setHours(
+    0,
+    0,
+    0,
+    0
+  );
+
+
+  return result;
+
+}
+
+
+function sameEventDate(
+  first,
+  second
+) {
+
+  return (
+
+    first.getFullYear() ===
+    second.getFullYear()
+
+    &&
+
+    first.getMonth() ===
+    second.getMonth()
+
+    &&
+
+    first.getDate() ===
+    second.getDate()
+
+  );
+
+}
+
+
+function formatEventReadableDate(
+  date
+) {
+
+  return date
+    .toLocaleDateString(
+      "nl-BE",
+      {
+        day:
+          "2-digit",
+
+        month:
+          "short",
+
+        year:
+          "numeric"
+      }
+    );
+
+}
+  
 /* ===============================
    EVENT FLOW
 ================================ */
@@ -4377,6 +5800,15 @@ function openEventOrder() {
       ||
       "";
 
+    eventCalendarTempFrom =
+    null;
+
+
+  eventCalendarTempUntil =
+    null;
+
+
+  updateEventDateRangeDisplay();
 
   renderEventProducts();
 
