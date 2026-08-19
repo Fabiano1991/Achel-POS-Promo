@@ -2732,114 +2732,104 @@ function buildMaterialOutCard(
     );
 
 
-  const rows =
-    getAdminOrderItems(
+  const materials =
+    getEventMaterialStatus(
       order.id
-    )
-      .filter(
-        item =>
-          item.categorie ===
-          "evenement"
-      )
+    );
+
+
+  const totalOutside =
+    materials.reduce(
+      (
+        total,
+        item
+      ) =>
+
+        total +
+        item.nog_buiten,
+
+      0
+    );
+
+
+  const rows =
+    materials
       .map(
-        item => {
+        item => `
 
-          const ret =
-            adminEventReturns
-              .find(
-                row =>
-                  row.order_id ===
-                  order.id
-                  &&
-                  row.product_naam ===
-                  item.product_naam
-              );
+          <div class="material-row">
 
+            <strong>
 
-          const loaned =
-            Number(
-              item.aantal
-              ||
-              0
-            );
+              ${adminEscapeHtml(
+                item.product_naam
+              )}
+
+            </strong>
 
 
-          const good =
-            Number(
-              ret?.goed_terug
-              ||
-              0
-            );
+            <span>
+
+              Uit:
+              ${item.uitgeleend}
+
+            </span>
 
 
-          const damaged =
-            Number(
-              ret?.beschadigd
-              ||
-              0
-            );
+            <span class="green-text">
+
+              Terug:
+              ${item.goed_terug}
+
+            </span>
 
 
-          const missing =
-            Number(
-              ret?.ontbreekt
-              ||
-              0
-            );
+            ${
+              item.beschadigd > 0
+
+                ? `
+
+                    <span class="red-text">
+
+                      Beschadigd:
+                      ${item.beschadigd}
+
+                    </span>
+
+                  `
+
+                : ""
+            }
 
 
-          const outside =
-            Math.max(
-              0,
-              loaned
-              -
-              good
-              -
-              damaged
-              -
-              missing
-            );
+            ${
+              item.ontbreekt > 0
+
+                ? `
+
+                    <span class="red-text">
+
+                      Ontbreekt:
+                      ${item.ontbreekt}
+
+                    </span>
+
+                  `
+
+                : ""
+            }
 
 
-          return `
+            <b>
 
-            <div class="material-row">
+              Nog buiten:
+              ${item.nog_buiten}
 
-              <strong>
-                ${adminEscapeHtml(
-                  item.product_naam
-                )}
-              </strong>
+            </b>
 
-              <span>
-                Uit ${loaned}
-              </span>
+          </div>
 
-              <span class="green-text">
-                Terug ${good}
-              </span>
-
-              ${
-                damaged
-                  ? `<span class="red-text">Kapot ${damaged}</span>`
-                  : ""
-              }
-
-              ${
-                missing
-                  ? `<span class="red-text">Ontbreekt ${missing}</span>`
-                  : ""
-              }
-
-              <b>
-                Nog buiten ${outside}
-              </b>
-
-            </div>
-
-          `;
-
-        }
+        `
       )
       .join("");
 
@@ -2853,34 +2843,33 @@ function buildMaterialOutCard(
         <div>
 
           <strong>
+
             ${adminEscapeHtml(
-              order.event_naam
-              ||
+              order.event_naam ||
               "Evenement"
             )}
+
           </strong>
+
 
           <span>
 
             ${adminEscapeHtml(
-              profile?.naam
-              ||
+              profile?.naam ||
               ""
             )}
 
             ·
 
             ${adminEscapeHtml(
-              order.event_vanaf
-              ||
+              order.event_vanaf ||
               ""
             )}
 
             t/m
 
             ${adminEscapeHtml(
-              order.event_tot
-              ||
+              order.event_tot ||
               ""
             )}
 
@@ -2889,17 +2878,47 @@ function buildMaterialOutCard(
         </div>
 
 
-        <button
-          type="button"
-          onclick="openAdminOrder('${order.id}')"
+        <div
+          style="
+            background:#dfa047;
+            color:#2f2415;
+            border-radius:999px;
+            padding:5px 9px;
+            font-size:11px;
+            font-weight:900;
+            white-space:nowrap;
+          "
         >
-          Retour verwerken ›
-        </button>
+
+          ${totalOutside}
+          buiten
+
+        </div>
 
       </div>
 
 
       ${rows}
+
+
+      <button
+        type="button"
+        onclick="openAdminOrder('${order.id}')"
+        style="
+          width:100%;
+          margin-top:9px;
+          min-height:40px;
+          border:0;
+          border-radius:10px;
+          background:#8c692f;
+          color:white;
+          font-weight:900;
+        "
+      >
+
+        Retour verwerken ›
+
+      </button>
 
     </div>
 
@@ -3541,11 +3560,23 @@ function renderAdminDetail(
     "afgehaald"
   ) {
 
-    updateAllReturnCalculations(
-      order.id
-    );
+function updateAllReturnCalculations(
+  orderId
+) {
 
-  }
+  getEventMaterialItems(
+    orderId
+  )
+    .forEach(
+      item => {
+
+        updateReturnCalculation(
+          orderId,
+          item.product_naam
+        );
+
+      }
+    );
 
 }
 
@@ -3652,7 +3683,9 @@ function buildEventReturnEditor(
   if (
     !order.event_naam
   ) {
+
     return "";
+
   }
 
 
@@ -3672,8 +3705,9 @@ function buildEventReturnEditor(
 
         <div class="admin-info orange">
 
-          Retour wordt beschikbaar zodra
-          materiaal is afgehaald.
+          Retourregistratie wordt beschikbaar
+          zodra het evenementmateriaal
+          als afgehaald staat.
 
         </div>
 
@@ -3683,6 +3717,331 @@ function buildEventReturnEditor(
 
   }
 
+
+  const materials =
+    getEventMaterialStatus(
+      order.id
+    );
+
+
+  if (
+    !materials.length
+  ) {
+
+    return `
+
+      <div class="admin-detail-card">
+
+        <h3>
+          Retour evenementmateriaal
+        </h3>
+
+
+        <div class="admin-info red">
+
+          Er zijn geen evenementmaterialen
+          gekoppeld aan deze aanvraag.
+
+          <br><br>
+
+          Deze aanvraag wordt daarom niet
+          als retour verwerkt.
+
+        </div>
+
+      </div>
+
+    `;
+
+  }
+
+
+  const totalLoaned =
+    materials.reduce(
+      (
+        total,
+        item
+      ) =>
+
+        total +
+        item.uitgeleend,
+
+      0
+    );
+
+
+  const totalOutside =
+    materials.reduce(
+      (
+        total,
+        item
+      ) =>
+
+        total +
+        item.nog_buiten,
+
+      0
+    );
+
+
+  const rows =
+    materials.map(
+      item => `
+
+        <div class="return-item">
+
+          <div class="return-item-head">
+
+            <strong>
+
+              ${adminEscapeHtml(
+                item.product_naam
+              )}
+
+            </strong>
+
+
+            <span>
+
+              Uitgeleend
+
+              <b>
+                ${item.uitgeleend}
+              </b>
+
+            </span>
+
+          </div>
+
+
+          ${buildReturnQuantityControl(
+            order.id,
+            item.product_naam,
+            "good",
+            "Goed terug",
+            item.goed_terug,
+            "green"
+          )}
+
+
+          ${buildReturnQuantityControl(
+            order.id,
+            item.product_naam,
+            "damaged",
+            "Beschadigd",
+            item.beschadigd,
+            "orange"
+          )}
+
+
+          ${buildReturnQuantityControl(
+            order.id,
+            item.product_naam,
+            "missing",
+            "Ontbreekt",
+            item.ontbreekt,
+            "red"
+          )}
+
+
+          <div
+            id="${returnDomId(
+              order.id,
+              item.product_naam,
+              "outside"
+            )}"
+            class="
+              return-outside
+              ${
+                item.nog_buiten === 0
+                  ? "done"
+                  : ""
+              }
+            "
+          >
+
+            Nog buiten:
+            ${item.nog_buiten}
+
+          </div>
+
+
+          <textarea
+            id="${returnDomId(
+              order.id,
+              item.product_naam,
+              "note"
+            )}"
+            placeholder="Opmerking indien nodig"
+          >${adminEscapeHtml(item.opmerking)}</textarea>
+
+        </div>
+
+      `
+    )
+    .join("");
+
+
+  return `
+
+    <div class="admin-detail-card return-card">
+
+      <div class="return-title">
+
+        <div>
+
+          <span>
+            Logistiek
+          </span>
+
+          <h3>
+            Retour verwerken
+          </h3>
+
+        </div>
+
+
+        <button
+          type="button"
+          onclick="markEverythingReturned('${order.id}')"
+        >
+
+          Alles goed terug
+
+        </button>
+
+      </div>
+
+
+      <div
+        style="
+          display:grid;
+          grid-template-columns:1fr 1fr;
+          gap:7px;
+          margin-top:9px;
+          margin-bottom:9px;
+        "
+      >
+
+        <div
+          style="
+            background:#eee9dd;
+            border-radius:10px;
+            padding:8px;
+          "
+        >
+
+          <span
+            style="
+              display:block;
+              font-size:9px;
+              color:#777;
+            "
+          >
+
+            Uitgeleend
+
+          </span>
+
+
+          <strong
+            style="
+              font-size:21px;
+            "
+          >
+
+            ${totalLoaned}
+
+          </strong>
+
+        </div>
+
+
+        <div
+          style="
+            background:${
+              totalOutside > 0
+                ? "#f6e4c6"
+                : "#dff0e1"
+            };
+            color:${
+              totalOutside > 0
+                ? "#915c1d"
+                : "#367243"
+            };
+            border-radius:10px;
+            padding:8px;
+          "
+        >
+
+          <span
+            style="
+              display:block;
+              font-size:9px;
+            "
+          >
+
+            Nog buiten
+
+          </span>
+
+
+          <strong
+            style="
+              font-size:21px;
+            "
+          >
+
+            ${totalOutside}
+
+          </strong>
+
+        </div>
+
+      </div>
+
+
+      ${rows}
+
+
+      <button
+        class="return-save"
+        type="button"
+        onclick="saveEventReturnRegistration('${order.id}')"
+      >
+
+        Retour opslaan
+
+      </button>
+
+
+      ${
+        getEventReturnsForOrder(
+          order.id
+        ).length
+
+          ? `
+
+              <button
+                class="return-reset"
+                type="button"
+                onclick="resetEventReturnRegistration('${order.id}')"
+              >
+
+                Registratie wissen
+
+              </button>
+
+            `
+
+          : ""
+      }
+
+    </div>
+
+  `;
+
+}
 
   const items =
     getAdminOrderItems(
@@ -4198,96 +4557,270 @@ function changeReturnQuantity(
 
 
 /* ============================================================
-   NOG BUITEN
+   EVENEMENTMATERIAAL CENTRAAL
 ============================================================ */
 
-function updateReturnCalculation(
-  orderId,
-  productName
+function isEventMaterialCategory(
+  category
 ) {
 
-  const item =
-    getAdminOrderItems(
-      orderId
+  const value =
+    String(
+      category ||
+      ""
     )
-      .find(
-        product =>
-          product.product_naam ===
-          productName
-          &&
-          product.categorie ===
-          "evenement"
-      );
+      .trim()
+      .toLowerCase();
 
 
-  if (!item) {
-    return;
-  }
+  return (
+    value === "evenement" ||
+    value === "evenementen" ||
+    value === "event" ||
+    value === "events"
+  );
+
+}
 
 
-  const outside =
-    Math.max(
+/* ============================================================
+   EVENT MATERIALEN OPHALEN
+============================================================ */
 
-      0,
+function getEventMaterialItems(
+  orderId
+) {
 
-      Number(
-        item.aantal
-        ||
-        0
+  return adminItems.filter(
+    item =>
+
+      item.order_id ===
+      orderId
+
+      &&
+
+      isEventMaterialCategory(
+        item.categorie
       )
 
-      -
+  );
 
-      getReturnScreenValue(
-        orderId,
-        productName,
-        "good"
-      )
+}
 
-      -
 
-      getReturnScreenValue(
-        orderId,
-        productName,
-        "damaged"
-      )
+/* ============================================================
+   STATUS PER EVENTMATERIAAL
+============================================================ */
 
-      -
+function getEventMaterialStatus(
+  orderId
+) {
 
-      getReturnScreenValue(
-        orderId,
-        productName,
-        "missing"
-      )
-
+  const items =
+    getEventMaterialItems(
+      orderId
     );
 
 
-  const element =
-    document.getElementById(
-      returnDomId(
-        orderId,
-        productName,
-        "outside"
-      )
-    );
+  return items.map(
+    item => {
+
+      const returnRow =
+        adminEventReturns.find(
+          row =>
+
+            row.order_id ===
+            orderId
+
+            &&
+
+            row.product_naam ===
+            item.product_naam
+
+        );
 
 
-  if (
-    element
-  ) {
+      const loaned =
+        Math.max(
+          0,
+          Number(
+            item.aantal ||
+            0
+          )
+        );
 
-    element.textContent =
-      `Nog buiten: ${outside}`;
+
+      const good =
+        Math.max(
+          0,
+          Number(
+            returnRow?.goed_terug ||
+            0
+          )
+        );
 
 
-    element.classList.toggle(
-      "done",
-      outside ===
+      const damaged =
+        Math.max(
+          0,
+          Number(
+            returnRow?.beschadigd ||
+            0
+          )
+        );
+
+
+      const missing =
+        Math.max(
+          0,
+          Number(
+            returnRow?.ontbreekt ||
+            0
+          )
+        );
+
+
+      const processed =
+        good +
+        damaged +
+        missing;
+
+
+      const outside =
+        Math.max(
+          0,
+          loaned -
+          processed
+        );
+
+
+      return {
+
+        product_naam:
+          item.product_naam,
+
+        categorie:
+          item.categorie,
+
+        uitgeleend:
+          loaned,
+
+        goed_terug:
+          good,
+
+        beschadigd:
+          damaged,
+
+        ontbreekt:
+          missing,
+
+        verwerkt:
+          processed,
+
+        nog_buiten:
+          outside,
+
+        opmerking:
+          returnRow?.opmerking ||
+          ""
+
+      };
+
+    }
+  );
+
+}
+
+
+/* ============================================================
+   TOTAAL NOG BUITEN PER EVENT
+============================================================ */
+
+function getEventOutstandingTotal(
+  orderId
+) {
+
+  return getEventMaterialStatus(
+    orderId
+  )
+    .reduce(
+      (
+        total,
+        item
+      ) =>
+
+        total +
+        item.nog_buiten,
+
       0
     );
 
-  }
+}
+
+
+/* ============================================================
+   MATERIAAL BUITEN
+============================================================ */
+
+function getMaterialOutOrders() {
+
+  return adminOrders.filter(
+    order => {
+
+      if (
+        !order.event_naam
+      ) {
+
+        return false;
+
+      }
+
+
+      if (
+        order.status !==
+        "afgehaald"
+      ) {
+
+        return false;
+
+      }
+
+
+      const eventItems =
+        getEventMaterialItems(
+          order.id
+        );
+
+
+      /*
+        Geen event-items gevonden:
+        niet ten onrechte als materiaal buiten tellen.
+      */
+
+      if (
+        !eventItems.length
+      ) {
+
+        console.warn(
+          "Evenement zonder gekoppelde eventmaterialen:",
+          order.id,
+          order.event_naam
+        );
+
+
+        return false;
+
+      }
+
+
+      return (
+        getEventOutstandingTotal(
+          order.id
+        ) > 0
+      );
+
+    }
+  );
 
 }
 
@@ -4330,52 +4863,53 @@ function markEverythingReturned(
   orderId
 ) {
 
-  getAdminOrderItems(
-    orderId
-  )
-    .filter(
-      item =>
-        item.categorie ===
-        "evenement"
-    )
-    .forEach(
-      item => {
-
-        setReturnScreenValue(
-          orderId,
-          item.product_naam,
-          "good",
-          Number(
-            item.aantal
-            ||
-            0
-          )
-        );
-
-
-        setReturnScreenValue(
-          orderId,
-          item.product_naam,
-          "damaged",
-          0
-        );
-
-
-        setReturnScreenValue(
-          orderId,
-          item.product_naam,
-          "missing",
-          0
-        );
-
-
-        updateReturnCalculation(
-          orderId,
-          item.product_naam
-        );
-
-      }
+  const materials =
+    getEventMaterialItems(
+      orderId
     );
+
+
+  materials.forEach(
+    item => {
+
+      const amount =
+        Number(
+          item.aantal ||
+          0
+        );
+
+
+      setReturnScreenValue(
+        orderId,
+        item.product_naam,
+        "good",
+        amount
+      );
+
+
+      setReturnScreenValue(
+        orderId,
+        item.product_naam,
+        "damaged",
+        0
+      );
+
+
+      setReturnScreenValue(
+        orderId,
+        item.product_naam,
+        "missing",
+        0
+      );
+
+
+      updateReturnCalculation(
+        orderId,
+        item.product_naam
+      );
+
+    }
+  );
 
 }
 
