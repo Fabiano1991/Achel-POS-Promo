@@ -3306,75 +3306,127 @@ function renderAdminWholesaleOrders() {
               );
 
 
+          const orderNumber =
+
+            `GH-${new Date(order.created_at).getFullYear()}-${String(order.id)
+              .slice(0, 8)
+              .toUpperCase()}`;
+
+
           return `
 
             <details class="admin-wholesale">
 
               <summary>
 
-                <b>
+                <div>
 
-                  ${adminEscapeHtml(
-                    order.referentie ||
-                    "Geen referentie"
-                  )}
+                  <b>
 
-                </b>
+                    ${adminEscapeHtml(
+                      order.referentie ||
+                      "Geen referentie"
+                    )}
+
+                  </b>
 
 
-                <small>
+                  <small>
 
-                  ${adminEscapeHtml(
-                    profile?.naam ||
-                    ""
-                  )}
+                    ${adminEscapeHtml(
+                      profile?.naam ||
+                      ""
+                    )}
 
-                  ·
+                    ·
 
-                  ${adminEscapeHtml(
-                    order.drankenhandel ||
-                    ""
-                  )}
+                    ${adminEscapeHtml(
+                      order.drankenhandel ||
+                      ""
+                    )}
 
-                </small>
+                  </small>
+
+                </div>
+
+
+                <span
+                  style="
+                    color:#8c692f;
+                    font-size:9px;
+                    font-weight:900;
+                  "
+                >
+
+                  ${orderNumber}
+
+                </span>
 
               </summary>
 
 
-              ${
-                items
+              <div
+                style="
+                  padding-top:8px;
+                "
+              >
 
-                  .map(
-                    item => `
+                ${
+                  items
 
-                      <div class="summary-line">
+                    .map(
+                      item => `
 
-                        <span>
+                        <div class="summary-line">
 
-                          ${adminEscapeHtml(
-                            item.product_naam
-                          )}
+                          <span>
 
-                        </span>
+                            ${adminEscapeHtml(
+                              item.product_naam
+                            )}
+
+                          </span>
 
 
-                        <strong>
+                          <strong>
 
-                          ${Number(
-                            item.totaal_aantal ||
-                            item.betaald_aantal ||
-                            0
-                          )}
+                            ${Number(
+                              item.totaal_aantal ||
+                              item.betaald_aantal ||
+                              0
+                            )}
 
-                        </strong>
+                          </strong>
 
-                      </div>
+                        </div>
 
-                    `
-                  )
+                      `
+                    )
 
-                  .join("")
-              }
+                    .join("")
+                }
+
+
+                <button
+                  type="button"
+                  onclick="downloadWholesaleProofPdf('${order.id}')"
+                  style="
+                    width:100%;
+                    min-height:42px;
+                    margin-top:9px;
+                    border:0;
+                    border-radius:10px;
+                    background:#2f7449;
+                    color:white;
+                    font-weight:900;
+                  "
+                >
+
+                  PDF bestelbewijs
+
+                </button>
+
+              </div>
 
             </details>
 
@@ -3386,6 +3438,7 @@ function renderAdminWholesaleOrders() {
       .join("");
 
 }
+
 
 
 /* ===============================
