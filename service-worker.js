@@ -1,5 +1,5 @@
 const CACHE_NAME =
-  "achel-pos-v23";
+  "achel-pos-v27";
 
 
 const STATIC_FILES = [
@@ -35,7 +35,6 @@ self.addEventListener(
         .open(
           CACHE_NAME
         )
-
         .then(
           cache =>
             cache.addAll(
@@ -64,10 +63,8 @@ self.addEventListener(
 
       caches
         .keys()
-
         .then(
           names =>
-
             Promise.all(
 
               names
@@ -86,9 +83,7 @@ self.addEventListener(
                 )
 
             )
-
         )
-
         .then(
           () =>
             self.clients.claim()
@@ -102,7 +97,6 @@ self.addEventListener(
 
 /* ============================================================
    FETCH
-   NETWORK FIRST
 ============================================================ */
 
 self.addEventListener(
@@ -124,11 +118,6 @@ self.addEventListener(
         event.request.url
       );
 
-
-    /*
-      HTML + JS:
-      altijd eerst nieuwste versie online proberen.
-    */
 
     const isImportantFile =
 
@@ -161,7 +150,6 @@ self.addEventListener(
               "no-store"
           }
         )
-
           .then(
             response => {
 
@@ -173,7 +161,6 @@ self.addEventListener(
                 .open(
                   CACHE_NAME
                 )
-
                 .then(
                   cache =>
                     cache.put(
@@ -187,7 +174,6 @@ self.addEventListener(
 
             }
           )
-
           .catch(
             async () => {
 
@@ -219,7 +205,7 @@ self.addEventListener(
 
 
               throw new Error(
-                "Bestand niet beschikbaar"
+                "Bestand niet beschikbaar."
               );
 
             }
@@ -233,18 +219,11 @@ self.addEventListener(
     }
 
 
-    /*
-      Afbeeldingen / overige bestanden:
-      cache mag gebruikt worden,
-      maar online versie krijgt voorkeur.
-    */
-
     event.respondWith(
 
       fetch(
         event.request
       )
-
         .then(
           response => {
 
@@ -256,7 +235,6 @@ self.addEventListener(
               .open(
                 CACHE_NAME
               )
-
               .then(
                 cache =>
                   cache.put(
@@ -270,12 +248,197 @@ self.addEventListener(
 
           }
         )
-
         .catch(
           () =>
             caches.match(
               event.request
             )
+        )
+
+    );
+
+  }
+);
+
+
+/* ============================================================
+   PUSH BERICHT ONTVANGEN
+============================================================ */
+
+self.addEventListener(
+  "push",
+  event => {
+
+    let payload = {
+
+      title:
+        "Achel POS",
+
+      body:
+        "Je hebt een nieuwe melding.",
+
+      target_url:
+        "./"
+
+    };
+
+
+    if (
+      event.data
+    ) {
+
+      try {
+
+        payload =
+          event.data.json();
+
+      }
+
+      catch (
+        error
+      ) {
+
+        payload.body =
+          event.data.text();
+
+      }
+
+    }
+
+
+    const title =
+      payload.title ||
+      "Achel POS";
+
+
+    const options = {
+
+      body:
+
+        payload.body ||
+        "",
+
+      icon:
+        "./achel-logo.png",
+
+      badge:
+        "./achel-logo.png",
+
+      data: {
+
+        target_url:
+
+          payload.target_url ||
+          "./",
+
+        order_id:
+
+          payload.order_id ||
+          null,
+
+        notification_type:
+
+          payload.notification_type ||
+          null
+
+      },
+
+      tag:
+
+        payload.notification_type &&
+        payload.order_id
+
+          ? `${payload.notification_type}-${payload.order_id}`
+
+          : undefined,
+
+      renotify:
+        false
+
+    };
+
+
+    event.waitUntil(
+
+      self.registration
+        .showNotification(
+          title,
+          options
+        )
+
+    );
+
+  }
+);
+
+
+/* ============================================================
+   KLIK OP MELDING
+============================================================ */
+
+self.addEventListener(
+  "notificationclick",
+  event => {
+
+    event.notification.close();
+
+
+    const targetUrl =
+
+      event.notification
+        .data
+        ?.target_url
+
+      ||
+
+      "./";
+
+
+    event.waitUntil(
+
+      clients
+        .matchAll({
+          type:
+            "window",
+          includeUncontrolled:
+            true
+        })
+        .then(
+          windowClients => {
+
+            for (
+              const client
+              of windowClients
+            ) {
+
+              if (
+                "focus"
+                in client
+              ) {
+
+                client.navigate?.(
+                  targetUrl
+                );
+
+
+                return client.focus();
+
+              }
+
+            }
+
+
+            if (
+              clients.openWindow
+            ) {
+
+              return clients.openWindow(
+                targetUrl
+              );
+
+            }
+
+          }
         )
 
     );
