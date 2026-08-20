@@ -913,6 +913,174 @@ function createAdminScreen() {
       </div>
 
     </div>
+<!-- =========================================================
+     RETOUR PROBLEEM POPUP
+========================================================= -->
+
+<div
+  id="returnProblemModal"
+  class="return-problem-overlay hidden"
+>
+
+  <div class="return-problem-modal">
+
+    <div class="return-problem-modal-head">
+
+      <div>
+
+        <span>
+          PROBLEEM MELDEN
+        </span>
+
+        <h3 id="returnProblemTitle">
+          Materiaal
+        </h3>
+
+        <small id="returnProblemLoaned">
+          0 stuks uitgeleend
+        </small>
+
+      </div>
+
+
+      <button
+        type="button"
+        onclick="closeReturnProblemModal()"
+      >
+        ×
+      </button>
+
+    </div>
+
+
+    <div class="return-problem-good-preview">
+
+      <span>
+        Goed terug
+      </span>
+
+      <strong id="returnProblemGood">
+        0
+      </strong>
+
+    </div>
+
+
+    <div class="return-problem-option">
+
+      <div>
+
+        <strong>
+          Beschadigd
+        </strong>
+
+        <span>
+          Materiaal is terug maar niet inzetbaar
+        </span>
+
+      </div>
+
+
+      <div class="return-problem-stepper">
+
+        <button
+          type="button"
+          onclick="changeReturnProblemDamaged(-1)"
+        >
+          −
+        </button>
+
+        <strong id="returnProblemDamaged">
+          0
+        </strong>
+
+        <button
+          type="button"
+          onclick="changeReturnProblemDamaged(1)"
+        >
+          +
+        </button>
+
+      </div>
+
+    </div>
+
+
+    <div class="return-problem-option">
+
+      <div>
+
+        <strong>
+          Niet terug
+        </strong>
+
+        <span>
+          Materiaal ontbreekt
+        </span>
+
+      </div>
+
+
+      <div class="return-problem-stepper">
+
+        <button
+          type="button"
+          onclick="changeReturnProblemMissing(-1)"
+        >
+          −
+        </button>
+
+        <strong id="returnProblemMissing">
+          0
+        </strong>
+
+        <button
+          type="button"
+          onclick="changeReturnProblemMissing(1)"
+        >
+          +
+        </button>
+
+      </div>
+
+    </div>
+
+
+    <label for="returnProblemNote">
+      Opmerking
+    </label>
+
+
+    <textarea
+      id="returnProblemNote"
+      placeholder="Bijv. poot geplooid, doek gescheurd..."
+    ></textarea>
+
+
+    <div class="return-problem-actions">
+
+      <button
+        type="button"
+        class="return-problem-cancel"
+        onclick="closeReturnProblemModal()"
+      >
+        Annuleren
+      </button>
+
+
+      <button
+        type="button"
+        class="return-problem-save"
+        onclick="saveReturnProblemModal()"
+      >
+        Probleem opslaan
+      </button>
+
+    </div>
+
+  </div>
+
+</div>
 
   `;
 
@@ -4277,7 +4445,6 @@ function buildEventReturnEditor(
           Retour evenementmateriaal
         </h3>
 
-
         <div class="info">
 
           Retourregistratie wordt beschikbaar
@@ -4310,7 +4477,6 @@ function buildEventReturnEditor(
           Retour evenementmateriaal
         </h3>
 
-
         <div class="info error">
 
           Er zijn geen evenementmaterialen
@@ -4331,191 +4497,88 @@ function buildEventReturnEditor(
         total,
         item
       ) =>
+
         total +
         item.uitgeleend,
-      0
-    );
 
-
-  const totalGood =
-    materials.reduce(
-      (
-        total,
-        item
-      ) =>
-        total +
-        item.goed_terug,
-      0
-    );
-
-
-  const totalDamaged =
-    materials.reduce(
-      (
-        total,
-        item
-      ) =>
-        total +
-        item.beschadigd,
-      0
-    );
-
-
-  const totalMissing =
-    materials.reduce(
-      (
-        total,
-        item
-      ) =>
-        total +
-        item.ontbreekt,
       0
     );
 
 
   const totalProcessed =
-    totalGood +
-    totalDamaged +
-    totalMissing;
+    materials.reduce(
+      (
+        total,
+        item
+      ) =>
 
+        total +
+        item.goed_terug +
+        item.beschadigd +
+        item.ontbreekt,
 
-  const totalRemaining =
-    Math.max(
-      0,
-      totalLoaned -
-      totalProcessed
+      0
     );
 
 
   return `
 
-    <div class="return-workspace">
+    <div class="return-simple-workspace">
 
-      <div class="return-workspace-header">
+      <div class="return-simple-header">
 
-        <div class="return-header-top">
+        <div>
 
-          <div>
+          <span>
+            LOGISTIEK
+          </span>
 
-            <span class="return-kicker">
-              Logistiek
-            </span>
-
-
-            <h2>
-              Retour verwerken
-            </h2>
-
-          </div>
-
-
-          <button
-            class="return-all-good"
-            type="button"
-            onclick="markEverythingReturned('${order.id}')"
-          >
-
-            ✓ Alles goed terug
-
-          </button>
-
-        </div>
-
-
-        <div class="return-summary-bar">
-
-          <div class="return-summary-stat">
-
-            <span>
-              Uitgeleend
-            </span>
-
-            <strong>
-              ${totalLoaned}
-            </strong>
-
-          </div>
-
-
-          <div class="return-summary-stat green">
-
-            <span>
-              Verwerkt
-            </span>
-
-            <strong id="returnTotalProcessed">
-              ${totalProcessed}
-            </strong>
-
-          </div>
-
-
-          <div class="return-summary-stat orange">
-
-            <span>
-              Nog te doen
-            </span>
-
-            <strong id="returnTotalOutside">
-              ${totalRemaining}
-            </strong>
-
-          </div>
-
-
-          <div class="return-summary-stat red">
-
-            <span>
-              Beschadigd
-            </span>
-
-            <strong id="returnTotalDamaged">
-              ${totalDamaged}
-            </strong>
-
-          </div>
+          <h2>
+            Retour verwerken
+          </h2>
 
         </div>
 
       </div>
 
 
-      <div class="return-table-header">
+      <div class="return-simple-summary">
 
         <div>
-          Artikel
+
+          <span>
+            Uitgeleend
+          </span>
+
+          <strong>
+            ${totalLoaned}
+          </strong>
+
         </div>
 
-        <div>
-          Uitgeleend
-        </div>
 
         <div>
-          Goed
-        </div>
 
-        <div>
-          Beschadigd
-        </div>
+          <span>
+            Verwerkt
+          </span>
 
-        <div>
-          Ontbrekend
-        </div>
+          <strong id="returnSimpleProcessed">
+            ${totalProcessed}
+          </strong>
 
-        <div>
-          Status
         </div>
 
       </div>
 
 
-      <div>
+      <div class="return-simple-list">
 
         ${
           materials
             .map(
               item =>
-                buildProfessionalReturnProduct(
+                buildSimpleReturnItem(
                   order,
                   item
                 )
@@ -4526,19 +4589,11 @@ function buildEventReturnEditor(
       </div>
 
 
-      <div class="return-help">
-
-        ✓ verschijnt zodra goed + beschadigd + ontbrekend
-        gelijk is aan het uitgeleende aantal.
-
-      </div>
-
-
-      <div class="return-workspace-footer">
+      <div class="return-simple-footer">
 
         <button
-          class="return-cancel"
           type="button"
+          class="return-simple-cancel"
           onclick="backToAdminDashboard()"
         >
 
@@ -4548,12 +4603,12 @@ function buildEventReturnEditor(
 
 
         <button
-          class="return-save-main"
           type="button"
+          class="return-simple-save"
           onclick="saveEventReturnRegistration('${order.id}')"
         >
 
-          ✓ Retour verwerken
+          Retour verwerken
 
         </button>
 
@@ -4565,86 +4620,106 @@ function buildEventReturnEditor(
 
 }
 
-function buildProfessionalReturnProduct(
+
+/* ============================================================
+   EENVOUDIG RETOURARTIKEL
+============================================================ */
+
+function buildSimpleReturnItem(
   order,
   item
 ) {
 
   const processed =
+
     item.goed_terug +
     item.beschadigd +
     item.ontbreekt;
 
 
-  const remaining =
-    Math.max(
-      0,
-      item.uitgeleend -
-      processed
-    );
+  const isFullyProcessed =
+    processed ===
+    item.uitgeleend;
 
 
-  let statusClass =
-    "open";
+  const hasProblem =
 
-
-  let statusSymbol =
-    "•";
-
-
-  if (
-    remaining ===
-    0
-  ) {
-
-    statusClass =
-      "done";
-
-
-    statusSymbol =
-      "✓";
-
-  }
-
-  else if (
     item.beschadigd >
     0
 
     ||
 
     item.ontbreekt >
-    0
+    0;
+
+
+  let statusText =
+    "Nog te verwerken";
+
+
+  let statusClass =
+    "pending";
+
+
+  if (
+    isFullyProcessed &&
+    !hasProblem
   ) {
 
+    statusText =
+      "Alles goed terug";
+
+
     statusClass =
-      "warning";
-
-
-    statusSymbol =
-      "!";
+      "good";
 
   }
 
 
-  const noteId =
-    returnDomId(
-      order.id,
-      item.product_naam,
-      "note"
-    );
+  if (
+    hasProblem
+  ) {
+
+    statusText =
+
+      [
+        item.beschadigd > 0
+          ? `${item.beschadigd} beschadigd`
+          : "",
+
+        item.ontbreekt > 0
+          ? `${item.ontbreekt} ontbreekt`
+          : ""
+
+      ]
+        .filter(
+          Boolean
+        )
+        .join(
+          " · "
+        );
 
 
-  const noteBoxId =
-    `${noteId}_box`;
+    statusClass =
+      "problem";
+
+  }
 
 
   return `
 
-    <div class="return-product-row">
+    <div
+      class="return-simple-item ${statusClass}"
+      id="${returnDomId(
+        order.id,
+        item.product_naam,
+        "row"
+      )}"
+    >
 
-      <div class="return-product-grid">
+      <div class="return-simple-item-main">
 
-        <div class="return-product-info">
+        <div>
 
           <strong>
 
@@ -4658,171 +4733,126 @@ function buildProfessionalReturnProduct(
           <span>
 
             ${item.uitgeleend}
-            uitgeleend
+            ${
+              item.uitgeleend === 1
+                ? "stuk"
+                : "stuks"
+            }
 
           </span>
 
         </div>
 
 
-        <div class="return-loaned">
+        <div
+          id="${returnDomId(
+            order.id,
+            item.product_naam,
+            "simpleStatus"
+          )}"
+          class="return-simple-status ${statusClass}"
+        >
 
-          ${item.uitgeleend}
-
-        </div>
-
-
-        ${buildProfessionalReturnControl(
-          order.id,
-          item.product_naam,
-          "good",
-          "Goed",
-          item.goed_terug,
-          "green"
-        )}
-
-
-        ${buildProfessionalReturnControl(
-          order.id,
-          item.product_naam,
-          "damaged",
-          "Beschadigd",
-          item.beschadigd,
-          "orange"
-        )}
-
-
-        ${buildProfessionalReturnControl(
-          order.id,
-          item.product_naam,
-          "missing",
-          "Ontbrekend",
-          item.ontbreekt,
-          "red"
-        )}
-
-
-        <div class="return-status">
-
-          <div
-            id="${returnDomId(
-              order.id,
-              item.product_naam,
-              "status"
-            )}"
-            class="return-status-circle ${statusClass}"
-          >
-
-            ${statusSymbol}
-
-          </div>
+          ${adminEscapeHtml(
+            statusText
+          )}
 
         </div>
 
       </div>
 
 
-      <button
-        class="return-note-toggle"
-        type="button"
-        onclick="toggleProfessionalReturnNote('${noteBoxId}')"
+      <!--
+        Verborgen waarden.
+        Hierdoor blijft bestaande Supabase-opslag werken.
+      -->
+
+      <span
+        id="${returnDomId(
+          order.id,
+          item.product_naam,
+          "good"
+        )}"
+        class="hidden"
       >
-
-        + opmerking
-
-      </button>
-
-
-      <div
-        id="${noteBoxId}"
-        class="${
-          item.opmerking
-            ? ""
-            : "hidden"
-        }"
-      >
-
-        <textarea
-          id="${noteId}"
-          class="return-note"
-          placeholder="Opmerking over beschadiging of ontbrekend materiaal"
-        >${adminEscapeHtml(
-          item.opmerking
-        )}</textarea>
-
-      </div>
-
-    </div>
-
-  `;
-
-}
-
-function buildProfessionalReturnControl(
-  orderId,
-  productName,
-  type,
-  label,
-  value,
-  color
-) {
-
-  const safeProductName =
-    escapeReturnJsString(
-      productName
-    );
-
-
-  return `
-
-    <div class="return-counter ${color}">
-
-      <span class="return-counter-label">
-        ${label}
+        ${item.goed_terug}
       </span>
 
 
-      <strong class="return-counter-value">
-        ${value}
-      </strong>
+      <span
+        id="${returnDomId(
+          order.id,
+          item.product_naam,
+          "damaged"
+        )}"
+        class="hidden"
+      >
+        ${item.beschadigd}
+      </span>
 
 
-      <div class="return-stepper">
+      <span
+        id="${returnDomId(
+          order.id,
+          item.product_naam,
+          "missing"
+        )}"
+        class="hidden"
+      >
+        ${item.ontbreekt}
+      </span>
+
+
+      <textarea
+        id="${returnDomId(
+          order.id,
+          item.product_naam,
+          "note"
+        )}"
+        class="hidden"
+      >${adminEscapeHtml(item.opmerking)}</textarea>
+
+
+      <div class="return-simple-actions">
 
         <button
           type="button"
-          onclick="changeReturnQuantity(
-            '${orderId}',
-            '${safeProductName}',
-            '${type}',
-            -1
+          class="return-good-button ${
+            isFullyProcessed &&
+            !hasProblem
+              ? "selected"
+              : ""
+          }"
+          onclick="markSingleReturnItemGood(
+            '${order.id}',
+            '${escapeReturnJsString(
+              item.product_naam
+            )}'
           )"
         >
-          −
+
+          ✓ Alles goed
+
         </button>
 
 
-        <b
-          id="${returnDomId(
-            orderId,
-            productName,
-            type
-          )}"
-        >
-          ${value}
-        </b>
-
-
         <button
           type="button"
-          onclick="changeReturnQuantity(
-            '${orderId}',
-            '${safeProductName}',
-            '${type}',
-            1
+          class="return-problem-button ${
+            hasProblem
+              ? "selected"
+              : ""
+          }"
+          onclick="openReturnProblemModal(
+            '${order.id}',
+            '${escapeReturnJsString(
+              item.product_naam
+            )}'
           )"
         >
-          +
+
+          Probleem melden
+
         </button>
 
       </div>
@@ -4833,18 +4863,28 @@ function buildProfessionalReturnControl(
 
 }
 
-function toggleProfessionalReturnNote(
-  id
+/* ============================================================
+   1 ARTIKEL VOLLEDIG GOED TERUG
+============================================================ */
+
+function markSingleReturnItemGood(
+  orderId,
+  productName
 ) {
 
-  const element =
-    document.getElementById(
-      id
-    );
+  const item =
+    getEventMaterialItems(
+      orderId
+    )
+      .find(
+        material =>
+          material.product_naam ===
+          productName
+      );
 
 
   if (
-    !element
+    !item
   ) {
 
     return;
@@ -4852,9 +4892,908 @@ function toggleProfessionalReturnNote(
   }
 
 
-  element.classList.toggle(
+  setReturnScreenValue(
+    orderId,
+    productName,
+    "good",
+    Number(
+      item.aantal ||
+      0
+    )
+  );
+
+
+  setReturnScreenValue(
+    orderId,
+    productName,
+    "damaged",
+    0
+  );
+
+
+  setReturnScreenValue(
+    orderId,
+    productName,
+    "missing",
+    0
+  );
+
+
+  const note =
+    document.getElementById(
+      returnDomId(
+        orderId,
+        productName,
+        "note"
+      )
+    );
+
+
+  if (
+    note
+  ) {
+
+    note.value =
+      "";
+
+  }
+
+
+  updateSimpleReturnItemStatus(
+    orderId,
+    productName
+  );
+
+
+  updateSimpleReturnProcessedTotal(
+    orderId
+  );
+
+}
+
+
+/* ============================================================
+   STATUS VAN 1 RETOURARTIKEL BIJWERKEN
+============================================================ */
+
+function updateSimpleReturnItemStatus(
+  orderId,
+  productName
+) {
+
+  const item =
+    getEventMaterialItems(
+      orderId
+    )
+      .find(
+        material =>
+          material.product_naam ===
+          productName
+      );
+
+
+  if (
+    !item
+  ) {
+
+    return;
+
+  }
+
+
+  const good =
+    getReturnScreenValue(
+      orderId,
+      productName,
+      "good"
+    );
+
+
+  const damaged =
+    getReturnScreenValue(
+      orderId,
+      productName,
+      "damaged"
+    );
+
+
+  const missing =
+    getReturnScreenValue(
+      orderId,
+      productName,
+      "missing"
+    );
+
+
+  const processed =
+    good +
+    damaged +
+    missing;
+
+
+  const fullyProcessed =
+    processed ===
+    Number(
+      item.aantal ||
+      0
+    );
+
+
+  const hasProblem =
+    damaged > 0
+    ||
+    missing > 0;
+
+
+  const statusElement =
+    document.getElementById(
+      returnDomId(
+        orderId,
+        productName,
+        "simpleStatus"
+      )
+    );
+
+
+  const rowElement =
+    document.getElementById(
+      returnDomId(
+        orderId,
+        productName,
+        "row"
+      )
+    );
+
+
+  if (
+    !statusElement ||
+    !rowElement
+  ) {
+
+    return;
+
+  }
+
+
+  statusElement.className =
+    "return-simple-status";
+
+
+  rowElement.classList.remove(
+    "pending",
+    "good",
+    "problem"
+  );
+
+
+  if (
+    fullyProcessed &&
+    !hasProblem
+  ) {
+
+    statusElement.classList.add(
+      "good"
+    );
+
+
+    statusElement.textContent =
+      "Alles goed terug";
+
+
+    rowElement.classList.add(
+      "good"
+    );
+
+
+    return;
+
+  }
+
+
+  if (
+    hasProblem
+  ) {
+
+    statusElement.classList.add(
+      "problem"
+    );
+
+
+    const parts =
+      [];
+
+
+    if (
+      damaged > 0
+    ) {
+
+      parts.push(
+        `${damaged} beschadigd`
+      );
+
+    }
+
+
+    if (
+      missing > 0
+    ) {
+
+      parts.push(
+        `${missing} ontbreekt`
+      );
+
+    }
+
+
+    statusElement.textContent =
+      parts.join(
+        " · "
+      );
+
+
+    rowElement.classList.add(
+      "problem"
+    );
+
+
+    return;
+
+  }
+
+
+  statusElement.classList.add(
+    "pending"
+  );
+
+
+  statusElement.textContent =
+    "Nog te verwerken";
+
+
+  rowElement.classList.add(
+    "pending"
+  );
+
+}
+
+
+/* ============================================================
+   BOVENAAN VERWERKT TOTAAL BIJWERKEN
+============================================================ */
+
+function updateSimpleReturnProcessedTotal(
+  orderId
+) {
+
+  let processed =
+    0;
+
+
+  getEventMaterialItems(
+    orderId
+  )
+    .forEach(
+      item => {
+
+        processed +=
+
+          getReturnScreenValue(
+            orderId,
+            item.product_naam,
+            "good"
+          )
+
+          +
+
+          getReturnScreenValue(
+            orderId,
+            item.product_naam,
+            "damaged"
+          )
+
+          +
+
+          getReturnScreenValue(
+            orderId,
+            item.product_naam,
+            "missing"
+          );
+
+      }
+    );
+
+
+  const element =
+    document.getElementById(
+      "returnSimpleProcessed"
+    );
+
+
+  if (
+    element
+  ) {
+
+    element.textContent =
+      processed;
+
+  }
+
+}
+
+
+/* ============================================================
+   PROBLEEM POPUP OPENEN
+============================================================ */
+
+function openReturnProblemModal(
+  orderId,
+  productName
+) {
+
+  const item =
+    getEventMaterialItems(
+      orderId
+    )
+      .find(
+        material =>
+          material.product_naam ===
+          productName
+      );
+
+
+  if (
+    !item
+  ) {
+
+    return;
+
+  }
+
+
+  const modal =
+    document.getElementById(
+      "returnProblemModal"
+    );
+
+
+  if (
+    !modal
+  ) {
+
+    alert(
+      "Probleemvenster is nog niet geladen."
+    );
+
+    return;
+
+  }
+
+
+  modal.dataset.orderId =
+    orderId;
+
+
+  modal.dataset.productName =
+    productName;
+
+
+  document.getElementById(
+    "returnProblemTitle"
+  ).textContent =
+    productName;
+
+
+  document.getElementById(
+    "returnProblemLoaned"
+  ).textContent =
+    `${item.aantal} ${
+      Number(
+        item.aantal
+      ) === 1
+        ? "stuk uitgeleend"
+        : "stuks uitgeleend"
+    }`;
+
+
+  document.getElementById(
+    "returnProblemDamaged"
+  ).textContent =
+    getReturnScreenValue(
+      orderId,
+      productName,
+      "damaged"
+    );
+
+
+  document.getElementById(
+    "returnProblemMissing"
+  ).textContent =
+    getReturnScreenValue(
+      orderId,
+      productName,
+      "missing"
+    );
+
+
+  const note =
+    document.getElementById(
+      returnDomId(
+        orderId,
+        productName,
+        "note"
+      )
+    );
+
+
+  document.getElementById(
+    "returnProblemNote"
+  ).value =
+    note?.value ||
+    "";
+
+
+  updateReturnProblemGoodPreview();
+
+
+  modal.classList.remove(
     "hidden"
   );
+
+
+  document.body.style.overflow =
+    "hidden";
+
+}
+
+
+/* ============================================================
+   PROBLEEM POPUP SLUITEN
+============================================================ */
+
+function closeReturnProblemModal() {
+
+  const modal =
+    document.getElementById(
+      "returnProblemModal"
+    );
+
+
+  if (
+    !modal
+  ) {
+
+    return;
+
+  }
+
+
+  modal.classList.add(
+    "hidden"
+  );
+
+
+  document.body.style.overflow =
+    "";
+
+}
+
+
+/* ============================================================
+   BESCHADIGD +/- IN POPUP
+============================================================ */
+
+function changeReturnProblemDamaged(
+  amount
+) {
+
+  changeReturnProblemValue(
+    "returnProblemDamaged",
+    amount
+  );
+
+}
+
+
+/* ============================================================
+   ONTBREKEND +/- IN POPUP
+============================================================ */
+
+function changeReturnProblemMissing(
+  amount
+) {
+
+  changeReturnProblemValue(
+    "returnProblemMissing",
+    amount
+  );
+
+}
+
+
+/* ============================================================
+   POPUP WAARDE VERANDEREN
+============================================================ */
+
+function changeReturnProblemValue(
+  elementId,
+  amount
+) {
+
+  const modal =
+    document.getElementById(
+      "returnProblemModal"
+    );
+
+
+  if (
+    !modal
+  ) {
+
+    return;
+
+  }
+
+
+  const orderId =
+    modal.dataset.orderId;
+
+
+  const productName =
+    modal.dataset.productName;
+
+
+  const item =
+    getEventMaterialItems(
+      orderId
+    )
+      .find(
+        material =>
+          material.product_naam ===
+          productName
+      );
+
+
+  if (
+    !item
+  ) {
+
+    return;
+
+  }
+
+
+  const damagedElement =
+    document.getElementById(
+      "returnProblemDamaged"
+    );
+
+
+  const missingElement =
+    document.getElementById(
+      "returnProblemMissing"
+    );
+
+
+  let damaged =
+    Number(
+      damagedElement.textContent ||
+      0
+    );
+
+
+  let missing =
+    Number(
+      missingElement.textContent ||
+      0
+    );
+
+
+  if (
+    elementId ===
+    "returnProblemDamaged"
+  ) {
+
+    damaged =
+      Math.max(
+        0,
+        damaged +
+        amount
+      );
+
+  }
+
+
+  if (
+    elementId ===
+    "returnProblemMissing"
+  ) {
+
+    missing =
+      Math.max(
+        0,
+        missing +
+        amount
+      );
+
+  }
+
+
+  const total =
+    Number(
+      item.aantal ||
+      0
+    );
+
+
+  if (
+    damaged +
+    missing >
+    total
+  ) {
+
+    return;
+
+  }
+
+
+  damagedElement.textContent =
+    damaged;
+
+
+  missingElement.textContent =
+    missing;
+
+
+  updateReturnProblemGoodPreview();
+
+}
+
+
+/* ============================================================
+   GOED TERUG AUTOMATISCH TONEN
+============================================================ */
+
+function updateReturnProblemGoodPreview() {
+
+  const modal =
+    document.getElementById(
+      "returnProblemModal"
+    );
+
+
+  if (
+    !modal
+  ) {
+
+    return;
+
+  }
+
+
+  const orderId =
+    modal.dataset.orderId;
+
+
+  const productName =
+    modal.dataset.productName;
+
+
+  const item =
+    getEventMaterialItems(
+      orderId
+    )
+      .find(
+        material =>
+          material.product_naam ===
+          productName
+      );
+
+
+  if (
+    !item
+  ) {
+
+    return;
+
+  }
+
+
+  const damaged =
+    Number(
+      document
+        .getElementById(
+          "returnProblemDamaged"
+        )
+        .textContent ||
+      0
+    );
+
+
+  const missing =
+    Number(
+      document
+        .getElementById(
+          "returnProblemMissing"
+        )
+        .textContent ||
+      0
+    );
+
+
+  const good =
+    Math.max(
+      0,
+      Number(
+        item.aantal ||
+        0
+      )
+      -
+      damaged
+      -
+      missing
+    );
+
+
+  document
+    .getElementById(
+      "returnProblemGood"
+    )
+    .textContent =
+      good;
+
+}
+
+
+/* ============================================================
+   PROBLEEM OPSLAAN IN HET RETOURFORMULIER
+============================================================ */
+
+function saveReturnProblemModal() {
+
+  const modal =
+    document.getElementById(
+      "returnProblemModal"
+    );
+
+
+  if (
+    !modal
+  ) {
+
+    return;
+
+  }
+
+
+  const orderId =
+    modal.dataset.orderId;
+
+
+  const productName =
+    modal.dataset.productName;
+
+
+  const item =
+    getEventMaterialItems(
+      orderId
+    )
+      .find(
+        material =>
+          material.product_naam ===
+          productName
+      );
+
+
+  if (
+    !item
+  ) {
+
+    return;
+
+  }
+
+
+  const damaged =
+    Number(
+      document
+        .getElementById(
+          "returnProblemDamaged"
+        )
+        .textContent ||
+      0
+    );
+
+
+  const missing =
+    Number(
+      document
+        .getElementById(
+          "returnProblemMissing"
+        )
+        .textContent ||
+      0
+    );
+
+
+  const good =
+    Math.max(
+      0,
+      Number(
+        item.aantal ||
+        0
+      )
+      -
+      damaged
+      -
+      missing
+    );
+
+
+  const note =
+    document
+      .getElementById(
+        "returnProblemNote"
+      )
+      .value
+      .trim();
+
+
+  setReturnScreenValue(
+    orderId,
+    productName,
+    "good",
+    good
+  );
+
+
+  setReturnScreenValue(
+    orderId,
+    productName,
+    "damaged",
+    damaged
+  );
+
+
+  setReturnScreenValue(
+    orderId,
+    productName,
+    "missing",
+    missing
+  );
+
+
+  const noteField =
+    document.getElementById(
+      returnDomId(
+        orderId,
+        productName,
+        "note"
+      )
+    );
+
+
+  if (
+    noteField
+  ) {
+
+    noteField.value =
+      note;
+
+  }
+
+
+  updateSimpleReturnItemStatus(
+    orderId,
+    productName
+  );
+
+
+  updateSimpleReturnProcessedTotal(
+    orderId
+  );
+
+
+  closeReturnProblemModal();
 
 }
 
@@ -10123,7 +11062,813 @@ function injectProfessionalReturnStyles() {
       }
 
     }
+/* ==========================================
+   EENVOUDIG RETOURSCHERM
+========================================== */
 
+.return-simple-workspace {
+
+  background:#f7f5ef;
+
+  border:
+    1px solid
+    #ded9ce;
+
+  border-radius:16px;
+
+  overflow:hidden;
+
+  box-shadow:
+    0 8px 24px
+    rgba(
+      35,
+      30,
+      22,
+      .08
+    );
+
+}
+
+
+.return-simple-header {
+
+  padding:
+    14px;
+
+  background:#faf9f5;
+
+  border-bottom:
+    1px solid
+    #ded9ce;
+
+}
+
+
+.return-simple-header span {
+
+  display:block;
+
+  color:#8c692f;
+
+  font-size:8px;
+
+  font-weight:900;
+
+  letter-spacing:.08em;
+
+}
+
+
+.return-simple-header h2 {
+
+  margin:
+    2px 0 0;
+
+  font-size:22px;
+
+  color:#182019;
+
+}
+
+
+.return-simple-summary {
+
+  display:grid;
+
+  grid-template-columns:
+    1fr 1fr;
+
+  gap:6px;
+
+  padding:10px;
+
+  background:#f0ece4;
+
+}
+
+
+.return-simple-summary > div {
+
+  padding:
+    10px;
+
+  border-radius:10px;
+
+  background:white;
+
+  text-align:center;
+
+}
+
+
+.return-simple-summary span {
+
+  display:block;
+
+  color:#80786c;
+
+  font-size:8px;
+
+  font-weight:900;
+
+  text-transform:uppercase;
+
+}
+
+
+.return-simple-summary strong {
+
+  display:block;
+
+  margin-top:2px;
+
+  color:#1a211b;
+
+  font-size:22px;
+
+}
+
+
+.return-simple-list {
+
+  background:white;
+
+}
+
+
+.return-simple-item {
+
+  padding:
+    11px;
+
+  border-bottom:
+    1px solid
+    #e5e0d7;
+
+  border-left:
+    4px solid
+    #d0cbc2;
+
+}
+
+
+.return-simple-item.good {
+
+  border-left-color:
+    #2f7449;
+
+  background:#f9fcfa;
+
+}
+
+
+.return-simple-item.problem {
+
+  border-left-color:
+    #d99a3e;
+
+  background:#fffaf3;
+
+}
+
+
+.return-simple-item-main {
+
+  display:flex;
+
+  justify-content:
+    space-between;
+
+  align-items:flex-start;
+
+  gap:8px;
+
+}
+
+
+.return-simple-item-main strong {
+
+  display:block;
+
+  color:#202720;
+
+  font-size:14px;
+
+}
+
+
+.return-simple-item-main span {
+
+  display:block;
+
+  margin-top:2px;
+
+  color:#888074;
+
+  font-size:9px;
+
+}
+
+
+.return-simple-status {
+
+  padding:
+    4px 7px;
+
+  border-radius:999px;
+
+  font-size:8px;
+
+  font-weight:900;
+
+  white-space:nowrap;
+
+}
+
+
+.return-simple-status.pending {
+
+  background:#ece8df;
+
+  color:#777064;
+
+}
+
+
+.return-simple-status.good {
+
+  background:#e5f3e9;
+
+  color:#2f7449;
+
+}
+
+
+.return-simple-status.problem {
+
+  background:#f8ead5;
+
+  color:#a36017;
+
+}
+
+
+.return-simple-actions {
+
+  display:grid;
+
+  grid-template-columns:
+    1fr 1fr;
+
+  gap:6px;
+
+  margin-top:9px;
+
+}
+
+
+.return-good-button,
+.return-problem-button {
+
+  min-height:38px;
+
+  border-radius:9px;
+
+  font-size:10px;
+
+  font-weight:900;
+
+}
+
+
+.return-good-button {
+
+  border:
+    1px solid
+    #b9d6c2;
+
+  background:#eff7f1;
+
+  color:#2f7449;
+
+}
+
+
+.return-good-button.selected {
+
+  background:#2f7449;
+
+  color:white;
+
+  border-color:#2f7449;
+
+}
+
+
+.return-problem-button {
+
+  border:
+    1px solid
+    #e0c18e;
+
+  background:#fff8ed;
+
+  color:#9c611b;
+
+}
+
+
+.return-problem-button.selected {
+
+  background:#d99a3e;
+
+  color:white;
+
+  border-color:#d99a3e;
+
+}
+
+
+.return-simple-footer {
+
+  display:grid;
+
+  grid-template-columns:
+    .7fr 1.3fr;
+
+  gap:6px;
+
+  padding:10px;
+
+  background:#f2eee6;
+
+}
+
+
+.return-simple-cancel,
+.return-simple-save {
+
+  min-height:43px;
+
+  border-radius:10px;
+
+  font-weight:900;
+
+}
+
+
+.return-simple-cancel {
+
+  border:
+    1px solid
+    #d7d1c6;
+
+  background:white;
+
+  color:#514b42;
+
+}
+
+
+.return-simple-save {
+
+  border:0;
+
+  background:#194d38;
+
+  color:white;
+
+}
+
+
+/* ==========================================
+   PROBLEEM POPUP OVERLAY
+========================================== */
+
+.return-problem-overlay {
+
+  position:fixed;
+
+  inset:0;
+
+  z-index:500;
+
+  display:flex;
+
+  align-items:flex-end;
+
+  justify-content:center;
+
+  padding:
+    14px;
+
+  background:
+    rgba(
+      12,
+      18,
+      13,
+      .55
+    );
+
+  backdrop-filter:
+    blur(3px);
+
+}
+
+
+/* ==========================================
+   PROBLEEM POPUP
+========================================== */
+
+.return-problem-modal {
+
+  width:100%;
+
+  max-width:520px;
+
+  max-height:
+    88vh;
+
+  overflow-y:auto;
+
+  padding:
+    14px;
+
+  border-radius:
+    18px;
+
+  background:
+    #f8f6f0;
+
+  box-shadow:
+    0 18px 50px
+    rgba(
+      0,
+      0,
+      0,
+      .3
+    );
+
+}
+
+
+.return-problem-modal-head {
+
+  display:flex;
+
+  justify-content:
+    space-between;
+
+  align-items:flex-start;
+
+  gap:10px;
+
+  padding-bottom:10px;
+
+  border-bottom:
+    1px solid
+    #ded8ce;
+
+}
+
+
+.return-problem-modal-head span {
+
+  display:block;
+
+  color:#a15f18;
+
+  font-size:8px;
+
+  font-weight:900;
+
+  letter-spacing:.08em;
+
+}
+
+
+.return-problem-modal-head h3 {
+
+  margin:
+    2px 0 0;
+
+  color:#182019;
+
+  font-size:20px;
+
+}
+
+
+.return-problem-modal-head small {
+
+  display:block;
+
+  margin-top:2px;
+
+  color:#81796d;
+
+  font-size:9px;
+
+}
+
+
+.return-problem-modal-head > button {
+
+  width:34px;
+
+  height:34px;
+
+  border:0;
+
+  border-radius:9px;
+
+  background:#e8e2d8;
+
+  color:#49443d;
+
+  font-size:21px;
+
+}
+
+
+/* ==========================================
+   GOED TERUG PREVIEW
+========================================== */
+
+.return-problem-good-preview {
+
+  display:flex;
+
+  justify-content:
+    space-between;
+
+  align-items:center;
+
+  margin-top:10px;
+
+  padding:
+    9px 10px;
+
+  border-radius:10px;
+
+  background:#e5f3e9;
+
+  color:#2f7449;
+
+}
+
+
+.return-problem-good-preview span {
+
+  font-size:10px;
+
+  font-weight:900;
+
+}
+
+
+.return-problem-good-preview strong {
+
+  font-size:20px;
+
+}
+
+
+/* ==========================================
+   PROBLEEM OPTIES
+========================================== */
+
+.return-problem-option {
+
+  display:grid;
+
+  grid-template-columns:
+    1fr auto;
+
+  align-items:center;
+
+  gap:8px;
+
+  margin-top:8px;
+
+  padding:10px;
+
+  border:
+    1px solid
+    #dfd9cf;
+
+  border-radius:11px;
+
+  background:white;
+
+}
+
+
+.return-problem-option strong {
+
+  display:block;
+
+  color:#282e29;
+
+  font-size:11px;
+
+}
+
+
+.return-problem-option span {
+
+  display:block;
+
+  margin-top:2px;
+
+  color:#8a8175;
+
+  font-size:8px;
+
+}
+
+
+/* ==========================================
+   POPUP STEPPER
+========================================== */
+
+.return-problem-stepper {
+
+  display:grid;
+
+  grid-template-columns:
+    34px 40px 34px;
+
+  overflow:hidden;
+
+  border:
+    1px solid
+    #d8d2c8;
+
+  border-radius:9px;
+
+  background:white;
+
+}
+
+
+.return-problem-stepper button {
+
+  height:34px;
+
+  border:0;
+
+  background:#f6f3ed;
+
+  color:#5f584e;
+
+  font-size:18px;
+
+}
+
+
+.return-problem-stepper button:first-child {
+
+  border-right:
+    1px solid
+    #ded8ce;
+
+}
+
+
+.return-problem-stepper button:last-child {
+
+  border-left:
+    1px solid
+    #ded8ce;
+
+}
+
+
+.return-problem-stepper strong {
+
+  display:grid;
+
+  place-items:center;
+
+  font-size:13px;
+
+}
+
+
+/* ==========================================
+   OPMERKING POPUP
+========================================== */
+
+.return-problem-modal label {
+
+  display:block;
+
+  margin-top:10px;
+
+  color:#4d493f;
+
+  font-size:9px;
+
+  font-weight:900;
+
+}
+
+
+.return-problem-modal textarea {
+
+  width:100%;
+
+  min-height:74px;
+
+  margin-top:5px;
+
+  border:
+    1px solid
+    #d9d3c9;
+
+  border-radius:10px;
+
+  background:white;
+
+  padding:9px;
+
+  font-size:11px;
+
+}
+
+
+/* ==========================================
+   POPUP ACTIES
+========================================== */
+
+.return-problem-actions {
+
+  display:grid;
+
+  grid-template-columns:
+    .8fr 1.2fr;
+
+  gap:6px;
+
+  margin-top:10px;
+
+}
+
+
+.return-problem-cancel,
+.return-problem-save {
+
+  min-height:42px;
+
+  border-radius:10px;
+
+  font-size:10px;
+
+  font-weight:900;
+
+}
+
+
+.return-problem-cancel {
+
+  border:
+    1px solid
+    #d8d2c8;
+
+  background:white;
+
+  color:#595249;
+
+}
+
+
+.return-problem-save {
+
+  border:0;
+
+  background:#194d38;
+
+  color:white;
+
+}
+
+
+/* ==========================================
+   DESKTOP POPUP
+========================================== */
+
+@media (
+  min-width:701px
+) {
+
+  .return-problem-overlay {
+
+    align-items:center;
+
+  }
+
+}
   `;
 
 
