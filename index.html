@@ -1813,6 +1813,49 @@ Bestelling groothandel
 Beheer
 </button>
 
+  <div
+  style="
+    margin-top:10px;
+    padding-top:10px;
+    border-top:1px solid var(--border);
+  "
+>
+
+  <div
+    style="
+      padding:0 12px 6px;
+      color:var(--muted);
+      font-size:9px;
+      font-weight:900;
+      text-transform:uppercase;
+    "
+  >
+    Meldingen
+  </div>
+
+
+  <button
+    id="pushNotificationButton"
+    class="menu-item"
+    type="button"
+    onclick="enablePushNotifications()"
+  >
+    Pushmeldingen inschakelen
+  </button>
+
+
+  <div
+    id="pushNotificationStatus"
+    class="info"
+    style="
+      margin:4px 8px 8px;
+      font-size:9px;
+    "
+  >
+    Pushmeldingen zijn nog niet actief.
+  </div>
+
+</div>
 
 <button
   class="menu-item danger"
@@ -2720,6 +2763,502 @@ const SUPABASE_KEY =
 
 const CENTRAL_EMAIL =
   "fabiovenaruzzo@hotmail.com";
+
+const VAPID_PUBLIC_KEY =
+  "BHMB8Kg4wpw_axO7LpUjR0bq1WfrGQ9To5kUZXRbbD6lLHTRuauVxLvY0IvzyY3NqwwbDI6I6aS3X8-ciL-7hJ8";
+
+  /* ============================================================
+   PUSH HELPERS
+============================================================ */
+
+function urlBase64ToUint8Array(
+  base64String
+) {
+
+  const padding =
+    "=".repeat(
+      (
+        4 -
+        base64String.length %
+        4
+      ) %
+      4
+    );
+
+
+  const base64 =
+    (
+      base64String +
+      padding
+    )
+      .replace(
+        /-/g,
+        "+"
+      )
+      .replace(
+        /_/g,
+        "/"
+      );
+
+
+  const rawData =
+    window.atob(
+      base64
+    );
+
+
+  return Uint8Array.from(
+    [
+      ...rawData
+    ]
+      .map(
+        character =>
+          character.charCodeAt(
+            0
+          )
+      )
+  );
+
+}
+
+  async function enablePushNotifications() {
+
+  try {
+
+    if (
+      !currentUser
+    ) {
+
+      alert(
+        "Je moet ingelogd zijn om meldingen in te schakelen."
+      );
+
+      return;
+
+    }
+
+
+    if (
+      !(
+        "serviceWorker"
+        in navigator
+      )
+      ||
+      !(
+        "PushManager"
+        in window
+      )
+      ||
+      !(
+        "Notification"
+        in window
+      )
+    ) {
+
+      alert(
+        "Pushmeldingen worden op dit toestel niet ondersteund."
+      );
+
+      return;
+
+    }
+
+
+    if (
+      VAPID_PUBLIC_KEY ===
+      "HIER_KOMT_STRAX_JE_PUBLIC_VAPID_KEY"
+    ) {
+
+      alert(
+        "Pushmeldingen zijn technisch voorbereid, maar de VAPID-sleutel moet nog worden ingesteld."
+      );
+
+      return;
+
+    }
+
+
+    const permission =
+      await Notification
+        .requestPermission();
+
+
+    if (
+      permission !==
+      "granted"
+    ) {
+
+      updatePushNotificationUI();
+
+      return;
+
+    }
+
+
+    const registration =
+      await navigator
+        .serviceWorker
+        .ready;
+
+
+    let subscription =
+      await registration
+        .pushManager
+        .getSubscription();
+
+
+    if (
+      !subscription
+    ) {
+
+      subscription =
+        await registration
+          .pushManager
+          .subscribe({
+
+            userVisibleOnly:
+              true,
+
+            applicationServerKey:
+              urlBase64ToUint8Array(
+                VAPID_PUBLIC_KEY
+              )
+
+          });
+
+    }
+
+
+    const json =
+      subscription
+        .toJSON();
+
+
+    const {
+      error
+    } =
+      await supabaseClient
+
+        .from(
+          "push_subscriptions"
+        )
+
+        .upsert(
+          {
+
+            user_id:
+              currentUser.id,
+
+            endpoint:
+              json.endpoint,
+
+            p256dh:
+              json.keys?.p256dh,
+
+            auth:
+              json.keys?.auth,
+
+            user_agent:
+              navigator.userAgent,
+
+            updated_at:
+              new Date()
+                .toISOString()
+
+          },
+          {
+            onConflict:
+              "endpoint"
+          }
+        );
+
+
+    if (
+      error
+    ) {
+
+      throw error;
+
+    }
+
+
+    await updatePushNotificationUI();
+
+
+    alert(
+      "Pushmeldingen zijn ingeschakeld op dit toestel."
+    );
+
+  }
+
+  catch (
+    error
+  ) {
+
+    console.error(
+      "PUSH REGISTRATIE FOUT:",
+      error
+    );
+
+
+    alert(
+      "Pushmeldingen konden niet worden ingeschakeld.\n\n"
+      +
+      (
+        error?.message ||
+        "Onbekende fout"
+      )
+    );
+
+  }
+
+}
+
+  async function disablePushNotifications() {
+
+  try {
+
+    if (
+      !currentUser
+    ) {
+
+      return;
+
+    }
+
+
+    const registration =
+      await navigator
+        .serviceWorker
+        .ready;
+
+
+    const subscription =
+      await registration
+        .pushManager
+        .getSubscription();
+
+
+    if (
+      subscription
+    ) {
+
+      const endpoint =
+        subscription.endpoint;
+
+
+      await supabaseClient
+        .from(
+          "push_subscriptions"
+        )
+        .delete()
+        .eq(
+          "endpoint",
+          endpoint
+        );
+
+
+      await subscription
+        .unsubscribe();
+
+    }
+
+
+    await updatePushNotificationUI();
+
+
+    alert(
+      "Pushmeldingen zijn uitgeschakeld op dit toestel."
+    );
+
+  }
+
+  catch (
+    error
+  ) {
+
+    console.error(
+      "PUSH UITSCHAKELEN FOUT:",
+      error
+    );
+
+
+    alert(
+      "Pushmeldingen konden niet worden uitgeschakeld."
+    );
+
+  }
+
+}
+
+  async function updatePushNotificationUI() {
+
+  const button =
+    document.getElementById(
+      "pushNotificationButton"
+    );
+
+
+  const status =
+    document.getElementById(
+      "pushNotificationStatus"
+    );
+
+
+  if (
+    !button ||
+    !status
+  ) {
+
+    return;
+
+  }
+
+
+  if (
+    !(
+      "Notification"
+      in window
+    )
+  ) {
+
+    button.disabled =
+      true;
+
+
+    button.innerText =
+      "Niet ondersteund";
+
+
+    status.innerText =
+      "Dit toestel ondersteunt geen pushmeldingen.";
+
+
+    return;
+
+  }
+
+
+  const permission =
+    Notification.permission;
+
+
+  let subscription =
+    null;
+
+
+  if (
+    "serviceWorker"
+    in navigator
+  ) {
+
+    try {
+
+      const registration =
+        await navigator
+          .serviceWorker
+          .ready;
+
+
+      subscription =
+        await registration
+          .pushManager
+          .getSubscription();
+
+    }
+
+    catch (
+      error
+    ) {
+
+      console.warn(
+        "Push status kon niet worden gecontroleerd:",
+        error
+      );
+
+    }
+
+  }
+
+
+  if (
+    permission ===
+    "granted"
+    &&
+    subscription
+  ) {
+
+    button.disabled =
+      false;
+
+
+    button.innerText =
+      "Pushmeldingen uitschakelen";
+
+
+    button.onclick =
+      disablePushNotifications;
+
+
+    status.innerText =
+      "✓ Pushmeldingen actief op dit toestel";
+
+
+    status.className =
+      "info ok";
+
+
+    return;
+
+  }
+
+
+  if (
+    permission ===
+    "denied"
+  ) {
+
+    button.disabled =
+      true;
+
+
+    button.innerText =
+      "Pushmeldingen geblokkeerd";
+
+
+    status.innerText =
+      "Meldingen zijn geblokkeerd in de instellingen van dit toestel.";
+
+
+    status.className =
+      "info error";
+
+
+    return;
+
+  }
+
+
+  button.disabled =
+    false;
+
+
+  button.innerText =
+    "Pushmeldingen inschakelen";
+
+
+  button.onclick =
+    enablePushNotifications;
+
+
+  status.innerText =
+    "Pushmeldingen zijn nog niet actief.";
+
+
+  status.className =
+    "info";
+
+}
 
 
 const supabaseClient =
