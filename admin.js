@@ -159,6 +159,7 @@ function createAdminScreen() {
 
 
   injectAdminStyles();
+   injectProfessionalReturnStyles();
 
 
   const section =
@@ -4279,7 +4280,8 @@ function buildEventReturnEditor(
 
         <div class="info">
 
-          Retourregistratie wordt beschikbaar zodra het materiaal als afgehaald staat.
+          Retourregistratie wordt beschikbaar
+          zodra het materiaal als afgehaald staat.
 
         </div>
 
@@ -4311,7 +4313,8 @@ function buildEventReturnEditor(
 
         <div class="info error">
 
-          Er zijn geen evenementmaterialen aan deze aanvraag gekoppeld.
+          Er zijn geen evenementmaterialen
+          gekoppeld aan deze aanvraag.
 
         </div>
 
@@ -4322,226 +4325,239 @@ function buildEventReturnEditor(
   }
 
 
-  const loaned =
-    materials
-      .reduce(
-        (
-          total,
-          item
-        ) =>
-
-          total +
-          item.uitgeleend,
-
-        0
-      );
+  const totalLoaned =
+    materials.reduce(
+      (
+        total,
+        item
+      ) =>
+        total +
+        item.uitgeleend,
+      0
+    );
 
 
-  const outside =
-    materials
-      .reduce(
-        (
-          total,
-          item
-        ) =>
+  const totalGood =
+    materials.reduce(
+      (
+        total,
+        item
+      ) =>
+        total +
+        item.goed_terug,
+      0
+    );
 
-          total +
-          item.nog_buiten,
 
-        0
-      );
+  const totalDamaged =
+    materials.reduce(
+      (
+        total,
+        item
+      ) =>
+        total +
+        item.beschadigd,
+      0
+    );
+
+
+  const totalMissing =
+    materials.reduce(
+      (
+        total,
+        item
+      ) =>
+        total +
+        item.ontbreekt,
+      0
+    );
+
+
+  const totalProcessed =
+    totalGood +
+    totalDamaged +
+    totalMissing;
+
+
+  const totalRemaining =
+    Math.max(
+      0,
+      totalLoaned -
+      totalProcessed
+    );
 
 
   return `
 
-    <div class="card admin-return-card">
+    <div class="return-workspace">
 
-      <div class="admin-return-title">
+      <div class="return-workspace-header">
 
-        <div>
+        <div class="return-header-top">
 
-          <small>
-            LOGISTIEK
-          </small>
+          <div>
 
-          <h3>
-            Retour verwerken
-          </h3>
+            <span class="return-kicker">
+              Logistiek
+            </span>
+
+
+            <h2>
+              Retour verwerken
+            </h2>
+
+          </div>
+
+
+          <button
+            class="return-all-good"
+            type="button"
+            onclick="markEverythingReturned('${order.id}')"
+          >
+
+            ✓ Alles goed terug
+
+          </button>
 
         </div>
 
 
+        <div class="return-summary-bar">
+
+          <div class="return-summary-stat">
+
+            <span>
+              Uitgeleend
+            </span>
+
+            <strong>
+              ${totalLoaned}
+            </strong>
+
+          </div>
+
+
+          <div class="return-summary-stat green">
+
+            <span>
+              Verwerkt
+            </span>
+
+            <strong id="returnTotalProcessed">
+              ${totalProcessed}
+            </strong>
+
+          </div>
+
+
+          <div class="return-summary-stat orange">
+
+            <span>
+              Nog te doen
+            </span>
+
+            <strong id="returnTotalOutside">
+              ${totalRemaining}
+            </strong>
+
+          </div>
+
+
+          <div class="return-summary-stat red">
+
+            <span>
+              Beschadigd
+            </span>
+
+            <strong id="returnTotalDamaged">
+              ${totalDamaged}
+            </strong>
+
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <div class="return-table-header">
+
+        <div>
+          Artikel
+        </div>
+
+        <div>
+          Uitgeleend
+        </div>
+
+        <div>
+          Goed
+        </div>
+
+        <div>
+          Beschadigd
+        </div>
+
+        <div>
+          Ontbrekend
+        </div>
+
+        <div>
+          Status
+        </div>
+
+      </div>
+
+
+      <div>
+
+        ${
+          materials
+            .map(
+              item =>
+                buildProfessionalReturnProduct(
+                  order,
+                  item
+                )
+            )
+            .join("")
+        }
+
+      </div>
+
+
+      <div class="return-help">
+
+        ✓ verschijnt zodra goed + beschadigd + ontbrekend
+        gelijk is aan het uitgeleende aantal.
+
+      </div>
+
+
+      <div class="return-workspace-footer">
+
         <button
+          class="return-cancel"
           type="button"
-          onclick="markEverythingReturned('${order.id}')"
+          onclick="backToAdminDashboard()"
         >
 
-          Alles goed terug
+          Annuleren
+
+        </button>
+
+
+        <button
+          class="return-save-main"
+          type="button"
+          onclick="saveEventReturnRegistration('${order.id}')"
+        >
+
+          ✓ Retour verwerken
 
         </button>
 
       </div>
-
-
-      <div class="admin-return-summary">
-
-        <div>
-
-          <span>
-            Uitgeleend
-          </span>
-
-          <strong>
-            ${loaned}
-          </strong>
-
-        </div>
-
-
-        <div
-          class="${outside ? "open" : "done"}"
-        >
-
-          <span>
-            Nog buiten
-          </span>
-
-          <strong id="returnTotalOutside">
-            ${outside}
-          </strong>
-
-        </div>
-
-      </div>
-
-
-      ${
-        materials
-
-          .map(
-            item => `
-
-              <div class="admin-return-item">
-
-                <div class="admin-return-item-head">
-
-                  <strong>
-
-                    ${adminEscapeHtml(
-                      item.product_naam
-                    )}
-
-                  </strong>
-
-
-                  <span>
-
-                    Uitgeleend
-
-                    <b>
-                      ${item.uitgeleend}
-                    </b>
-
-                  </span>
-
-                </div>
-
-
-                ${returnControl(
-                  order.id,
-                  item.product_naam,
-                  "good",
-                  "Goed terug",
-                  item.goed_terug,
-                  "green"
-                )}
-
-
-                ${returnControl(
-                  order.id,
-                  item.product_naam,
-                  "damaged",
-                  "Beschadigd",
-                  item.beschadigd,
-                  "orange"
-                )}
-
-
-                ${returnControl(
-                  order.id,
-                  item.product_naam,
-                  "missing",
-                  "Ontbreekt",
-                  item.ontbreekt,
-                  "red"
-                )}
-
-
-                <div
-                  id="${returnDomId(
-                    order.id,
-                    item.product_naam,
-                    "outside"
-                  )}"
-                  class="admin-return-outside ${item.nog_buiten === 0 ? "done" : ""}"
-                >
-
-                  Nog buiten:
-                  ${item.nog_buiten}
-
-                </div>
-
-
-                <textarea
-                  id="${returnDomId(
-                    order.id,
-                    item.product_naam,
-                    "note"
-                  )}"
-                  placeholder="Opmerking indien nodig"
-                >${adminEscapeHtml(item.opmerking)}</textarea>
-
-              </div>
-
-            `
-          )
-
-          .join("")
-      }
-
-
-      <button
-        class="admin-save-return"
-        type="button"
-        onclick="saveEventReturnRegistration('${order.id}')"
-      >
-
-        Retour opslaan
-
-      </button>
-
-
-      ${
-        getEventReturnsForOrder(
-          order.id
-        ).length
-
-          ? `
-
-              <button
-                class="admin-reset-return"
-                type="button"
-                onclick="resetEventReturnRegistration('${order.id}')"
-              >
-
-                Registratie wissen
-
-              </button>
-
-            `
-
-          : ""
-      }
 
     </div>
 
@@ -4549,6 +4565,298 @@ function buildEventReturnEditor(
 
 }
 
+function buildProfessionalReturnProduct(
+  order,
+  item
+) {
+
+  const processed =
+    item.goed_terug +
+    item.beschadigd +
+    item.ontbreekt;
+
+
+  const remaining =
+    Math.max(
+      0,
+      item.uitgeleend -
+      processed
+    );
+
+
+  let statusClass =
+    "open";
+
+
+  let statusSymbol =
+    "•";
+
+
+  if (
+    remaining ===
+    0
+  ) {
+
+    statusClass =
+      "done";
+
+
+    statusSymbol =
+      "✓";
+
+  }
+
+  else if (
+    item.beschadigd >
+    0
+
+    ||
+
+    item.ontbreekt >
+    0
+  ) {
+
+    statusClass =
+      "warning";
+
+
+    statusSymbol =
+      "!";
+
+  }
+
+
+  const noteId =
+    returnDomId(
+      order.id,
+      item.product_naam,
+      "note"
+    );
+
+
+  const noteBoxId =
+    `${noteId}_box`;
+
+
+  return `
+
+    <div class="return-product-row">
+
+      <div class="return-product-grid">
+
+        <div class="return-product-info">
+
+          <strong>
+
+            ${adminEscapeHtml(
+              item.product_naam
+            )}
+
+          </strong>
+
+
+          <span>
+
+            ${item.uitgeleend}
+            uitgeleend
+
+          </span>
+
+        </div>
+
+
+        <div class="return-loaned">
+
+          ${item.uitgeleend}
+
+        </div>
+
+
+        ${buildProfessionalReturnControl(
+          order.id,
+          item.product_naam,
+          "good",
+          "Goed",
+          item.goed_terug,
+          "green"
+        )}
+
+
+        ${buildProfessionalReturnControl(
+          order.id,
+          item.product_naam,
+          "damaged",
+          "Beschadigd",
+          item.beschadigd,
+          "orange"
+        )}
+
+
+        ${buildProfessionalReturnControl(
+          order.id,
+          item.product_naam,
+          "missing",
+          "Ontbrekend",
+          item.ontbreekt,
+          "red"
+        )}
+
+
+        <div class="return-status">
+
+          <div
+            id="${returnDomId(
+              order.id,
+              item.product_naam,
+              "status"
+            )}"
+            class="return-status-circle ${statusClass}"
+          >
+
+            ${statusSymbol}
+
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <button
+        class="return-note-toggle"
+        type="button"
+        onclick="toggleProfessionalReturnNote('${noteBoxId}')"
+      >
+
+        + opmerking
+
+      </button>
+
+
+      <div
+        id="${noteBoxId}"
+        class="${
+          item.opmerking
+            ? ""
+            : "hidden"
+        }"
+      >
+
+        <textarea
+          id="${noteId}"
+          class="return-note"
+          placeholder="Opmerking over beschadiging of ontbrekend materiaal"
+        >${adminEscapeHtml(
+          item.opmerking
+        )}</textarea>
+
+      </div>
+
+    </div>
+
+  `;
+
+}
+
+function buildProfessionalReturnControl(
+  orderId,
+  productName,
+  type,
+  label,
+  value,
+  color
+) {
+
+  const safeProductName =
+    escapeReturnJsString(
+      productName
+    );
+
+
+  return `
+
+    <div class="return-counter ${color}">
+
+      <span class="return-counter-label">
+        ${label}
+      </span>
+
+
+      <strong class="return-counter-value">
+        ${value}
+      </strong>
+
+
+      <div class="return-stepper">
+
+        <button
+          type="button"
+          onclick="changeReturnQuantity(
+            '${orderId}',
+            '${safeProductName}',
+            '${type}',
+            -1
+          )"
+        >
+          −
+        </button>
+
+
+        <b
+          id="${returnDomId(
+            orderId,
+            productName,
+            type
+          )}"
+        >
+          ${value}
+        </b>
+
+
+        <button
+          type="button"
+          onclick="changeReturnQuantity(
+            '${orderId}',
+            '${safeProductName}',
+            '${type}',
+            1
+          )"
+        >
+          +
+        </button>
+
+      </div>
+
+    </div>
+
+  `;
+
+}
+
+function toggleProfessionalReturnNote(
+  id
+) {
+
+  const element =
+    document.getElementById(
+      id
+    );
+
+
+  if (
+    !element
+  ) {
+
+    return;
+
+  }
+
+
+  element.classList.toggle(
+    "hidden"
+  );
+
+}
 
 /* ===============================
    RETURN CONTROL
@@ -4876,67 +5184,107 @@ function updateReturnCalculation(
   }
 
 
+  const good =
+    getReturnScreenValue(
+      orderId,
+      productName,
+      "good"
+    );
+
+
+  const damaged =
+    getReturnScreenValue(
+      orderId,
+      productName,
+      "damaged"
+    );
+
+
+  const missing =
+    getReturnScreenValue(
+      orderId,
+      productName,
+      "missing"
+    );
+
+
+  const processed =
+    good +
+    damaged +
+    missing;
+
+
   const outside =
-
     Math.max(
-
       0,
-
       Number(
         item.aantal ||
         0
       )
-
       -
-
-      getReturnScreenValue(
-        orderId,
-        productName,
-        "good"
-      )
-
-      -
-
-      getReturnScreenValue(
-        orderId,
-        productName,
-        "damaged"
-      )
-
-      -
-
-      getReturnScreenValue(
-        orderId,
-        productName,
-        "missing"
-      )
-
+      processed
     );
 
 
-  const element =
-    document
-      .getElementById(
-        returnDomId(
-          orderId,
-          productName,
-          "outside"
-        )
-      );
+  const status =
+    document.getElementById(
+      returnDomId(
+        orderId,
+        productName,
+        "status"
+      )
+    );
 
 
   if (
-    element
+    status
   ) {
 
-    element.textContent =
-      `Nog buiten: ${outside}`;
+    status.className =
+      "return-status-circle";
 
 
-    element.classList.toggle(
-      "done",
-      outside === 0
-    );
+    if (
+      outside ===
+      0
+    ) {
+
+      status.classList.add(
+        "done"
+      );
+
+      status.textContent =
+        "✓";
+
+    }
+
+    else if (
+      damaged >
+      0
+      ||
+      missing >
+      0
+    ) {
+
+      status.classList.add(
+        "warning"
+      );
+
+      status.textContent =
+        "!";
+
+    }
+
+    else {
+
+      status.classList.add(
+        "open"
+      );
+
+      status.textContent =
+        "•";
+
+    }
 
   }
 
@@ -4947,83 +5295,124 @@ function updateReturnTotal(
   orderId
 ) {
 
-  const total =
+  let totalLoaned =
+    0;
 
-    getEventMaterialItems(
-      orderId
-    )
-      .reduce(
-        (
-          sum,
-          item
-        ) => {
 
-          return (
+  let totalGood =
+    0;
 
-            sum
 
-            +
+  let totalDamaged =
+    0;
 
-            Math.max(
 
-              0,
+  let totalMissing =
+    0;
 
-              Number(
-                item.aantal ||
-                0
-              )
 
-              -
+  getEventMaterialItems(
+    orderId
+  )
+    .forEach(
+      item => {
 
-              getReturnScreenValue(
-                orderId,
-                item.product_naam,
-                "good"
-              )
-
-              -
-
-              getReturnScreenValue(
-                orderId,
-                item.product_naam,
-                "damaged"
-              )
-
-              -
-
-              getReturnScreenValue(
-                orderId,
-                item.product_naam,
-                "missing"
-              )
-
-            )
-
+        totalLoaned +=
+          Number(
+            item.aantal ||
+            0
           );
 
-        },
-        0
-      );
+
+        totalGood +=
+          getReturnScreenValue(
+            orderId,
+            item.product_naam,
+            "good"
+          );
 
 
-  const element =
-    document
-      .getElementById(
-        "returnTotalOutside"
-      );
+        totalDamaged +=
+          getReturnScreenValue(
+            orderId,
+            item.product_naam,
+            "damaged"
+          );
+
+
+        totalMissing +=
+          getReturnScreenValue(
+            orderId,
+            item.product_naam,
+            "missing"
+          );
+
+      }
+    );
+
+
+  const totalProcessed =
+    totalGood +
+    totalDamaged +
+    totalMissing;
+
+
+  const totalRemaining =
+    Math.max(
+      0,
+      totalLoaned -
+      totalProcessed
+    );
+
+
+  const processedElement =
+    document.getElementById(
+      "returnTotalProcessed"
+    );
+
+
+  const remainingElement =
+    document.getElementById(
+      "returnTotalOutside"
+    );
+
+
+  const damagedElement =
+    document.getElementById(
+      "returnTotalDamaged"
+    );
 
 
   if (
-    element
+    processedElement
   ) {
 
-    element.textContent =
-      total;
+    processedElement.textContent =
+      totalProcessed;
+
+  }
+
+
+  if (
+    remainingElement
+  ) {
+
+    remainingElement.textContent =
+      totalRemaining;
+
+  }
+
+
+  if (
+    damagedElement
+  ) {
+
+    damagedElement.textContent =
+      totalDamaged;
 
   }
 
 }
-
 
 function updateAllReturnCalculations(
   orderId
@@ -8731,6 +9120,1018 @@ function injectAdminStyles() {
 
 }
 
+/* ============================================================
+   PROFESSIONELE RETOUR LAYOUT
+============================================================ */
+
+function injectProfessionalReturnStyles() {
+
+  if (
+    document.getElementById(
+      "achelProfessionalReturnStyles"
+    )
+  ) {
+
+    return;
+
+  }
+
+
+  const style =
+    document.createElement(
+      "style"
+    );
+
+
+  style.id =
+    "achelProfessionalReturnStyles";
+
+
+  style.textContent = `
+
+    /* ==========================================
+       RETOUR WORKSPACE
+    ========================================== */
+
+    .return-workspace {
+
+      background:
+        #f7f5ef;
+
+      border:
+        1px solid
+        #ded9ce;
+
+      border-radius:
+        18px;
+
+      overflow:hidden;
+
+      box-shadow:
+        0 10px 30px
+        rgba(
+          40,
+          34,
+          24,
+          .08
+        );
+
+    }
+
+
+    /* ==========================================
+       HEADER
+    ========================================== */
+
+    .return-workspace-header {
+
+      padding:
+        18px;
+
+      border-bottom:
+        1px solid
+        #ddd7cb;
+
+      background:
+        #faf9f5;
+
+    }
+
+
+    .return-header-top {
+
+      display:flex;
+
+      justify-content:
+        space-between;
+
+      align-items:flex-start;
+
+      gap:
+        12px;
+
+    }
+
+
+    .return-kicker {
+
+      display:block;
+
+      color:
+        #8c806c;
+
+      font-size:
+        10px;
+
+      font-weight:
+        900;
+
+      letter-spacing:
+        .12em;
+
+      text-transform:
+        uppercase;
+
+    }
+
+
+    .return-header-top h2 {
+
+      margin:
+        4px 0 0;
+
+      font-size:
+        27px;
+
+      color:
+        #181c18;
+
+    }
+
+
+    .return-all-good {
+
+      min-height:
+        42px;
+
+      padding:
+        0 15px;
+
+      border:
+        0;
+
+      border-radius:
+        10px;
+
+      background:
+        #194d38;
+
+      color:
+        white;
+
+      font-size:
+        12px;
+
+      font-weight:
+        900;
+
+      white-space:
+        nowrap;
+
+    }
+
+
+    /* ==========================================
+       KPI SAMENVATTING
+    ========================================== */
+
+    .return-summary-bar {
+
+      display:grid;
+
+      grid-template-columns:
+        repeat(
+          4,
+          1fr
+        );
+
+      margin-top:
+        16px;
+
+      border:
+        1px solid
+        #ded9ce;
+
+      border-radius:
+        14px;
+
+      background:
+        white;
+
+      overflow:hidden;
+
+    }
+
+
+    .return-summary-stat {
+
+      position:relative;
+
+      padding:
+        14px 10px;
+
+      text-align:center;
+
+    }
+
+
+    .return-summary-stat:not(:last-child) {
+
+      border-right:
+        1px solid
+        #e6e1d8;
+
+    }
+
+
+    .return-summary-stat span {
+
+      display:block;
+
+      color:
+        #8b8376;
+
+      font-size:
+        9px;
+
+      font-weight:
+        900;
+
+      text-transform:
+        uppercase;
+
+      letter-spacing:
+        .05em;
+
+    }
+
+
+    .return-summary-stat strong {
+
+      display:block;
+
+      margin-top:
+        5px;
+
+      color:
+        #171c18;
+
+      font-size:
+        24px;
+
+    }
+
+
+    .return-summary-stat.green strong {
+
+      color:
+        #256544;
+
+    }
+
+
+    .return-summary-stat.orange strong {
+
+      color:
+        #ad691c;
+
+    }
+
+
+    .return-summary-stat.red strong {
+
+      color:
+        #b73d37;
+
+    }
+
+
+    /* ==========================================
+       KOLOM HEADERS
+    ========================================== */
+
+    .return-table-header {
+
+      display:grid;
+
+      grid-template-columns:
+        minmax(150px, 1.5fr)
+        90px
+        1fr
+        1fr
+        1fr
+        58px;
+
+      align-items:center;
+
+      gap:
+        7px;
+
+      padding:
+        11px 14px;
+
+      border-bottom:
+        1px solid
+        #ddd7cb;
+
+      background:
+        #f0ece4;
+
+      color:
+        #766d60;
+
+      font-size:
+        9px;
+
+      font-weight:
+        900;
+
+      text-transform:
+        uppercase;
+
+      letter-spacing:
+        .04em;
+
+    }
+
+
+    .return-table-header div:not(:first-child) {
+
+      text-align:center;
+
+    }
+
+
+    /* ==========================================
+       ARTIKEL
+    ========================================== */
+
+    .return-product-row {
+
+      padding:
+        13px 14px;
+
+      border-bottom:
+        1px solid
+        #e4dfd6;
+
+      background:
+        white;
+
+    }
+
+
+    .return-product-grid {
+
+      display:grid;
+
+      grid-template-columns:
+        minmax(150px, 1.5fr)
+        90px
+        1fr
+        1fr
+        1fr
+        58px;
+
+      align-items:center;
+
+      gap:
+        7px;
+
+    }
+
+
+    .return-product-info {
+
+      min-width:0;
+
+    }
+
+
+    .return-product-info strong {
+
+      display:block;
+
+      color:
+        #1d211e;
+
+      font-size:
+        14px;
+
+    }
+
+
+    .return-product-info span {
+
+      display:block;
+
+      margin-top:
+        3px;
+
+      color:
+        #8a8275;
+
+      font-size:
+        10px;
+
+    }
+
+
+    .return-loaned {
+
+      text-align:center;
+
+      color:
+        #554f45;
+
+      font-size:
+        16px;
+
+      font-weight:
+        850;
+
+    }
+
+
+    /* ==========================================
+       COUNTERS
+    ========================================== */
+
+    .return-counter {
+
+      text-align:center;
+
+    }
+
+
+    .return-counter-label {
+
+      display:none;
+
+    }
+
+
+    .return-counter-value {
+
+      display:block;
+
+      margin-bottom:
+        4px;
+
+      font-size:
+        17px;
+
+      font-weight:
+        900;
+
+    }
+
+
+    .return-counter.green
+    .return-counter-value {
+
+      color:
+        #216140;
+
+    }
+
+
+    .return-counter.orange
+    .return-counter-value {
+
+      color:
+        #c46d0a;
+
+    }
+
+
+    .return-counter.red
+    .return-counter-value {
+
+      color:
+        #bd2f2c;
+
+    }
+
+
+    .return-stepper {
+
+      display:grid;
+
+      grid-template-columns:
+        34px 34px 34px;
+
+      justify-content:center;
+
+      border:
+        1px solid
+        #ddd7cb;
+
+      border-radius:
+        9px;
+
+      overflow:hidden;
+
+      background:
+        white;
+
+    }
+
+
+    .return-stepper button {
+
+      height:
+        34px;
+
+      border:
+        0;
+
+      background:
+        #faf9f5;
+
+      color:
+        #7a7266;
+
+      font-size:
+        18px;
+
+    }
+
+
+    .return-stepper button:first-child {
+
+      border-right:
+        1px solid
+        #e5dfd6;
+
+    }
+
+
+    .return-stepper button:last-child {
+
+      border-left:
+        1px solid
+        #e5dfd6;
+
+    }
+
+
+    .return-stepper b {
+
+      display:grid;
+
+      place-items:center;
+
+      font-size:
+        13px;
+
+      background:
+        white;
+
+    }
+
+
+    /* ==========================================
+       STATUS
+    ========================================== */
+
+    .return-status {
+
+      display:flex;
+
+      justify-content:center;
+
+      align-items:center;
+
+    }
+
+
+    .return-status-circle {
+
+      width:
+        36px;
+
+      height:
+        36px;
+
+      border-radius:
+        50%;
+
+      display:grid;
+
+      place-items:center;
+
+      font-size:
+        17px;
+
+      font-weight:
+        900;
+
+    }
+
+
+    .return-status-circle.done {
+
+      background:
+        #237047;
+
+      color:
+        white;
+
+    }
+
+
+    .return-status-circle.warning {
+
+      background:
+        #c77b13;
+
+      color:
+        white;
+
+    }
+
+
+    .return-status-circle.open {
+
+      background:
+        #e8e3da;
+
+      color:
+        #857c6d;
+
+    }
+
+
+    /* ==========================================
+       OPMERKING
+    ========================================== */
+
+    .return-note-toggle {
+
+      display:inline-block;
+
+      margin-top:
+        9px;
+
+      padding:
+        0;
+
+      border:
+        0;
+
+      background:
+        transparent;
+
+      color:
+        #8a8172;
+
+      text-decoration:
+        underline;
+
+      font-size:
+        10px;
+
+      font-weight:
+        750;
+
+    }
+
+
+    .return-note {
+
+      width:
+        100%;
+
+      min-height:
+        58px;
+
+      margin-top:
+        8px;
+
+      border:
+        1px solid
+        #ddd7cb;
+
+      border-radius:
+        10px;
+
+      background:
+        #faf9f5;
+
+      padding:
+        9px 10px;
+
+      font-size:
+        11px;
+
+    }
+
+
+    /* ==========================================
+       FOOTER
+    ========================================== */
+
+    .return-workspace-footer {
+
+      display:grid;
+
+      grid-template-columns:
+        .65fr 1.35fr;
+
+      gap:
+        8px;
+
+      padding:
+        13px 14px;
+
+      background:
+        #f5f2eb;
+
+    }
+
+
+    .return-cancel {
+
+      min-height:
+        45px;
+
+      border:
+        1px solid
+        #ddd7cb;
+
+      border-radius:
+        10px;
+
+      background:
+        white;
+
+      color:
+        #423e37;
+
+      font-weight:
+        850;
+
+    }
+
+
+    .return-save-main {
+
+      min-height:
+        45px;
+
+      border:
+        0;
+
+      border-radius:
+        10px;
+
+      background:
+        #194d38;
+
+      color:
+        white;
+
+      font-weight:
+        900;
+
+    }
+
+
+    /* ==========================================
+       INFO BALK
+    ========================================== */
+
+    .return-help {
+
+      margin:
+        10px 14px 0;
+
+      padding:
+        8px 10px;
+
+      border-radius:
+        9px;
+
+      background:
+        #eee9df;
+
+      color:
+        #827969;
+
+      font-size:
+        9px;
+
+    }
+
+
+    /* ==========================================
+       MOBIEL
+    ========================================== */
+
+    @media (
+      max-width:700px
+    ) {
+
+      .return-workspace {
+
+        margin:
+          0 -6px;
+
+        border-radius:
+          14px;
+
+      }
+
+
+      .return-workspace-header {
+
+        padding:
+          13px 11px;
+
+      }
+
+
+      .return-header-top h2 {
+
+        font-size:
+          23px;
+
+      }
+
+
+      .return-all-good {
+
+        min-height:
+          37px;
+
+        padding:
+          0 9px;
+
+        font-size:
+          9px;
+
+      }
+
+
+      .return-summary-bar {
+
+        grid-template-columns:
+          repeat(
+            2,
+            1fr
+          );
+
+      }
+
+
+      .return-summary-stat:nth-child(2) {
+
+        border-right:
+          0;
+
+      }
+
+
+      .return-summary-stat:nth-child(-n+2) {
+
+        border-bottom:
+          1px solid
+          #e6e1d8;
+
+      }
+
+
+      .return-table-header {
+
+        display:none;
+
+      }
+
+
+      .return-product-row {
+
+        padding:
+          12px 10px;
+
+      }
+
+
+      .return-product-grid {
+
+        grid-template-columns:
+          1fr;
+
+        gap:
+          9px;
+
+      }
+
+
+      .return-product-info {
+
+        display:grid;
+
+        grid-template-columns:
+          1fr auto;
+
+        align-items:end;
+
+      }
+
+
+      .return-product-info span {
+
+        text-align:right;
+
+      }
+
+
+      .return-loaned {
+
+        display:none;
+
+      }
+
+
+      .return-product-controls {
+
+        display:grid;
+
+        grid-template-columns:
+          repeat(
+            3,
+            1fr
+          );
+
+        gap:
+          5px;
+
+      }
+
+
+      .return-counter-label {
+
+        display:block;
+
+        margin-bottom:
+          3px;
+
+        color:
+          #80776a;
+
+        font-size:
+          8px;
+
+        font-weight:
+          900;
+
+        text-transform:
+          uppercase;
+
+      }
+
+
+      .return-stepper {
+
+        grid-template-columns:
+          1fr 1fr 1fr;
+
+      }
+
+
+      .return-status {
+
+        justify-content:
+          flex-end;
+
+        margin-top:
+          -43px;
+
+      }
+
+
+      .return-status-circle {
+
+        width:
+          32px;
+
+        height:
+          32px;
+
+      }
+
+
+      .return-workspace-footer {
+
+        position:sticky;
+
+        bottom:0;
+
+        z-index:5;
+
+      }
+
+    }
+
+  `;
+
+
+  document.head.appendChild(
+    style
+  );
+
+}
 
 /* ===============================
    GLOBAL
