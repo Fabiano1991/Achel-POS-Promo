@@ -20,6 +20,8 @@ let adminWholesaleOrders = [];
 
 let adminWholesaleItems = [];
 
+let adminWholesaleProofs = [];
+
 let selectedAdminOrder =
   null;
 
@@ -1474,7 +1476,19 @@ async function loadAdminDashboard() {
         .select(
           "wholesale_order_id, product_naam, eenheid, betaald_aantal, actie, gratis_aantal, totaal_aantal"
         );
+const wholesaleProofsResult =
+  await supabaseClient
 
+    .from(
+      "wholesale_order_proofs"
+    )
+
+    .select(`
+      order_id,
+      signer_name,
+      signed_at,
+      proof_hash
+    `);
 
     adminProfiles =
       profilesResult.data ||
@@ -1555,7 +1569,27 @@ async function loadAdminDashboard() {
   }
 
 }
+adminWholesaleProofs =
+  wholesaleProofsResult.error
 
+    ? []
+
+    : (
+        wholesaleProofsResult.data ||
+        []
+      );
+
+
+if (
+  wholesaleProofsResult.error
+) {
+
+  console.warn(
+    "WHOLESALE PROOFS:",
+    wholesaleProofsResult.error
+  );
+
+}
 
 /* ===============================
    REPRESENTATIVES
@@ -3249,10 +3283,9 @@ function renderProblemMaterials() {
 function renderAdminWholesaleOrders() {
 
   const container =
-    document
-      .getElementById(
-        "adminWholesaleOrdersList"
-      );
+    document.getElementById(
+      "adminWholesaleOrdersList"
+    );
 
 
   if (
@@ -3282,6 +3315,419 @@ function renderAdminWholesaleOrders() {
     return;
 
   }
+
+
+  container.innerHTML =
+
+    adminWholesaleOrders
+
+      .map(
+        order => {
+
+          const profile =
+            getAdminProfile(
+              order.user_id
+            );
+
+
+          const items =
+            adminWholesaleItems
+              .filter(
+                item =>
+                  item.wholesale_order_id ===
+                  order.id
+              );
+
+
+          const proof =
+            adminWholesaleProofs
+              .find(
+                item =>
+                  item.order_id ===
+                  order.id
+              );
+
+
+          const orderNumber =
+
+            `GH-${
+              new Date(
+                order.created_at
+              ).getFullYear()
+            }-${
+              String(
+                order.id
+              )
+                .slice(
+                  0,
+                  8
+                )
+                .toUpperCase()
+            }`;
+
+
+          const signedDate =
+
+            proof?.signed_at
+
+              ? new Date(
+                  proof.signed_at
+                )
+                  .toLocaleString(
+                    "nl-BE",
+                    {
+                      day:
+                        "2-digit",
+
+                      month:
+                        "2-digit",
+
+                      year:
+                        "numeric",
+
+                      hour:
+                        "2-digit",
+
+                      minute:
+                        "2-digit"
+                    }
+                  )
+
+              : "";
+
+
+          return `
+
+            <details
+              class="admin-wholesale"
+              style="
+                border-left:
+                  5px solid
+                  ${
+                    proof
+                      ? "#2f7449"
+                      : "#d99a3e"
+                  };
+              "
+            >
+
+              <summary>
+
+                <div>
+
+                  <div
+                    style="
+                      display:flex;
+                      align-items:center;
+                      gap:7px;
+                      flex-wrap:wrap;
+                    "
+                  >
+
+                    <b>
+
+                      ${adminEscapeHtml(
+                        order.referentie ||
+                        "Geen referentie"
+                      )}
+
+                    </b>
+
+
+                    ${
+                      proof
+
+                        ? `
+
+                            <span
+                              style="
+                                display:inline-flex;
+                                align-items:center;
+                                padding:3px 7px;
+                                border-radius:999px;
+                                background:#e7f3eb;
+                                color:#2f7449;
+                                font-size:9px;
+                                font-weight:900;
+                              "
+                            >
+
+                              ✓ Ondertekend
+
+                            </span>
+
+                          `
+
+                        : `
+
+                            <span
+                              style="
+                                display:inline-flex;
+                                align-items:center;
+                                padding:3px 7px;
+                                border-radius:999px;
+                                background:#f8f0e1;
+                                color:#9a611e;
+                                font-size:9px;
+                                font-weight:900;
+                              "
+                            >
+
+                              Geen bewijs
+
+                            </span>
+
+                          `
+                    }
+
+                  </div>
+
+
+                  <small>
+
+                    ${adminEscapeHtml(
+                      profile?.naam ||
+                      ""
+                    )}
+
+                    ·
+
+                    ${adminEscapeHtml(
+                      order.drankenhandel ||
+                      ""
+                    )}
+
+                  </small>
+
+                </div>
+
+
+                <span
+                  style="
+                    color:#8c692f;
+                    font-size:9px;
+                    font-weight:900;
+                  "
+                >
+
+                  ${orderNumber}
+
+                </span>
+
+              </summary>
+
+
+              <div
+                style="
+                  padding-top:8px;
+                "
+              >
+
+                ${
+                  proof
+
+                    ? `
+
+                        <div
+                          style="
+                            padding:9px;
+                            margin-bottom:8px;
+                            border-radius:10px;
+                            background:#e7f3eb;
+                            color:#245b38;
+                          "
+                        >
+
+                          <div
+                            style="
+                              font-size:9px;
+                              font-weight:900;
+                              text-transform:uppercase;
+                            "
+                          >
+
+                            Klantgoedkeuring
+
+                          </div>
+
+
+                          <div
+                            style="
+                              margin-top:4px;
+                              font-size:11px;
+                            "
+                          >
+
+                            Ondertekend door:
+
+                            <strong>
+
+                              ${adminEscapeHtml(
+                                proof.signer_name
+                              )}
+
+                            </strong>
+
+                          </div>
+
+
+                          <div
+                            style="
+                              margin-top:2px;
+                              font-size:9px;
+                              opacity:.8;
+                            "
+                          >
+
+                            ${adminEscapeHtml(
+                              signedDate
+                            )}
+
+                          </div>
+
+                        </div>
+
+                      `
+
+                    : `
+
+                        <div
+                          class="info"
+                          style="
+                            margin-bottom:8px;
+                          "
+                        >
+
+                          Voor deze bestelling is geen
+                          ondertekend bewijs beschikbaar.
+
+                          Dit kan bijvoorbeeld een oudere
+                          bestelling zijn van vóór de
+                          handtekeningfunctie.
+
+                        </div>
+
+                      `
+                }
+
+
+                ${
+                  items
+
+                    .map(
+                      item => `
+
+                        <div class="summary-line">
+
+                          <div>
+
+                            <span>
+
+                              ${adminEscapeHtml(
+                                item.product_naam
+                              )}
+
+                            </span>
+
+
+                            ${
+                              item.actie &&
+                              item.actie !==
+                              "geen"
+
+                                ? `
+
+                                    <small
+                                      style="
+                                        display:block;
+                                        color:#8c692f;
+                                        font-size:9px;
+                                        margin-top:2px;
+                                      "
+                                    >
+
+                                      ${adminEscapeHtml(
+                                        item.actie
+                                      )}
+
+                                      ·
+
+                                      ${Number(
+                                        item.gratis_aantal ||
+                                        0
+                                      )}
+                                      gratis
+
+                                    </small>
+
+                                  `
+
+                                : ""
+                            }
+
+                          </div>
+
+
+                          <strong>
+
+                            ${Number(
+                              item.totaal_aantal ||
+                              item.betaald_aantal ||
+                              0
+                            )}
+
+                          </strong>
+
+                        </div>
+
+                      `
+                    )
+
+                    .join("")
+                }
+
+
+                ${
+                  proof
+
+                    ? `
+
+                        <button
+                          type="button"
+                          onclick="downloadWholesaleProofPdf('${order.id}')"
+                          style="
+                            width:100%;
+                            min-height:42px;
+                            margin-top:9px;
+                            border:0;
+                            border-radius:10px;
+                            background:#2f7449;
+                            color:white;
+                            font-weight:900;
+                          "
+                        >
+
+                          PDF bestelbewijs
+
+                        </button>
+
+                      `
+
+                    : ""
+                }
+
+              </div>
+
+            </details>
+
+          `;
+
+        }
+      )
+
+      .join("");
+
+}
 
 
   container.innerHTML =
