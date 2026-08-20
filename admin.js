@@ -1285,11 +1285,9 @@ async function loadAdminDashboard() {
 
     const profilesResult =
       await supabaseClient
-
         .from(
           "profiles"
         )
-
         .select(
           "id, naam, email, rol, actief"
         );
@@ -1300,15 +1298,11 @@ async function loadAdminDashboard() {
     ) {
 
       throw new Error(
-
         "Fout bij profiles: "
-
         +
-
         adminReadableError(
           profilesResult.error
         )
-
       );
 
     }
@@ -1316,13 +1310,10 @@ async function loadAdminDashboard() {
 
     const ordersResult =
       await supabaseClient
-
         .from(
           "orders"
         )
-
         .select(`
-
           id,
           user_id,
           referentie,
@@ -1341,9 +1332,7 @@ async function loadAdminDashboard() {
           collected_at,
           created_at,
           updated_at
-
         `)
-
         .order(
           "created_at",
           {
@@ -1358,15 +1347,11 @@ async function loadAdminDashboard() {
     ) {
 
       throw new Error(
-
         "Fout bij orders: "
-
         +
-
         adminReadableError(
           ordersResult.error
         )
-
       );
 
     }
@@ -1374,11 +1359,9 @@ async function loadAdminDashboard() {
 
     const itemsResult =
       await supabaseClient
-
         .from(
           "order_items"
         )
-
         .select(
           "order_id, product_naam, categorie, aantal"
         );
@@ -1389,15 +1372,11 @@ async function loadAdminDashboard() {
     ) {
 
       throw new Error(
-
         "Fout bij order_items: "
-
         +
-
         adminReadableError(
           itemsResult.error
         )
-
       );
 
     }
@@ -1405,13 +1384,10 @@ async function loadAdminDashboard() {
 
     const returnsResult =
       await supabaseClient
-
         .from(
           "event_material_returns"
         )
-
         .select(`
-
           id,
           order_id,
           product_naam,
@@ -1423,7 +1399,6 @@ async function loadAdminDashboard() {
           updated_by,
           created_at,
           updated_at
-
         `);
 
 
@@ -1432,15 +1407,11 @@ async function loadAdminDashboard() {
     ) {
 
       throw new Error(
-
         "Fout bij event_material_returns: "
-
         +
-
         adminReadableError(
           returnsResult.error
         )
-
       );
 
     }
@@ -1448,15 +1419,12 @@ async function loadAdminDashboard() {
 
     const wholesaleResult =
       await supabaseClient
-
         .from(
           "wholesale_orders"
         )
-
         .select(
           "id, user_id, referentie, drankenhandel, opmerking, status, created_at"
         )
-
         .order(
           "created_at",
           {
@@ -1468,27 +1436,26 @@ async function loadAdminDashboard() {
 
     const wholesaleItemsResult =
       await supabaseClient
-
         .from(
           "wholesale_order_items"
         )
-
         .select(
           "wholesale_order_id, product_naam, eenheid, betaald_aantal, actie, gratis_aantal, totaal_aantal"
         );
-const wholesaleProofsResult =
-  await supabaseClient
 
-    .from(
-      "wholesale_order_proofs"
-    )
 
-    .select(`
-      order_id,
-      signer_name,
-      signed_at,
-      proof_hash
-    `);
+    const wholesaleProofsResult =
+      await supabaseClient
+        .from(
+          "wholesale_order_proofs"
+        )
+        .select(`
+          order_id,
+          signer_name,
+          signed_at,
+          proof_hash
+        `);
+
 
     adminProfiles =
       profilesResult.data ||
@@ -1516,8 +1483,10 @@ const wholesaleProofsResult =
 
         ? []
 
-        : wholesaleResult.data ||
-          [];
+        : (
+            wholesaleResult.data ||
+            []
+          );
 
 
     adminWholesaleItems =
@@ -1526,8 +1495,58 @@ const wholesaleProofsResult =
 
         ? []
 
-        : wholesaleItemsResult.data ||
-          [];
+        : (
+            wholesaleItemsResult.data ||
+            []
+          );
+
+
+    adminWholesaleProofs =
+
+      wholesaleProofsResult.error
+
+        ? []
+
+        : (
+            wholesaleProofsResult.data ||
+            []
+          );
+
+
+    if (
+      wholesaleResult.error
+    ) {
+
+      console.warn(
+        "WHOLESALE ORDERS:",
+        wholesaleResult.error
+      );
+
+    }
+
+
+    if (
+      wholesaleItemsResult.error
+    ) {
+
+      console.warn(
+        "WHOLESALE ITEMS:",
+        wholesaleItemsResult.error
+      );
+
+    }
+
+
+    if (
+      wholesaleProofsResult.error
+    ) {
+
+      console.warn(
+        "WHOLESALE PROOFS:",
+        wholesaleProofsResult.error
+      );
+
+    }
 
 
     fillRepresentativeFilters();
@@ -1555,39 +1574,14 @@ const wholesaleProofsResult =
 
 
     alert(
-
       "Het beheerdersdashboard kon niet worden geladen.\n\n"
-
       +
-
       adminReadableError(
         error
       )
-
     );
 
   }
-
-}
-adminWholesaleProofs =
-  wholesaleProofsResult.error
-
-    ? []
-
-    : (
-        wholesaleProofsResult.data ||
-        []
-      );
-
-
-if (
-  wholesaleProofsResult.error
-) {
-
-  console.warn(
-    "WHOLESALE PROOFS:",
-    wholesaleProofsResult.error
-  );
 
 }
 
@@ -3304,9 +3298,7 @@ function renderAdminWholesaleOrders() {
     container.innerHTML = `
 
       <div class="empty">
-
         Geen groothandelbestellingen.
-
       </div>
 
     `;
@@ -3348,22 +3340,29 @@ function renderAdminWholesaleOrders() {
               );
 
 
+          const orderYear =
+
+            order.created_at
+
+              ? new Date(
+                  order.created_at
+                )
+                  .getFullYear()
+
+              : new Date()
+                  .getFullYear();
+
+
           const orderNumber =
 
-            `GH-${
-              new Date(
-                order.created_at
-              ).getFullYear()
-            }-${
-              String(
-                order.id
+            `GH-${orderYear}-${String(
+              order.id
+            )
+              .slice(
+                0,
+                8
               )
-                .slice(
-                  0,
-                  8
-                )
-                .toUpperCase()
-            }`;
+              .toUpperCase()}`;
 
 
           const signedDate =
@@ -3376,6 +3375,7 @@ function renderAdminWholesaleOrders() {
                   .toLocaleString(
                     "nl-BE",
                     {
+
                       day:
                         "2-digit",
 
@@ -3390,8 +3390,274 @@ function renderAdminWholesaleOrders() {
 
                       minute:
                         "2-digit"
+
                     }
                   )
+
+              : "";
+
+
+          const proofStatus =
+
+            proof
+
+              ? `
+
+                  <span
+                    style="
+                      display:inline-flex;
+                      align-items:center;
+                      padding:3px 7px;
+                      border-radius:999px;
+                      background:#e7f3eb;
+                      color:#2f7449;
+                      font-size:9px;
+                      font-weight:900;
+                    "
+                  >
+
+                    ✓ Ondertekend
+
+                  </span>
+
+                `
+
+              : `
+
+                  <span
+                    style="
+                      display:inline-flex;
+                      align-items:center;
+                      padding:3px 7px;
+                      border-radius:999px;
+                      background:#f8f0e1;
+                      color:#9a611e;
+                      font-size:9px;
+                      font-weight:900;
+                    "
+                  >
+
+                    Geen bewijs
+
+                  </span>
+
+                `;
+
+
+          const proofInformation =
+
+            proof
+
+              ? `
+
+                  <div
+                    style="
+                      padding:9px;
+                      margin-bottom:8px;
+                      border-radius:10px;
+                      background:#e7f3eb;
+                      color:#245b38;
+                    "
+                  >
+
+                    <div
+                      style="
+                        font-size:9px;
+                        font-weight:900;
+                        text-transform:uppercase;
+                      "
+                    >
+
+                      Klantgoedkeuring
+
+                    </div>
+
+
+                    <div
+                      style="
+                        margin-top:4px;
+                        font-size:11px;
+                      "
+                    >
+
+                      Ondertekend door:
+
+                      <strong>
+
+                        ${adminEscapeHtml(
+                          proof.signer_name ||
+                          ""
+                        )}
+
+                      </strong>
+
+                    </div>
+
+
+                    <div
+                      style="
+                        margin-top:2px;
+                        font-size:9px;
+                        opacity:.8;
+                      "
+                    >
+
+                      ${adminEscapeHtml(
+                        signedDate
+                      )}
+
+                    </div>
+
+                  </div>
+
+                `
+
+              : `
+
+                  <div
+                    class="info"
+                    style="
+                      margin-bottom:8px;
+                    "
+                  >
+
+                    Voor deze bestelling is geen
+                    ondertekend bewijs beschikbaar.
+
+                    <br><br>
+
+                    Dit kan een bestelling zijn die
+                    werd gemaakt vóór de
+                    handtekeningfunctie werd toegevoegd.
+
+                  </div>
+
+                `;
+
+
+          const productRows =
+
+            items.length
+
+              ? items
+
+                  .map(
+                    item => {
+
+                      const action =
+
+                        item.actie &&
+                        item.actie !==
+                        "geen"
+
+                          ? `
+
+                              <small
+                                style="
+                                  display:block;
+                                  color:#8c692f;
+                                  font-size:9px;
+                                  margin-top:2px;
+                                "
+                              >
+
+                                ${adminEscapeHtml(
+                                  item.actie
+                                )}
+
+                                ·
+
+                                ${Number(
+                                  item.gratis_aantal ||
+                                  0
+                                )}
+
+                                gratis
+
+                              </small>
+
+                            `
+
+                          : "";
+
+
+                      return `
+
+                        <div class="summary-line">
+
+                          <div>
+
+                            <span>
+
+                              ${adminEscapeHtml(
+                                item.product_naam ||
+                                ""
+                              )}
+
+                            </span>
+
+
+                            ${action}
+
+                          </div>
+
+
+                          <strong>
+
+                            ${Number(
+                              item.totaal_aantal ||
+                              item.betaald_aantal ||
+                              0
+                            )}
+
+                          </strong>
+
+                        </div>
+
+                      `;
+
+                    }
+                  )
+
+                  .join("")
+
+              : `
+
+                  <div class="empty">
+
+                    Geen bestelregels gevonden.
+
+                  </div>
+
+                `;
+
+
+          const pdfButton =
+
+            proof
+
+              ? `
+
+                  <button
+                    type="button"
+                    onclick="downloadWholesaleProofPdf('${order.id}')"
+                    style="
+                      width:100%;
+                      min-height:42px;
+                      margin-top:9px;
+                      border:0;
+                      border-radius:10px;
+                      background:#2f7449;
+                      color:white;
+                      font-weight:900;
+                    "
+                  >
+
+                    PDF bestelbewijs
+
+                  </button>
+
+                `
 
               : "";
 
@@ -3434,51 +3700,7 @@ function renderAdminWholesaleOrders() {
                     </b>
 
 
-                    ${
-                      proof
-
-                        ? `
-
-                            <span
-                              style="
-                                display:inline-flex;
-                                align-items:center;
-                                padding:3px 7px;
-                                border-radius:999px;
-                                background:#e7f3eb;
-                                color:#2f7449;
-                                font-size:9px;
-                                font-weight:900;
-                              "
-                            >
-
-                              ✓ Ondertekend
-
-                            </span>
-
-                          `
-
-                        : `
-
-                            <span
-                              style="
-                                display:inline-flex;
-                                align-items:center;
-                                padding:3px 7px;
-                                border-radius:999px;
-                                background:#f8f0e1;
-                                color:#9a611e;
-                                font-size:9px;
-                                font-weight:900;
-                              "
-                            >
-
-                              Geen bewijs
-
-                            </span>
-
-                          `
-                    }
+                    ${proofStatus}
 
                   </div>
 
@@ -3487,14 +3709,14 @@ function renderAdminWholesaleOrders() {
 
                     ${adminEscapeHtml(
                       profile?.naam ||
-                      ""
+                      "Onbekende vertegenwoordiger"
                     )}
 
                     ·
 
                     ${adminEscapeHtml(
                       order.drankenhandel ||
-                      ""
+                      "Geen drankenhandel"
                     )}
 
                   </small>
@@ -3523,354 +3745,11 @@ function renderAdminWholesaleOrders() {
                 "
               >
 
-                ${
-                  proof
+                ${proofInformation}
 
-                    ? `
+                ${productRows}
 
-                        <div
-                          style="
-                            padding:9px;
-                            margin-bottom:8px;
-                            border-radius:10px;
-                            background:#e7f3eb;
-                            color:#245b38;
-                          "
-                        >
-
-                          <div
-                            style="
-                              font-size:9px;
-                              font-weight:900;
-                              text-transform:uppercase;
-                            "
-                          >
-
-                            Klantgoedkeuring
-
-                          </div>
-
-
-                          <div
-                            style="
-                              margin-top:4px;
-                              font-size:11px;
-                            "
-                          >
-
-                            Ondertekend door:
-
-                            <strong>
-
-                              ${adminEscapeHtml(
-                                proof.signer_name
-                              )}
-
-                            </strong>
-
-                          </div>
-
-
-                          <div
-                            style="
-                              margin-top:2px;
-                              font-size:9px;
-                              opacity:.8;
-                            "
-                          >
-
-                            ${adminEscapeHtml(
-                              signedDate
-                            )}
-
-                          </div>
-
-                        </div>
-
-                      `
-
-                    : `
-
-                        <div
-                          class="info"
-                          style="
-                            margin-bottom:8px;
-                          "
-                        >
-
-                          Voor deze bestelling is geen
-                          ondertekend bewijs beschikbaar.
-
-                          Dit kan bijvoorbeeld een oudere
-                          bestelling zijn van vóór de
-                          handtekeningfunctie.
-
-                        </div>
-
-                      `
-                }
-
-
-                ${
-                  items
-
-                    .map(
-                      item => `
-
-                        <div class="summary-line">
-
-                          <div>
-
-                            <span>
-
-                              ${adminEscapeHtml(
-                                item.product_naam
-                              )}
-
-                            </span>
-
-
-                            ${
-                              item.actie &&
-                              item.actie !==
-                              "geen"
-
-                                ? `
-
-                                    <small
-                                      style="
-                                        display:block;
-                                        color:#8c692f;
-                                        font-size:9px;
-                                        margin-top:2px;
-                                      "
-                                    >
-
-                                      ${adminEscapeHtml(
-                                        item.actie
-                                      )}
-
-                                      ·
-
-                                      ${Number(
-                                        item.gratis_aantal ||
-                                        0
-                                      )}
-                                      gratis
-
-                                    </small>
-
-                                  `
-
-                                : ""
-                            }
-
-                          </div>
-
-
-                          <strong>
-
-                            ${Number(
-                              item.totaal_aantal ||
-                              item.betaald_aantal ||
-                              0
-                            )}
-
-                          </strong>
-
-                        </div>
-
-                      `
-                    )
-
-                    .join("")
-                }
-
-
-                ${
-                  proof
-
-                    ? `
-
-                        <button
-                          type="button"
-                          onclick="downloadWholesaleProofPdf('${order.id}')"
-                          style="
-                            width:100%;
-                            min-height:42px;
-                            margin-top:9px;
-                            border:0;
-                            border-radius:10px;
-                            background:#2f7449;
-                            color:white;
-                            font-weight:900;
-                          "
-                        >
-
-                          PDF bestelbewijs
-
-                        </button>
-
-                      `
-
-                    : ""
-                }
-
-              </div>
-
-            </details>
-
-          `;
-
-        }
-      )
-
-      .join("");
-
-}
-
-
-  container.innerHTML =
-
-    adminWholesaleOrders
-
-      .map(
-        order => {
-
-          const profile =
-            getAdminProfile(
-              order.user_id
-            );
-
-
-          const items =
-            adminWholesaleItems
-              .filter(
-                item =>
-                  item.wholesale_order_id ===
-                  order.id
-              );
-
-
-          const orderNumber =
-
-            `GH-${new Date(order.created_at).getFullYear()}-${String(order.id)
-              .slice(0, 8)
-              .toUpperCase()}`;
-
-
-          return `
-
-            <details class="admin-wholesale">
-
-              <summary>
-
-                <div>
-
-                  <b>
-
-                    ${adminEscapeHtml(
-                      order.referentie ||
-                      "Geen referentie"
-                    )}
-
-                  </b>
-
-
-                  <small>
-
-                    ${adminEscapeHtml(
-                      profile?.naam ||
-                      ""
-                    )}
-
-                    ·
-
-                    ${adminEscapeHtml(
-                      order.drankenhandel ||
-                      ""
-                    )}
-
-                  </small>
-
-                </div>
-
-
-                <span
-                  style="
-                    color:#8c692f;
-                    font-size:9px;
-                    font-weight:900;
-                  "
-                >
-
-                  ${orderNumber}
-
-                </span>
-
-              </summary>
-
-
-              <div
-                style="
-                  padding-top:8px;
-                "
-              >
-
-                ${
-                  items
-
-                    .map(
-                      item => `
-
-                        <div class="summary-line">
-
-                          <span>
-
-                            ${adminEscapeHtml(
-                              item.product_naam
-                            )}
-
-                          </span>
-
-
-                          <strong>
-
-                            ${Number(
-                              item.totaal_aantal ||
-                              item.betaald_aantal ||
-                              0
-                            )}
-
-                          </strong>
-
-                        </div>
-
-                      `
-                    )
-
-                    .join("")
-                }
-
-
-                <button
-                  type="button"
-                  onclick="downloadWholesaleProofPdf('${order.id}')"
-                  style="
-                    width:100%;
-                    min-height:42px;
-                    margin-top:9px;
-                    border:0;
-                    border-radius:10px;
-                    background:#2f7449;
-                    color:white;
-                    font-weight:900;
-                  "
-                >
-
-                  PDF bestelbewijs
-
-                </button>
+                ${pdfButton}
 
               </div>
 
