@@ -159,7 +159,8 @@ function createAdminScreen() {
 
 
   injectAdminStyles();
-   injectProfessionalReturnStyles();
+
+  injectProfessionalReturnStyles();
 
 
   const section =
@@ -913,174 +914,6 @@ function createAdminScreen() {
       </div>
 
     </div>
-<!-- =========================================================
-     RETOUR PROBLEEM POPUP
-========================================================= -->
-
-<div
-  id="returnProblemModal"
-  class="return-problem-overlay hidden"
->
-
-  <div class="return-problem-modal">
-
-    <div class="return-problem-modal-head">
-
-      <div>
-
-        <span>
-          PROBLEEM MELDEN
-        </span>
-
-        <h3 id="returnProblemTitle">
-          Materiaal
-        </h3>
-
-        <small id="returnProblemLoaned">
-          0 stuks uitgeleend
-        </small>
-
-      </div>
-
-
-      <button
-        type="button"
-        onclick="closeReturnProblemModal()"
-      >
-        ×
-      </button>
-
-    </div>
-
-
-    <div class="return-problem-good-preview">
-
-      <span>
-        Goed terug
-      </span>
-
-      <strong id="returnProblemGood">
-        0
-      </strong>
-
-    </div>
-
-
-    <div class="return-problem-option">
-
-      <div>
-
-        <strong>
-          Beschadigd
-        </strong>
-
-        <span>
-          Materiaal is terug maar niet inzetbaar
-        </span>
-
-      </div>
-
-
-      <div class="return-problem-stepper">
-
-        <button
-          type="button"
-          onclick="changeReturnProblemDamaged(-1)"
-        >
-          −
-        </button>
-
-        <strong id="returnProblemDamaged">
-          0
-        </strong>
-
-        <button
-          type="button"
-          onclick="changeReturnProblemDamaged(1)"
-        >
-          +
-        </button>
-
-      </div>
-
-    </div>
-
-
-    <div class="return-problem-option">
-
-      <div>
-
-        <strong>
-          Niet terug
-        </strong>
-
-        <span>
-          Materiaal ontbreekt
-        </span>
-
-      </div>
-
-
-      <div class="return-problem-stepper">
-
-        <button
-          type="button"
-          onclick="changeReturnProblemMissing(-1)"
-        >
-          −
-        </button>
-
-        <strong id="returnProblemMissing">
-          0
-        </strong>
-
-        <button
-          type="button"
-          onclick="changeReturnProblemMissing(1)"
-        >
-          +
-        </button>
-
-      </div>
-
-    </div>
-
-
-    <label for="returnProblemNote">
-      Opmerking
-    </label>
-
-
-    <textarea
-      id="returnProblemNote"
-      placeholder="Bijv. poot geplooid, doek gescheurd..."
-    ></textarea>
-
-
-    <div class="return-problem-actions">
-
-      <button
-        type="button"
-        class="return-problem-cancel"
-        onclick="closeReturnProblemModal()"
-      >
-        Annuleren
-      </button>
-
-
-      <button
-        type="button"
-        class="return-problem-save"
-        onclick="saveReturnProblemModal()"
-      >
-        Probleem opslaan
-      </button>
-
-    </div>
-
-  </div>
-
-</div>
 
   `;
 
@@ -1092,6 +925,8 @@ function createAdminScreen() {
 
 
   createAdminDetailScreen();
+
+  createReturnProblemModal();
 
 }
 
@@ -1149,6 +984,230 @@ function adminPanelHtml(
     </details>
 
   `;
+
+}
+
+
+/* ============================================================
+   RETOUR PROBLEEM POPUP
+   Staat bewust los van adminScreen/adminDetailScreen.
+============================================================ */
+
+function createReturnProblemModal() {
+
+  if (
+    document.getElementById(
+      "returnProblemModal"
+    )
+  ) {
+
+    return;
+
+  }
+
+
+  const modal =
+    document.createElement(
+      "div"
+    );
+
+
+  modal.id =
+    "returnProblemModal";
+
+
+  modal.className =
+    "return-problem-overlay hidden";
+
+
+  modal.innerHTML = `
+
+    <div
+      class="return-problem-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="returnProblemTitle"
+    >
+
+      <div class="return-problem-modal-head">
+
+        <div>
+
+          <span>
+            PROBLEEM MELDEN
+          </span>
+
+          <h3 id="returnProblemTitle">
+            Materiaal
+          </h3>
+
+          <small id="returnProblemLoaned">
+            0 stuks uitgeleend
+          </small>
+
+        </div>
+
+        <button
+          type="button"
+          class="return-problem-close"
+          onclick="closeReturnProblemModal()"
+          aria-label="Sluiten"
+        >
+          ×
+        </button>
+
+      </div>
+
+
+      <div class="return-problem-good-preview">
+
+        <span>
+          Goed terug
+        </span>
+
+        <strong id="returnProblemGood">
+          0
+        </strong>
+
+      </div>
+
+
+      <div class="return-problem-option">
+
+        <div>
+
+          <strong>
+            Beschadigd
+          </strong>
+
+          <span>
+            Terug, maar niet inzetbaar
+          </span>
+
+        </div>
+
+        <div class="return-problem-stepper">
+
+          <button
+            type="button"
+            onclick="changeReturnProblemDamaged(-1)"
+            aria-label="Minder beschadigd"
+          >
+            −
+          </button>
+
+          <strong id="returnProblemDamaged">
+            0
+          </strong>
+
+          <button
+            type="button"
+            onclick="changeReturnProblemDamaged(1)"
+            aria-label="Meer beschadigd"
+          >
+            +
+          </button>
+
+        </div>
+
+      </div>
+
+
+      <div class="return-problem-option">
+
+        <div>
+
+          <strong>
+            Niet terug
+          </strong>
+
+          <span>
+            Materiaal ontbreekt
+          </span>
+
+        </div>
+
+        <div class="return-problem-stepper">
+
+          <button
+            type="button"
+            onclick="changeReturnProblemMissing(-1)"
+            aria-label="Minder ontbrekend"
+          >
+            −
+          </button>
+
+          <strong id="returnProblemMissing">
+            0
+          </strong>
+
+          <button
+            type="button"
+            onclick="changeReturnProblemMissing(1)"
+            aria-label="Meer ontbrekend"
+          >
+            +
+          </button>
+
+        </div>
+
+      </div>
+
+
+      <label for="returnProblemNote">
+        Opmerking
+      </label>
+
+      <textarea
+        id="returnProblemNote"
+        placeholder="Bijv. poot geplooid, doek gescheurd..."
+      ></textarea>
+
+
+      <div class="return-problem-actions">
+
+        <button
+          type="button"
+          class="return-problem-cancel"
+          onclick="closeReturnProblemModal()"
+        >
+          Annuleren
+        </button>
+
+        <button
+          type="button"
+          class="return-problem-save"
+          onclick="saveReturnProblemModal()"
+        >
+          Probleem opslaan
+        </button>
+
+      </div>
+
+    </div>
+
+  `;
+
+
+  modal.addEventListener(
+    "click",
+    event => {
+
+      if (
+        event.target === modal
+      ) {
+
+        closeReturnProblemModal();
+
+      }
+
+    }
+  );
+
+
+  document.body.appendChild(
+    modal
+  );
 
 }
 
@@ -4311,7 +4370,7 @@ function renderAdminDetail(
     "afgehaald"
   ) {
 
-    updateAllReturnCalculations(
+    updateSimpleReturnProcessedTotal(
       order.id
     );
 
@@ -4631,7 +4690,6 @@ function buildSimpleReturnItem(
 ) {
 
   const processed =
-
     item.goed_terug +
     item.beschadigd +
     item.ontbreekt;
@@ -4643,14 +4701,9 @@ function buildSimpleReturnItem(
 
 
   const hasProblem =
-
-    item.beschadigd >
-    0
-
+    item.beschadigd > 0
     ||
-
-    item.ontbreekt >
-    0;
+    item.ontbreekt > 0;
 
 
   let statusText =
@@ -4667,8 +4720,7 @@ function buildSimpleReturnItem(
   ) {
 
     statusText =
-      "Alles goed terug";
-
+      "Goed";
 
     statusClass =
       "good";
@@ -4681,7 +4733,6 @@ function buildSimpleReturnItem(
   ) {
 
     statusText =
-
       [
         item.beschadigd > 0
           ? `${item.beschadigd} beschadigd`
@@ -4690,7 +4741,6 @@ function buildSimpleReturnItem(
         item.ontbreekt > 0
           ? `${item.ontbreekt} ontbreekt`
           : ""
-
       ]
         .filter(
           Boolean
@@ -4722,23 +4772,18 @@ function buildSimpleReturnItem(
         <div>
 
           <strong>
-
             ${adminEscapeHtml(
               item.product_naam
             )}
-
           </strong>
 
-
           <span>
-
             ${item.uitgeleend}
             ${
               item.uitgeleend === 1
                 ? "stuk"
                 : "stuks"
             }
-
           </span>
 
         </div>
@@ -4752,20 +4797,13 @@ function buildSimpleReturnItem(
           )}"
           class="return-simple-status ${statusClass}"
         >
-
           ${adminEscapeHtml(
             statusText
           )}
-
         </div>
 
       </div>
 
-
-      <!--
-        Verborgen waarden.
-        Hierdoor blijft bestaande Supabase-opslag werken.
-      -->
 
       <span
         id="${returnDomId(
@@ -4774,9 +4812,7 @@ function buildSimpleReturnItem(
           "good"
         )}"
         class="hidden"
-      >
-        ${item.goed_terug}
-      </span>
+      >${item.goed_terug}</span>
 
 
       <span
@@ -4786,9 +4822,7 @@ function buildSimpleReturnItem(
           "damaged"
         )}"
         class="hidden"
-      >
-        ${item.beschadigd}
-      </span>
+      >${item.beschadigd}</span>
 
 
       <span
@@ -4798,9 +4832,7 @@ function buildSimpleReturnItem(
           "missing"
         )}"
         class="hidden"
-      >
-        ${item.ontbreekt}
-      </span>
+      >${item.ontbreekt}</span>
 
 
       <textarea
@@ -4817,7 +4849,12 @@ function buildSimpleReturnItem(
 
         <button
           type="button"
-          class="return-good-button ${
+          id="${returnDomId(
+            order.id,
+            item.product_naam,
+            "goodToggle"
+          )}"
+          class="return-good-toggle ${
             isFullyProcessed &&
             !hasProblem
               ? "selected"
@@ -4829,11 +4866,25 @@ function buildSimpleReturnItem(
               item.product_naam
             )}'
           )"
+          aria-label="Markeer als goed terug"
+          aria-pressed="${
+            isFullyProcessed &&
+            !hasProblem
+              ? "true"
+              : "false"
+          }"
         >
-
-          ✓ Alles goed
-
+          ${
+            isFullyProcessed &&
+            !hasProblem
+              ? "✓"
+              : ""
+          }
         </button>
+
+        <span class="return-good-label">
+          Goed
+        </span>
 
 
         <button
@@ -4850,9 +4901,7 @@ function buildSimpleReturnItem(
             )}'
           )"
         >
-
-          Probleem melden
-
+          ${hasProblem ? "Probleem aanpassen" : "Probleem"}
         </button>
 
       </div>
@@ -5045,6 +5094,16 @@ function updateSimpleReturnItemStatus(
     );
 
 
+  const goodToggle =
+    document.getElementById(
+      returnDomId(
+        orderId,
+        productName,
+        "goodToggle"
+      )
+    );
+
+
   if (
     !statusElement ||
     !rowElement
@@ -5067,6 +5126,25 @@ function updateSimpleReturnItemStatus(
 
 
   if (
+    goodToggle
+  ) {
+
+    goodToggle.classList.remove(
+      "selected"
+    );
+
+    goodToggle.textContent =
+      "";
+
+    goodToggle.setAttribute(
+      "aria-pressed",
+      "false"
+    );
+
+  }
+
+
+  if (
     fullyProcessed &&
     !hasProblem
   ) {
@@ -5075,13 +5153,37 @@ function updateSimpleReturnItemStatus(
       "good"
     );
 
-
     statusElement.textContent =
-      "Alles goed terug";
-
+      "Goed";
 
     rowElement.classList.add(
       "good"
+    );
+
+
+    if (
+      goodToggle
+    ) {
+
+      goodToggle.classList.add(
+        "selected"
+      );
+
+      goodToggle.textContent =
+        "✓";
+
+      goodToggle.setAttribute(
+        "aria-pressed",
+        "true"
+      );
+
+    }
+
+
+    updateReturnProblemButton(
+      orderId,
+      productName,
+      false
     );
 
 
@@ -5136,6 +5238,13 @@ function updateSimpleReturnItemStatus(
     );
 
 
+    updateReturnProblemButton(
+      orderId,
+      productName,
+      true
+    );
+
+
     return;
 
   }
@@ -5153,6 +5262,58 @@ function updateSimpleReturnItemStatus(
   rowElement.classList.add(
     "pending"
   );
+
+
+  updateReturnProblemButton(
+    orderId,
+    productName,
+    false
+  );
+
+}
+
+
+function updateReturnProblemButton(
+  orderId,
+  productName,
+  hasProblem
+) {
+
+  const row =
+    document.getElementById(
+      returnDomId(
+        orderId,
+        productName,
+        "row"
+      )
+    );
+
+
+  const button =
+    row?.querySelector(
+      ".return-problem-button"
+    );
+
+
+  if (
+    !button
+  ) {
+
+    return;
+
+  }
+
+
+  button.classList.toggle(
+    "selected",
+    hasProblem
+  );
+
+
+  button.textContent =
+    hasProblem
+      ? "Probleem aanpassen"
+      : "Probleem";
 
 }
 
@@ -5250,6 +5411,17 @@ function openReturnProblemModal(
   }
 
 
+  if (
+    !document.getElementById(
+      "returnProblemModal"
+    )
+  ) {
+
+    createReturnProblemModal();
+
+  }
+
+
   const modal =
     document.getElementById(
       "returnProblemModal"
@@ -5261,7 +5433,7 @@ function openReturnProblemModal(
   ) {
 
     alert(
-      "Probleemvenster is nog niet geladen."
+      "Probleemvenster kon niet worden geopend."
     );
 
     return;
@@ -6466,6 +6638,55 @@ async function saveEventReturnRegistration(
       );
 
 
+    const incomplete =
+      items.find(
+        item => {
+
+          const accounted =
+            getReturnScreenValue(
+              orderId,
+              item.product_naam,
+              "good"
+            )
+            +
+            getReturnScreenValue(
+              orderId,
+              item.product_naam,
+              "damaged"
+            )
+            +
+            getReturnScreenValue(
+              orderId,
+              item.product_naam,
+              "missing"
+            );
+
+
+          return accounted !==
+            Number(
+              item.aantal ||
+              0
+            );
+
+        }
+      );
+
+
+    if (
+      incomplete
+    ) {
+
+      alert(
+        `Controleer eerst ${incomplete.product_naam}. `
+        +
+        "Duid aan dat alles goed is of meld het probleem."
+      );
+
+      return;
+
+    }
+
+
     const returns =
       items
         .map(
@@ -6474,36 +6695,28 @@ async function saveEventReturnRegistration(
             product_naam:
               item.product_naam,
 
-
             goed_terug:
-
               getReturnScreenValue(
                 orderId,
                 item.product_naam,
                 "good"
               ),
 
-
             beschadigd:
-
               getReturnScreenValue(
                 orderId,
                 item.product_naam,
                 "damaged"
               ),
 
-
             ontbreekt:
-
               getReturnScreenValue(
                 orderId,
                 item.product_naam,
                 "missing"
               ),
 
-
             opmerking:
-
               document
                 .getElementById(
                   returnDomId(
@@ -6514,9 +6727,7 @@ async function saveEventReturnRegistration(
                 )
                 ?.value
                 ?.trim()
-
               ||
-
               ""
 
           })
@@ -6527,17 +6738,14 @@ async function saveEventReturnRegistration(
       error
     } =
       await supabaseClient
-
         .rpc(
           "save_event_material_returns",
           {
-
             p_order_id:
               orderId,
 
             p_returns:
               returns
-
           }
         );
 
@@ -6554,37 +6762,27 @@ async function saveEventReturnRegistration(
     await loadAdminDashboard();
 
 
-    const refreshed =
-      adminOrders
-        .find(
-          order =>
-            order.id ===
-            orderId
-        );
+    selectedAdminOrder =
+      null;
 
 
-    if (
-      refreshed
-    ) {
-
-      selectedAdminOrder =
-        refreshed;
+    showOnly(
+      "adminScreen"
+    );
 
 
-      renderAdminDetail(
-        refreshed
-      );
+    switchAdminTab(
+      "material"
+    );
 
 
-      showOnly(
-        "adminDetailScreen"
-      );
+    renderAdminStatistics();
 
-    }
+    renderAdminSections();
 
 
     alert(
-      "Retourregistratie opgeslagen."
+      "Retour verwerkt."
     );
 
   }
@@ -6594,15 +6792,11 @@ async function saveEventReturnRegistration(
   ) {
 
     alert(
-
       "Retourregistratie kon niet worden opgeslagen.\n\n"
-
       +
-
       adminReadableError(
         error
       )
-
     );
 
   }
@@ -10089,1786 +10283,416 @@ function injectProfessionalReturnStyles() {
   style.textContent = `
 
     /* ==========================================
-       RETOUR WORKSPACE
+       COMPACT RETOURSCHERM
     ========================================== */
 
-    .return-workspace {
-
-      background:
-        #f7f5ef;
-
-      border:
-        1px solid
-        #ded9ce;
-
-      border-radius:
-        18px;
-
+    .return-simple-workspace {
+      background:#f7f5ef;
+      border:1px solid #ded9ce;
+      border-radius:16px;
       overflow:hidden;
-
-      box-shadow:
-        0 10px 30px
-        rgba(
-          40,
-          34,
-          24,
-          .08
-        );
-
+      box-shadow:0 8px 24px rgba(35,30,22,.08);
     }
 
-
-    /* ==========================================
-       HEADER
-    ========================================== */
-
-    .return-workspace-header {
-
-      padding:
-        18px;
-
-      border-bottom:
-        1px solid
-        #ddd7cb;
-
-      background:
-        #faf9f5;
-
+    .return-simple-header {
+      padding:12px 13px;
+      background:#faf9f5;
+      border-bottom:1px solid #ded9ce;
     }
 
+    .return-simple-header span {
+      display:block;
+      color:#8c692f;
+      font-size:8px;
+      font-weight:900;
+      letter-spacing:.08em;
+    }
 
-    .return-header-top {
+    .return-simple-header h2 {
+      margin:2px 0 0;
+      font-size:21px;
+      color:#182019;
+    }
 
+    .return-simple-summary {
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:6px;
+      padding:8px;
+      background:#f0ece4;
+    }
+
+    .return-simple-summary > div {
+      padding:8px;
+      border-radius:9px;
+      background:white;
+      text-align:center;
+    }
+
+    .return-simple-summary span {
+      display:block;
+      color:#80786c;
+      font-size:8px;
+      font-weight:900;
+      text-transform:uppercase;
+    }
+
+    .return-simple-summary strong {
+      display:block;
+      margin-top:1px;
+      color:#1a211b;
+      font-size:20px;
+    }
+
+    .return-simple-list {
+      background:white;
+    }
+
+    .return-simple-item {
+      padding:10px 11px;
+      border-bottom:1px solid #e5e0d7;
+      border-left:4px solid #d0cbc2;
+      background:white;
+    }
+
+    .return-simple-item.good {
+      border-left-color:#2f7449;
+      background:#f9fcfa;
+    }
+
+    .return-simple-item.problem {
+      border-left-color:#d99a3e;
+      background:#fffaf3;
+    }
+
+    .return-simple-item-main {
       display:flex;
-
-      justify-content:
-        space-between;
-
+      justify-content:space-between;
       align-items:flex-start;
-
-      gap:
-        12px;
-
+      gap:8px;
     }
 
-
-    .return-kicker {
-
+    .return-simple-item-main strong {
       display:block;
-
-      color:
-        #8c806c;
-
-      font-size:
-        10px;
-
-      font-weight:
-        900;
-
-      letter-spacing:
-        .12em;
-
-      text-transform:
-        uppercase;
-
+      color:#202720;
+      font-size:14px;
     }
 
-
-    .return-header-top h2 {
-
-      margin:
-        4px 0 0;
-
-      font-size:
-        27px;
-
-      color:
-        #181c18;
-
+    .return-simple-item-main span {
+      display:block;
+      margin-top:2px;
+      color:#888074;
+      font-size:9px;
     }
 
-
-    .return-all-good {
-
-      min-height:
-        42px;
-
-      padding:
-        0 15px;
-
-      border:
-        0;
-
-      border-radius:
-        10px;
-
-      background:
-        #194d38;
-
-      color:
-        white;
-
-      font-size:
-        12px;
-
-      font-weight:
-        900;
-
-      white-space:
-        nowrap;
-
+    .return-simple-status {
+      max-width:145px;
+      padding:3px 7px;
+      border-radius:999px;
+      font-size:8px;
+      font-weight:900;
+      text-align:right;
     }
 
+    .return-simple-status.pending {
+      background:#ece8df;
+      color:#777064;
+    }
 
-    /* ==========================================
-       KPI SAMENVATTING
-    ========================================== */
+    .return-simple-status.good {
+      background:#e5f3e9;
+      color:#2f7449;
+    }
 
-    .return-summary-bar {
+    .return-simple-status.problem {
+      background:#f8ead5;
+      color:#a36017;
+    }
 
+    .return-simple-actions {
       display:grid;
-
-      grid-template-columns:
-        repeat(
-          4,
-          1fr
-        );
-
-      margin-top:
-        16px;
-
-      border:
-        1px solid
-        #ded9ce;
-
-      border-radius:
-        14px;
-
-      background:
-        white;
-
-      overflow:hidden;
-
-    }
-
-
-    .return-summary-stat {
-
-      position:relative;
-
-      padding:
-        14px 10px;
-
-      text-align:center;
-
-    }
-
-
-    .return-summary-stat:not(:last-child) {
-
-      border-right:
-        1px solid
-        #e6e1d8;
-
-    }
-
-
-    .return-summary-stat span {
-
-      display:block;
-
-      color:
-        #8b8376;
-
-      font-size:
-        9px;
-
-      font-weight:
-        900;
-
-      text-transform:
-        uppercase;
-
-      letter-spacing:
-        .05em;
-
-    }
-
-
-    .return-summary-stat strong {
-
-      display:block;
-
-      margin-top:
-        5px;
-
-      color:
-        #171c18;
-
-      font-size:
-        24px;
-
-    }
-
-
-    .return-summary-stat.green strong {
-
-      color:
-        #256544;
-
-    }
-
-
-    .return-summary-stat.orange strong {
-
-      color:
-        #ad691c;
-
-    }
-
-
-    .return-summary-stat.red strong {
-
-      color:
-        #b73d37;
-
-    }
-
-
-    /* ==========================================
-       KOLOM HEADERS
-    ========================================== */
-
-    .return-table-header {
-
-      display:grid;
-
-      grid-template-columns:
-        minmax(150px, 1.5fr)
-        90px
-        1fr
-        1fr
-        1fr
-        58px;
-
+      grid-template-columns:30px auto 1fr;
       align-items:center;
-
-      gap:
-        7px;
-
-      padding:
-        11px 14px;
-
-      border-bottom:
-        1px solid
-        #ddd7cb;
-
-      background:
-        #f0ece4;
-
-      color:
-        #766d60;
-
-      font-size:
-        9px;
-
-      font-weight:
-        900;
-
-      text-transform:
-        uppercase;
-
-      letter-spacing:
-        .04em;
-
+      gap:7px;
+      margin-top:8px;
     }
 
-
-    .return-table-header div:not(:first-child) {
-
-      text-align:center;
-
-    }
-
-
-    /* ==========================================
-       ARTIKEL
-    ========================================== */
-
-    .return-product-row {
-
-      padding:
-        13px 14px;
-
-      border-bottom:
-        1px solid
-        #e4dfd6;
-
-      background:
-        white;
-
-    }
-
-
-    .return-product-grid {
-
+    .return-good-toggle {
+      width:28px;
+      height:28px;
+      min-width:28px;
+      padding:0;
       display:grid;
-
-      grid-template-columns:
-        minmax(150px, 1.5fr)
-        90px
-        1fr
-        1fr
-        1fr
-        58px;
-
-      align-items:center;
-
-      gap:
-        7px;
-
-    }
-
-
-    .return-product-info {
-
-      min-width:0;
-
-    }
-
-
-    .return-product-info strong {
-
-      display:block;
-
-      color:
-        #1d211e;
-
-      font-size:
-        14px;
-
-    }
-
-
-    .return-product-info span {
-
-      display:block;
-
-      margin-top:
-        3px;
-
-      color:
-        #8a8275;
-
-      font-size:
-        10px;
-
-    }
-
-
-    .return-loaned {
-
-      text-align:center;
-
-      color:
-        #554f45;
-
-      font-size:
-        16px;
-
-      font-weight:
-        850;
-
-    }
-
-
-    /* ==========================================
-       COUNTERS
-    ========================================== */
-
-    .return-counter {
-
-      text-align:center;
-
-    }
-
-
-    .return-counter-label {
-
-      display:none;
-
-    }
-
-
-    .return-counter-value {
-
-      display:block;
-
-      margin-bottom:
-        4px;
-
-      font-size:
-        17px;
-
-      font-weight:
-        900;
-
-    }
-
-
-    .return-counter.green
-    .return-counter-value {
-
-      color:
-        #216140;
-
-    }
-
-
-    .return-counter.orange
-    .return-counter-value {
-
-      color:
-        #c46d0a;
-
-    }
-
-
-    .return-counter.red
-    .return-counter-value {
-
-      color:
-        #bd2f2c;
-
-    }
-
-
-    .return-stepper {
-
-      display:grid;
-
-      grid-template-columns:
-        34px 34px 34px;
-
-      justify-content:center;
-
-      border:
-        1px solid
-        #ddd7cb;
-
-      border-radius:
-        9px;
-
-      overflow:hidden;
-
-      background:
-        white;
-
-    }
-
-
-    .return-stepper button {
-
-      height:
-        34px;
-
-      border:
-        0;
-
-      background:
-        #faf9f5;
-
-      color:
-        #7a7266;
-
-      font-size:
-        18px;
-
-    }
-
-
-    .return-stepper button:first-child {
-
-      border-right:
-        1px solid
-        #e5dfd6;
-
-    }
-
-
-    .return-stepper button:last-child {
-
-      border-left:
-        1px solid
-        #e5dfd6;
-
-    }
-
-
-    .return-stepper b {
-
-      display:grid;
-
       place-items:center;
+      border:2px solid #9ab6a2;
+      border-radius:50%;
+      background:white;
+      color:white;
+      font-size:14px;
+      font-weight:900;
+      transition:.15s ease;
+    }
 
-      font-size:
-        13px;
+    .return-good-toggle.selected {
+      border-color:#2f7449;
+      background:#2f7449;
+      color:white;
+    }
 
-      background:
-        white;
+    .return-good-label {
+      color:#536157;
+      font-size:9px;
+      font-weight:850;
+    }
 
+    .return-problem-button {
+      justify-self:end;
+      min-height:30px;
+      padding:0 10px;
+      border:1px solid #dec79f;
+      border-radius:999px;
+      background:#fffaf2;
+      color:#9c611b;
+      font-size:9px;
+      font-weight:900;
+    }
+
+    .return-problem-button.selected {
+      border-color:#d99a3e;
+      background:#d99a3e;
+      color:white;
+    }
+
+    .return-simple-footer {
+      display:grid;
+      grid-template-columns:.7fr 1.3fr;
+      gap:6px;
+      padding:9px;
+      background:#f2eee6;
+    }
+
+    .return-simple-cancel,
+    .return-simple-save {
+      min-height:42px;
+      border-radius:10px;
+      font-weight:900;
+    }
+
+    .return-simple-cancel {
+      border:1px solid #d7d1c6;
+      background:white;
+      color:#514b42;
+    }
+
+    .return-simple-save {
+      border:0;
+      background:#194d38;
+      color:white;
     }
 
 
     /* ==========================================
-       STATUS
+       PROBLEEM POPUP
     ========================================== */
 
-    .return-status {
-
+    .return-problem-overlay {
+      position:fixed;
+      inset:0;
+      z-index:9999;
       display:flex;
-
+      align-items:flex-end;
       justify-content:center;
+      padding:14px;
+      background:rgba(12,18,13,.55);
+      backdrop-filter:blur(3px);
+      -webkit-backdrop-filter:blur(3px);
+    }
 
+    .return-problem-overlay.hidden {
+      display:none !important;
+    }
+
+    .return-problem-modal {
+      width:100%;
+      max-width:520px;
+      max-height:88vh;
+      overflow-y:auto;
+      padding:14px;
+      border-radius:18px;
+      background:#f8f6f0;
+      color:#202720;
+      box-shadow:0 18px 50px rgba(0,0,0,.3);
+    }
+
+    .return-problem-modal-head {
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-start;
+      gap:10px;
+      padding-bottom:10px;
+      border-bottom:1px solid #ded8ce;
+    }
+
+    .return-problem-modal-head span {
+      display:block;
+      color:#a15f18;
+      font-size:8px;
+      font-weight:900;
+      letter-spacing:.08em;
+    }
+
+    .return-problem-modal-head h3 {
+      margin:2px 0 0;
+      color:#182019;
+      font-size:20px;
+    }
+
+    .return-problem-modal-head small {
+      display:block;
+      margin-top:2px;
+      color:#81796d;
+      font-size:9px;
+    }
+
+    .return-problem-close {
+      width:34px;
+      height:34px;
+      border:0;
+      border-radius:9px;
+      background:#e8e2d8;
+      color:#49443d;
+      font-size:21px;
+    }
+
+    .return-problem-good-preview {
+      display:flex;
+      justify-content:space-between;
       align-items:center;
-
+      margin-top:10px;
+      padding:9px 10px;
+      border-radius:10px;
+      background:#e5f3e9;
+      color:#2f7449;
     }
 
+    .return-problem-good-preview span {
+      font-size:10px;
+      font-weight:900;
+    }
 
-    .return-status-circle {
+    .return-problem-good-preview strong {
+      font-size:20px;
+    }
 
-      width:
-        36px;
-
-      height:
-        36px;
-
-      border-radius:
-        50%;
-
+    .return-problem-option {
       display:grid;
+      grid-template-columns:1fr auto;
+      align-items:center;
+      gap:8px;
+      margin-top:8px;
+      padding:10px;
+      border:1px solid #dfd9cf;
+      border-radius:11px;
+      background:white;
+    }
 
+    .return-problem-option strong {
+      display:block;
+      color:#282e29;
+      font-size:11px;
+    }
+
+    .return-problem-option span {
+      display:block;
+      margin-top:2px;
+      color:#8a8175;
+      font-size:8px;
+    }
+
+    .return-problem-stepper {
+      display:grid;
+      grid-template-columns:34px 40px 34px;
+      overflow:hidden;
+      border:1px solid #d8d2c8;
+      border-radius:9px;
+      background:white;
+    }
+
+    .return-problem-stepper button {
+      height:34px;
+      border:0;
+      background:#f6f3ed;
+      color:#5f584e;
+      font-size:18px;
+    }
+
+    .return-problem-stepper button:first-child {
+      border-right:1px solid #ded8ce;
+    }
+
+    .return-problem-stepper button:last-child {
+      border-left:1px solid #ded8ce;
+    }
+
+    .return-problem-stepper > strong {
+      display:grid;
       place-items:center;
-
-      font-size:
-        17px;
-
-      font-weight:
-        900;
-
+      font-size:13px;
     }
 
-
-    .return-status-circle.done {
-
-      background:
-        #237047;
-
-      color:
-        white;
-
+    .return-problem-modal label {
+      display:block;
+      margin-top:10px;
+      color:#4d493f;
+      font-size:9px;
+      font-weight:900;
     }
 
-
-    .return-status-circle.warning {
-
-      background:
-        #c77b13;
-
-      color:
-        white;
-
+    .return-problem-modal textarea {
+      width:100%;
+      min-height:74px;
+      margin-top:5px;
+      border:1px solid #d9d3c9;
+      border-radius:10px;
+      background:white;
+      padding:9px;
+      font-size:11px;
+      color:#202720;
     }
 
-
-    .return-status-circle.open {
-
-      background:
-        #e8e3da;
-
-      color:
-        #857c6d;
-
-    }
-
-
-    /* ==========================================
-       OPMERKING
-    ========================================== */
-
-    .return-note-toggle {
-
-      display:inline-block;
-
-      margin-top:
-        9px;
-
-      padding:
-        0;
-
-      border:
-        0;
-
-      background:
-        transparent;
-
-      color:
-        #8a8172;
-
-      text-decoration:
-        underline;
-
-      font-size:
-        10px;
-
-      font-weight:
-        750;
-
-    }
-
-
-    .return-note {
-
-      width:
-        100%;
-
-      min-height:
-        58px;
-
-      margin-top:
-        8px;
-
-      border:
-        1px solid
-        #ddd7cb;
-
-      border-radius:
-        10px;
-
-      background:
-        #faf9f5;
-
-      padding:
-        9px 10px;
-
-      font-size:
-        11px;
-
-    }
-
-
-    /* ==========================================
-       FOOTER
-    ========================================== */
-
-    .return-workspace-footer {
-
+    .return-problem-actions {
       display:grid;
-
-      grid-template-columns:
-        .65fr 1.35fr;
-
-      gap:
-        8px;
-
-      padding:
-        13px 14px;
-
-      background:
-        #f5f2eb;
-
+      grid-template-columns:.8fr 1.2fr;
+      gap:6px;
+      margin-top:10px;
     }
 
-
-    .return-cancel {
-
-      min-height:
-        45px;
-
-      border:
-        1px solid
-        #ddd7cb;
-
-      border-radius:
-        10px;
-
-      background:
-        white;
-
-      color:
-        #423e37;
-
-      font-weight:
-        850;
-
+    .return-problem-cancel,
+    .return-problem-save {
+      min-height:42px;
+      border-radius:10px;
+      font-size:10px;
+      font-weight:900;
     }
 
-
-    .return-save-main {
-
-      min-height:
-        45px;
-
-      border:
-        0;
-
-      border-radius:
-        10px;
-
-      background:
-        #194d38;
-
-      color:
-        white;
-
-      font-weight:
-        900;
-
+    .return-problem-cancel {
+      border:1px solid #d8d2c8;
+      background:white;
+      color:#595249;
     }
 
-
-    /* ==========================================
-       INFO BALK
-    ========================================== */
-
-    .return-help {
-
-      margin:
-        10px 14px 0;
-
-      padding:
-        8px 10px;
-
-      border-radius:
-        9px;
-
-      background:
-        #eee9df;
-
-      color:
-        #827969;
-
-      font-size:
-        9px;
-
+    .return-problem-save {
+      border:0;
+      background:#194d38;
+      color:white;
     }
 
-
-    /* ==========================================
-       MOBIEL
-    ========================================== */
-
-    @media (
-      max-width:700px
-    ) {
-
-      .return-workspace {
-
-        margin:
-          0 -6px;
-
-        border-radius:
-          14px;
-
+    @media (min-width:701px) {
+      .return-problem-overlay {
+        align-items:center;
       }
-
-
-      .return-workspace-header {
-
-        padding:
-          13px 11px;
-
-      }
-
-
-      .return-header-top h2 {
-
-        font-size:
-          23px;
-
-      }
-
-
-      .return-all-good {
-
-        min-height:
-          37px;
-
-        padding:
-          0 9px;
-
-        font-size:
-          9px;
-
-      }
-
-
-      .return-summary-bar {
-
-        grid-template-columns:
-          repeat(
-            2,
-            1fr
-          );
-
-      }
-
-
-      .return-summary-stat:nth-child(2) {
-
-        border-right:
-          0;
-
-      }
-
-
-      .return-summary-stat:nth-child(-n+2) {
-
-        border-bottom:
-          1px solid
-          #e6e1d8;
-
-      }
-
-
-      .return-table-header {
-
-        display:none;
-
-      }
-
-
-      .return-product-row {
-
-        padding:
-          12px 10px;
-
-      }
-
-
-      .return-product-grid {
-
-        grid-template-columns:
-          1fr;
-
-        gap:
-          9px;
-
-      }
-
-
-      .return-product-info {
-
-        display:grid;
-
-        grid-template-columns:
-          1fr auto;
-
-        align-items:end;
-
-      }
-
-
-      .return-product-info span {
-
-        text-align:right;
-
-      }
-
-
-      .return-loaned {
-
-        display:none;
-
-      }
-
-
-      .return-product-controls {
-
-        display:grid;
-
-        grid-template-columns:
-          repeat(
-            3,
-            1fr
-          );
-
-        gap:
-          5px;
-
-      }
-
-
-      .return-counter-label {
-
-        display:block;
-
-        margin-bottom:
-          3px;
-
-        color:
-          #80776a;
-
-        font-size:
-          8px;
-
-        font-weight:
-          900;
-
-        text-transform:
-          uppercase;
-
-      }
-
-
-      .return-stepper {
-
-        grid-template-columns:
-          1fr 1fr 1fr;
-
-      }
-
-
-      .return-status {
-
-        justify-content:
-          flex-end;
-
-        margin-top:
-          -43px;
-
-      }
-
-
-      .return-status-circle {
-
-        width:
-          32px;
-
-        height:
-          32px;
-
-      }
-
-
-      .return-workspace-footer {
-
-        position:sticky;
-
-        bottom:0;
-
-        z-index:5;
-
-      }
-
     }
-/* ==========================================
-   EENVOUDIG RETOURSCHERM
-========================================== */
 
-.return-simple-workspace {
-
-  background:#f7f5ef;
-
-  border:
-    1px solid
-    #ded9ce;
-
-  border-radius:16px;
-
-  overflow:hidden;
-
-  box-shadow:
-    0 8px 24px
-    rgba(
-      35,
-      30,
-      22,
-      .08
-    );
-
-}
-
-
-.return-simple-header {
-
-  padding:
-    14px;
-
-  background:#faf9f5;
-
-  border-bottom:
-    1px solid
-    #ded9ce;
-
-}
-
-
-.return-simple-header span {
-
-  display:block;
-
-  color:#8c692f;
-
-  font-size:8px;
-
-  font-weight:900;
-
-  letter-spacing:.08em;
-
-}
-
-
-.return-simple-header h2 {
-
-  margin:
-    2px 0 0;
-
-  font-size:22px;
-
-  color:#182019;
-
-}
-
-
-.return-simple-summary {
-
-  display:grid;
-
-  grid-template-columns:
-    1fr 1fr;
-
-  gap:6px;
-
-  padding:10px;
-
-  background:#f0ece4;
-
-}
-
-
-.return-simple-summary > div {
-
-  padding:
-    10px;
-
-  border-radius:10px;
-
-  background:white;
-
-  text-align:center;
-
-}
-
-
-.return-simple-summary span {
-
-  display:block;
-
-  color:#80786c;
-
-  font-size:8px;
-
-  font-weight:900;
-
-  text-transform:uppercase;
-
-}
-
-
-.return-simple-summary strong {
-
-  display:block;
-
-  margin-top:2px;
-
-  color:#1a211b;
-
-  font-size:22px;
-
-}
-
-
-.return-simple-list {
-
-  background:white;
-
-}
-
-
-.return-simple-item {
-
-  padding:
-    11px;
-
-  border-bottom:
-    1px solid
-    #e5e0d7;
-
-  border-left:
-    4px solid
-    #d0cbc2;
-
-}
-
-
-.return-simple-item.good {
-
-  border-left-color:
-    #2f7449;
-
-  background:#f9fcfa;
-
-}
-
-
-.return-simple-item.problem {
-
-  border-left-color:
-    #d99a3e;
-
-  background:#fffaf3;
-
-}
-
-
-.return-simple-item-main {
-
-  display:flex;
-
-  justify-content:
-    space-between;
-
-  align-items:flex-start;
-
-  gap:8px;
-
-}
-
-
-.return-simple-item-main strong {
-
-  display:block;
-
-  color:#202720;
-
-  font-size:14px;
-
-}
-
-
-.return-simple-item-main span {
-
-  display:block;
-
-  margin-top:2px;
-
-  color:#888074;
-
-  font-size:9px;
-
-}
-
-
-.return-simple-status {
-
-  padding:
-    4px 7px;
-
-  border-radius:999px;
-
-  font-size:8px;
-
-  font-weight:900;
-
-  white-space:nowrap;
-
-}
-
-
-.return-simple-status.pending {
-
-  background:#ece8df;
-
-  color:#777064;
-
-}
-
-
-.return-simple-status.good {
-
-  background:#e5f3e9;
-
-  color:#2f7449;
-
-}
-
-
-.return-simple-status.problem {
-
-  background:#f8ead5;
-
-  color:#a36017;
-
-}
-
-
-.return-simple-actions {
-
-  display:grid;
-
-  grid-template-columns:
-    1fr 1fr;
-
-  gap:6px;
-
-  margin-top:9px;
-
-}
-
-
-.return-good-button,
-.return-problem-button {
-
-  min-height:38px;
-
-  border-radius:9px;
-
-  font-size:10px;
-
-  font-weight:900;
-
-}
-
-
-.return-good-button {
-
-  border:
-    1px solid
-    #b9d6c2;
-
-  background:#eff7f1;
-
-  color:#2f7449;
-
-}
-
-
-.return-good-button.selected {
-
-  background:#2f7449;
-
-  color:white;
-
-  border-color:#2f7449;
-
-}
-
-
-.return-problem-button {
-
-  border:
-    1px solid
-    #e0c18e;
-
-  background:#fff8ed;
-
-  color:#9c611b;
-
-}
-
-
-.return-problem-button.selected {
-
-  background:#d99a3e;
-
-  color:white;
-
-  border-color:#d99a3e;
-
-}
-
-
-.return-simple-footer {
-
-  display:grid;
-
-  grid-template-columns:
-    .7fr 1.3fr;
-
-  gap:6px;
-
-  padding:10px;
-
-  background:#f2eee6;
-
-}
-
-
-.return-simple-cancel,
-.return-simple-save {
-
-  min-height:43px;
-
-  border-radius:10px;
-
-  font-weight:900;
-
-}
-
-
-.return-simple-cancel {
-
-  border:
-    1px solid
-    #d7d1c6;
-
-  background:white;
-
-  color:#514b42;
-
-}
-
-
-.return-simple-save {
-
-  border:0;
-
-  background:#194d38;
-
-  color:white;
-
-}
-
-
-/* ==========================================
-   PROBLEEM POPUP OVERLAY
-========================================== */
-
-.return-problem-overlay {
-
-  position:fixed;
-
-  inset:0;
-
-  z-index:500;
-
-  display:flex;
-
-  align-items:flex-end;
-
-  justify-content:center;
-
-  padding:
-    14px;
-
-  background:
-    rgba(
-      12,
-      18,
-      13,
-      .55
-    );
-
-  backdrop-filter:
-    blur(3px);
-
-}
-
-
-/* ==========================================
-   PROBLEEM POPUP
-========================================== */
-
-.return-problem-modal {
-
-  width:100%;
-
-  max-width:520px;
-
-  max-height:
-    88vh;
-
-  overflow-y:auto;
-
-  padding:
-    14px;
-
-  border-radius:
-    18px;
-
-  background:
-    #f8f6f0;
-
-  box-shadow:
-    0 18px 50px
-    rgba(
-      0,
-      0,
-      0,
-      .3
-    );
-
-}
-
-
-.return-problem-modal-head {
-
-  display:flex;
-
-  justify-content:
-    space-between;
-
-  align-items:flex-start;
-
-  gap:10px;
-
-  padding-bottom:10px;
-
-  border-bottom:
-    1px solid
-    #ded8ce;
-
-}
-
-
-.return-problem-modal-head span {
-
-  display:block;
-
-  color:#a15f18;
-
-  font-size:8px;
-
-  font-weight:900;
-
-  letter-spacing:.08em;
-
-}
-
-
-.return-problem-modal-head h3 {
-
-  margin:
-    2px 0 0;
-
-  color:#182019;
-
-  font-size:20px;
-
-}
-
-
-.return-problem-modal-head small {
-
-  display:block;
-
-  margin-top:2px;
-
-  color:#81796d;
-
-  font-size:9px;
-
-}
-
-
-.return-problem-modal-head > button {
-
-  width:34px;
-
-  height:34px;
-
-  border:0;
-
-  border-radius:9px;
-
-  background:#e8e2d8;
-
-  color:#49443d;
-
-  font-size:21px;
-
-}
-
-
-/* ==========================================
-   GOED TERUG PREVIEW
-========================================== */
-
-.return-problem-good-preview {
-
-  display:flex;
-
-  justify-content:
-    space-between;
-
-  align-items:center;
-
-  margin-top:10px;
-
-  padding:
-    9px 10px;
-
-  border-radius:10px;
-
-  background:#e5f3e9;
-
-  color:#2f7449;
-
-}
-
-
-.return-problem-good-preview span {
-
-  font-size:10px;
-
-  font-weight:900;
-
-}
-
-
-.return-problem-good-preview strong {
-
-  font-size:20px;
-
-}
-
-
-/* ==========================================
-   PROBLEEM OPTIES
-========================================== */
-
-.return-problem-option {
-
-  display:grid;
-
-  grid-template-columns:
-    1fr auto;
-
-  align-items:center;
-
-  gap:8px;
-
-  margin-top:8px;
-
-  padding:10px;
-
-  border:
-    1px solid
-    #dfd9cf;
-
-  border-radius:11px;
-
-  background:white;
-
-}
-
-
-.return-problem-option strong {
-
-  display:block;
-
-  color:#282e29;
-
-  font-size:11px;
-
-}
-
-
-.return-problem-option span {
-
-  display:block;
-
-  margin-top:2px;
-
-  color:#8a8175;
-
-  font-size:8px;
-
-}
-
-
-/* ==========================================
-   POPUP STEPPER
-========================================== */
-
-.return-problem-stepper {
-
-  display:grid;
-
-  grid-template-columns:
-    34px 40px 34px;
-
-  overflow:hidden;
-
-  border:
-    1px solid
-    #d8d2c8;
-
-  border-radius:9px;
-
-  background:white;
-
-}
-
-
-.return-problem-stepper button {
-
-  height:34px;
-
-  border:0;
-
-  background:#f6f3ed;
-
-  color:#5f584e;
-
-  font-size:18px;
-
-}
-
-
-.return-problem-stepper button:first-child {
-
-  border-right:
-    1px solid
-    #ded8ce;
-
-}
-
-
-.return-problem-stepper button:last-child {
-
-  border-left:
-    1px solid
-    #ded8ce;
-
-}
-
-
-.return-problem-stepper strong {
-
-  display:grid;
-
-  place-items:center;
-
-  font-size:13px;
-
-}
-
-
-/* ==========================================
-   OPMERKING POPUP
-========================================== */
-
-.return-problem-modal label {
-
-  display:block;
-
-  margin-top:10px;
-
-  color:#4d493f;
-
-  font-size:9px;
-
-  font-weight:900;
-
-}
-
-
-.return-problem-modal textarea {
-
-  width:100%;
-
-  min-height:74px;
-
-  margin-top:5px;
-
-  border:
-    1px solid
-    #d9d3c9;
-
-  border-radius:10px;
-
-  background:white;
-
-  padding:9px;
-
-  font-size:11px;
-
-}
-
-
-/* ==========================================
-   POPUP ACTIES
-========================================== */
-
-.return-problem-actions {
-
-  display:grid;
-
-  grid-template-columns:
-    .8fr 1.2fr;
-
-  gap:6px;
-
-  margin-top:10px;
-
-}
-
-
-.return-problem-cancel,
-.return-problem-save {
-
-  min-height:42px;
-
-  border-radius:10px;
-
-  font-size:10px;
-
-  font-weight:900;
-
-}
-
-
-.return-problem-cancel {
-
-  border:
-    1px solid
-    #d8d2c8;
-
-  background:white;
-
-  color:#595249;
-
-}
-
-
-.return-problem-save {
-
-  border:0;
-
-  background:#194d38;
-
-  color:white;
-
-}
-
-
-/* ==========================================
-   DESKTOP POPUP
-========================================== */
-
-@media (
-  min-width:701px
-) {
-
-  .return-problem-overlay {
-
-    align-items:center;
-
-  }
-
-}
   `;
 
 
@@ -11877,6 +10701,7 @@ function injectProfessionalReturnStyles() {
   );
 
 }
+
 
 /* ===============================
    GLOBAL
