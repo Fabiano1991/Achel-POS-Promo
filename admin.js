@@ -602,6 +602,21 @@ function createAdminScreen() {
 
       </div>
 
+
+      <div class="admin-block">
+
+        <div class="admin-block-title">
+
+          <strong>
+            Retourarchief
+          </strong>
+
+        </div>
+
+        <div id="adminReturnArchiveList"></div>
+
+      </div>
+
     </div>
 
 
@@ -1372,6 +1387,15 @@ function toggleAdminFilters() {
 
 
 function openAdminArchive() {
+
+  const statusFilter =
+    document.getElementById(
+      "adminStatusFilter"
+    );
+
+  if (statusFilter) {
+    statusFilter.value = "";
+  }
 
   openAdminRequestView(
     "archive"
@@ -2591,6 +2615,68 @@ function getFilteredAdminOrders() {
 }
 
 
+function getArchiveFilteredOrders() {
+
+  const representative =
+    document
+      .getElementById(
+        "adminRepFilter"
+      )
+      ?.value ||
+    "";
+
+  const search =
+    (
+      document
+        .getElementById(
+          "adminSearch"
+        )
+        ?.value ||
+      ""
+    )
+      .trim()
+      .toLowerCase();
+
+  return adminOrders
+    .filter(
+      order => {
+
+        if (
+          representative &&
+          order.user_id !== representative
+        ) {
+          return false;
+        }
+
+        if (!search) {
+          return true;
+        }
+
+        const profile =
+          getAdminProfile(
+            order.user_id
+          );
+
+        return [
+          order.referentie,
+          order.gemeente,
+          order.land,
+          order.event_naam,
+          order.opmerking,
+          profile?.naam,
+          profile?.email
+        ]
+          .filter(Boolean)
+          .join(" ")
+          .toLowerCase()
+          .includes(search);
+
+      }
+    );
+
+}
+
+
 /* ===============================
    RENDER SECTIONS
 ================================ */
@@ -2653,10 +2739,29 @@ function renderAdminSections() {
       );
 
 
+  const archiveSource =
+    getArchiveFilteredOrders();
+
+
   const archive =
-    filtered
+    archiveSource
       .filter(
-        isArchivedOrder
+        order =>
+          !order.event_naam
+          &&
+          isArchivedOrder(
+            order
+          )
+      );
+
+
+  const returnArchive =
+    archiveSource
+      .filter(
+        order =>
+          Boolean(order.event_naam)
+          &&
+          Boolean(order.event_returned_at)
       );
 
 
@@ -2775,6 +2880,11 @@ function renderAdminSections() {
 
 
   renderProblemMaterials();
+
+
+  renderReturnArchiveList(
+    returnArchive
+  );
 
 
   renderAdminWholesaleOrders();
@@ -3587,6 +3697,102 @@ async function resolveMissingMaterial(
   switchAdminTab(
     "material"
   );
+
+}
+
+
+/* ===============================
+   RETOURARCHIEF
+================================ */
+
+function renderReturnArchiveList(
+  orders
+) {
+
+  const container =
+    document.getElementById(
+      "adminReturnArchiveList"
+    );
+
+  if (!container) {
+    return;
+  }
+
+  if (!orders.length) {
+
+    container.innerHTML = `
+      <div class="admin-clear">
+        <b>Geen afgehandelde retouren</b>
+      </div>
+    `;
+
+    return;
+  }
+
+  container.innerHTML =
+    orders
+      .map(
+        order => {
+
+          const profile =
+            getAdminProfile(
+              order.user_id
+            );
+
+          const problemCount =
+            getEventReturnsForOrder(
+              order.id
+            )
+              .reduce(
+                (total, row) =>
+                  total +
+                  Number(row.beschadigd || 0) +
+                  Number(row.ontbreekt || 0),
+                0
+              );
+
+          return `
+            <button
+              type="button"
+              class="admin-order-card"
+              onclick="openAdminOrder('${order.id}')"
+            >
+              <div>
+                <span>RETOUR</span>
+
+                <em class="status status-klaar">
+                  Afgehandeld
+                </em>
+              </div>
+
+              <strong>
+                ${adminEscapeHtml(
+                  order.event_naam ||
+                  "Evenement"
+                )}
+              </strong>
+
+              <small>
+                ${adminEscapeHtml(
+                  profile?.naam ||
+                  "Onbekend"
+                )}
+                ·
+                ${adminFormatDateTime(
+                  order.event_returned_at
+                )}
+                ${
+                  problemCount > 0
+                    ? ` · ${problemCount} actie nodig`
+                    : " · volledig in orde"
+                }
+              </small>
+            </button>
+          `;
+
+        }
+      )
+      .join("");
 
 }
 
@@ -6956,6 +7162,63 @@ async function saveEventReturnRegistration(
 
 
     const {
+      data: savedReturnRows,
+      error: verifyError
+    } =
+      await supabaseClient
+        .from(
+          "event_material_returns"
+        )
+        .select(
+          "order_id, product_naam, goed_terug, beschadigd, ontbreekt, opmerking"
+        )
+        .eq(
+          "order_id",
+          orderId
+        );
+
+
+    if (verifyError) {
+      throw verifyError;
+    }
+
+
+    const saveIsComplete =
+      items.every(
+        item => {
+
+          const saved =
+            (savedReturnRows || [])
+              .find(
+                row =>
+                  row.product_naam ===
+                  item.product_naam
+              );
+
+          if (!saved) {
+            return false;
+          }
+
+          const processed =
+            Number(saved.goed_terug || 0) +
+            Number(saved.beschadigd || 0) +
+            Number(saved.ontbreekt || 0);
+
+          return processed ===
+            Number(item.aantal || 0);
+
+        }
+      );
+
+
+    if (!saveIsComplete) {
+      throw new Error(
+        "Retourgegevens zijn niet volledig opgeslagen. De retour is daarom niet afgesloten."
+      );
+    }
+
+
+    const {
       error: closeError
     } =
       await supabaseClient
@@ -7482,8 +7745,42 @@ async function updateSelectedAdminOrderStatus(
       )
 
       .update({
+
         status:
-          status
+          status,
+
+        ...(
+          status === "in_behandeling"
+          &&
+          !selectedAdminOrder.opened_at
+            ? {
+                opened_at:
+                  new Date().toISOString()
+              }
+            : {}
+        ),
+
+        ...(
+          status === "klaar"
+          &&
+          !selectedAdminOrder.completed_at
+            ? {
+                completed_at:
+                  new Date().toISOString()
+              }
+            : {}
+        ),
+
+        ...(
+          status === "afgehaald"
+            ? {
+                collected_at:
+                  selectedAdminOrder.collected_at ||
+                  new Date().toISOString()
+              }
+            : {}
+        )
+
       })
 
       .eq(
@@ -7747,10 +8044,6 @@ function getReportOrders() {
         if (
           order.status !==
           "afgehaald"
-
-          ||
-
-          !order.collected_at
         ) {
 
           return false;
@@ -7772,9 +8065,21 @@ function getReportOrders() {
         }
 
 
+        const reportDate =
+          order.collected_at ||
+          order.event_returned_at ||
+          order.updated_at ||
+          order.created_at;
+
+
+        if (!reportDate) {
+          return false;
+        }
+
+
         const date =
           new Date(
-            order.collected_at
+            reportDate
           );
 
 
