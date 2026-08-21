@@ -28,6 +28,9 @@ let selectedAdminOrder =
 let adminReportChart =
   null;
 
+let adminRequestView =
+  "regular";
+
 
 /* ===============================
    INIT
@@ -264,7 +267,6 @@ function createAdminScreen() {
 
         </div>
 
-
         <div id="adminAttentionPanel"></div>
 
       </div>
@@ -275,11 +277,11 @@ function createAdminScreen() {
         <div class="admin-block-title">
 
           <span>
-            OPERATIONEEL
+            AANVRAGEN
           </span>
 
           <strong>
-            Aanvragen
+            Open direct
           </strong>
 
         </div>
@@ -287,7 +289,7 @@ function createAdminScreen() {
 
         <button
           class="admin-row green"
-          onclick="switchAdminTab('requests')"
+          onclick="openAdminRequestView('regular')"
           type="button"
         >
 
@@ -298,11 +300,10 @@ function createAdminScreen() {
             </b>
 
             <small>
-              Actieve aanvragen
+              Alleen POS- en bieraanvragen
             </small>
 
           </div>
-
 
           <strong id="overviewRegularCount">
             0
@@ -317,7 +318,7 @@ function createAdminScreen() {
 
         <button
           class="admin-row orange"
-          onclick="switchAdminTab('requests')"
+          onclick="openAdminRequestView('events')"
           type="button"
         >
 
@@ -328,184 +329,12 @@ function createAdminScreen() {
             </b>
 
             <small>
-              Actieve evenementaanvragen
+              Alleen evenementaanvragen
             </small>
 
           </div>
-
 
           <strong id="overviewEventCount">
-            0
-          </strong>
-
-          <i>
-            ›
-          </i>
-
-        </button>
-
-
-        <button
-          class="admin-row purple"
-          onclick="switchAdminTab('requests')"
-          type="button"
-        >
-
-          <div>
-
-            <b>
-              Groothandel
-            </b>
-
-            <small>
-              Externe bestellingen
-            </small>
-
-          </div>
-
-
-          <strong id="overviewWholesaleCount">
-            0
-          </strong>
-
-          <i>
-            ›
-          </i>
-
-        </button>
-
-      </div>
-
-
-      <div class="admin-block">
-
-        <div class="admin-block-title">
-
-          <span>
-            LOGISTIEK
-          </span>
-
-          <strong>
-            Materiaal
-          </strong>
-
-        </div>
-
-
-        <button
-          class="admin-row orange"
-          onclick="switchAdminTab('material')"
-          type="button"
-        >
-
-          <div>
-
-            <b>
-              Materiaal buiten
-            </b>
-
-            <small>
-              Retour nog te verwerken
-            </small>
-
-          </div>
-
-
-          <strong id="overviewMaterialOutCount">
-            0
-          </strong>
-
-          <i>
-            ›
-          </i>
-
-        </button>
-
-
-        <button
-          class="admin-row red"
-          onclick="switchAdminTab('material')"
-          type="button"
-        >
-
-          <div>
-
-            <b>
-              Schade / ontbreekt
-            </b>
-
-            <small>
-              Vraagt aandacht
-            </small>
-
-          </div>
-
-
-          <strong id="overviewProblemsCount">
-            0
-          </strong>
-
-          <i>
-            ›
-          </i>
-
-        </button>
-
-      </div>
-
-
-      <div class="admin-block">
-
-        <button
-          class="admin-row blue"
-          onclick="switchAdminTab('reports')"
-          type="button"
-        >
-
-          <div>
-
-            <b>
-              Rapportage
-            </b>
-
-            <small>
-              Maand, jaar en Excel
-            </small>
-
-          </div>
-
-
-          <strong>
-            ↗
-          </strong>
-
-          <i>
-            ›
-          </i>
-
-        </button>
-
-
-        <button
-          class="admin-row grey"
-          onclick="switchAdminTab('requests'); openAdminArchive()"
-          type="button"
-        >
-
-          <div>
-
-            <b>
-              Archief
-            </b>
-
-            <small>
-              Afgehandelde aanvragen
-            </small>
-
-          </div>
-
-
-          <strong id="overviewArchiveCount">
             0
           </strong>
 
@@ -540,6 +369,36 @@ function createAdminScreen() {
       </div>
 
 
+      <div class="admin-request-switch">
+
+        <button
+          id="adminRequestView-regular"
+          class="active"
+          type="button"
+          onclick="setAdminRequestView('regular')"
+        >
+          POS & bier
+        </button>
+
+        <button
+          id="adminRequestView-events"
+          type="button"
+          onclick="setAdminRequestView('events')"
+        >
+          Evenementen
+        </button>
+
+        <button
+          id="adminRequestView-archive"
+          type="button"
+          onclick="setAdminRequestView('archive')"
+        >
+          Archief
+        </button>
+
+      </div>
+
+
       <div class="admin-searchbar">
 
         <input
@@ -548,7 +407,6 @@ function createAdminScreen() {
           placeholder="Zoeken..."
           oninput="renderAdminSections()"
         >
-
 
         <button
           type="button"
@@ -569,7 +427,6 @@ function createAdminScreen() {
           Vertegenwoordiger
         </label>
 
-
         <select
           id="adminRepFilter"
           onchange="renderAdminSections()"
@@ -581,11 +438,9 @@ function createAdminScreen() {
 
         </select>
 
-
         <label>
           Status
         </label>
-
 
         <select
           id="adminStatusFilter"
@@ -621,41 +476,50 @@ function createAdminScreen() {
       </div>
 
 
-      ${adminPanelHtml(
-        "POS & bier",
-        "adminRegularCount",
-        "adminRegularOrdersList",
-        "green",
-        true
-      )}
+      <div id="adminRequestPane-regular">
+
+        ${adminPanelHtml(
+          "POS & bier",
+          "adminRegularCount",
+          "adminRegularOrdersList",
+          "green",
+          true
+        )}
+
+      </div>
 
 
-      ${adminPanelHtml(
-        "Evenementen",
-        "adminEventCount",
-        "adminEventOrdersList",
-        "orange",
-        false
-      )}
+      <div
+        id="adminRequestPane-events"
+        class="hidden"
+      >
+
+        ${adminPanelHtml(
+          "Evenementen",
+          "adminEventCount",
+          "adminEventOrdersList",
+          "orange",
+          true
+        )}
+
+      </div>
 
 
-      ${adminPanelHtml(
-        "Groothandel",
-        "adminWholesaleCount",
-        "adminWholesaleOrdersList",
-        "purple",
-        false
-      )}
+      <div
+        id="adminRequestPane-archive"
+        class="hidden"
+      >
 
+        ${adminPanelHtml(
+          "Archief",
+          "adminArchiveCount",
+          "adminArchiveList",
+          "grey",
+          true,
+          "adminArchivePanel"
+        )}
 
-      ${adminPanelHtml(
-        "Archief",
-        "adminArchiveCount",
-        "adminArchiveList",
-        "grey",
-        false,
-        "adminArchivePanel"
-      )}
+      </div>
 
     </div>
 
@@ -694,11 +558,10 @@ function createAdminScreen() {
 
         </div>
 
-
         <div class="red">
 
           <span>
-            Schade / ontbreekt
+            Actie nodig
           </span>
 
           <strong id="adminProblemsCount">
@@ -720,7 +583,6 @@ function createAdminScreen() {
 
         </div>
 
-
         <div id="adminMaterialOutList"></div>
 
       </div>
@@ -731,11 +593,10 @@ function createAdminScreen() {
         <div class="admin-block-title">
 
           <strong>
-            Schade & ontbrekend
+            Actie nodig
           </strong>
 
         </div>
-
 
         <div id="adminProblemsList"></div>
 
@@ -770,7 +631,6 @@ function createAdminScreen() {
           Vertegenwoordiger
         </label>
 
-
         <select
           id="reportRepresentative"
           onchange="updateAdminReport()"
@@ -791,7 +651,6 @@ function createAdminScreen() {
               Periode
             </label>
 
-
             <select
               id="reportPeriodType"
               onchange="toggleReportPeriod()"
@@ -809,67 +668,28 @@ function createAdminScreen() {
 
           </div>
 
-
           <div id="reportMonthBox">
 
             <label>
               Maand
             </label>
 
-
             <select
               id="reportMonth"
               onchange="updateAdminReport()"
             >
-
-              <option value="1">
-                Januari
-              </option>
-
-              <option value="2">
-                Februari
-              </option>
-
-              <option value="3">
-                Maart
-              </option>
-
-              <option value="4">
-                April
-              </option>
-
-              <option value="5">
-                Mei
-              </option>
-
-              <option value="6">
-                Juni
-              </option>
-
-              <option value="7">
-                Juli
-              </option>
-
-              <option value="8">
-                Augustus
-              </option>
-
-              <option value="9">
-                September
-              </option>
-
-              <option value="10">
-                Oktober
-              </option>
-
-              <option value="11">
-                November
-              </option>
-
-              <option value="12">
-                December
-              </option>
-
+              <option value="1">Januari</option>
+              <option value="2">Februari</option>
+              <option value="3">Maart</option>
+              <option value="4">April</option>
+              <option value="5">Mei</option>
+              <option value="6">Juni</option>
+              <option value="7">Juli</option>
+              <option value="8">Augustus</option>
+              <option value="9">September</option>
+              <option value="10">Oktober</option>
+              <option value="11">November</option>
+              <option value="12">December</option>
             </select>
 
           </div>
@@ -880,7 +700,6 @@ function createAdminScreen() {
         <label>
           Jaar
         </label>
-
 
         <select
           id="reportYear"
@@ -895,9 +714,7 @@ function createAdminScreen() {
 
 
         <div class="admin-chart">
-
           <canvas id="adminMaterialsChart"></canvas>
-
         </div>
 
 
@@ -906,10 +723,43 @@ function createAdminScreen() {
           type="button"
           onclick="exportAdminReportExcel()"
         >
-
           Excel downloaden
-
         </button>
+
+      </div>
+
+
+      <div class="admin-block">
+
+        <div class="admin-block-title">
+
+          <span>
+            GROOTHANDEL
+          </span>
+
+          <strong>
+            Bestellingen groothandel
+          </strong>
+
+        </div>
+
+        <div class="admin-report-card">
+
+          <div class="admin-wholesale-report-head">
+
+            <span>
+              Historiek
+            </span>
+
+            <strong id="adminWholesaleCount">
+              0
+            </strong>
+
+          </div>
+
+          <div id="adminWholesaleOrdersList"></div>
+
+        </div>
 
       </div>
 
@@ -931,66 +781,8 @@ function createAdminScreen() {
 }
 
 
-/* ===============================
-   ADMIN PANEL
-================================ */
-
-function adminPanelHtml(
-  title,
-  countId,
-  listId,
-  color,
-  open,
-  panelId = ""
-) {
-
-  return `
-
-    <details
-      ${panelId ? `id="${panelId}"` : ""}
-      class="admin-panel"
-      ${open ? "open" : ""}
-    >
-
-      <summary>
-
-        <span
-          class="admin-dot ${color}"
-        ></span>
-
-        <b>
-          ${title}
-        </b>
-
-        <strong id="${countId}">
-          0
-        </strong>
-
-      </summary>
-
-
-      <div class="admin-panel-body">
-
-        <div id="${listId}">
-
-          <div class="empty">
-            Laden...
-          </div>
-
-        </div>
-
-      </div>
-
-    </details>
-
-  `;
-
-}
-
-
 /* ============================================================
-   RETOUR PROBLEEM POPUP
-   Staat bewust los van adminScreen/adminDetailScreen.
+   RETOUR PROBLEEM POPUP MAKEN
 ============================================================ */
 
 function createReturnProblemModal() {
@@ -1024,9 +816,7 @@ function createReturnProblemModal() {
 
     <div
       class="return-problem-modal"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="returnProblemTitle"
+      onclick="event.stopPropagation()"
     >
 
       <div class="return-problem-modal-head">
@@ -1049,9 +839,7 @@ function createReturnProblemModal() {
 
         <button
           type="button"
-          class="return-problem-close"
           onclick="closeReturnProblemModal()"
-          aria-label="Sluiten"
         >
           ×
         </button>
@@ -1091,7 +879,6 @@ function createReturnProblemModal() {
           <button
             type="button"
             onclick="changeReturnProblemDamaged(-1)"
-            aria-label="Minder beschadigd"
           >
             −
           </button>
@@ -1103,7 +890,6 @@ function createReturnProblemModal() {
           <button
             type="button"
             onclick="changeReturnProblemDamaged(1)"
-            aria-label="Meer beschadigd"
           >
             +
           </button>
@@ -1132,7 +918,6 @@ function createReturnProblemModal() {
           <button
             type="button"
             onclick="changeReturnProblemMissing(-1)"
-            aria-label="Minder ontbrekend"
           >
             −
           </button>
@@ -1144,7 +929,6 @@ function createReturnProblemModal() {
           <button
             type="button"
             onclick="changeReturnProblemMissing(1)"
-            aria-label="Meer ontbrekend"
           >
             +
           </button>
@@ -1208,6 +992,63 @@ function createReturnProblemModal() {
   document.body.appendChild(
     modal
   );
+
+}
+
+
+/* ===============================
+   ADMIN PANEL
+================================ */
+
+function adminPanelHtml(
+  title,
+  countId,
+  listId,
+  color,
+  open,
+  panelId = ""
+) {
+
+  return `
+
+    <details
+      ${panelId ? `id="${panelId}"` : ""}
+      class="admin-panel"
+      ${open ? "open" : ""}
+    >
+
+      <summary>
+
+        <span
+          class="admin-dot ${color}"
+        ></span>
+
+        <b>
+          ${title}
+        </b>
+
+        <strong id="${countId}">
+          0
+        </strong>
+
+      </summary>
+
+
+      <div class="admin-panel-body">
+
+        <div id="${listId}">
+
+          <div class="empty">
+            Laden...
+          </div>
+
+        </div>
+
+      </div>
+
+    </details>
+
+  `;
 
 }
 
@@ -1403,10 +1244,25 @@ function switchAdminTab(
 
   if (
     tab ===
+    "requests"
+  ) {
+
+    setAdminRequestView(
+      adminRequestView ||
+      "regular"
+    );
+
+  }
+
+
+  if (
+    tab ===
     "reports"
   ) {
 
     updateAdminReport();
+
+    renderAdminWholesaleOrders();
 
   }
 
@@ -1420,6 +1276,83 @@ function switchAdminTab(
       "smooth"
 
   });
+
+}
+
+
+function openAdminRequestView(
+  view
+) {
+
+  adminRequestView =
+    view;
+
+  switchAdminTab(
+    "requests"
+  );
+
+  setAdminRequestView(
+    view
+  );
+
+}
+
+
+function setAdminRequestView(
+  view
+) {
+
+  adminRequestView =
+    [
+      "regular",
+      "events",
+      "archive"
+    ]
+      .includes(
+        view
+      )
+
+      ? view
+
+      : "regular";
+
+
+  [
+    "regular",
+    "events",
+    "archive"
+  ]
+    .forEach(
+      name => {
+
+        document
+          .getElementById(
+            `adminRequestPane-${name}`
+          )
+          ?.classList
+          .toggle(
+            "hidden",
+            name !==
+            adminRequestView
+          );
+
+
+        document
+          .getElementById(
+            `adminRequestView-${name}`
+          )
+          ?.classList
+          .toggle(
+            "active",
+            name ===
+            adminRequestView
+          );
+
+      }
+    );
+
+
+  renderAdminSections();
 
 }
 
@@ -1440,38 +1373,8 @@ function toggleAdminFilters() {
 
 function openAdminArchive() {
 
-  setTimeout(
-    () => {
-
-      const panel =
-        document
-          .getElementById(
-            "adminArchivePanel"
-          );
-
-
-      if (
-        panel
-      ) {
-
-        panel.open =
-          true;
-
-
-        panel.scrollIntoView({
-
-          behavior:
-            "smooth",
-
-          block:
-            "start"
-
-        });
-
-      }
-
-    },
-    80
+  openAdminRequestView(
+    "archive"
   );
 
 }
@@ -2125,7 +2028,8 @@ function getMaterialOutOrders() {
         if (
           !order.event_naam ||
           order.status !==
-          "afgehaald"
+          "afgehaald" ||
+          order.event_returned_at
         ) {
 
           return false;
@@ -2133,28 +2037,9 @@ function getMaterialOutOrders() {
         }
 
 
-        const items =
-          getEventMaterialItems(
-            order.id
-          );
-
-
-        if (
-          !items.length
-        ) {
-
-          return false;
-
-        }
-
-
-        return (
-
-          getEventOutstandingTotal(
-            order.id
-          ) > 0
-
-        );
+        return getEventMaterialItems(
+          order.id
+        ).length > 0;
 
       }
     );
@@ -2265,11 +2150,6 @@ function renderAdminStatistics() {
       .length;
 
 
-  const outside =
-    getMaterialOutOrders()
-      .length;
-
-
   const ready =
     adminOrders
       .filter(
@@ -2296,15 +2176,6 @@ function renderAdminStatistics() {
       processing,
       "In behandeling",
       "setAdminStatusAndOpen('in_behandeling')"
-    )
-
-    +
-
-    adminKpi(
-      "red",
-      outside,
-      "Materiaal buiten",
-      "switchAdminTab('material')"
     )
 
     +
@@ -2356,6 +2227,35 @@ function setAdminStatusAndOpen(
   status
 ) {
 
+  const matchingRegular =
+    adminOrders
+      .filter(
+        order =>
+          !order.event_naam &&
+          !isArchivedOrder(order) &&
+          order.status === status
+      )
+      .length;
+
+
+  const matchingEvents =
+    adminOrders
+      .filter(
+        order =>
+          Boolean(order.event_naam) &&
+          !isArchivedOrder(order) &&
+          order.status === status
+      )
+      .length;
+
+
+  adminRequestView =
+    matchingRegular === 0 &&
+    matchingEvents > 0
+      ? "events"
+      : "regular";
+
+
   switchAdminTab(
     "requests"
   );
@@ -2378,7 +2278,9 @@ function setAdminStatusAndOpen(
   }
 
 
-  renderAdminSections();
+  setAdminRequestView(
+    adminRequestView
+  );
 
 }
 
@@ -2738,23 +2640,16 @@ function renderAdminSections() {
     filtered
       .filter(
         order =>
-
           order.event_naam
-
           &&
-
           order.status ===
           "afgehaald"
-
           &&
-
           !order.event_returned_at
-
           &&
-
-          getEventOutstandingTotal(
+          getEventMaterialItems(
             order.id
-          ) > 0
+          ).length > 0
       );
 
 
@@ -3354,7 +3249,7 @@ function renderProblemMaterials() {
       <div class="admin-clear">
 
         <b>
-          Geen schade of ontbrekend materiaal
+          Geen materiaal dat actie nodig heeft
         </b>
 
       </div>
@@ -3370,7 +3265,6 @@ function renderProblemMaterials() {
   container.innerHTML =
 
     problems
-
       .map(
         row => {
 
@@ -3383,108 +3277,120 @@ function renderProblemMaterials() {
               );
 
 
+          const damaged =
+            Number(
+              row.beschadigd ||
+              0
+            );
+
+
+          const missing =
+            Number(
+              row.ontbreekt ||
+              0
+            );
+
+
           return `
 
-            <div class="admin-problem">
+            <div class="admin-problem action-needed">
 
-              <strong>
+              <div class="admin-problem-head">
 
-                ${adminEscapeHtml(
-                  row.product_naam
-                )}
+                <div>
 
-              </strong>
+                  <strong>
+                    ${adminEscapeHtml(row.product_naam)}
+                  </strong>
 
+                  <small>
+                    ${adminEscapeHtml(order?.event_naam || "Onbekend evenement")}
+                  </small>
 
-              <small>
+                </div>
 
-                ${adminEscapeHtml(
-                  order?.event_naam ||
-                  "Onbekend evenement"
-                )}
+                <span>
+                  Actie nodig
+                </span>
 
-              </small>
-
-
-              ${
-                Number(
-                  row.beschadigd ||
-                  0
-                )
-
-                  ? `
-
-                      <b>
-
-                        Beschadigd:
-                        ${row.beschadigd}
-
-                      </b>
-
-                    `
-
-                  : ""
-              }
+              </div>
 
 
-              ${
-                Number(
-                  row.ontbreekt ||
-                  0
-                )
+              <div class="admin-problem-badges">
 
-                  ? `
+                ${
+                  damaged > 0
+                    ? `<b>${damaged} beschadigd</b>`
+                    : ""
+                }
 
-                      <b>
+                ${
+                  missing > 0
+                    ? `<b>${missing} ontbreekt</b>`
+                    : ""
+                }
 
-                        Ontbreekt:
-                        ${row.ontbreekt}
-
-                      </b>
-
-                    `
-
-                  : ""
-              }
+              </div>
 
 
               ${
                 row.opmerking
-
                   ? `
-
-                      <small>
-
-                        ${adminEscapeHtml(
-                          row.opmerking
-                        )}
-
-                      </small>
-
+                      <div class="admin-problem-note">
+                        ${adminEscapeHtml(row.opmerking)}
+                      </div>
                     `
-
                   : ""
               }
 
 
-              ${
-                order
+              <div class="admin-problem-actions">
 
-                  ? `
+                ${
+                  damaged > 0
+                    ? `
+                        <button
+                          type="button"
+                          class="problem-resolve green"
+                          onclick="resolveDamagedMaterial('${row.id}')"
+                        >
+                          Hersteld · terug beschikbaar
+                        </button>
+                      `
+                    : ""
+                }
 
-                      <button
-                        type="button"
-                        onclick="openAdminOrder('${order.id}')"
-                      >
 
-                        Bekijk ›
+                ${
+                  missing > 0
+                    ? `
+                        <button
+                          type="button"
+                          class="problem-resolve gold"
+                          onclick="resolveMissingMaterial('${row.id}')"
+                        >
+                          Alsnog terug · beschikbaar
+                        </button>
+                      `
+                    : ""
+                }
 
-                      </button>
 
-                    `
+                ${
+                  order
+                    ? `
+                        <button
+                          type="button"
+                          class="problem-view"
+                          onclick="openAdminOrder('${order.id}')"
+                        >
+                          Retour bekijken
+                        </button>
+                      `
+                    : ""
+                }
 
-                  : ""
-              }
+              </div>
 
             </div>
 
@@ -3492,8 +3398,195 @@ function renderProblemMaterials() {
 
         }
       )
-
       .join("");
+
+}
+
+
+async function resolveDamagedMaterial(
+  returnRowId
+) {
+
+  const row =
+    adminEventReturns
+      .find(
+        item =>
+          item.id ===
+          returnRowId
+      );
+
+
+  if (
+    !row ||
+    Number(row.beschadigd || 0) <= 0
+  ) {
+
+    return;
+
+  }
+
+
+  if (
+    !confirm(
+      `${row.product_naam}: beschadigd materiaal terug beschikbaar zetten?`
+    )
+  ) {
+
+    return;
+
+  }
+
+
+  const repaired =
+    Number(
+      row.beschadigd ||
+      0
+    );
+
+
+  const {
+    error
+  } =
+    await supabaseClient
+      .from(
+        "event_material_returns"
+      )
+      .update({
+
+        goed_terug:
+          Number(row.goed_terug || 0) +
+          repaired,
+
+        beschadigd:
+          0,
+
+        updated_by:
+          currentUser?.id ||
+          null,
+
+        updated_at:
+          new Date().toISOString()
+
+      })
+      .eq(
+        "id",
+        returnRowId
+      );
+
+
+  if (
+    error
+  ) {
+
+    alert(
+      "Materiaal kon niet worden bijgewerkt.\n\n" +
+      adminReadableError(error)
+    );
+
+    return;
+
+  }
+
+
+  await loadAdminDashboard();
+
+  switchAdminTab(
+    "material"
+  );
+
+}
+
+
+async function resolveMissingMaterial(
+  returnRowId
+) {
+
+  const row =
+    adminEventReturns
+      .find(
+        item =>
+          item.id ===
+          returnRowId
+      );
+
+
+  if (
+    !row ||
+    Number(row.ontbreekt || 0) <= 0
+  ) {
+
+    return;
+
+  }
+
+
+  if (
+    !confirm(
+      `${row.product_naam}: ontbrekend materiaal als teruggekomen registreren?`
+    )
+  ) {
+
+    return;
+
+  }
+
+
+  const returned =
+    Number(
+      row.ontbreekt ||
+      0
+    );
+
+
+  const {
+    error
+  } =
+    await supabaseClient
+      .from(
+        "event_material_returns"
+      )
+      .update({
+
+        goed_terug:
+          Number(row.goed_terug || 0) +
+          returned,
+
+        ontbreekt:
+          0,
+
+        updated_by:
+          currentUser?.id ||
+          null,
+
+        updated_at:
+          new Date().toISOString()
+
+      })
+      .eq(
+        "id",
+        returnRowId
+      );
+
+
+  if (
+    error
+  ) {
+
+    alert(
+      "Materiaal kon niet worden bijgewerkt.\n\n" +
+      adminReadableError(error)
+    );
+
+    return;
+
+  }
+
+
+  await loadAdminDashboard();
+
+  switchAdminTab(
+    "material"
+  );
 
 }
 
@@ -4370,7 +4463,7 @@ function renderAdminDetail(
     "afgehaald"
   ) {
 
-    updateSimpleReturnProcessedTotal(
+    updateAllReturnCalculations(
       order.id
     );
 
@@ -4487,6 +4580,17 @@ function buildEventReturnEditor(
   ) {
 
     return "";
+
+  }
+
+
+  if (
+    order.event_returned_at
+  ) {
+
+    return buildArchivedReturnSummary(
+      order
+    );
 
   }
 
@@ -4648,6 +4752,12 @@ function buildEventReturnEditor(
       </div>
 
 
+      <div
+        id="returnValidationMessage"
+        class="return-validation hidden"
+      ></div>
+
+
       <div class="return-simple-footer">
 
         <button
@@ -4655,9 +4765,7 @@ function buildEventReturnEditor(
           class="return-simple-cancel"
           onclick="backToAdminDashboard()"
         >
-
           Annuleren
-
         </button>
 
 
@@ -4666,12 +4774,120 @@ function buildEventReturnEditor(
           class="return-simple-save"
           onclick="saveEventReturnRegistration('${order.id}')"
         >
-
           Retour verwerken
-
         </button>
 
       </div>
+
+    </div>
+
+  `;
+
+}
+
+
+function buildArchivedReturnSummary(
+  order
+) {
+
+  const materials =
+    getEventMaterialStatus(
+      order.id
+    );
+
+
+  return `
+
+    <div class="return-archive-card">
+
+      <div class="return-archive-head">
+
+        <div>
+
+          <span>
+            RETOURARCHIEF
+          </span>
+
+          <h3>
+            Retour afgehandeld
+          </h3>
+
+          <small>
+            ${adminFormatDateTime(order.event_returned_at)}
+          </small>
+
+        </div>
+
+        <div class="return-archive-lock">
+          🔒
+        </div>
+
+      </div>
+
+
+      <div class="return-archive-list">
+
+        ${
+          materials
+            .map(
+              item => `
+
+                <div class="return-archive-row">
+
+                  <div>
+
+                    <strong>
+                      ${adminEscapeHtml(item.product_naam)}
+                    </strong>
+
+                    <small>
+                      ${item.uitgeleend} ${item.uitgeleend === 1 ? "stuk" : "stuks"}
+                    </small>
+
+                  </div>
+
+                  <div class="return-archive-values">
+
+                    <span class="ok">
+                      ${item.goed_terug} goed
+                    </span>
+
+                    ${
+                      item.beschadigd
+                        ? `<span class="bad">${item.beschadigd} beschadigd</span>`
+                        : ""
+                    }
+
+                    ${
+                      item.ontbreekt
+                        ? `<span class="bad">${item.ontbreekt} ontbreekt</span>`
+                        : ""
+                    }
+
+                  </div>
+
+                </div>
+
+              `
+            )
+            .join("")
+        }
+
+      </div>
+
+
+      <div class="return-archive-note">
+        Deze retour is vergrendeld. Alleen via “Retour heropenen” kan de registratie opnieuw worden aangepast.
+      </div>
+
+
+      <button
+        type="button"
+        class="return-reopen-button"
+        onclick="reopenEventReturn('${order.id}')"
+      >
+        Retour heropenen
+      </button>
 
     </div>
 
@@ -4772,18 +4988,12 @@ function buildSimpleReturnItem(
         <div>
 
           <strong>
-            ${adminEscapeHtml(
-              item.product_naam
-            )}
+            ${adminEscapeHtml(item.product_naam)}
           </strong>
 
           <span>
             ${item.uitgeleend}
-            ${
-              item.uitgeleend === 1
-                ? "stuk"
-                : "stuks"
-            }
+            ${item.uitgeleend === 1 ? "stuk" : "stuks"}
           </span>
 
         </div>
@@ -4797,9 +5007,7 @@ function buildSimpleReturnItem(
           )}"
           class="return-simple-status ${statusClass}"
         >
-          ${adminEscapeHtml(
-            statusText
-          )}
+          ${adminEscapeHtml(statusText)}
         </div>
 
       </div>
@@ -4862,17 +5070,10 @@ function buildSimpleReturnItem(
           }"
           onclick="markSingleReturnItemGood(
             '${order.id}',
-            '${escapeReturnJsString(
-              item.product_naam
-            )}'
+            '${escapeReturnJsString(item.product_naam)}'
           )"
-          aria-label="Markeer als goed terug"
-          aria-pressed="${
-            isFullyProcessed &&
-            !hasProblem
-              ? "true"
-              : "false"
-          }"
+          aria-label="Alles goed terug"
+          title="Alles goed terug"
         >
           ${
             isFullyProcessed &&
@@ -4882,26 +5083,21 @@ function buildSimpleReturnItem(
           }
         </button>
 
-        <span class="return-good-label">
-          Goed
-        </span>
-
 
         <button
           type="button"
-          class="return-problem-button ${
-            hasProblem
-              ? "selected"
-              : ""
-          }"
+          id="${returnDomId(
+            order.id,
+            item.product_naam,
+            "problemButton"
+          )}"
+          class="return-problem-button ${hasProblem ? "selected" : ""}"
           onclick="openReturnProblemModal(
             '${order.id}',
-            '${escapeReturnJsString(
-              item.product_naam
-            )}'
+            '${escapeReturnJsString(item.product_naam)}'
           )"
         >
-          ${hasProblem ? "Probleem aanpassen" : "Probleem"}
+          Probleem melden
         </button>
 
       </div>
@@ -4911,6 +5107,7 @@ function buildSimpleReturnItem(
   `;
 
 }
+
 
 /* ============================================================
    1 ARTIKEL VOLLEDIG GOED TERUG
@@ -5104,6 +5301,16 @@ function updateSimpleReturnItemStatus(
     );
 
 
+  const problemButton =
+    document.getElementById(
+      returnDomId(
+        orderId,
+        productName,
+        "problemButton"
+      )
+    );
+
+
   if (
     !statusElement ||
     !rowElement
@@ -5123,25 +5330,6 @@ function updateSimpleReturnItemStatus(
     "good",
     "problem"
   );
-
-
-  if (
-    goodToggle
-  ) {
-
-    goodToggle.classList.remove(
-      "selected"
-    );
-
-    goodToggle.textContent =
-      "";
-
-    goodToggle.setAttribute(
-      "aria-pressed",
-      "false"
-    );
-
-  }
 
 
   if (
@@ -5172,19 +5360,18 @@ function updateSimpleReturnItemStatus(
       goodToggle.textContent =
         "✓";
 
-      goodToggle.setAttribute(
-        "aria-pressed",
-        "true"
-      );
-
     }
 
 
-    updateReturnProblemButton(
-      orderId,
-      productName,
-      false
-    );
+    if (
+      problemButton
+    ) {
+
+      problemButton.classList.remove(
+        "selected"
+      );
+
+    }
 
 
     return;
@@ -5232,17 +5419,34 @@ function updateSimpleReturnItemStatus(
         " · "
       );
 
-
     rowElement.classList.add(
       "problem"
     );
 
 
-    updateReturnProblemButton(
-      orderId,
-      productName,
-      true
-    );
+    if (
+      goodToggle
+    ) {
+
+      goodToggle.classList.remove(
+        "selected"
+      );
+
+      goodToggle.textContent =
+        "";
+
+    }
+
+
+    if (
+      problemButton
+    ) {
+
+      problemButton.classList.add(
+        "selected"
+      );
+
+    }
 
 
     return;
@@ -5254,66 +5458,37 @@ function updateSimpleReturnItemStatus(
     "pending"
   );
 
-
   statusElement.textContent =
     "Nog te verwerken";
-
 
   rowElement.classList.add(
     "pending"
   );
 
 
-  updateReturnProblemButton(
-    orderId,
-    productName,
-    false
-  );
-
-}
-
-
-function updateReturnProblemButton(
-  orderId,
-  productName,
-  hasProblem
-) {
-
-  const row =
-    document.getElementById(
-      returnDomId(
-        orderId,
-        productName,
-        "row"
-      )
-    );
-
-
-  const button =
-    row?.querySelector(
-      ".return-problem-button"
-    );
-
-
   if (
-    !button
+    goodToggle
   ) {
 
-    return;
+    goodToggle.classList.remove(
+      "selected"
+    );
+
+    goodToggle.textContent =
+      "";
 
   }
 
 
-  button.classList.toggle(
-    "selected",
-    hasProblem
-  );
+  if (
+    problemButton
+  ) {
 
+    problemButton.classList.remove(
+      "selected"
+    );
 
-  button.textContent =
-    hasProblem
-      ? "Probleem aanpassen"
-      : "Probleem";
+  }
 
 }
 
@@ -5411,17 +5586,6 @@ function openReturnProblemModal(
   }
 
 
-  if (
-    !document.getElementById(
-      "returnProblemModal"
-    )
-  ) {
-
-    createReturnProblemModal();
-
-  }
-
-
   const modal =
     document.getElementById(
       "returnProblemModal"
@@ -5433,7 +5597,7 @@ function openReturnProblemModal(
   ) {
 
     alert(
-      "Probleemvenster kon niet worden geopend."
+      "Probleemvenster is nog niet geladen."
     );
 
     return;
@@ -6638,55 +6802,6 @@ async function saveEventReturnRegistration(
       );
 
 
-    const incomplete =
-      items.find(
-        item => {
-
-          const accounted =
-            getReturnScreenValue(
-              orderId,
-              item.product_naam,
-              "good"
-            )
-            +
-            getReturnScreenValue(
-              orderId,
-              item.product_naam,
-              "damaged"
-            )
-            +
-            getReturnScreenValue(
-              orderId,
-              item.product_naam,
-              "missing"
-            );
-
-
-          return accounted !==
-            Number(
-              item.aantal ||
-              0
-            );
-
-        }
-      );
-
-
-    if (
-      incomplete
-    ) {
-
-      alert(
-        `Controleer eerst ${incomplete.product_naam}. `
-        +
-        "Duid aan dat alles goed is of meld het probleem."
-      );
-
-      return;
-
-    }
-
-
     const returns =
       items
         .map(
@@ -6734,6 +6849,85 @@ async function saveEventReturnRegistration(
         );
 
 
+    const incomplete =
+      returns
+        .find(
+          (row, index) => {
+
+            const expected =
+              Number(
+                items[index]?.aantal ||
+                0
+              );
+
+
+            const processed =
+              Number(row.goed_terug || 0) +
+              Number(row.beschadigd || 0) +
+              Number(row.ontbreekt || 0);
+
+
+            return processed !== expected;
+
+          }
+        );
+
+
+    if (
+      incomplete
+    ) {
+
+      const message =
+        document.getElementById(
+          "returnValidationMessage"
+        );
+
+
+      if (
+        message
+      ) {
+
+        message.textContent =
+          "Duid eerst elk artikel aan als goed terug of registreer een probleem.";
+
+        message.classList.remove(
+          "hidden"
+        );
+
+        message.scrollIntoView({
+          behavior:
+            "smooth",
+          block:
+            "center"
+        });
+
+      }
+
+
+      return;
+
+    }
+
+
+    const saveButton =
+      document.querySelector(
+        ".return-simple-save"
+      );
+
+
+    if (
+      saveButton
+    ) {
+
+      saveButton.disabled =
+        true;
+
+      saveButton.textContent =
+        "Verwerken…";
+
+    }
+
+
     const {
       error
     } =
@@ -6741,11 +6935,13 @@ async function saveEventReturnRegistration(
         .rpc(
           "save_event_material_returns",
           {
+
             p_order_id:
               orderId,
 
             p_returns:
               returns
+
           }
         );
 
@@ -6755,6 +6951,38 @@ async function saveEventReturnRegistration(
     ) {
 
       throw error;
+
+    }
+
+
+    const {
+      error: closeError
+    } =
+      await supabaseClient
+        .from(
+          "orders"
+        )
+        .update({
+
+          event_returned_at:
+            new Date().toISOString(),
+
+          event_returned_by:
+            currentUser?.id ||
+            null
+
+        })
+        .eq(
+          "id",
+          orderId
+        );
+
+
+    if (
+      closeError
+    ) {
+
+      throw closeError;
 
     }
 
@@ -6775,28 +7003,122 @@ async function saveEventReturnRegistration(
       "material"
     );
 
-
-    renderAdminStatistics();
-
-    renderAdminSections();
-
-
-    alert(
-      "Retour verwerkt."
-    );
-
   }
 
   catch (
     error
   ) {
 
-    alert(
-      "Retourregistratie kon niet worden opgeslagen.\n\n"
-      +
-      adminReadableError(
-        error
+    const message =
+      document.getElementById(
+        "returnValidationMessage"
+      );
+
+
+    if (
+      message
+    ) {
+
+      message.textContent =
+        "Retour kon niet worden verwerkt: " +
+        adminReadableError(error);
+
+      message.classList.remove(
+        "hidden"
+      );
+
+    }
+
+    else {
+
+      alert(
+        "Retour kon niet worden verwerkt.\n\n" +
+        adminReadableError(error)
+      );
+
+    }
+
+  }
+
+}
+
+
+async function reopenEventReturn(
+  orderId
+) {
+
+  if (
+    !confirm(
+      "Retour heropenen? De registratie kan daarna opnieuw worden aangepast."
+    )
+  ) {
+
+    return;
+
+  }
+
+
+  const {
+    error
+  } =
+    await supabaseClient
+      .from(
+        "orders"
       )
+      .update({
+
+        event_returned_at:
+          null,
+
+        event_returned_by:
+          null
+
+      })
+      .eq(
+        "id",
+        orderId
+      );
+
+
+  if (
+    error
+  ) {
+
+    alert(
+      "Retour kon niet worden heropend.\n\n" +
+      adminReadableError(error)
+    );
+
+    return;
+
+  }
+
+
+  await loadAdminDashboard();
+
+
+  const reopened =
+    adminOrders
+      .find(
+        order =>
+          order.id ===
+          orderId
+      );
+
+
+  if (
+    reopened
+  ) {
+
+    selectedAdminOrder =
+      reopened;
+
+    renderAdminDetail(
+      reopened
+    );
+
+    showOnly(
+      "adminDetailScreen"
     );
 
   }
@@ -10283,416 +10605,2325 @@ function injectProfessionalReturnStyles() {
   style.textContent = `
 
     /* ==========================================
-       COMPACT RETOURSCHERM
+       RETOUR WORKSPACE
     ========================================== */
 
-    .return-simple-workspace {
-      background:#f7f5ef;
-      border:1px solid #ded9ce;
-      border-radius:16px;
+    .return-workspace {
+
+      background:
+        #f7f5ef;
+
+      border:
+        1px solid
+        #ded9ce;
+
+      border-radius:
+        18px;
+
       overflow:hidden;
-      box-shadow:0 8px 24px rgba(35,30,22,.08);
-    }
 
-    .return-simple-header {
-      padding:12px 13px;
-      background:#faf9f5;
-      border-bottom:1px solid #ded9ce;
-    }
+      box-shadow:
+        0 10px 30px
+        rgba(
+          40,
+          34,
+          24,
+          .08
+        );
 
-    .return-simple-header span {
-      display:block;
-      color:#8c692f;
-      font-size:8px;
-      font-weight:900;
-      letter-spacing:.08em;
-    }
-
-    .return-simple-header h2 {
-      margin:2px 0 0;
-      font-size:21px;
-      color:#182019;
-    }
-
-    .return-simple-summary {
-      display:grid;
-      grid-template-columns:1fr 1fr;
-      gap:6px;
-      padding:8px;
-      background:#f0ece4;
-    }
-
-    .return-simple-summary > div {
-      padding:8px;
-      border-radius:9px;
-      background:white;
-      text-align:center;
-    }
-
-    .return-simple-summary span {
-      display:block;
-      color:#80786c;
-      font-size:8px;
-      font-weight:900;
-      text-transform:uppercase;
-    }
-
-    .return-simple-summary strong {
-      display:block;
-      margin-top:1px;
-      color:#1a211b;
-      font-size:20px;
-    }
-
-    .return-simple-list {
-      background:white;
-    }
-
-    .return-simple-item {
-      padding:10px 11px;
-      border-bottom:1px solid #e5e0d7;
-      border-left:4px solid #d0cbc2;
-      background:white;
-    }
-
-    .return-simple-item.good {
-      border-left-color:#2f7449;
-      background:#f9fcfa;
-    }
-
-    .return-simple-item.problem {
-      border-left-color:#d99a3e;
-      background:#fffaf3;
-    }
-
-    .return-simple-item-main {
-      display:flex;
-      justify-content:space-between;
-      align-items:flex-start;
-      gap:8px;
-    }
-
-    .return-simple-item-main strong {
-      display:block;
-      color:#202720;
-      font-size:14px;
-    }
-
-    .return-simple-item-main span {
-      display:block;
-      margin-top:2px;
-      color:#888074;
-      font-size:9px;
-    }
-
-    .return-simple-status {
-      max-width:145px;
-      padding:3px 7px;
-      border-radius:999px;
-      font-size:8px;
-      font-weight:900;
-      text-align:right;
-    }
-
-    .return-simple-status.pending {
-      background:#ece8df;
-      color:#777064;
-    }
-
-    .return-simple-status.good {
-      background:#e5f3e9;
-      color:#2f7449;
-    }
-
-    .return-simple-status.problem {
-      background:#f8ead5;
-      color:#a36017;
-    }
-
-    .return-simple-actions {
-      display:grid;
-      grid-template-columns:30px auto 1fr;
-      align-items:center;
-      gap:7px;
-      margin-top:8px;
-    }
-
-    .return-good-toggle {
-      width:28px;
-      height:28px;
-      min-width:28px;
-      padding:0;
-      display:grid;
-      place-items:center;
-      border:2px solid #9ab6a2;
-      border-radius:50%;
-      background:white;
-      color:white;
-      font-size:14px;
-      font-weight:900;
-      transition:.15s ease;
-    }
-
-    .return-good-toggle.selected {
-      border-color:#2f7449;
-      background:#2f7449;
-      color:white;
-    }
-
-    .return-good-label {
-      color:#536157;
-      font-size:9px;
-      font-weight:850;
-    }
-
-    .return-problem-button {
-      justify-self:end;
-      min-height:30px;
-      padding:0 10px;
-      border:1px solid #dec79f;
-      border-radius:999px;
-      background:#fffaf2;
-      color:#9c611b;
-      font-size:9px;
-      font-weight:900;
-    }
-
-    .return-problem-button.selected {
-      border-color:#d99a3e;
-      background:#d99a3e;
-      color:white;
-    }
-
-    .return-simple-footer {
-      display:grid;
-      grid-template-columns:.7fr 1.3fr;
-      gap:6px;
-      padding:9px;
-      background:#f2eee6;
-    }
-
-    .return-simple-cancel,
-    .return-simple-save {
-      min-height:42px;
-      border-radius:10px;
-      font-weight:900;
-    }
-
-    .return-simple-cancel {
-      border:1px solid #d7d1c6;
-      background:white;
-      color:#514b42;
-    }
-
-    .return-simple-save {
-      border:0;
-      background:#194d38;
-      color:white;
     }
 
 
     /* ==========================================
-       PROBLEEM POPUP
+       HEADER
     ========================================== */
 
-    .return-problem-overlay {
-      position:fixed;
-      inset:0;
-      z-index:9999;
+    .return-workspace-header {
+
+      padding:
+        18px;
+
+      border-bottom:
+        1px solid
+        #ddd7cb;
+
+      background:
+        #faf9f5;
+
+    }
+
+
+    .return-header-top {
+
       display:flex;
-      align-items:flex-end;
-      justify-content:center;
-      padding:14px;
-      background:rgba(12,18,13,.55);
-      backdrop-filter:blur(3px);
-      -webkit-backdrop-filter:blur(3px);
-    }
 
-    .return-problem-overlay.hidden {
-      display:none !important;
-    }
+      justify-content:
+        space-between;
 
-    .return-problem-modal {
-      width:100%;
-      max-width:520px;
-      max-height:88vh;
-      overflow-y:auto;
-      padding:14px;
-      border-radius:18px;
-      background:#f8f6f0;
-      color:#202720;
-      box-shadow:0 18px 50px rgba(0,0,0,.3);
-    }
-
-    .return-problem-modal-head {
-      display:flex;
-      justify-content:space-between;
       align-items:flex-start;
-      gap:10px;
-      padding-bottom:10px;
-      border-bottom:1px solid #ded8ce;
+
+      gap:
+        12px;
+
     }
 
-    .return-problem-modal-head span {
+
+    .return-kicker {
+
       display:block;
-      color:#a15f18;
-      font-size:8px;
-      font-weight:900;
-      letter-spacing:.08em;
+
+      color:
+        #8c806c;
+
+      font-size:
+        10px;
+
+      font-weight:
+        900;
+
+      letter-spacing:
+        .12em;
+
+      text-transform:
+        uppercase;
+
     }
 
-    .return-problem-modal-head h3 {
-      margin:2px 0 0;
-      color:#182019;
-      font-size:20px;
+
+    .return-header-top h2 {
+
+      margin:
+        4px 0 0;
+
+      font-size:
+        27px;
+
+      color:
+        #181c18;
+
     }
 
-    .return-problem-modal-head small {
-      display:block;
-      margin-top:2px;
-      color:#81796d;
-      font-size:9px;
+
+    .return-all-good {
+
+      min-height:
+        42px;
+
+      padding:
+        0 15px;
+
+      border:
+        0;
+
+      border-radius:
+        10px;
+
+      background:
+        #194d38;
+
+      color:
+        white;
+
+      font-size:
+        12px;
+
+      font-weight:
+        900;
+
+      white-space:
+        nowrap;
+
     }
 
-    .return-problem-close {
-      width:34px;
-      height:34px;
-      border:0;
-      border-radius:9px;
-      background:#e8e2d8;
-      color:#49443d;
-      font-size:21px;
-    }
 
-    .return-problem-good-preview {
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      margin-top:10px;
-      padding:9px 10px;
-      border-radius:10px;
-      background:#e5f3e9;
-      color:#2f7449;
-    }
+    /* ==========================================
+       KPI SAMENVATTING
+    ========================================== */
 
-    .return-problem-good-preview span {
-      font-size:10px;
-      font-weight:900;
-    }
+    .return-summary-bar {
 
-    .return-problem-good-preview strong {
-      font-size:20px;
-    }
-
-    .return-problem-option {
       display:grid;
-      grid-template-columns:1fr auto;
-      align-items:center;
-      gap:8px;
-      margin-top:8px;
-      padding:10px;
-      border:1px solid #dfd9cf;
-      border-radius:11px;
-      background:white;
-    }
 
-    .return-problem-option strong {
-      display:block;
-      color:#282e29;
-      font-size:11px;
-    }
+      grid-template-columns:
+        repeat(
+          4,
+          1fr
+        );
 
-    .return-problem-option span {
-      display:block;
-      margin-top:2px;
-      color:#8a8175;
-      font-size:8px;
-    }
+      margin-top:
+        16px;
 
-    .return-problem-stepper {
-      display:grid;
-      grid-template-columns:34px 40px 34px;
+      border:
+        1px solid
+        #ded9ce;
+
+      border-radius:
+        14px;
+
+      background:
+        white;
+
       overflow:hidden;
-      border:1px solid #d8d2c8;
-      border-radius:9px;
-      background:white;
+
     }
 
-    .return-problem-stepper button {
-      height:34px;
-      border:0;
-      background:#f6f3ed;
-      color:#5f584e;
-      font-size:18px;
+
+    .return-summary-stat {
+
+      position:relative;
+
+      padding:
+        14px 10px;
+
+      text-align:center;
+
     }
 
-    .return-problem-stepper button:first-child {
-      border-right:1px solid #ded8ce;
+
+    .return-summary-stat:not(:last-child) {
+
+      border-right:
+        1px solid
+        #e6e1d8;
+
     }
 
-    .return-problem-stepper button:last-child {
-      border-left:1px solid #ded8ce;
-    }
 
-    .return-problem-stepper > strong {
-      display:grid;
-      place-items:center;
-      font-size:13px;
-    }
+    .return-summary-stat span {
 
-    .return-problem-modal label {
       display:block;
-      margin-top:10px;
-      color:#4d493f;
-      font-size:9px;
-      font-weight:900;
+
+      color:
+        #8b8376;
+
+      font-size:
+        9px;
+
+      font-weight:
+        900;
+
+      text-transform:
+        uppercase;
+
+      letter-spacing:
+        .05em;
+
     }
 
-    .return-problem-modal textarea {
-      width:100%;
-      min-height:74px;
-      margin-top:5px;
-      border:1px solid #d9d3c9;
-      border-radius:10px;
-      background:white;
-      padding:9px;
-      font-size:11px;
-      color:#202720;
+
+    .return-summary-stat strong {
+
+      display:block;
+
+      margin-top:
+        5px;
+
+      color:
+        #171c18;
+
+      font-size:
+        24px;
+
     }
 
-    .return-problem-actions {
+
+    .return-summary-stat.green strong {
+
+      color:
+        #256544;
+
+    }
+
+
+    .return-summary-stat.orange strong {
+
+      color:
+        #ad691c;
+
+    }
+
+
+    .return-summary-stat.red strong {
+
+      color:
+        #b73d37;
+
+    }
+
+
+    /* ==========================================
+       KOLOM HEADERS
+    ========================================== */
+
+    .return-table-header {
+
       display:grid;
-      grid-template-columns:.8fr 1.2fr;
-      gap:6px;
-      margin-top:10px;
+
+      grid-template-columns:
+        minmax(150px, 1.5fr)
+        90px
+        1fr
+        1fr
+        1fr
+        58px;
+
+      align-items:center;
+
+      gap:
+        7px;
+
+      padding:
+        11px 14px;
+
+      border-bottom:
+        1px solid
+        #ddd7cb;
+
+      background:
+        #f0ece4;
+
+      color:
+        #766d60;
+
+      font-size:
+        9px;
+
+      font-weight:
+        900;
+
+      text-transform:
+        uppercase;
+
+      letter-spacing:
+        .04em;
+
     }
 
-    .return-problem-cancel,
-    .return-problem-save {
-      min-height:42px;
-      border-radius:10px;
-      font-size:10px;
-      font-weight:900;
+
+    .return-table-header div:not(:first-child) {
+
+      text-align:center;
+
     }
 
-    .return-problem-cancel {
-      border:1px solid #d8d2c8;
-      background:white;
-      color:#595249;
+
+    /* ==========================================
+       ARTIKEL
+    ========================================== */
+
+    .return-product-row {
+
+      padding:
+        13px 14px;
+
+      border-bottom:
+        1px solid
+        #e4dfd6;
+
+      background:
+        white;
+
     }
 
-    .return-problem-save {
-      border:0;
-      background:#194d38;
-      color:white;
+
+    .return-product-grid {
+
+      display:grid;
+
+      grid-template-columns:
+        minmax(150px, 1.5fr)
+        90px
+        1fr
+        1fr
+        1fr
+        58px;
+
+      align-items:center;
+
+      gap:
+        7px;
+
     }
 
-    @media (min-width:701px) {
-      .return-problem-overlay {
-        align-items:center;
+
+    .return-product-info {
+
+      min-width:0;
+
+    }
+
+
+    .return-product-info strong {
+
+      display:block;
+
+      color:
+        #1d211e;
+
+      font-size:
+        14px;
+
+    }
+
+
+    .return-product-info span {
+
+      display:block;
+
+      margin-top:
+        3px;
+
+      color:
+        #8a8275;
+
+      font-size:
+        10px;
+
+    }
+
+
+    .return-loaned {
+
+      text-align:center;
+
+      color:
+        #554f45;
+
+      font-size:
+        16px;
+
+      font-weight:
+        850;
+
+    }
+
+
+    /* ==========================================
+       COUNTERS
+    ========================================== */
+
+    .return-counter {
+
+      text-align:center;
+
+    }
+
+
+    .return-counter-label {
+
+      display:none;
+
+    }
+
+
+    .return-counter-value {
+
+      display:block;
+
+      margin-bottom:
+        4px;
+
+      font-size:
+        17px;
+
+      font-weight:
+        900;
+
+    }
+
+
+    .return-counter.green
+    .return-counter-value {
+
+      color:
+        #216140;
+
+    }
+
+
+    .return-counter.orange
+    .return-counter-value {
+
+      color:
+        #c46d0a;
+
+    }
+
+
+    .return-counter.red
+    .return-counter-value {
+
+      color:
+        #bd2f2c;
+
+    }
+
+
+    .return-stepper {
+
+      display:grid;
+
+      grid-template-columns:
+        34px 34px 34px;
+
+      justify-content:center;
+
+      border:
+        1px solid
+        #ddd7cb;
+
+      border-radius:
+        9px;
+
+      overflow:hidden;
+
+      background:
+        white;
+
+    }
+
+
+    .return-stepper button {
+
+      height:
+        34px;
+
+      border:
+        0;
+
+      background:
+        #faf9f5;
+
+      color:
+        #7a7266;
+
+      font-size:
+        18px;
+
+    }
+
+
+    .return-stepper button:first-child {
+
+      border-right:
+        1px solid
+        #e5dfd6;
+
+    }
+
+
+    .return-stepper button:last-child {
+
+      border-left:
+        1px solid
+        #e5dfd6;
+
+    }
+
+
+    .return-stepper b {
+
+      display:grid;
+
+      place-items:center;
+
+      font-size:
+        13px;
+
+      background:
+        white;
+
+    }
+
+
+    /* ==========================================
+       STATUS
+    ========================================== */
+
+    .return-status {
+
+      display:flex;
+
+      justify-content:center;
+
+      align-items:center;
+
+    }
+
+
+    .return-status-circle {
+
+      width:
+        36px;
+
+      height:
+        36px;
+
+      border-radius:
+        50%;
+
+      display:grid;
+
+      place-items:center;
+
+      font-size:
+        17px;
+
+      font-weight:
+        900;
+
+    }
+
+
+    .return-status-circle.done {
+
+      background:
+        #237047;
+
+      color:
+        white;
+
+    }
+
+
+    .return-status-circle.warning {
+
+      background:
+        #c77b13;
+
+      color:
+        white;
+
+    }
+
+
+    .return-status-circle.open {
+
+      background:
+        #e8e3da;
+
+      color:
+        #857c6d;
+
+    }
+
+
+    /* ==========================================
+       OPMERKING
+    ========================================== */
+
+    .return-note-toggle {
+
+      display:inline-block;
+
+      margin-top:
+        9px;
+
+      padding:
+        0;
+
+      border:
+        0;
+
+      background:
+        transparent;
+
+      color:
+        #8a8172;
+
+      text-decoration:
+        underline;
+
+      font-size:
+        10px;
+
+      font-weight:
+        750;
+
+    }
+
+
+    .return-note {
+
+      width:
+        100%;
+
+      min-height:
+        58px;
+
+      margin-top:
+        8px;
+
+      border:
+        1px solid
+        #ddd7cb;
+
+      border-radius:
+        10px;
+
+      background:
+        #faf9f5;
+
+      padding:
+        9px 10px;
+
+      font-size:
+        11px;
+
+    }
+
+
+    /* ==========================================
+       FOOTER
+    ========================================== */
+
+    .return-workspace-footer {
+
+      display:grid;
+
+      grid-template-columns:
+        .65fr 1.35fr;
+
+      gap:
+        8px;
+
+      padding:
+        13px 14px;
+
+      background:
+        #f5f2eb;
+
+    }
+
+
+    .return-cancel {
+
+      min-height:
+        45px;
+
+      border:
+        1px solid
+        #ddd7cb;
+
+      border-radius:
+        10px;
+
+      background:
+        white;
+
+      color:
+        #423e37;
+
+      font-weight:
+        850;
+
+    }
+
+
+    .return-save-main {
+
+      min-height:
+        45px;
+
+      border:
+        0;
+
+      border-radius:
+        10px;
+
+      background:
+        #194d38;
+
+      color:
+        white;
+
+      font-weight:
+        900;
+
+    }
+
+
+    /* ==========================================
+       INFO BALK
+    ========================================== */
+
+    .return-help {
+
+      margin:
+        10px 14px 0;
+
+      padding:
+        8px 10px;
+
+      border-radius:
+        9px;
+
+      background:
+        #eee9df;
+
+      color:
+        #827969;
+
+      font-size:
+        9px;
+
+    }
+
+
+    /* ==========================================
+       MOBIEL
+    ========================================== */
+
+    @media (
+      max-width:700px
+    ) {
+
+      .return-workspace {
+
+        margin:
+          0 -6px;
+
+        border-radius:
+          14px;
+
       }
-    }
 
+
+      .return-workspace-header {
+
+        padding:
+          13px 11px;
+
+      }
+
+
+      .return-header-top h2 {
+
+        font-size:
+          23px;
+
+      }
+
+
+      .return-all-good {
+
+        min-height:
+          37px;
+
+        padding:
+          0 9px;
+
+        font-size:
+          9px;
+
+      }
+
+
+      .return-summary-bar {
+
+        grid-template-columns:
+          repeat(
+            2,
+            1fr
+          );
+
+      }
+
+
+      .return-summary-stat:nth-child(2) {
+
+        border-right:
+          0;
+
+      }
+
+
+      .return-summary-stat:nth-child(-n+2) {
+
+        border-bottom:
+          1px solid
+          #e6e1d8;
+
+      }
+
+
+      .return-table-header {
+
+        display:none;
+
+      }
+
+
+      .return-product-row {
+
+        padding:
+          12px 10px;
+
+      }
+
+
+      .return-product-grid {
+
+        grid-template-columns:
+          1fr;
+
+        gap:
+          9px;
+
+      }
+
+
+      .return-product-info {
+
+        display:grid;
+
+        grid-template-columns:
+          1fr auto;
+
+        align-items:end;
+
+      }
+
+
+      .return-product-info span {
+
+        text-align:right;
+
+      }
+
+
+      .return-loaned {
+
+        display:none;
+
+      }
+
+
+      .return-product-controls {
+
+        display:grid;
+
+        grid-template-columns:
+          repeat(
+            3,
+            1fr
+          );
+
+        gap:
+          5px;
+
+      }
+
+
+      .return-counter-label {
+
+        display:block;
+
+        margin-bottom:
+          3px;
+
+        color:
+          #80776a;
+
+        font-size:
+          8px;
+
+        font-weight:
+          900;
+
+        text-transform:
+          uppercase;
+
+      }
+
+
+      .return-stepper {
+
+        grid-template-columns:
+          1fr 1fr 1fr;
+
+      }
+
+
+      .return-status {
+
+        justify-content:
+          flex-end;
+
+        margin-top:
+          -43px;
+
+      }
+
+
+      .return-status-circle {
+
+        width:
+          32px;
+
+        height:
+          32px;
+
+      }
+
+
+      .return-workspace-footer {
+
+        position:sticky;
+
+        bottom:0;
+
+        z-index:5;
+
+      }
+
+    }
+/* ==========================================
+   EENVOUDIG RETOURSCHERM
+========================================== */
+
+.return-simple-workspace {
+
+  background:#f7f5ef;
+
+  border:
+    1px solid
+    #ded9ce;
+
+  border-radius:16px;
+
+  overflow:hidden;
+
+  box-shadow:
+    0 8px 24px
+    rgba(
+      35,
+      30,
+      22,
+      .08
+    );
+
+}
+
+
+.return-simple-header {
+
+  padding:
+    14px;
+
+  background:#faf9f5;
+
+  border-bottom:
+    1px solid
+    #ded9ce;
+
+}
+
+
+.return-simple-header span {
+
+  display:block;
+
+  color:#8c692f;
+
+  font-size:8px;
+
+  font-weight:900;
+
+  letter-spacing:.08em;
+
+}
+
+
+.return-simple-header h2 {
+
+  margin:
+    2px 0 0;
+
+  font-size:22px;
+
+  color:#182019;
+
+}
+
+
+.return-simple-summary {
+
+  display:grid;
+
+  grid-template-columns:
+    1fr 1fr;
+
+  gap:6px;
+
+  padding:10px;
+
+  background:#f0ece4;
+
+}
+
+
+.return-simple-summary > div {
+
+  padding:
+    10px;
+
+  border-radius:10px;
+
+  background:white;
+
+  text-align:center;
+
+}
+
+
+.return-simple-summary span {
+
+  display:block;
+
+  color:#80786c;
+
+  font-size:8px;
+
+  font-weight:900;
+
+  text-transform:uppercase;
+
+}
+
+
+.return-simple-summary strong {
+
+  display:block;
+
+  margin-top:2px;
+
+  color:#1a211b;
+
+  font-size:22px;
+
+}
+
+
+.return-simple-list {
+
+  background:white;
+
+}
+
+
+.return-simple-item {
+
+  padding:
+    11px;
+
+  border-bottom:
+    1px solid
+    #e5e0d7;
+
+  border-left:
+    4px solid
+    #d0cbc2;
+
+}
+
+
+.return-simple-item.good {
+
+  border-left-color:
+    #2f7449;
+
+  background:#f9fcfa;
+
+}
+
+
+.return-simple-item.problem {
+
+  border-left-color:
+    #d99a3e;
+
+  background:#fffaf3;
+
+}
+
+
+.return-simple-item-main {
+
+  display:flex;
+
+  justify-content:
+    space-between;
+
+  align-items:flex-start;
+
+  gap:8px;
+
+}
+
+
+.return-simple-item-main strong {
+
+  display:block;
+
+  color:#202720;
+
+  font-size:14px;
+
+}
+
+
+.return-simple-item-main span {
+
+  display:block;
+
+  margin-top:2px;
+
+  color:#888074;
+
+  font-size:9px;
+
+}
+
+
+.return-simple-status {
+
+  padding:
+    4px 7px;
+
+  border-radius:999px;
+
+  font-size:8px;
+
+  font-weight:900;
+
+  white-space:nowrap;
+
+}
+
+
+.return-simple-status.pending {
+
+  background:#ece8df;
+
+  color:#777064;
+
+}
+
+
+.return-simple-status.good {
+
+  background:#e5f3e9;
+
+  color:#2f7449;
+
+}
+
+
+.return-simple-status.problem {
+
+  background:#f8ead5;
+
+  color:#a36017;
+
+}
+
+
+.return-simple-actions {
+
+  display:grid;
+
+  grid-template-columns:
+    1fr 1fr;
+
+  gap:6px;
+
+  margin-top:9px;
+
+}
+
+
+.return-good-button,
+.return-problem-button {
+
+  min-height:38px;
+
+  border-radius:9px;
+
+  font-size:10px;
+
+  font-weight:900;
+
+}
+
+
+.return-good-button {
+
+  border:
+    1px solid
+    #b9d6c2;
+
+  background:#eff7f1;
+
+  color:#2f7449;
+
+}
+
+
+.return-good-button.selected {
+
+  background:#2f7449;
+
+  color:white;
+
+  border-color:#2f7449;
+
+}
+
+
+.return-problem-button {
+
+  border:
+    1px solid
+    #e0c18e;
+
+  background:#fff8ed;
+
+  color:#9c611b;
+
+}
+
+
+.return-problem-button.selected {
+
+  background:#d99a3e;
+
+  color:white;
+
+  border-color:#d99a3e;
+
+}
+
+
+.return-simple-footer {
+
+  display:grid;
+
+  grid-template-columns:
+    .7fr 1.3fr;
+
+  gap:6px;
+
+  padding:10px;
+
+  background:#f2eee6;
+
+}
+
+
+.return-simple-cancel,
+.return-simple-save {
+
+  min-height:43px;
+
+  border-radius:10px;
+
+  font-weight:900;
+
+}
+
+
+.return-simple-cancel {
+
+  border:
+    1px solid
+    #d7d1c6;
+
+  background:white;
+
+  color:#514b42;
+
+}
+
+
+.return-simple-save {
+
+  border:0;
+
+  background:#194d38;
+
+  color:white;
+
+}
+
+
+/* ==========================================
+   PROBLEEM POPUP OVERLAY
+========================================== */
+
+.return-problem-overlay {
+
+  position:fixed;
+
+  inset:0;
+
+  z-index:500;
+
+  display:flex;
+
+  align-items:flex-end;
+
+  justify-content:center;
+
+  padding:
+    14px;
+
+  background:
+    rgba(
+      12,
+      18,
+      13,
+      .55
+    );
+
+  backdrop-filter:
+    blur(3px);
+
+}
+
+
+/* ==========================================
+   PROBLEEM POPUP
+========================================== */
+
+.return-problem-modal {
+
+  width:100%;
+
+  max-width:520px;
+
+  max-height:
+    88vh;
+
+  overflow-y:auto;
+
+  padding:
+    14px;
+
+  border-radius:
+    18px;
+
+  background:
+    #f8f6f0;
+
+  box-shadow:
+    0 18px 50px
+    rgba(
+      0,
+      0,
+      0,
+      .3
+    );
+
+}
+
+
+.return-problem-modal-head {
+
+  display:flex;
+
+  justify-content:
+    space-between;
+
+  align-items:flex-start;
+
+  gap:10px;
+
+  padding-bottom:10px;
+
+  border-bottom:
+    1px solid
+    #ded8ce;
+
+}
+
+
+.return-problem-modal-head span {
+
+  display:block;
+
+  color:#a15f18;
+
+  font-size:8px;
+
+  font-weight:900;
+
+  letter-spacing:.08em;
+
+}
+
+
+.return-problem-modal-head h3 {
+
+  margin:
+    2px 0 0;
+
+  color:#182019;
+
+  font-size:20px;
+
+}
+
+
+.return-problem-modal-head small {
+
+  display:block;
+
+  margin-top:2px;
+
+  color:#81796d;
+
+  font-size:9px;
+
+}
+
+
+.return-problem-modal-head > button {
+
+  width:34px;
+
+  height:34px;
+
+  border:0;
+
+  border-radius:9px;
+
+  background:#e8e2d8;
+
+  color:#49443d;
+
+  font-size:21px;
+
+}
+
+
+/* ==========================================
+   GOED TERUG PREVIEW
+========================================== */
+
+.return-problem-good-preview {
+
+  display:flex;
+
+  justify-content:
+    space-between;
+
+  align-items:center;
+
+  margin-top:10px;
+
+  padding:
+    9px 10px;
+
+  border-radius:10px;
+
+  background:#e5f3e9;
+
+  color:#2f7449;
+
+}
+
+
+.return-problem-good-preview span {
+
+  font-size:10px;
+
+  font-weight:900;
+
+}
+
+
+.return-problem-good-preview strong {
+
+  font-size:20px;
+
+}
+
+
+/* ==========================================
+   PROBLEEM OPTIES
+========================================== */
+
+.return-problem-option {
+
+  display:grid;
+
+  grid-template-columns:
+    1fr auto;
+
+  align-items:center;
+
+  gap:8px;
+
+  margin-top:8px;
+
+  padding:10px;
+
+  border:
+    1px solid
+    #dfd9cf;
+
+  border-radius:11px;
+
+  background:white;
+
+}
+
+
+.return-problem-option strong {
+
+  display:block;
+
+  color:#282e29;
+
+  font-size:11px;
+
+}
+
+
+.return-problem-option span {
+
+  display:block;
+
+  margin-top:2px;
+
+  color:#8a8175;
+
+  font-size:8px;
+
+}
+
+
+/* ==========================================
+   POPUP STEPPER
+========================================== */
+
+.return-problem-stepper {
+
+  display:grid;
+
+  grid-template-columns:
+    34px 40px 34px;
+
+  overflow:hidden;
+
+  border:
+    1px solid
+    #d8d2c8;
+
+  border-radius:9px;
+
+  background:white;
+
+}
+
+
+.return-problem-stepper button {
+
+  height:34px;
+
+  border:0;
+
+  background:#f6f3ed;
+
+  color:#5f584e;
+
+  font-size:18px;
+
+}
+
+
+.return-problem-stepper button:first-child {
+
+  border-right:
+    1px solid
+    #ded8ce;
+
+}
+
+
+.return-problem-stepper button:last-child {
+
+  border-left:
+    1px solid
+    #ded8ce;
+
+}
+
+
+.return-problem-stepper strong {
+
+  display:grid;
+
+  place-items:center;
+
+  font-size:13px;
+
+}
+
+
+/* ==========================================
+   OPMERKING POPUP
+========================================== */
+
+.return-problem-modal label {
+
+  display:block;
+
+  margin-top:10px;
+
+  color:#4d493f;
+
+  font-size:9px;
+
+  font-weight:900;
+
+}
+
+
+.return-problem-modal textarea {
+
+  width:100%;
+
+  min-height:74px;
+
+  margin-top:5px;
+
+  border:
+    1px solid
+    #d9d3c9;
+
+  border-radius:10px;
+
+  background:white;
+
+  padding:9px;
+
+  font-size:11px;
+
+}
+
+
+/* ==========================================
+   POPUP ACTIES
+========================================== */
+
+.return-problem-actions {
+
+  display:grid;
+
+  grid-template-columns:
+    .8fr 1.2fr;
+
+  gap:6px;
+
+  margin-top:10px;
+
+}
+
+
+.return-problem-cancel,
+.return-problem-save {
+
+  min-height:42px;
+
+  border-radius:10px;
+
+  font-size:10px;
+
+  font-weight:900;
+
+}
+
+
+.return-problem-cancel {
+
+  border:
+    1px solid
+    #d8d2c8;
+
+  background:white;
+
+  color:#595249;
+
+}
+
+
+.return-problem-save {
+
+  border:0;
+
+  background:#194d38;
+
+  color:white;
+
+}
+
+
+/* ==========================================
+   DESKTOP POPUP
+========================================== */
+
+@media (
+  min-width:701px
+) {
+
+  .return-problem-overlay {
+
+    align-items:center;
+
+  }
+
+}
+
+
+/* ==========================================
+   NIEUWE COMPACTE RETOURBEDIENING
+========================================== */
+
+.return-good-toggle {
+
+  width:30px;
+  height:30px;
+  min-width:30px;
+
+  padding:0;
+
+  display:grid;
+  place-items:center;
+
+  border:
+    2px solid
+    #9ab6a2;
+
+  border-radius:50%;
+
+  background:white;
+
+  color:white;
+
+  font-size:15px;
+  font-weight:900;
+
+}
+
+
+.return-good-toggle.selected {
+
+  border-color:#2f7449;
+  background:#2f7449;
+  color:white;
+
+}
+
+
+.return-simple-actions {
+
+  grid-template-columns:
+    38px 1fr;
+
+  align-items:center;
+
+}
+
+
+.return-problem-button {
+
+  min-height:34px;
+
+  border:
+    1px solid
+    #e0c18e;
+
+  border-radius:9px;
+
+  background:#fff8ed;
+  color:#9c611b;
+
+  font-size:9px;
+  font-weight:900;
+
+}
+
+
+.return-problem-button.selected {
+
+  background:#d99a3e;
+  color:white;
+  border-color:#d99a3e;
+
+}
+
+
+.return-validation {
+
+  margin:9px 10px 0;
+  padding:8px 10px;
+
+  border-radius:9px;
+
+  background:#fff0dc;
+  color:#8b571a;
+
+  font-size:9px;
+  font-weight:850;
+  line-height:1.35;
+
+}
+
+
+.return-problem-overlay.hidden {
+
+  display:none !important;
+
+}
+
+
+/* ==========================================
+   RETOURARCHIEF - READ ONLY
+========================================== */
+
+.return-archive-card {
+
+  padding:12px;
+
+  border:
+    1px solid
+    #d8d3c8;
+
+  border-radius:14px;
+
+  background:#f8f6f0;
+
+}
+
+
+.return-archive-head {
+
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  gap:8px;
+
+}
+
+
+.return-archive-head span {
+
+  display:block;
+
+  color:#8c692f;
+
+  font-size:8px;
+  font-weight:900;
+  letter-spacing:.08em;
+
+}
+
+
+.return-archive-head h3 {
+
+  margin:2px 0 0;
+
+  color:#1d241e;
+  font-size:18px;
+
+}
+
+
+.return-archive-head small {
+
+  display:block;
+  margin-top:2px;
+
+  color:#7f786c;
+  font-size:8px;
+
+}
+
+
+.return-archive-lock {
+
+  width:32px;
+  height:32px;
+
+  display:grid;
+  place-items:center;
+
+  border-radius:50%;
+
+  background:#e9e4d9;
+
+}
+
+
+.return-archive-list {
+
+  margin-top:10px;
+
+  border-top:
+    1px solid
+    #dfd9cf;
+
+}
+
+
+.return-archive-row {
+
+  display:grid;
+  grid-template-columns:1fr auto;
+  gap:8px;
+
+  padding:9px 0;
+
+  border-bottom:
+    1px solid
+    #e5e0d7;
+
+}
+
+
+.return-archive-row strong {
+
+  display:block;
+  color:#202720;
+  font-size:11px;
+
+}
+
+
+.return-archive-row small {
+
+  display:block;
+  margin-top:2px;
+  color:#827a6f;
+  font-size:8px;
+
+}
+
+
+.return-archive-values {
+
+  display:flex;
+  flex-wrap:wrap;
+  justify-content:flex-end;
+  gap:4px;
+
+}
+
+
+.return-archive-values span {
+
+  padding:3px 6px;
+  border-radius:999px;
+  font-size:8px;
+  font-weight:850;
+
+}
+
+
+.return-archive-values .ok {
+
+  background:#e4f2e8;
+  color:#2f7449;
+
+}
+
+
+.return-archive-values .bad {
+
+  background:#f7e3dc;
+  color:#a64b3c;
+
+}
+
+
+.return-archive-note {
+
+  margin-top:10px;
+  padding:8px;
+
+  border-radius:9px;
+
+  background:#ece8df;
+  color:#71695d;
+
+  font-size:8px;
+  line-height:1.4;
+
+}
+
+
+.return-reopen-button {
+
+  width:100%;
+  min-height:38px;
+
+  margin-top:8px;
+
+  border:
+    1px solid
+    #cbbfA8;
+
+  border-radius:9px;
+
+  background:white;
+  color:#6d5831;
+
+  font-size:9px;
+  font-weight:900;
+
+}
+
+
+/* ==========================================
+   AANVRAGEN SWITCH
+========================================== */
+
+.admin-request-switch {
+
+  display:grid;
+  grid-template-columns:
+    repeat(3, 1fr);
+
+  gap:5px;
+
+  margin-bottom:7px;
+
+}
+
+
+.admin-request-switch button {
+
+  min-height:36px;
+
+  border:
+    1px solid
+    #465047;
+
+  border-radius:9px;
+
+  background:#2d352e;
+  color:#b9c0ba;
+
+  font-size:8px;
+  font-weight:900;
+
+}
+
+
+.admin-request-switch button.active {
+
+  border-color:#b88a3e;
+  background:#3b362b;
+  color:#e2c47e;
+
+}
+
+
+/* ==========================================
+   DASHBOARD KPI'S - 3 COMPACTE BLOKKEN
+========================================== */
+
+.admin-kpis {
+
+  grid-template-columns:
+    repeat(3, 1fr) !important;
+
+  gap:6px !important;
+
+}
+
+
+.admin-kpi {
+
+  min-height:64px !important;
+  padding:8px !important;
+
+}
+
+
+.admin-kpi strong {
+
+  font-size:22px !important;
+
+}
+
+
+.admin-kpi span {
+
+  margin-top:2px !important;
+  font-size:9px !important;
+
+}
+
+
+/* ==========================================
+   GROOTHANDEL IN RAPPORTEN
+========================================== */
+
+.admin-wholesale-report-head {
+
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+
+  margin-bottom:6px;
+
+}
+
+
+.admin-wholesale-report-head span {
+
+  color:#b9c0ba;
+  font-size:9px;
+  font-weight:850;
+
+}
+
+
+.admin-wholesale-report-head strong {
+
+  min-width:28px;
+  padding:4px 7px;
+
+  border-radius:999px;
+
+  background:#e7e3d8;
+  color:#555;
+
+  text-align:center;
+  font-size:9px;
+
+}
+
+
+/* ==========================================
+   ACTIE NODIG ARTIKELEN
+========================================== */
+
+.admin-problem.action-needed {
+
+  border-left:
+    4px solid
+    #d16a4f;
+
+}
+
+
+.admin-problem-head {
+
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  gap:8px;
+
+}
+
+
+.admin-problem-head > span {
+
+  padding:3px 6px;
+  border-radius:999px;
+
+  background:#f4ded7;
+  color:#a34738;
+
+  font-size:8px;
+  font-weight:900;
+
+}
+
+
+.admin-problem-badges {
+
+  display:flex;
+  flex-wrap:wrap;
+  gap:4px;
+
+  margin-top:7px;
+
+}
+
+
+.admin-problem-badges b {
+
+  margin:0 !important;
+  padding:3px 6px;
+
+  border-radius:999px;
+
+  background:#f4ded7;
+  color:#a34738 !important;
+
+  font-size:8px !important;
+
+}
+
+
+.admin-problem-note {
+
+  margin-top:7px;
+  padding:7px;
+
+  border-radius:8px;
+
+  background:#f3efe6;
+  color:#5f594f;
+
+  font-size:8px;
+  line-height:1.35;
+
+}
+
+
+.admin-problem-actions {
+
+  display:grid;
+  gap:5px;
+
+  margin-top:7px;
+
+}
+
+
+.admin-problem-actions button {
+
+  margin:0 !important;
+  min-height:34px;
+
+}
+
+
+.problem-resolve.green {
+
+  background:#2f7449 !important;
+
+}
+
+
+.problem-resolve.gold {
+
+  background:#a9782c !important;
+
+}
+
+
+.problem-view {
+
+  background:#59625a !important;
+
+}
   `;
 
 
@@ -10701,7 +12932,6 @@ function injectProfessionalReturnStyles() {
   );
 
 }
-
 
 /* ===============================
    GLOBAL
