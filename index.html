@@ -997,6 +997,37 @@ textarea {
 }
 
 
+
+/* ===============================
+   PRODUCT VOORRAAD / BESCHIKBAARHEID
+================================ */
+
+.product-stock {
+  display:block;
+  margin-top:4px;
+  color:var(--green);
+  font-size:10px;
+  font-weight:800;
+}
+
+.product-unavailable {
+  opacity:.62;
+  background:var(--surface-soft);
+}
+
+.product-unavailable-label {
+  display:block;
+  margin-top:4px;
+  color:var(--red);
+  font-size:10px;
+  font-weight:900;
+}
+
+.qty button:disabled {
+  cursor:not-allowed;
+  opacity:.35;
+}
+
 /* ===============================
    STICKY ACTION
 ================================ */
@@ -4002,7 +4033,7 @@ async function loadProducts() {
       )
 
       .select(
-        "id, naam, categorie, eenheid, sort_order"
+        "id, naam, categorie, eenheid, sort_order, voorraad, minimum_voorraad, voorraad_beheren, tijdelijk_onbeschikbaar, inhoud_per_eenheid"
       )
 
       .eq(
@@ -4168,7 +4199,6 @@ function renderProducts() {
 
 
   const products =
-
     allProducts
       .filter(
         product =>
@@ -4200,83 +4230,231 @@ function renderProducts() {
   container.innerHTML =
 
     products
-
       .map(
-        product => `
+        product => {
 
-          <div class="product">
+          const unavailable =
+            product.tijdelijk_onbeschikbaar ===
+            true;
 
-            <div class="product-name">
 
-              ${escapeHtml(
-                product.naam
-              )}
+          const managesStock =
 
-              ${
-                product.eenheid
+            product.categorie ===
+            "pos"
 
-                  ? `
+            &&
 
-                      <span class="product-unit">
+            product.voorraad_beheren ===
+            true
 
-                        Eenheid:
+            &&
 
-                        ${escapeHtml(
-                          product.eenheid
-                        )}
+            Number.isFinite(
+              Number(
+                product.voorraad
+              )
+            );
 
-                      </span>
 
-                    `
+          const stock =
 
+            managesStock
+
+              ? Math.max(
+                  0,
+                  Number(
+                    product.voorraad
+                  )
+                )
+
+              : null;
+
+
+          const currentQty =
+            quantities[
+              product.id
+            ] ||
+            0;
+
+
+          const unit =
+            product.eenheid ||
+            "";
+
+
+          const stockText =
+
+            managesStock
+
+              ? `${stock} ${unit || "stuks"} beschikbaar`
+
+              : "";
+
+
+          const packageText =
+
+            product.inhoud_per_eenheid
+
+              ? `${product.inhoud_per_eenheid} glazen per ${unit || "eenheid"}`
+
+              : "";
+
+
+          const plusDisabled =
+
+            unavailable
+
+            ||
+
+            (
+              managesStock
+
+              &&
+
+              currentQty >=
+              stock
+            );
+
+
+          return `
+
+            <div
+              class="product ${
+                unavailable
+                  ? "product-unavailable"
                   : ""
-              }
+              }"
+            >
 
-            </div>
+              <div class="product-name">
 
+                ${escapeHtml(
+                  product.naam
+                )}
 
-            <div class="qty">
-
-              <button
-                type="button"
-                onclick="changeQty('${product.id}', -1)"
-              >
-                −
-              </button>
-
-
-              <span
-                id="qty-${product.id}"
-              >
 
                 ${
-                  quantities[
-                    product.id
-                  ] ||
-                  0
+                  product.eenheid
+
+                    ? `
+
+                        <span class="product-unit">
+
+                          Eenheid:
+
+                          ${escapeHtml(
+                            product.eenheid
+                          )}
+
+                        </span>
+
+                      `
+
+                    : ""
                 }
 
-              </span>
+
+                ${
+                  stockText
+
+                    ? `
+
+                        <span class="product-stock">
+
+                          ${escapeHtml(
+                            stockText
+                          )}
+
+                        </span>
+
+                      `
+
+                    : ""
+                }
 
 
-              <button
-                type="button"
-                onclick="changeQty('${product.id}', 1)"
-              >
-                +
-              </button>
+                ${
+                  packageText
+
+                    ? `
+
+                        <span class="product-unit">
+
+                          ${escapeHtml(
+                            packageText
+                          )}
+
+                        </span>
+
+                      `
+
+                    : ""
+                }
+
+
+                ${
+                  unavailable
+
+                    ? `
+
+                        <span class="product-unavailable-label">
+
+                          Tijdelijk onbeschikbaar
+
+                        </span>
+
+                      `
+
+                    : ""
+                }
+
+              </div>
+
+
+              <div class="qty">
+
+                <button
+                  type="button"
+                  onclick="changeQty('${product.id}', -1)"
+                  ${
+                    unavailable ||
+                    currentQty <= 0
+                      ? "disabled"
+                      : ""
+                  }
+                >
+                  −
+                </button>
+
+
+                <span
+                  id="qty-${product.id}"
+                >
+                  ${currentQty}
+                </span>
+
+
+                <button
+                  type="button"
+                  onclick="changeQty('${product.id}', 1)"
+                  ${plusDisabled ? "disabled" : ""}
+                >
+                  +
+                </button>
+
+              </div>
 
             </div>
 
-          </div>
+          `;
 
-        `
+        }
       )
 
       .join("");
 
 }
-
 
 /* ===============================
    QTY
@@ -4287,51 +4465,101 @@ function changeQty(
   amount
 ) {
 
-  quantities[
-    productId
-  ] =
-
-    Math.max(
-
-      0,
-
-      (
-        quantities[
-          productId
-        ] ||
-        0
-      )
-
-      +
-
-      amount
-
-    );
-
-
-  const element =
-    document
-      .getElementById(
-        `qty-${productId}`
+  const product =
+    allProducts
+      .find(
+        item =>
+          String(
+            item.id
+          ) ===
+          String(
+            productId
+          )
       );
 
 
   if (
-    element
+    !product
   ) {
 
-    element.innerText =
-      quantities[
-        productId
-      ];
+    return;
 
   }
 
 
+  if (
+    product.tijdelijk_onbeschikbaar ===
+    true
+  ) {
+
+    return;
+
+  }
+
+
+  const current =
+    quantities[
+      productId
+    ] ||
+    0;
+
+
+  let next =
+    Math.max(
+      0,
+      current +
+      amount
+    );
+
+
+  const managesStock =
+
+    product.categorie ===
+    "pos"
+
+    &&
+
+    product.voorraad_beheren ===
+    true
+
+    &&
+
+    Number.isFinite(
+      Number(
+        product.voorraad
+      )
+    );
+
+
+  if (
+    managesStock
+  ) {
+
+    next =
+      Math.min(
+        next,
+        Math.max(
+          0,
+          Number(
+            product.voorraad
+          )
+        )
+      );
+
+  }
+
+
+  quantities[
+    productId
+  ] =
+    next;
+
+
+  renderProducts();
+
   updateReviewButton();
 
 }
-
 
 /* ===============================
    SELECT PRODUCTS
@@ -4351,6 +4579,11 @@ function selectedProducts() {
           .includes(
             product.categorie
           )
+
+        &&
+
+        product.tijdelijk_onbeschikbaar !==
+        true
 
         &&
 
@@ -4652,10 +4885,216 @@ function validatePickupDate() {
 
 
 /* ===============================
+   REFRESH PRODUCT VOORRAAD
+================================ */
+
+async function refreshProductsForOrder() {
+
+  const {
+    data,
+    error
+  } =
+    await supabaseClient
+
+      .from(
+        "products"
+      )
+
+      .select(
+        "id, naam, categorie, eenheid, sort_order, voorraad, minimum_voorraad, voorraad_beheren, tijdelijk_onbeschikbaar, inhoud_per_eenheid"
+      )
+
+      .eq(
+        "actief",
+        true
+      )
+
+      .order(
+        "sort_order",
+        {
+          ascending:
+            true
+        }
+      );
+
+
+  if (
+    error
+  ) {
+
+    throw error;
+
+  }
+
+
+  allProducts =
+    data ||
+    [];
+
+
+  let adjusted =
+    false;
+
+
+  allProducts
+    .forEach(
+      product => {
+
+        if (
+          quantities[
+            product.id
+          ] ===
+          undefined
+        ) {
+
+          quantities[
+            product.id
+          ] =
+            0;
+
+        }
+
+
+        if (
+          eventQuantities[
+            product.id
+          ] ===
+          undefined
+        ) {
+
+          eventQuantities[
+            product.id
+          ] =
+            0;
+
+        }
+
+
+        if (
+          product.tijdelijk_onbeschikbaar ===
+          true
+
+          &&
+
+          (
+            quantities[
+              product.id
+            ] ||
+            0
+          ) > 0
+        ) {
+
+          quantities[
+            product.id
+          ] =
+            0;
+
+
+          adjusted =
+            true;
+
+        }
+
+
+        if (
+          product.categorie ===
+          "pos"
+
+          &&
+
+          product.voorraad_beheren ===
+          true
+
+          &&
+
+          Number.isFinite(
+            Number(
+              product.voorraad
+            )
+          )
+
+          &&
+
+          (
+            quantities[
+              product.id
+            ] ||
+            0
+          ) >
+          Number(
+            product.voorraad
+          )
+        ) {
+
+          quantities[
+            product.id
+          ] =
+            Math.max(
+              0,
+              Number(
+                product.voorraad
+              )
+            );
+
+
+          adjusted =
+            true;
+
+        }
+
+      }
+    );
+
+
+  renderProducts();
+
+  updateReviewButton();
+
+
+  return adjusted;
+
+}
+
+
+/* ===============================
    NORMAL SUMMARY
 ================================ */
 
-function showSummary() {
+async function showSummary() {
+
+  try {
+
+    const adjusted =
+      await refreshProductsForOrder();
+
+
+    if (
+      adjusted
+    ) {
+
+      alert(
+        "De beschikbare voorraad is intussen gewijzigd. Controleer je aantallen opnieuw."
+      );
+
+
+      return;
+
+    }
+
+  }
+
+  catch (
+    error
+  ) {
+
+    alert(
+      "De actuele voorraad kon niet worden gecontroleerd. Probeer opnieuw."
+    );
+
+
+    return;
+
+  }
 
   const reference =
     document
@@ -4925,6 +5364,44 @@ async function submitOrder() {
     alert(
       "Je sessie is verlopen. Log opnieuw in."
     );
+
+    return;
+
+  }
+
+
+  try {
+
+    const adjusted =
+      await refreshProductsForOrder();
+
+
+    if (
+      adjusted
+    ) {
+
+      alert(
+        "De beschikbare voorraad is intussen gewijzigd. Controleer je aanvraag opnieuw."
+      );
+
+
+      backToOrder();
+
+
+      return;
+
+    }
+
+  }
+
+  catch (
+    error
+  ) {
+
+    alert(
+      "De actuele voorraad kon niet worden gecontroleerd. De aanvraag is niet verzonden."
+    );
+
 
     return;
 
@@ -5411,9 +5888,11 @@ function resetForm() {
 }
 
 
-function newOrder() {
+async function newOrder() {
 
   resetForm();
+
+  await loadProducts();
 
   openNewOrder();
 
@@ -7657,9 +8136,9 @@ checkExistingSession();
 </script>
 
 
-<script src="./admin.js?v=25"></script>
+<script src="./admin.js?v=26"></script>
 
-<script src="./wholesale.js?v=25"></script>
+<script src="./wholesale.js?v=26"></script>
 
 
 </body>
