@@ -737,6 +737,32 @@ function createAdminScreen() {
         </select>
 
 
+        <label>
+          Type aanvraag
+        </label>
+
+        <select
+          id="reportRequestType"
+          onchange="updateAdminReport()"
+        >
+          <option value="all">
+            Alles
+          </option>
+
+          <option value="regular">
+            POS & bier
+          </option>
+
+          <option value="event">
+            Evenement
+          </option>
+
+          <option value="wholesale">
+            Groothandel
+          </option>
+        </select>
+
+
         <div class="admin-report-grid">
 
           <div>
@@ -852,6 +878,15 @@ function createAdminScreen() {
           </div>
 
           <div id="adminWholesaleOrdersList"></div>
+
+
+          <button
+            class="admin-export"
+            type="button"
+            onclick="exportWholesaleReportExcel()"
+          >
+            Excel groothandel downloaden
+          </button>
 
         </div>
 
@@ -9206,47 +9241,131 @@ function toggleReportPeriod() {
 
 
 /* ===============================
-   REPORT ORDERS
+   REPORT HELPERS
+================================ */
+
+function getAdminReportFilters() {
+
+  return {
+
+    representative:
+      document
+        .getElementById(
+          "reportRepresentative"
+        )
+        ?.value ||
+      "",
+
+    requestType:
+      document
+        .getElementById(
+          "reportRequestType"
+        )
+        ?.value ||
+      "all",
+
+    periodType:
+      document
+        .getElementById(
+          "reportPeriodType"
+        )
+        ?.value ||
+      "month",
+
+    year:
+      Number(
+        document
+          .getElementById(
+            "reportYear"
+          )
+          ?.value
+      ),
+
+    month:
+      Number(
+        document
+          .getElementById(
+            "reportMonth"
+          )
+          ?.value
+      )
+
+  };
+
+}
+
+
+function adminReportDateMatches(
+  dateValue,
+  filters
+) {
+
+  if (
+    !dateValue
+  ) {
+
+    return false;
+
+  }
+
+
+  const date =
+    new Date(
+      dateValue
+    );
+
+
+  if (
+    Number.isNaN(
+      date.getTime()
+    )
+  ) {
+
+    return false;
+
+  }
+
+
+  return (
+
+    date.getFullYear() ===
+    filters.year
+
+    &&
+
+    (
+      filters.periodType ===
+      "year"
+
+      ||
+
+      date.getMonth() + 1 ===
+      filters.month
+    )
+
+  );
+
+}
+
+
+/* ===============================
+   REPORT GEWONE / EVENT ORDERS
 ================================ */
 
 function getReportOrders() {
 
-  const representative =
-    document
-      .getElementById(
-        "reportRepresentative"
-      )
-      ?.value ||
-    "";
+  const filters =
+    getAdminReportFilters();
 
 
-  const type =
-    document
-      .getElementById(
-        "reportPeriodType"
-      )
-      ?.value ||
-    "month";
+  if (
+    filters.requestType ===
+    "wholesale"
+  ) {
 
+    return [];
 
-  const year =
-    Number(
-      document
-        .getElementById(
-          "reportYear"
-        )
-        ?.value
-    );
-
-
-  const month =
-    Number(
-      document
-        .getElementById(
-          "reportMonth"
-        )
-        ?.value
-    );
+  }
 
 
   return adminOrders
@@ -9254,8 +9373,12 @@ function getReportOrders() {
       order => {
 
         if (
-          order.status !==
-          "afgehaald"
+          filters.representative
+
+          &&
+
+          order.user_id !==
+          filters.representative
         ) {
 
           return false;
@@ -9264,12 +9387,12 @@ function getReportOrders() {
 
 
         if (
-          representative
+          filters.requestType ===
+          "regular"
 
           &&
 
-          order.user_id !==
-          representative
+          order.event_naam
         ) {
 
           return false;
@@ -9277,41 +9400,23 @@ function getReportOrders() {
         }
 
 
-        const reportDate =
-          order.collected_at ||
-          order.event_returned_at ||
-          order.updated_at ||
-          order.created_at;
-
-
-        if (!reportDate) {
-          return false;
-        }
-
-
-        const date =
-          new Date(
-            reportDate
-          );
-
-
-        return (
-
-          date.getFullYear() ===
-          year
+        if (
+          filters.requestType ===
+          "event"
 
           &&
 
-          (
-            type ===
-            "year"
+          !order.event_naam
+        ) {
 
-            ||
+          return false;
 
-            date.getMonth() + 1 ===
-            month
-          )
+        }
 
+
+        return adminReportDateMatches(
+          order.created_at,
+          filters
         );
 
       }
@@ -9321,67 +9426,373 @@ function getReportOrders() {
 
 
 /* ===============================
-   REPORT TOTALS
+   REPORT GROOTHANDEL
 ================================ */
 
-function getReportMaterialTotals() {
+function getReportWholesaleOrders() {
 
-  const ids =
-    new Set(
+  const filters =
+    getAdminReportFilters();
 
-      getReportOrders()
-        .map(
-          order =>
-            order.id
-        )
 
+  if (
+    ![
+      "all",
+      "wholesale"
+    ]
+      .includes(
+        filters.requestType
+      )
+  ) {
+
+    return [];
+
+  }
+
+
+  return adminWholesaleOrders
+    .filter(
+      order => {
+
+        if (
+          filters.representative
+
+          &&
+
+          order.user_id !==
+          filters.representative
+        ) {
+
+          return false;
+
+        }
+
+
+        return adminReportDateMatches(
+          order.created_at,
+          filters
+        );
+
+      }
     );
 
-
-  const totals =
-    {};
+}
 
 
-  adminItems
+/* ===============================
+   RAPPORT DATASETS
+================================ */
 
-    .filter(
-      item =>
-        ids.has(
-          item.order_id
-        )
-    )
+function getReportRows() {
 
+  const rows =
+    [];
+
+
+  getReportOrders()
     .forEach(
-      item => {
+      order => {
 
-        const name =
-          item.product_naam ||
-          "Onbekend";
+        const profile =
+          getAdminProfile(
+            order.user_id
+          );
 
 
-        totals[
-          name
-        ] =
+        const items =
+          getAdminOrderItems(
+            order.id
+          );
 
-          (
-            totals[
-              name
-            ] ||
-            0
-          )
 
-          +
+        if (
+          !items.length
+        ) {
 
-          Number(
-            item.aantal ||
-            0
+          rows.push({
+
+            bron:
+              order.event_naam
+                ? "Evenement"
+                : "POS & bier",
+
+            aanvraagdatum:
+              order.created_at,
+
+            status:
+              order.status ||
+              "",
+
+            vertegenwoordiger:
+              profile?.naam ||
+              "",
+
+            email:
+              profile?.email ||
+              "",
+
+            referentie:
+              order.event_naam ||
+              order.referentie ||
+              "",
+
+            product:
+              "",
+
+            categorie:
+              "",
+
+            aantal:
+              0,
+
+            order_id:
+              order.id
+
+          });
+
+
+          return;
+
+        }
+
+
+        items
+          .forEach(
+            item => {
+
+              rows.push({
+
+                bron:
+                  order.event_naam
+                    ? "Evenement"
+                    : "POS & bier",
+
+                aanvraagdatum:
+                  order.created_at,
+
+                status:
+                  order.status ||
+                  "",
+
+                vertegenwoordiger:
+                  profile?.naam ||
+                  "",
+
+                email:
+                  profile?.email ||
+                  "",
+
+                referentie:
+                  order.event_naam ||
+                  order.referentie ||
+                  "",
+
+                product:
+                  item.product_naam ||
+                  "",
+
+                categorie:
+                  item.categorie ||
+                  "",
+
+                aantal:
+                  Number(
+                    item.aantal ||
+                    0
+                  ),
+
+                order_id:
+                  order.id
+
+              });
+
+            }
           );
 
       }
     );
 
 
-  return totals;
+  getReportWholesaleOrders()
+    .forEach(
+      order => {
+
+        const profile =
+          getAdminProfile(
+            order.user_id
+          );
+
+
+        const items =
+          adminWholesaleItems
+            .filter(
+              item =>
+                item.wholesale_order_id ===
+                order.id
+            );
+
+
+        if (
+          !items.length
+        ) {
+
+          rows.push({
+
+            bron:
+              "Groothandel",
+
+            aanvraagdatum:
+              order.created_at,
+
+            status:
+              order.status ||
+              "",
+
+            vertegenwoordiger:
+              profile?.naam ||
+              "",
+
+            email:
+              profile?.email ||
+              "",
+
+            referentie:
+              order.referentie ||
+              order.drankenhandel ||
+              "",
+
+            product:
+              "",
+
+            categorie:
+              "groothandel",
+
+            aantal:
+              0,
+
+            order_id:
+              order.id
+
+          });
+
+
+          return;
+
+        }
+
+
+        items
+          .forEach(
+            item => {
+
+              rows.push({
+
+                bron:
+                  "Groothandel",
+
+                aanvraagdatum:
+                  order.created_at,
+
+                status:
+                  order.status ||
+                  "",
+
+                vertegenwoordiger:
+                  profile?.naam ||
+                  "",
+
+                email:
+                  profile?.email ||
+                  "",
+
+                referentie:
+                  order.referentie ||
+                  order.drankenhandel ||
+                  "",
+
+                product:
+                  item.product_naam ||
+                  "",
+
+                categorie:
+                  "groothandel",
+
+                aantal:
+                  Number(
+                    item.totaal_aantal ||
+                    item.betaald_aantal ||
+                    0
+                  ),
+
+                order_id:
+                  order.id
+
+              });
+
+            }
+          );
+
+      }
+    );
+
+
+  return rows;
+
+}
+
+
+function getReportApplicationCounts() {
+
+  const counts = {
+
+    "POS & bier":
+      0,
+
+    "Evenement":
+      0,
+
+    "Groothandel":
+      0
+
+  };
+
+
+  getReportOrders()
+    .forEach(
+      order => {
+
+        if (
+          order.event_naam
+        ) {
+
+          counts[
+            "Evenement"
+          ] +=
+            1;
+
+        }
+
+        else {
+
+          counts[
+            "POS & bier"
+          ] +=
+            1;
+
+        }
+
+      }
+    );
+
+
+  counts[
+    "Groothandel"
+  ] =
+    getReportWholesaleOrders()
+      .length;
+
+
+  return counts;
 
 }
 
@@ -9408,29 +9819,32 @@ function updateAdminReport() {
   }
 
 
-  const orders =
+  const regularOrders =
     getReportOrders();
 
 
-  const totals =
-    getReportMaterialTotals();
+  const wholesaleOrders =
+    getReportWholesaleOrders();
+
+
+  const totalRequests =
+    regularOrders.length +
+    wholesaleOrders.length;
 
 
   const totalItems =
-
-    Object
-      .values(
-        totals
-      )
-
+    getReportRows()
       .reduce(
         (
-          first,
-          second
+          total,
+          row
         ) =>
 
-          first +
-          second,
+          total +
+          Number(
+            row.aantal ||
+            0
+          ),
 
         0
       );
@@ -9441,11 +9855,11 @@ function updateAdminReport() {
     <div>
 
       <strong>
-        ${orders.length}
+        ${totalRequests}
       </strong>
 
       <span>
-        Afgehaalde aanvragen
+        Aanvragen
       </span>
 
     </div>
@@ -9458,7 +9872,7 @@ function updateAdminReport() {
       </strong>
 
       <span>
-        Materialen / producten
+        Aangevraagde items
       </span>
 
     </div>
@@ -9467,18 +9881,18 @@ function updateAdminReport() {
 
 
   renderAdminReportChart(
-    totals
+    getReportApplicationCounts()
   );
 
 }
 
 
 /* ===============================
-   CHART
+   REPORT CHART
 ================================ */
 
 function renderAdminReportChart(
-  totals
+  counts
 ) {
 
   const canvas =
@@ -9514,17 +9928,11 @@ function renderAdminReportChart(
   const entries =
     Object
       .entries(
-        totals
+        counts
       )
-
-      .sort(
-        (
-          first,
-          second
-        ) =>
-
-          second[1] -
-          first[1]
+      .filter(
+        entry =>
+          entry[1] > 0
       );
 
 
@@ -9539,7 +9947,6 @@ function renderAdminReportChart(
         data: {
 
           labels:
-
             entries
               .map(
                 entry =>
@@ -9551,10 +9958,9 @@ function renderAdminReportChart(
             {
 
               label:
-                "Afgehaald aantal",
+                "Aantal aanvragen",
 
               data:
-
                 entries
                   .map(
                     entry =>
@@ -9575,9 +9981,6 @@ function renderAdminReportChart(
           maintainAspectRatio:
             false,
 
-          indexAxis:
-            "y",
-
           plugins: {
 
             legend: {
@@ -9589,10 +9992,17 @@ function renderAdminReportChart(
 
           scales: {
 
-            x: {
+            y: {
 
               beginAtZero:
-                true
+                true,
+
+              ticks: {
+
+                precision:
+                  0
+
+              }
 
             }
 
@@ -9607,7 +10017,7 @@ function renderAdminReportChart(
 
 
 /* ===============================
-   EXCEL
+   EXCEL ALLE RAPPORTEN
 ================================ */
 
 function exportAdminReportExcel() {
@@ -9626,8 +10036,182 @@ function exportAdminReportExcel() {
   }
 
 
+  const rows =
+    getReportRows();
+
+
+  if (
+    !rows.length
+  ) {
+
+    alert(
+      "Geen aanvragen voor deze selectie."
+    );
+
+    return;
+
+  }
+
+
+  const excelRows =
+    rows
+      .map(
+        row => ({
+
+          "Aanvraagdatum":
+            formatExcelDate(
+              row.aanvraagdatum
+            ),
+
+          "Type aanvraag":
+            row.bron,
+
+          "Status":
+            formatStatus(
+              row.status
+            ),
+
+          "Vertegenwoordiger":
+            row.vertegenwoordiger,
+
+          "E-mail":
+            row.email,
+
+          "Referentie / evenement":
+            row.referentie,
+
+          "Product / materiaal":
+            row.product,
+
+          "Categorie":
+            row.categorie,
+
+          "Aantal":
+            row.aantal
+
+        })
+      );
+
+
+  const workbook =
+    XLSX.utils
+      .book_new();
+
+
+  XLSX.utils
+    .book_append_sheet(
+
+      workbook,
+
+      XLSX.utils
+        .json_to_sheet(
+          excelRows
+        ),
+
+      "Aanvragen"
+
+    );
+
+
+  const counts =
+    getReportApplicationCounts();
+
+
+  const summaryRows =
+    Object
+      .entries(
+        counts
+      )
+      .map(
+        (
+          [
+            type,
+            total
+          ]
+        ) => ({
+
+          "Type aanvraag":
+            type,
+
+          "Aantal aanvragen":
+            total
+
+        })
+      );
+
+
+  XLSX.utils
+    .book_append_sheet(
+
+      workbook,
+
+      XLSX.utils
+        .json_to_sheet(
+          summaryRows
+        ),
+
+      "Samenvatting"
+
+    );
+
+
+  const filters =
+    getAdminReportFilters();
+
+
+  const representative =
+    filters.representative
+
+      ? getAdminProfile(
+          filters.representative
+        )?.naam ||
+        "Vertegenwoordiger"
+
+      : "Alle";
+
+
+  XLSX.writeFile(
+
+    workbook,
+
+    `Achel_rapport_${safeFilename(
+      representative
+    )}_${filters.year}${
+      filters.periodType ===
+      "month"
+
+        ? `_${String(filters.month).padStart(2,"0")}`
+
+        : ""
+    }_${safeFilename(filters.requestType)}.xlsx`
+
+  );
+
+}
+
+
+/* ===============================
+   EXCEL GROOTHANDEL
+================================ */
+
+function exportWholesaleReportExcel() {
+
+  if (
+    typeof XLSX ===
+    "undefined"
+  ) {
+
+    alert(
+      "Excel-module niet geladen."
+    );
+
+    return;
+
+  }
+
+
   const orders =
-    getReportOrders();
+    adminWholesaleOrders;
 
 
   if (
@@ -9635,7 +10219,7 @@ function exportAdminReportExcel() {
   ) {
 
     alert(
-      "Geen afgehaalde aanvragen voor deze periode."
+      "Geen groothandelbestellingen beschikbaar."
     );
 
     return;
@@ -9657,60 +10241,54 @@ function exportAdminReportExcel() {
           );
 
 
-        getAdminOrderItems(
-          order.id
+        const proof =
+          adminWholesaleProofs
+            .find(
+              item =>
+                item.order_id ===
+                order.id
+            );
+
+
+        const items =
+          adminWholesaleItems
+            .filter(
+              item =>
+                item.wholesale_order_id ===
+                order.id
+            );
+
+
+        (
+          items.length
+
+            ? items
+
+            : [
+                {
+                  product_naam:
+                    "",
+                  eenheid:
+                    "",
+                  betaald_aantal:
+                    0,
+                  actie:
+                    "",
+                  gratis_aantal:
+                    0,
+                  totaal_aantal:
+                    0
+                }
+              ]
         )
           .forEach(
             item => {
 
-              const returnRow =
-                adminEventReturns
-                  .find(
-                    row =>
-
-                      row.order_id ===
-                      order.id
-
-                      &&
-
-                      row.product_naam ===
-                      item.product_naam
-                  );
-
-
-              const loaned =
-                Number(
-                  item.aantal ||
-                  0
-                );
-
-
-              const good =
-                Number(
-                  returnRow?.goed_terug ||
-                  0
-                );
-
-
-              const damaged =
-                Number(
-                  returnRow?.beschadigd ||
-                  0
-                );
-
-
-              const missing =
-                Number(
-                  returnRow?.ontbreekt ||
-                  0
-                );
-
-
               rows.push({
 
-                "Afhaaldatum":
+                "Aanvraagdatum":
                   formatExcelDate(
-                    order.collected_at
+                    order.created_at
                   ),
 
                 "Vertegenwoordiger":
@@ -9721,69 +10299,63 @@ function exportAdminReportExcel() {
                   profile?.email ||
                   "",
 
-                "Type":
-                  order.event_naam
-
-                    ? "Evenement"
-
-                    : item.categorie ===
-                      "bier"
-
-                      ? "Bier"
-
-                      : "POS",
-
-                "Referentie / evenement":
-                  order.event_naam ||
+                "Referentie":
                   order.referentie ||
                   "",
 
-                "Gemeente":
-                  order.gemeente ||
+                "Drankenhandel":
+                  order.drankenhandel ||
                   "",
 
-                "Product / materiaal":
+                "Status":
+                  formatStatus(
+                    order.status
+                  ),
+
+                "Product":
                   item.product_naam ||
                   "",
 
-                "Categorie":
-                  item.categorie ||
+                "Eenheid":
+                  item.eenheid ||
                   "",
 
-                "Aantal":
-                  loaned,
+                "Betaald aantal":
+                  Number(
+                    item.betaald_aantal ||
+                    0
+                  ),
 
-                "Goed terug":
-                  order.event_naam
-                    ? good
-                    : "",
+                "Actie":
+                  item.actie ||
+                  "",
 
-                "Beschadigd":
-                  order.event_naam
-                    ? damaged
-                    : "",
+                "Gratis aantal":
+                  Number(
+                    item.gratis_aantal ||
+                    0
+                  ),
 
-                "Ontbreekt":
-                  order.event_naam
-                    ? missing
-                    : "",
+                "Totaal aantal":
+                  Number(
+                    item.totaal_aantal ||
+                    item.betaald_aantal ||
+                    0
+                  ),
 
-                "Nog buiten":
-                  order.event_naam
+                "Ondertekend":
+                  proof
+                    ? "Ja"
+                    : "Nee",
 
-                    ? Math.max(
-                        0,
-                        loaned -
-                        good -
-                        damaged -
-                        missing
-                      )
+                "Ondertekend door":
+                  proof?.signer_name ||
+                  "",
 
-                    : "",
-
-                "Retour opmerking":
-                  returnRow?.opmerking ||
-                  ""
+                "Ondertekend op":
+                  formatExcelDate(
+                    proof?.signed_at
+                  )
 
               });
 
@@ -9809,99 +10381,21 @@ function exportAdminReportExcel() {
           rows
         ),
 
-      "Afgehaald"
+      "Groothandel"
 
     );
-
-
-  const summary =
-    Object
-      .entries(
-        getReportMaterialTotals()
-      )
-
-      .map(
-        (
-          [
-            name,
-            total
-          ]
-        ) => ({
-
-          "Materiaal / product":
-            name,
-
-          "Totaal":
-            total
-
-        })
-      );
-
-
-  XLSX.utils
-    .book_append_sheet(
-
-      workbook,
-
-      XLSX.utils
-        .json_to_sheet(
-          summary
-        ),
-
-      "Samenvatting"
-
-    );
-
-
-  const repId =
-    document
-      .getElementById(
-        "reportRepresentative"
-      )
-      ?.value;
-
-
-  const representative =
-    repId
-
-      ? getAdminProfile(
-          repId
-        )?.naam
-
-      : "Alle";
-
-
-  const year =
-    document
-      .getElementById(
-        "reportYear"
-      )
-      ?.value;
-
-
-  const type =
-    document
-      .getElementById(
-        "reportPeriodType"
-      )
-      ?.value;
-
-
-  const month =
-    document
-      .getElementById(
-        "reportMonth"
-      )
-      ?.value;
 
 
   XLSX.writeFile(
 
     workbook,
 
-    `Achel_${safeFilename(
-      representative
-    )}_${year}${type === "month" ? `_${String(month).padStart(2,"0")}` : ""}.xlsx`
+    `Achel_groothandel_${new Date()
+      .toISOString()
+      .slice(
+        0,
+        10
+      )}.xlsx`
 
   );
 
