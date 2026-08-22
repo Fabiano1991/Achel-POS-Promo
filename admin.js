@@ -24,6 +24,8 @@ let adminWholesaleProofs = [];
 
 let adminProducts = [];
 
+let adminPosAvailableStock = {};
+
 let adminCatalogView =
   "pos";
 
@@ -231,6 +233,15 @@ function createAdminScreen() {
         type="button"
       >
         Materiaal
+      </button>
+
+
+      <button
+        id="adminTab-stock"
+        onclick="switchAdminTab('stock')"
+        type="button"
+      >
+        Voorraad
       </button>
 
 
@@ -582,56 +593,6 @@ function createAdminScreen() {
 
         <div class="admin-block-title">
 
-          <span>
-            VOORRAAD & CATALOGUS
-          </span>
-
-          <strong>
-            Beheer
-          </strong>
-
-        </div>
-
-
-        <div class="admin-catalog-switch">
-
-          <button
-            id="adminCatalogView-pos"
-            class="active"
-            type="button"
-            onclick="setAdminCatalogView('pos')"
-          >
-            POS
-          </button>
-
-          <button
-            id="adminCatalogView-beer"
-            type="button"
-            onclick="setAdminCatalogView('beer')"
-          >
-            Bieren
-          </button>
-
-          <button
-            id="adminCatalogView-event"
-            type="button"
-            onclick="setAdminCatalogView('event')"
-          >
-            Evenement
-          </button>
-
-        </div>
-
-
-        <div id="adminCatalogList"></div>
-
-      </div>
-
-
-      <div class="admin-block">
-
-        <div class="admin-block-title">
-
           <strong>
             Materiaal buiten
           </strong>
@@ -671,6 +632,69 @@ function createAdminScreen() {
         <div id="adminReturnArchiveList"></div>
 
       </div>
+
+    </div>
+
+
+    <!-- VOORRAAD -->
+
+    <div
+      id="adminPane-stock"
+      class="admin-pane hidden"
+    >
+
+      <div class="admin-page-title">
+
+        <span>
+          BEHEER
+        </span>
+
+        <strong>
+          Voorraadbeheer
+        </strong>
+
+      </div>
+
+
+      <div class="admin-stock-intro">
+
+        Beschikbaar wordt automatisch berekend na elke aanvraag.
+        Nieuwe leveringen voeg je hier handmatig toe.
+
+      </div>
+
+
+      <div class="admin-catalog-switch">
+
+        <button
+          id="adminCatalogView-pos"
+          class="active"
+          type="button"
+          onclick="setAdminCatalogView('pos')"
+        >
+          POS
+        </button>
+
+        <button
+          id="adminCatalogView-beer"
+          type="button"
+          onclick="setAdminCatalogView('beer')"
+        >
+          Bieren
+        </button>
+
+        <button
+          id="adminCatalogView-event"
+          type="button"
+          onclick="setAdminCatalogView('event')"
+        >
+          Evenement
+        </button>
+
+      </div>
+
+
+      <div id="adminCatalogList"></div>
 
     </div>
 
@@ -1282,6 +1306,7 @@ function switchAdminTab(
     "overview",
     "requests",
     "material",
+    "stock",
     "reports"
   ]
     .forEach(
@@ -1320,6 +1345,19 @@ function switchAdminTab(
     setAdminRequestView(
       adminRequestView ||
       "regular"
+    );
+
+  }
+
+
+  if (
+    tab ===
+    "stock"
+  ) {
+
+    setAdminCatalogView(
+      adminCatalogView ||
+      "pos"
     );
 
   }
@@ -1661,6 +1699,13 @@ async function loadAdminDashboard() {
         );
 
 
+    const posAvailableStockResult =
+      await supabaseClient
+        .rpc(
+          "get_pos_available_stock"
+        );
+
+
     const wholesaleResult =
       await supabaseClient
         .from(
@@ -1730,6 +1775,83 @@ async function loadAdminDashboard() {
             productsResult.data ||
             []
           );
+
+
+    adminPosAvailableStock =
+      {};
+
+
+    if (
+      !posAvailableStockResult.error
+    ) {
+
+      (
+        posAvailableStockResult.data ||
+        []
+      )
+        .forEach(
+          row => {
+
+            adminPosAvailableStock[
+              String(
+                row.product_id
+              )
+            ] = {
+
+              totaal:
+                Math.max(
+                  0,
+                  Number(
+                    row.totale_voorraad ||
+                    0
+                  )
+                ),
+
+              gereserveerd:
+                Math.max(
+                  0,
+                  Number(
+                    row.gereserveerd ||
+                    0
+                  )
+                ),
+
+              beschikbaar:
+                Math.max(
+                  0,
+                  Number(
+                    row.beschikbaar ||
+                    0
+                  )
+                ),
+
+              minimum:
+                row.minimum_voorraad ===
+                null
+                  ? null
+                  : Number(
+                      row.minimum_voorraad
+                    ),
+
+              tijdelijk_onbeschikbaar:
+                row.tijdelijk_onbeschikbaar ===
+                true
+
+            };
+
+          }
+        );
+
+    }
+
+    else {
+
+      console.warn(
+        "BESCHIKBARE POS-VOORRAAD:",
+        posAvailableStockResult.error
+      );
+
+    }
 
 
     if (
@@ -2487,7 +2609,7 @@ function renderAdminAttentionPanel() {
 
         "POS-voorraad aanvullen",
 
-        "switchAdminTab('material'); setAdminCatalogView('pos')"
+        "switchAdminTab('stock'); setAdminCatalogView('pos')"
 
       );
 
@@ -3847,6 +3969,162 @@ async function resolveMissingMaterial(
    VOORRAAD & CATALOGUSBEHEER
 ============================================================ */
 
+function getAdminPosStockData(
+  productId
+) {
+
+  return adminPosAvailableStock[
+    String(
+      productId
+    )
+  ] || null;
+
+}
+
+
+function getAdminAvailableStock(
+  product
+) {
+
+  if (
+    !product
+  ) {
+
+    return 0;
+
+  }
+
+
+  const category =
+    normalizeAdminProductCategory(
+      product.categorie
+    );
+
+
+  if (
+    category ===
+    "pos"
+  ) {
+
+    const stockData =
+      getAdminPosStockData(
+        product.id
+      );
+
+
+    if (
+      stockData
+    ) {
+
+      return Math.max(
+        0,
+        Number(
+          stockData.beschikbaar ||
+          0
+        )
+      );
+
+    }
+
+  }
+
+
+  return Math.max(
+    0,
+    Number(
+      product.voorraad ||
+      0
+    )
+  );
+
+}
+
+
+async function refreshAdminPosAvailableStock() {
+
+  const {
+    data,
+    error
+  } =
+    await supabaseClient
+      .rpc(
+        "get_pos_available_stock"
+      );
+
+
+  if (
+    error
+  ) {
+
+    throw error;
+
+  }
+
+
+  adminPosAvailableStock =
+    {};
+
+
+  (
+    data ||
+    []
+  )
+    .forEach(
+      row => {
+
+        adminPosAvailableStock[
+          String(
+            row.product_id
+          )
+        ] = {
+
+          totaal:
+            Math.max(
+              0,
+              Number(
+                row.totale_voorraad ||
+                0
+              )
+            ),
+
+          gereserveerd:
+            Math.max(
+              0,
+              Number(
+                row.gereserveerd ||
+                0
+              )
+            ),
+
+          beschikbaar:
+            Math.max(
+              0,
+              Number(
+                row.beschikbaar ||
+                0
+              )
+            ),
+
+          minimum:
+            row.minimum_voorraad ===
+            null
+              ? null
+              : Number(
+                  row.minimum_voorraad
+                ),
+
+          tijdelijk_onbeschikbaar:
+            row.tijdelijk_onbeschikbaar ===
+            true
+
+        };
+
+      }
+    );
+
+}
+
+
 function normalizeAdminProductCategory(
   category
 ) {
@@ -4007,9 +4285,8 @@ function getLowStockProducts() {
         }
 
 
-        return Number(
-          product.voorraad ||
-          0
+        return getAdminAvailableStock(
+          product
         ) <=
         Number(
           product.minimum_voorraad ||
@@ -4126,7 +4403,13 @@ function buildAdminProductManagementRow(
     true;
 
 
-  const stock =
+  const category =
+    normalizeAdminProductCategory(
+      product.categorie
+    );
+
+
+  const physicalStock =
     managesStock
 
       ? Math.max(
@@ -4138,6 +4421,22 @@ function buildAdminProductManagementRow(
         )
 
       : null;
+
+
+  const availableStock =
+    managesStock
+
+      ? getAdminAvailableStock(
+          product
+        )
+
+      : null;
+
+
+  const shownStock =
+    category === "pos"
+      ? availableStock
+      : physicalStock;
 
 
   const minimum =
@@ -4164,19 +4463,21 @@ function buildAdminProductManagementRow(
 
 
   const low =
+    category === "pos"
+    &&
     managesStock
     &&
     minimum !==
       null
     &&
-    stock <=
+    availableStock <=
       minimum;
 
 
   const unit =
     formatAdminProductUnit(
       product.eenheid,
-      stock
+      shownStock
     );
 
 
@@ -4186,7 +4487,7 @@ function buildAdminProductManagementRow(
       0
     ) > 0
 
-      ? ` · ${Number(product.inhoud_per_eenheid)} per ${adminEscapeHtml(product.eenheid || "eenheid")}`
+      ? `${Number(product.inhoud_per_eenheid)} glazen per ${adminEscapeHtml(product.eenheid || "eenheid")}`
 
       : "";
 
@@ -4208,10 +4509,32 @@ function buildAdminProductManagementRow(
           <small>
             ${
               managesStock
-                ? `${stock}${unit ? ` ${adminEscapeHtml(unit)}` : ""}${glassInfo}`
-                : "Geen voorraadlimiet"
+
+                ? (
+                    unavailable
+
+                      ? "Tijdelijk onbeschikbaar"
+
+                      : `${shownStock}${unit ? ` ${adminEscapeHtml(unit)}` : ""} beschikbaar`
+                  )
+
+                : (
+                    unavailable
+                      ? "Tijdelijk onbeschikbaar"
+                      : "Beschikbaar"
+                  )
             }
           </small>
+
+          ${
+            glassInfo && !unavailable
+              ? `
+                  <small class="admin-catalog-sub">
+                    ${glassInfo}
+                  </small>
+                `
+              : ""
+          }
 
         </div>
 
@@ -4228,11 +4551,11 @@ function buildAdminProductManagementRow(
 
 
       ${
-        low
+        low && !unavailable
 
           ? `
               <div class="admin-stock-warning">
-                Voorraad bijna op · grens ${minimum}${unit ? ` ${adminEscapeHtml(formatAdminProductUnit(product.eenheid, minimum))}` : ""}
+                Voorraad bijna op · nog ${availableStock}${unit ? ` ${adminEscapeHtml(formatAdminProductUnit(product.eenheid, availableStock))}` : ""}
               </div>
             `
 
@@ -4256,7 +4579,7 @@ function buildAdminProductManagementRow(
                 </button>
 
                 <strong>
-                  ${stock}
+                  ${shownStock}
                 </strong>
 
                 <button
@@ -4279,7 +4602,6 @@ function buildAdminProductManagementRow(
   `;
 
 }
-
 
 function formatAdminProductUnit(
   unit,
@@ -4428,6 +4750,24 @@ async function changeAdminProductStock(
   );
 
 
+  try {
+
+    await refreshAdminPosAvailableStock();
+
+  }
+
+  catch (
+    refreshError
+  ) {
+
+    console.warn(
+      "Voorraad werd aangepast, maar beschikbaar aantal kon niet opnieuw worden berekend:",
+      refreshError
+    );
+
+  }
+
+
   renderAdminProductManagement();
 
   renderAdminAttentionPanel();
@@ -4513,7 +4853,27 @@ async function toggleAdminProductAvailability(
   );
 
 
+  try {
+
+    await refreshAdminPosAvailableStock();
+
+  }
+
+  catch (
+    refreshError
+  ) {
+
+    console.warn(
+      "Beschikbaarheidsstatus werd aangepast, maar voorraad kon niet opnieuw worden berekend:",
+      refreshError
+    );
+
+  }
+
+
   renderAdminProductManagement();
+
+  renderAdminAttentionPanel();
 
 }
 
@@ -9955,7 +10315,7 @@ function injectAdminStyles() {
 
       grid-template-columns:
         repeat(
-          4,
+          5,
           1fr
         );
 
@@ -11719,6 +12079,34 @@ function injectAdminStyles() {
 
       font-size:
         8px;
+
+    }
+
+
+
+    .admin-stock-intro {
+
+      margin-bottom:8px;
+      padding:8px 10px;
+
+      border-radius:10px;
+
+      background:#273129;
+      color:#bfc7c0;
+
+      font-size:8px;
+      line-height:1.4;
+
+    }
+
+
+    .admin-catalog-sub {
+
+      display:block;
+      margin-top:2px;
+
+      color:#8c948d !important;
+      font-size:8px !important;
 
     }
 
