@@ -22,6 +22,11 @@ let adminWholesaleItems = [];
 
 let adminWholesaleProofs = [];
 
+let adminProducts = [];
+
+let adminCatalogView =
+  "pos";
+
 let selectedAdminOrder =
   null;
 
@@ -569,6 +574,56 @@ function createAdminScreen() {
           </strong>
 
         </div>
+
+      </div>
+
+
+      <div class="admin-block">
+
+        <div class="admin-block-title">
+
+          <span>
+            VOORRAAD & CATALOGUS
+          </span>
+
+          <strong>
+            Beheer
+          </strong>
+
+        </div>
+
+
+        <div class="admin-catalog-switch">
+
+          <button
+            id="adminCatalogView-pos"
+            class="active"
+            type="button"
+            onclick="setAdminCatalogView('pos')"
+          >
+            POS
+          </button>
+
+          <button
+            id="adminCatalogView-beer"
+            type="button"
+            onclick="setAdminCatalogView('beer')"
+          >
+            Bieren
+          </button>
+
+          <button
+            id="adminCatalogView-event"
+            type="button"
+            onclick="setAdminCatalogView('event')"
+          >
+            Evenement
+          </button>
+
+        </div>
+
+
+        <div id="adminCatalogList"></div>
 
       </div>
 
@@ -1572,6 +1627,40 @@ async function loadAdminDashboard() {
     }
 
 
+    const productsResult =
+      await supabaseClient
+        .from(
+          "products"
+        )
+        .select(`
+          id,
+          naam,
+          categorie,
+          eenheid,
+          actief,
+          sort_order,
+          voorraad,
+          minimum_voorraad,
+          voorraad_beheren,
+          tijdelijk_onbeschikbaar,
+          inhoud_per_eenheid
+        `)
+        .order(
+          "categorie",
+          {
+            ascending:
+              true
+          }
+        )
+        .order(
+          "sort_order",
+          {
+            ascending:
+              true
+          }
+        );
+
+
     const wholesaleResult =
       await supabaseClient
         .from(
@@ -1630,6 +1719,29 @@ async function loadAdminDashboard() {
     adminEventReturns =
       returnsResult.data ||
       [];
+
+
+    adminProducts =
+      productsResult.error
+
+        ? []
+
+        : (
+            productsResult.data ||
+            []
+          );
+
+
+    if (
+      productsResult.error
+    ) {
+
+      console.warn(
+        "PRODUCTEN / VOORRAAD:",
+        productsResult.error
+      );
+
+    }
 
 
     adminWholesaleOrders =
@@ -2351,8 +2463,35 @@ function renderAdminAttentionPanel() {
       .length;
 
 
+  const lowStock =
+    getLowStockProducts()
+      .length;
+
+
   let html =
     "";
+
+
+  if (
+    lowStock
+  ) {
+
+    html +=
+      adminAttention(
+
+        "orange",
+
+        "!",
+
+        `${lowStock} lage voorraad${lowStock === 1 ? "" : "en"}`,
+
+        "POS-voorraad aanvullen",
+
+        "switchAdminTab('material'); setAdminCatalogView('pos')"
+
+      );
+
+  }
 
 
   if (
@@ -2872,6 +3011,9 @@ function renderAdminSections() {
     "Nog geen afgehandelde aanvragen."
 
   );
+
+
+  renderAdminProductManagement();
 
 
   renderMaterialOutList(
@@ -3697,6 +3839,716 @@ async function resolveMissingMaterial(
   switchAdminTab(
     "material"
   );
+
+}
+
+
+/* ============================================================
+   VOORRAAD & CATALOGUSBEHEER
+============================================================ */
+
+function normalizeAdminProductCategory(
+  category
+) {
+
+  return String(
+    category ||
+    ""
+  )
+    .trim()
+    .toLowerCase();
+
+}
+
+
+function getAdminCatalogProducts(
+  view = adminCatalogView
+) {
+
+  return adminProducts
+    .filter(
+      product => {
+
+        const category =
+          normalizeAdminProductCategory(
+            product.categorie
+          );
+
+
+        if (
+          view ===
+          "pos"
+        ) {
+
+          return category ===
+            "pos";
+
+        }
+
+
+        if (
+          view ===
+          "beer"
+        ) {
+
+          return [
+            "bier",
+            "bieren"
+          ]
+            .includes(
+              category
+            );
+
+        }
+
+
+        if (
+          view ===
+          "event"
+        ) {
+
+          return isEventMaterialCategory(
+            category
+          );
+
+        }
+
+
+        return false;
+
+      }
+    )
+    .sort(
+      (
+        first,
+        second
+      ) => {
+
+        const firstOrder =
+          Number(
+            first.sort_order ||
+            0
+          );
+
+        const secondOrder =
+          Number(
+            second.sort_order ||
+            0
+          );
+
+
+        if (
+          firstOrder !==
+          secondOrder
+        ) {
+
+          return firstOrder -
+            secondOrder;
+
+        }
+
+
+        return String(
+          first.naam ||
+          ""
+        )
+          .localeCompare(
+            String(
+              second.naam ||
+              ""
+            ),
+            "nl"
+          );
+
+      }
+    );
+
+}
+
+
+function getLowStockProducts() {
+
+  return adminProducts
+    .filter(
+      product => {
+
+        if (
+          product.voorraad_beheren !==
+          true
+        ) {
+
+          return false;
+
+        }
+
+
+        if (
+          normalizeAdminProductCategory(
+            product.categorie
+          ) !==
+          "pos"
+        ) {
+
+          return false;
+
+        }
+
+
+        if (
+          product.minimum_voorraad ===
+          null
+          ||
+          product.minimum_voorraad ===
+          undefined
+        ) {
+
+          return false;
+
+        }
+
+
+        return Number(
+          product.voorraad ||
+          0
+        ) <=
+        Number(
+          product.minimum_voorraad ||
+          0
+        );
+
+      }
+    );
+
+}
+
+
+function setAdminCatalogView(
+  view
+) {
+
+  adminCatalogView =
+    [
+      "pos",
+      "beer",
+      "event"
+    ]
+      .includes(
+        view
+      )
+
+      ? view
+
+      : "pos";
+
+
+  [
+    "pos",
+    "beer",
+    "event"
+  ]
+    .forEach(
+      name => {
+
+        document
+          .getElementById(
+            `adminCatalogView-${name}`
+          )
+          ?.classList
+          .toggle(
+            "active",
+            name ===
+            adminCatalogView
+          );
+
+      }
+    );
+
+
+  renderAdminProductManagement();
+
+}
+
+
+function renderAdminProductManagement() {
+
+  const container =
+    document.getElementById(
+      "adminCatalogList"
+    );
+
+
+  if (
+    !container
+  ) {
+
+    return;
+
+  }
+
+
+  const products =
+    getAdminCatalogProducts();
+
+
+  if (
+    !products.length
+  ) {
+
+    container.innerHTML = `
+
+      <div class="admin-clear">
+        <b>Geen producten in deze categorie</b>
+      </div>
+
+    `;
+
+    return;
+
+  }
+
+
+  container.innerHTML =
+    products
+      .map(
+        buildAdminProductManagementRow
+      )
+      .join("");
+
+}
+
+
+function buildAdminProductManagementRow(
+  product
+) {
+
+  const managesStock =
+    product.voorraad_beheren ===
+    true;
+
+
+  const stock =
+    managesStock
+
+      ? Math.max(
+          0,
+          Number(
+            product.voorraad ||
+            0
+          )
+        )
+
+      : null;
+
+
+  const minimum =
+    product.minimum_voorraad ===
+      null
+      ||
+      product.minimum_voorraad ===
+      undefined
+
+      ? null
+
+      : Math.max(
+          0,
+          Number(
+            product.minimum_voorraad ||
+            0
+          )
+        );
+
+
+  const unavailable =
+    product.tijdelijk_onbeschikbaar ===
+    true;
+
+
+  const low =
+    managesStock
+    &&
+    minimum !==
+      null
+    &&
+    stock <=
+      minimum;
+
+
+  const unit =
+    formatAdminProductUnit(
+      product.eenheid,
+      stock
+    );
+
+
+  const glassInfo =
+    Number(
+      product.inhoud_per_eenheid ||
+      0
+    ) > 0
+
+      ? ` · ${Number(product.inhoud_per_eenheid)} per ${adminEscapeHtml(product.eenheid || "eenheid")}`
+
+      : "";
+
+
+  return `
+
+    <div
+      class="admin-catalog-item ${unavailable ? "unavailable" : ""} ${low ? "low" : ""}"
+    >
+
+      <div class="admin-catalog-head">
+
+        <div>
+
+          <strong>
+            ${adminEscapeHtml(product.naam || "Product")}
+          </strong>
+
+          <small>
+            ${
+              managesStock
+                ? `${stock}${unit ? ` ${adminEscapeHtml(unit)}` : ""}${glassInfo}`
+                : "Geen voorraadlimiet"
+            }
+          </small>
+
+        </div>
+
+
+        <button
+          type="button"
+          class="admin-availability-toggle ${unavailable ? "off" : "on"}"
+          onclick="toggleAdminProductAvailability('${product.id}')"
+        >
+          ${unavailable ? "Onbeschikbaar" : "Beschikbaar"}
+        </button>
+
+      </div>
+
+
+      ${
+        low
+
+          ? `
+              <div class="admin-stock-warning">
+                Voorraad bijna op · grens ${minimum}${unit ? ` ${adminEscapeHtml(formatAdminProductUnit(product.eenheid, minimum))}` : ""}
+              </div>
+            `
+
+          : ""
+      }
+
+
+      ${
+        managesStock
+
+          ? `
+
+              <div class="admin-stock-control">
+
+                <button
+                  type="button"
+                  aria-label="Voorraad verlagen"
+                  onclick="changeAdminProductStock('${product.id}', -1)"
+                >
+                  −
+                </button>
+
+                <strong>
+                  ${stock}
+                </strong>
+
+                <button
+                  type="button"
+                  aria-label="Voorraad verhogen"
+                  onclick="changeAdminProductStock('${product.id}', 1)"
+                >
+                  +
+                </button>
+
+              </div>
+
+            `
+
+          : ""
+      }
+
+    </div>
+
+  `;
+
+}
+
+
+function formatAdminProductUnit(
+  unit,
+  amount
+) {
+
+  const clean =
+    String(
+      unit ||
+      ""
+    )
+      .trim();
+
+
+  if (
+    !clean
+  ) {
+
+    return "";
+
+  }
+
+
+  if (
+    clean.toLowerCase() ===
+    "doos"
+  ) {
+
+    return Number(amount) === 1
+      ? "doos"
+      : "dozen";
+
+  }
+
+
+  return clean;
+
+}
+
+
+async function changeAdminProductStock(
+  productId,
+  amount
+) {
+
+  const product =
+    adminProducts
+      .find(
+        item =>
+          String(item.id) ===
+          String(productId)
+      );
+
+
+  if (
+    !product
+    ||
+    product.voorraad_beheren !==
+      true
+  ) {
+
+    return;
+
+  }
+
+
+  const current =
+    Math.max(
+      0,
+      Number(
+        product.voorraad ||
+        0
+      )
+    );
+
+
+  const next =
+    Math.max(
+      0,
+      current +
+      Number(
+        amount ||
+        0
+      )
+    );
+
+
+  if (
+    next ===
+    current
+  ) {
+
+    return;
+
+  }
+
+
+  const {
+    data,
+    error
+  } =
+    await supabaseClient
+      .from(
+        "products"
+      )
+      .update({
+        voorraad:
+          next
+      })
+      .eq(
+        "id",
+        product.id
+      )
+      .select(`
+        id,
+        naam,
+        categorie,
+        eenheid,
+        actief,
+        sort_order,
+        voorraad,
+        minimum_voorraad,
+        voorraad_beheren,
+        tijdelijk_onbeschikbaar,
+        inhoud_per_eenheid
+      `)
+      .single();
+
+
+  if (
+    error
+  ) {
+
+    alert(
+      "Voorraad kon niet worden aangepast.\n\n" +
+      adminReadableError(error)
+    );
+
+    return;
+
+  }
+
+
+  updateLocalAdminProduct(
+    data
+  );
+
+
+  renderAdminProductManagement();
+
+  renderAdminAttentionPanel();
+
+}
+
+
+async function toggleAdminProductAvailability(
+  productId
+) {
+
+  const product =
+    adminProducts
+      .find(
+        item =>
+          String(item.id) ===
+          String(productId)
+      );
+
+
+  if (
+    !product
+  ) {
+
+    return;
+
+  }
+
+
+  const next =
+    product.tijdelijk_onbeschikbaar !==
+    true;
+
+
+  const {
+    data,
+    error
+  } =
+    await supabaseClient
+      .from(
+        "products"
+      )
+      .update({
+        tijdelijk_onbeschikbaar:
+          next
+      })
+      .eq(
+        "id",
+        product.id
+      )
+      .select(`
+        id,
+        naam,
+        categorie,
+        eenheid,
+        actief,
+        sort_order,
+        voorraad,
+        minimum_voorraad,
+        voorraad_beheren,
+        tijdelijk_onbeschikbaar,
+        inhoud_per_eenheid
+      `)
+      .single();
+
+
+  if (
+    error
+  ) {
+
+    alert(
+      "Beschikbaarheid kon niet worden aangepast.\n\n" +
+      adminReadableError(error)
+    );
+
+    return;
+
+  }
+
+
+  updateLocalAdminProduct(
+    data
+  );
+
+
+  renderAdminProductManagement();
+
+}
+
+
+function updateLocalAdminProduct(
+  updated
+) {
+
+  const index =
+    adminProducts
+      .findIndex(
+        product =>
+          String(product.id) ===
+          String(updated.id)
+      );
+
+
+  if (
+    index ===
+    -1
+  ) {
+
+    adminProducts.push(
+      updated
+    );
+
+    return;
+
+  }
+
+
+  adminProducts[
+    index
+  ] =
+    updated;
 
 }
 
@@ -13227,6 +14079,180 @@ function injectProfessionalReturnStyles() {
 .problem-view {
 
   background:#59625a !important;
+
+}
+
+
+/* ==========================================
+   VOORRAAD & CATALOGUSBEHEER
+========================================== */
+
+.admin-catalog-switch {
+
+  display:grid;
+  grid-template-columns:repeat(3, 1fr);
+  gap:5px;
+  margin-bottom:7px;
+
+}
+
+
+.admin-catalog-switch button {
+
+  min-height:34px;
+  border:1px solid #465047;
+  border-radius:9px;
+  background:#2d352e;
+  color:#b9c0ba;
+  font-size:8px;
+  font-weight:900;
+
+}
+
+
+.admin-catalog-switch button.active {
+
+  border-color:#b88a3e;
+  background:#3b362b;
+  color:#e2c47e;
+
+}
+
+
+.admin-catalog-item {
+
+  margin-top:6px;
+  padding:9px;
+  border:1px solid #d8d5cd;
+  border-left:4px solid #5d7d64;
+  border-radius:11px;
+  background:white;
+  color:#202722;
+
+}
+
+
+.admin-catalog-item.unavailable {
+
+  border-left-color:#9b9b9b;
+  background:#f1f0ed;
+
+}
+
+
+.admin-catalog-item.low {
+
+  border-left-color:#d99a3e;
+
+}
+
+
+.admin-catalog-head {
+
+  display:grid;
+  grid-template-columns:1fr auto;
+  align-items:start;
+  gap:8px;
+
+}
+
+
+.admin-catalog-head strong {
+
+  display:block;
+  font-size:11px;
+
+}
+
+
+.admin-catalog-head small {
+
+  display:block;
+  margin-top:2px;
+  color:#777;
+  font-size:8px;
+
+}
+
+
+.admin-availability-toggle {
+
+  min-height:28px;
+  padding:0 8px;
+  border-radius:999px;
+  font-size:8px;
+  font-weight:900;
+
+}
+
+
+.admin-availability-toggle.on {
+
+  border:1px solid #afd0b7;
+  background:#e5f3e9;
+  color:#2f7449;
+
+}
+
+
+.admin-availability-toggle.off {
+
+  border:1px solid #d3cec5;
+  background:#e9e7e2;
+  color:#6f6a62;
+
+}
+
+
+.admin-stock-warning {
+
+  margin-top:7px;
+  padding:6px 7px;
+  border-radius:8px;
+  background:#fff0dc;
+  color:#8b571a;
+  font-size:8px;
+  font-weight:850;
+
+}
+
+
+.admin-stock-control {
+
+  display:grid;
+  grid-template-columns:32px 44px 32px;
+  justify-content:start;
+  align-items:center;
+  margin-top:7px;
+  overflow:hidden;
+  width:max-content;
+  border:1px solid #d8d2c8;
+  border-radius:9px;
+  background:white;
+
+}
+
+
+.admin-stock-control button {
+
+  width:32px;
+  height:32px;
+  border:0;
+  background:#f5f2ec;
+  color:#595249;
+  font-size:18px;
+
+}
+
+
+.admin-stock-control strong {
+
+  display:grid;
+  place-items:center;
+  height:32px;
+  border-left:1px solid #e0dbd2;
+  border-right:1px solid #e0dbd2;
+  font-size:12px;
 
 }
   `;
