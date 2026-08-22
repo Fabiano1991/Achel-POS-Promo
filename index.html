@@ -2389,6 +2389,30 @@ Kies datum
 </div>
 
 
+<label for="eventDeliveryMode">
+Uitvoering
+</label>
+
+<select id="eventDeliveryMode">
+
+<option value="achel_aanwezig">
+Achel aanwezig op evenement
+</option>
+
+<option value="enkel_levering">
+Enkel levering / uitleen aan klant
+</option>
+
+</select>
+
+<div
+  id="eventDeliveryInfo"
+  class="info"
+>
+Bij enkel levering kan de klant bij aflevering digitaal tekenen voor de ontvangen artikelen.
+</div>
+
+
 <label for="eventNote">
 Opmerking
 </label>
@@ -2405,9 +2429,32 @@ Opmerking
 <div class="card">
 
 <h2>
-Evenementmateriaal
+Evenement
 </h2>
 
+<div class="category-tabs">
+
+<button
+  id="eventTab-material"
+  class="category-button active"
+  type="button"
+  onclick="setEventRequestCategory('material')"
+>
+MATERIAAL
+</button>
+
+<button
+  id="eventTab-beer"
+  class="category-button"
+  type="button"
+  onclick="setEventRequestCategory('beer')"
+>
+BIER
+</button>
+
+</div>
+
+<div id="eventMaterialPanel">
 
 <div id="eventProductsList">
 
@@ -2419,12 +2466,10 @@ Materialen laden...
 
 </div>
 
-
-<div class="card">
-
-<h2>
-Bieren voor evenement
-</h2>
+<div
+  id="eventBeerPanel"
+  class="hidden"
+>
 
 <div class="info" style="margin-bottom:10px;">
 Alleen invullen wanneer Achel zelf de bieren meeneemt naar het evenement.
@@ -2434,6 +2479,8 @@ Alleen invullen wanneer Achel zelf de bieren meeneemt naar het evenement.
 
 <div class="empty">
 Bieren laden...
+</div>
+
 </div>
 
 </div>
@@ -2519,6 +2566,19 @@ Periode
 <br>
 
 <span id="eventSummaryPeriod"></span>
+
+</p>
+
+
+<p>
+
+<strong>
+Uitvoering
+</strong>
+
+<br>
+
+<span id="eventSummaryDeliveryMode"></span>
 
 </p>
 
@@ -3375,6 +3435,10 @@ const eventQuantities =
 
 const eventBeerQuantities =
   {};
+
+
+let selectedEventRequestCategory =
+  "material";
 
 
 let eventAvailableStock =
@@ -7652,6 +7716,54 @@ function selectedEventProducts() {
 
 
 /* ===============================
+   EVENT CATEGORIE TABS
+================================ */
+
+function setEventRequestCategory(
+  category
+) {
+
+  selectedEventRequestCategory =
+    category === "beer"
+      ? "beer"
+      : "material";
+
+  document
+    .getElementById("eventTab-material")
+    ?.classList
+    .toggle(
+      "active",
+      selectedEventRequestCategory === "material"
+    );
+
+  document
+    .getElementById("eventTab-beer")
+    ?.classList
+    .toggle(
+      "active",
+      selectedEventRequestCategory === "beer"
+    );
+
+  document
+    .getElementById("eventMaterialPanel")
+    ?.classList
+    .toggle(
+      "hidden",
+      selectedEventRequestCategory !== "material"
+    );
+
+  document
+    .getElementById("eventBeerPanel")
+    ?.classList
+    .toggle(
+      "hidden",
+      selectedEventRequestCategory !== "beer"
+    );
+
+}
+
+
+/* ===============================
    EVENT BIEREN
 ================================ */
 
@@ -8046,6 +8158,25 @@ function resetEventForm() {
     false;
 
 
+  const deliveryMode =
+    document.getElementById(
+      "eventDeliveryMode"
+    );
+
+  if (
+    deliveryMode
+  ) {
+    deliveryMode.value =
+      "achel_aanwezig";
+  }
+
+  selectedEventRequestCategory =
+    "material";
+
+  setEventRequestCategory(
+    "material"
+  );
+
   eventCalendarTempFrom =
     null;
 
@@ -8103,7 +8234,15 @@ function getStandaloneEventData() {
           "eventNote"
         )
         .value
-        .trim()
+        .trim(),
+
+    deliveryMode:
+      document
+        .getElementById(
+          "eventDeliveryMode"
+        )
+        ?.value ||
+      "achel_aanwezig"
 
   };
 
@@ -8256,6 +8395,17 @@ async function showEventSummary() {
 
   document
     .getElementById(
+      "eventSummaryDeliveryMode"
+    )
+    .innerText =
+      event.deliveryMode ===
+      "enkel_levering"
+        ? "Enkel levering / uitleen"
+        : "Achel aanwezig";
+
+
+  document
+    .getElementById(
       "eventSummaryProducts"
     )
     .innerHTML =
@@ -8400,6 +8550,9 @@ async function submitEventOrder() {
 
         event_tot:
           event.until,
+
+        event_delivery_mode:
+          event.deliveryMode,
 
         status:
           "nieuw"
@@ -8612,6 +8765,9 @@ ${event.name}
 
 Periode:
 ${event.from} t/m ${event.until}
+
+Uitvoering:
+${event.deliveryMode === "enkel_levering" ? "Enkel levering / uitleen" : "Achel aanwezig"}
 
 EVENEMENTENMATERIAAL
 --------------------
@@ -9215,9 +9371,9 @@ checkExistingSession();
 </script>
 
 
-<script src="./admin.js?v=31"></script>
+<script src="./admin.js?v=32"></script>
 
-<script src="./wholesale.js?v=31"></script>
+<script src="./wholesale.js?v=32"></script>
 
 
 </body>
