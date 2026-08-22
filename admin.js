@@ -6262,7 +6262,7 @@ function buildEventDeliveryProofCard(
 
         ${detailRow(
           "Ondertekend op",
-          formatAdminDateTime(
+          adminFormatDateTime(
             proof.signed_at
           )
         )}
@@ -6952,7 +6952,7 @@ function downloadEventDeliveryProofPdf(
 
   addLine(
     "Ondertekend op",
-    formatAdminDateTime(
+    adminFormatDateTime(
       proof.signed_at
     )
   );
