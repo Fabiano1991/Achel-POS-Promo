@@ -6638,45 +6638,39 @@ function updateEventCalendarHeader() {
    CONFIRM RANGE
 ================================ */
 
-function confirmEventCalendar() {
+async function confirmEventCalendar() {
 
   if (
     !eventCalendarTempFrom ||
     !eventCalendarTempUntil
   ) {
-
     return;
-
   }
 
+  document
+    .getElementById("eventFrom")
+    .value =
+      formatISO(eventCalendarTempFrom);
 
   document
-    .getElementById(
-      "eventFrom"
-    )
+    .getElementById("eventUntil")
     .value =
-      formatISO(
-        eventCalendarTempFrom
-      );
-
-
-  document
-    .getElementById(
-      "eventUntil"
-    )
-    .value =
-      formatISO(
-        eventCalendarTempUntil
-      );
-
+      formatISO(eventCalendarTempUntil);
 
   updateEventDateRangeDisplay();
 
+  Object.keys(eventQuantities)
+    .forEach(
+      id => {
+        eventQuantities[id] = 0;
+      }
+    );
+
+  await loadEventAvailableStock();
 
   closeEventCalendar();
 
 }
-
 
 /* ===============================
    RESET RANGE
@@ -6912,139 +6906,307 @@ function backToEventOrder() {
 
 
 /* ===============================
+   EVENT BESCHIKBARE VOORRAAD
+================================ */
+
+async function loadEventAvailableStock() {
+
+  const from =
+    document.getElementById("eventFrom").value;
+
+  const until =
+    document.getElementById("eventUntil").value;
+
+  eventAvailableStock = {};
+  eventAvailabilityLoaded = false;
+
+  if (
+    !from ||
+    !until
+  ) {
+    renderEventProducts();
+    return false;
+  }
+
+  const {
+    data,
+    error
+  } =
+    await supabaseClient
+      .rpc(
+        "get_event_available_stock",
+        {
+          p_from: from,
+          p_until: until
+        }
+      );
+
+  if (
+    error
+  ) {
+    console.error(
+      "EVENT BESCHIKBAARHEID FOUT:",
+      error
+    );
+
+    alert(
+      "De beschikbaarheid van het evenementenmateriaal kon niet worden gecontroleerd."
+    );
+
+    renderEventProducts();
+    return false;
+  }
+
+  (data || [])
+    .forEach(
+      row => {
+
+        eventAvailableStock[
+          String(row.product_id)
+        ] = {
+          totaal:
+            Math.max(
+              0,
+              Number(row.totale_voorraad || 0)
+            ),
+
+          gereserveerd:
+            Math.max(
+              0,
+              Number(row.gereserveerd || 0)
+            ),
+
+          beschikbaar:
+            Math.max(
+              0,
+              Number(row.beschikbaar || 0)
+            ),
+
+          tijdelijk_onbeschikbaar:
+            row.tijdelijk_onbeschikbaar === true
+        };
+
+      }
+    );
+
+  eventAvailabilityLoaded = true;
+
+  let adjusted = false;
+
+  allProducts
+    .filter(
+      product =>
+        product.categorie === "evenement"
+    )
+    .forEach(
+      product => {
+
+        const stock =
+          eventAvailableStock[
+            String(product.id)
+          ];
+
+        const max =
+          stock
+            ? stock.beschikbaar
+            : 0;
+
+        if (
+          (eventQuantities[product.id] || 0) >
+          max
+        ) {
+          eventQuantities[product.id] = max;
+          adjusted = true;
+        }
+
+      }
+    );
+
+  renderEventProducts();
+
+  return !adjusted;
+
+}
+
+
+function getEventAvailableQuantity(
+  product
+) {
+
+  const stock =
+    eventAvailableStock[
+      String(product?.id || "")
+    ];
+
+  if (
+    !stock
+  ) {
+    return 0;
+  }
+
+  return Math.max(
+    0,
+    Number(stock.beschikbaar || 0)
+  );
+
+}
+
+
+/* ===============================
    EVENT PRODUCTS
 ================================ */
 
 function renderEventProducts() {
 
   const container =
-    document
-      .getElementById(
-        "eventProductsList"
-      );
-
+    document.getElementById(
+      "eventProductsList"
+    );
 
   if (
     !container
   ) {
-
     return;
-
   }
 
-
   const products =
-    allProducts
-      .filter(
-        product =>
-          product.categorie ===
-          "evenement"
-      );
-
+    allProducts.filter(
+      product =>
+        product.categorie === "evenement"
+    );
 
   if (
     !products.length
   ) {
-
     container.innerHTML = `
-
       <div class="empty">
-
         Nog geen evenementenmateriaal beschikbaar.
-
       </div>
-
     `;
-
-
     return;
-
   }
 
+  const hasDates =
+    Boolean(
+      document.getElementById("eventFrom")?.value
+    )
+    &&
+    Boolean(
+      document.getElementById("eventUntil")?.value
+    );
 
   container.innerHTML =
-
     products
-
       .map(
-        product => `
+        product => {
 
-          <div class="product">
+          const stock =
+            eventAvailableStock[
+              String(product.id)
+            ];
 
-            <div class="product-name">
+          const unavailable =
+            product.tijdelijk_onbeschikbaar === true
+            ||
+            stock?.tijdelijk_onbeschikbaar === true;
 
-              ${escapeHtml(
-                product.naam
-              )}
+          const available =
+            hasDates
+            &&
+            eventAvailabilityLoaded
+            &&
+            !unavailable
+              ? getEventAvailableQuantity(product)
+              : 0;
 
-              ${
-                product.eenheid
+          const currentQty =
+            eventQuantities[product.id] || 0;
 
-                  ? `
+          const plusDisabled =
+            !hasDates
+            ||
+            !eventAvailabilityLoaded
+            ||
+            unavailable
+            ||
+            available <= 0
+            ||
+            currentQty >= available;
 
-                      <span class="product-unit">
+          return `
+            <div class="product ${unavailable ? "product-unavailable" : ""}">
 
-                        Eenheid:
+              <div class="product-name">
 
-                        ${escapeHtml(
-                          product.eenheid
-                        )}
-
-                      </span>
-
-                    `
-
-                  : ""
-              }
-
-            </div>
-
-
-            <div class="qty">
-
-              <button
-                type="button"
-                onclick="changeEventQty('${product.id}', -1)"
-              >
-                −
-              </button>
-
-
-              <span
-                id="eventQty-${product.id}"
-              >
+                ${escapeHtml(product.naam)}
 
                 ${
-                  eventQuantities[
-                    product.id
-                  ] ||
-                  0
+                  unavailable
+                    ? `
+                        <span class="product-unavailable-label">
+                          Tijdelijk onbeschikbaar
+                        </span>
+                      `
+                    : !hasDates
+                      ? `
+                          <span class="product-unit">
+                            Kies eerst de evenementperiode
+                          </span>
+                        `
+                      : eventAvailabilityLoaded
+                        ? `
+                            <span class="product-stock">
+                              ${available} beschikbaar
+                            </span>
+                          `
+                        : `
+                            <span class="product-unit">
+                              Beschikbaarheid controleren...
+                            </span>
+                          `
                 }
 
-              </span>
+              </div>
 
+              <div class="qty">
 
-              <button
-                type="button"
-                onclick="changeEventQty('${product.id}', 1)"
-              >
-                +
-              </button>
+                <button
+                  type="button"
+                  onclick="changeEventQty('${product.id}', -1)"
+                  ${
+                    unavailable ||
+                    currentQty <= 0
+                      ? "disabled"
+                      : ""
+                  }
+                >
+                  −
+                </button>
+
+                <span id="eventQty-${product.id}">
+                  ${currentQty}
+                </span>
+
+                <button
+                  type="button"
+                  onclick="changeEventQty('${product.id}', 1)"
+                  ${plusDisabled ? "disabled" : ""}
+                >
+                  +
+                </button>
+
+              </div>
 
             </div>
+          `;
 
-          </div>
-
-        `
+        }
       )
-
       .join("");
-
 
   updateEventReviewButton();
 
 }
-
 
 /* ===============================
    EVENT QTY
@@ -7055,51 +7217,55 @@ function changeEventQty(
   amount
 ) {
 
-  eventQuantities[
-    productId
-  ] =
-
-    Math.max(
-
-      0,
-
-      (
-        eventQuantities[
-          productId
-        ] ||
-        0
-      )
-
-      +
-
-      amount
-
+  const product =
+    allProducts.find(
+      item =>
+        String(item.id) ===
+        String(productId)
     );
 
-
-  const element =
-    document
-      .getElementById(
-        `eventQty-${productId}`
-      );
-
-
   if (
-    element
+    !product ||
+    product.categorie !== "evenement"
   ) {
-
-    element.innerText =
-      eventQuantities[
-        productId
-      ];
-
+    return;
   }
 
+  const stock =
+    eventAvailableStock[
+      String(product.id)
+    ];
 
-  updateEventReviewButton();
+  const unavailable =
+    product.tijdelijk_onbeschikbaar === true
+    ||
+    stock?.tijdelijk_onbeschikbaar === true;
+
+  if (
+    unavailable ||
+    !eventAvailabilityLoaded
+  ) {
+    return;
+  }
+
+  const available =
+    getEventAvailableQuantity(product);
+
+  const current =
+    eventQuantities[productId] || 0;
+
+  eventQuantities[productId] =
+    Math.min(
+      available,
+      Math.max(
+        0,
+        current + amount
+      )
+    );
+
+  renderEventProducts();
 
 }
-
 
 /* ===============================
    EVENT SELECTED
@@ -7241,6 +7407,12 @@ function resetEventForm() {
     );
 
 
+  eventAvailableStock =
+    {};
+
+  eventAvailabilityLoaded =
+    false;
+
   eventCalendarTempFrom =
     null;
 
@@ -7376,11 +7548,28 @@ function validateStandaloneEventData() {
    EVENT SUMMARY
 ================================ */
 
-function showEventSummary() {
+async function showEventSummary() {
 
   if (
     !validateStandaloneEventData()
   ) {
+
+    return;
+
+  }
+
+
+  const stillValid =
+    await loadEventAvailableStock();
+
+
+  if (
+    !stillValid
+  ) {
+
+    alert(
+      "De beschikbaarheid is intussen gewijzigd. Controleer de aantallen opnieuw."
+    );
 
     return;
 
@@ -7483,6 +7672,25 @@ async function submitEventOrder() {
   if (
     !validateStandaloneEventData()
   ) {
+
+    return;
+
+  }
+
+
+  const stillValid =
+    await loadEventAvailableStock();
+
+
+  if (
+    !stillValid
+  ) {
+
+    alert(
+      "De beschikbaarheid is intussen gewijzigd. Controleer de aantallen opnieuw."
+    );
+
+    backToEventOrder();
 
     return;
 
@@ -8342,9 +8550,9 @@ checkExistingSession();
 </script>
 
 
-<script src="./admin.js?v=27"></script>
+<script src="./admin.js?v=28"></script>
 
-<script src="./wholesale.js?v=27"></script>
+<script src="./wholesale.js?v=28"></script>
 
 
 </body>
