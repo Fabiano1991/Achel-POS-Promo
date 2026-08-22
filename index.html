@@ -3352,6 +3352,14 @@ const eventQuantities =
   {};
 
 
+let eventAvailableStock =
+  {};
+
+
+let eventAvailabilityLoaded =
+  false;
+
+
 /* ===============================
    LOGIN
 ================================ */
@@ -6644,33 +6652,57 @@ async function confirmEventCalendar() {
     !eventCalendarTempFrom ||
     !eventCalendarTempUntil
   ) {
+
     return;
+
   }
 
-  document
-    .getElementById("eventFrom")
-    .value =
-      formatISO(eventCalendarTempFrom);
 
   document
-    .getElementById("eventUntil")
+    .getElementById(
+      "eventFrom"
+    )
     .value =
-      formatISO(eventCalendarTempUntil);
+      formatISO(
+        eventCalendarTempFrom
+      );
+
+
+  document
+    .getElementById(
+      "eventUntil"
+    )
+    .value =
+      formatISO(
+        eventCalendarTempUntil
+      );
+
 
   updateEventDateRangeDisplay();
 
-  Object.keys(eventQuantities)
+
+  Object.keys(
+    eventQuantities
+  )
     .forEach(
       id => {
-        eventQuantities[id] = 0;
+
+        eventQuantities[
+          id
+        ] =
+          0;
+
       }
     );
 
+
   await loadEventAvailableStock();
+
 
   closeEventCalendar();
 
 }
+
 
 /* ===============================
    RESET RANGE
@@ -6912,21 +6944,40 @@ function backToEventOrder() {
 async function loadEventAvailableStock() {
 
   const from =
-    document.getElementById("eventFrom").value;
+    document
+      .getElementById(
+        "eventFrom"
+      )
+      .value;
+
 
   const until =
-    document.getElementById("eventUntil").value;
+    document
+      .getElementById(
+        "eventUntil"
+      )
+      .value;
 
-  eventAvailableStock = {};
-  eventAvailabilityLoaded = false;
+
+  eventAvailableStock =
+    {};
+
+
+  eventAvailabilityLoaded =
+    false;
+
 
   if (
     !from ||
     !until
   ) {
+
     renderEventProducts();
+
     return false;
+
   }
+
 
   const {
     data,
@@ -6936,93 +6987,184 @@ async function loadEventAvailableStock() {
       .rpc(
         "get_event_available_stock",
         {
-          p_from: from,
-          p_until: until
+
+          p_from:
+            from,
+
+          p_until:
+            until
+
         }
       );
+
 
   if (
     error
   ) {
+
     console.error(
       "EVENT BESCHIKBAARHEID FOUT:",
       error
     );
 
+
     alert(
       "De beschikbaarheid van het evenementenmateriaal kon niet worden gecontroleerd."
     );
 
+
     renderEventProducts();
+
     return false;
+
   }
 
-  (data || [])
+
+  (
+    data ||
+    []
+  )
     .forEach(
       row => {
 
         eventAvailableStock[
-          String(row.product_id)
+          String(
+            row.product_id
+          )
         ] = {
+
           totaal:
             Math.max(
               0,
-              Number(row.totale_voorraad || 0)
+              Number(
+                row.totale_voorraad ||
+                0
+              )
             ),
 
           gereserveerd:
             Math.max(
               0,
-              Number(row.gereserveerd || 0)
+              Number(
+                row.gereserveerd ||
+                0
+              )
+            ),
+
+          beschadigd:
+            Math.max(
+              0,
+              Number(
+                row.beschadigd ||
+                0
+              )
+            ),
+
+          ontbrekend:
+            Math.max(
+              0,
+              Number(
+                row.ontbrekend ||
+                0
+              )
+            ),
+
+          geblokkeerd:
+            Math.max(
+              0,
+              Number(
+                row.geblokkeerd ||
+                0
+              )
             ),
 
           beschikbaar:
             Math.max(
               0,
-              Number(row.beschikbaar || 0)
+              Number(
+                row.beschikbaar ||
+                0
+              )
             ),
 
           tijdelijk_onbeschikbaar:
-            row.tijdelijk_onbeschikbaar === true
+            row.tijdelijk_onbeschikbaar ===
+            true
+
         };
 
       }
     );
 
-  eventAvailabilityLoaded = true;
 
-  let adjusted = false;
+  eventAvailabilityLoaded =
+    true;
+
+
+  let adjusted =
+    false;
+
 
   allProducts
+
     .filter(
       product =>
-        product.categorie === "evenement"
+        product.categorie ===
+        "evenement"
     )
+
     .forEach(
       product => {
 
         const stock =
           eventAvailableStock[
-            String(product.id)
+            String(
+              product.id
+            )
           ];
 
-        const max =
+
+        const maxAvailable =
           stock
-            ? stock.beschikbaar
+
+            ? Math.max(
+                0,
+                Number(
+                  stock.beschikbaar ||
+                  0
+                )
+              )
+
             : 0;
 
+
         if (
-          (eventQuantities[product.id] || 0) >
-          max
+          (
+            eventQuantities[
+              product.id
+            ] ||
+            0
+          ) >
+          maxAvailable
         ) {
-          eventQuantities[product.id] = max;
-          adjusted = true;
+
+          eventQuantities[
+            product.id
+          ] =
+            maxAvailable;
+
+
+          adjusted =
+            true;
+
         }
 
       }
     );
 
+
   renderEventProducts();
+
 
   return !adjusted;
 
@@ -7033,20 +7175,38 @@ function getEventAvailableQuantity(
   product
 ) {
 
+  if (
+    !product
+  ) {
+
+    return 0;
+
+  }
+
+
   const stock =
     eventAvailableStock[
-      String(product?.id || "")
+      String(
+        product.id
+      )
     ];
+
 
   if (
     !stock
   ) {
+
     return 0;
+
   }
+
 
   return Math.max(
     0,
-    Number(stock.beschikbaar || 0)
+    Number(
+      stock.beschikbaar ||
+      0
+    )
   );
 
 }
@@ -7059,114 +7219,213 @@ function getEventAvailableQuantity(
 function renderEventProducts() {
 
   const container =
-    document.getElementById(
-      "eventProductsList"
-    );
+    document
+      .getElementById(
+        "eventProductsList"
+      );
+
 
   if (
     !container
   ) {
+
     return;
+
   }
 
+
   const products =
-    allProducts.filter(
-      product =>
-        product.categorie === "evenement"
-    );
+    allProducts
+      .filter(
+        product =>
+          product.categorie ===
+          "evenement"
+      );
+
 
   if (
     !products.length
   ) {
+
     container.innerHTML = `
+
       <div class="empty">
+
         Nog geen evenementenmateriaal beschikbaar.
+
       </div>
+
     `;
+
+
     return;
+
   }
 
+
   const hasDates =
+
     Boolean(
-      document.getElementById("eventFrom")?.value
+      document
+        .getElementById(
+          "eventFrom"
+        )
+        ?.value
     )
+
     &&
+
     Boolean(
-      document.getElementById("eventUntil")?.value
+      document
+        .getElementById(
+          "eventUntil"
+        )
+        ?.value
     );
 
+
   container.innerHTML =
+
     products
+
       .map(
         product => {
 
           const stock =
             eventAvailableStock[
-              String(product.id)
+              String(
+                product.id
+              )
             ];
 
+
           const unavailable =
-            product.tijdelijk_onbeschikbaar === true
+
+            product.tijdelijk_onbeschikbaar ===
+            true
+
             ||
-            stock?.tijdelijk_onbeschikbaar === true;
+
+            stock
+              ?.tijdelijk_onbeschikbaar ===
+              true;
+
 
           const available =
+
             hasDates
+
             &&
+
             eventAvailabilityLoaded
+
             &&
+
             !unavailable
-              ? getEventAvailableQuantity(product)
+
+              ? getEventAvailableQuantity(
+                  product
+                )
+
               : 0;
 
+
           const currentQty =
-            eventQuantities[product.id] || 0;
+            eventQuantities[
+              product.id
+            ] ||
+            0;
+
 
           const plusDisabled =
+
             !hasDates
+
             ||
+
             !eventAvailabilityLoaded
+
             ||
+
             unavailable
+
             ||
+
             available <= 0
+
             ||
-            currentQty >= available;
+
+            currentQty >=
+            available;
+
 
           return `
-            <div class="product ${unavailable ? "product-unavailable" : ""}">
+
+            <div
+              class="product ${
+                unavailable
+                  ? "product-unavailable"
+                  : ""
+              }"
+            >
 
               <div class="product-name">
 
-                ${escapeHtml(product.naam)}
+                ${escapeHtml(
+                  product.naam
+                )}
+
 
                 ${
                   unavailable
+
                     ? `
+
                         <span class="product-unavailable-label">
+
                           Tijdelijk onbeschikbaar
+
                         </span>
+
                       `
+
                     : !hasDates
+
                       ? `
+
                           <span class="product-unit">
+
                             Kies eerst de evenementperiode
+
                           </span>
+
                         `
+
                       : eventAvailabilityLoaded
+
                         ? `
+
                             <span class="product-stock">
+
                               ${available} beschikbaar
+
                             </span>
+
                           `
+
                         : `
+
                             <span class="product-unit">
+
                               Beschikbaarheid controleren...
+
                             </span>
+
                           `
                 }
 
               </div>
+
 
               <div class="qty">
 
@@ -7183,9 +7442,13 @@ function renderEventProducts() {
                   −
                 </button>
 
-                <span id="eventQty-${product.id}">
+
+                <span
+                  id="eventQty-${product.id}"
+                >
                   ${currentQty}
                 </span>
+
 
                 <button
                   type="button"
@@ -7198,15 +7461,19 @@ function renderEventProducts() {
               </div>
 
             </div>
+
           `;
 
         }
       )
+
       .join("");
+
 
   updateEventReviewButton();
 
 }
+
 
 /* ===============================
    EVENT QTY
@@ -7218,54 +7485,89 @@ function changeEventQty(
 ) {
 
   const product =
-    allProducts.find(
-      item =>
-        String(item.id) ===
-        String(productId)
-    );
+    allProducts
+      .find(
+        item =>
+          String(
+            item.id
+          ) ===
+          String(
+            productId
+          )
+      );
+
 
   if (
     !product ||
-    product.categorie !== "evenement"
+    product.categorie !==
+    "evenement"
   ) {
+
     return;
+
   }
+
 
   const stock =
     eventAvailableStock[
-      String(product.id)
+      String(
+        product.id
+      )
     ];
 
+
   const unavailable =
-    product.tijdelijk_onbeschikbaar === true
+
+    product.tijdelijk_onbeschikbaar ===
+    true
+
     ||
-    stock?.tijdelijk_onbeschikbaar === true;
+
+    stock
+      ?.tijdelijk_onbeschikbaar ===
+      true;
+
 
   if (
     unavailable ||
     !eventAvailabilityLoaded
   ) {
+
     return;
+
   }
 
+
   const available =
-    getEventAvailableQuantity(product);
+    getEventAvailableQuantity(
+      product
+    );
+
 
   const current =
-    eventQuantities[productId] || 0;
+    eventQuantities[
+      productId
+    ] ||
+    0;
 
-  eventQuantities[productId] =
+
+  eventQuantities[
+    productId
+  ] =
     Math.min(
       available,
       Math.max(
         0,
-        current + amount
+        current +
+        amount
       )
     );
+
 
   renderEventProducts();
 
 }
+
 
 /* ===============================
    EVENT SELECTED
@@ -7410,8 +7712,10 @@ function resetEventForm() {
   eventAvailableStock =
     {};
 
+
   eventAvailabilityLoaded =
     false;
+
 
   eventCalendarTempFrom =
     null;
@@ -7571,6 +7875,7 @@ async function showEventSummary() {
       "De beschikbaarheid is intussen gewijzigd. Controleer de aantallen opnieuw."
     );
 
+
     return;
 
   }
@@ -7690,7 +7995,9 @@ async function submitEventOrder() {
       "De beschikbaarheid is intussen gewijzigd. Controleer de aantallen opnieuw."
     );
 
+
     backToEventOrder();
+
 
     return;
 
@@ -8550,9 +8857,9 @@ checkExistingSession();
 </script>
 
 
-<script src="./admin.js?v=29"></script>
+<script src="./admin.js?v=30"></script>
 
-<script src="./wholesale.js?v=29"></script>
+<script src="./wholesale.js?v=30"></script>
 
 
 </body>
