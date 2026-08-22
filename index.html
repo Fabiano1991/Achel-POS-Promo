@@ -2420,6 +2420,27 @@ Materialen laden...
 </div>
 
 
+<div class="card">
+
+<h2>
+Bieren voor evenement
+</h2>
+
+<div class="info" style="margin-bottom:10px;">
+Alleen invullen wanneer Achel zelf de bieren meeneemt naar het evenement.
+</div>
+
+<div id="eventBeerProductsList">
+
+<div class="empty">
+Bieren laden...
+</div>
+
+</div>
+
+</div>
+
+
 <div class="sticky-action">
 
 <button
@@ -3352,6 +3373,10 @@ const eventQuantities =
   {};
 
 
+const eventBeerQuantities =
+  {};
+
+
 let eventAvailableStock =
   {};
 
@@ -4129,6 +4154,21 @@ async function loadProducts() {
 
         }
 
+
+        if (
+          eventBeerQuantities[
+            product.id
+          ] ===
+          undefined
+        ) {
+
+          eventBeerQuantities[
+            product.id
+          ] =
+            0;
+
+        }
+
       }
     );
 
@@ -4136,6 +4176,8 @@ async function loadProducts() {
   renderProducts();
 
   renderEventProducts();
+
+  renderEventBeerProducts();
 
   updateReviewButton();
 
@@ -7610,6 +7652,278 @@ function selectedEventProducts() {
 
 
 /* ===============================
+   EVENT BIEREN
+================================ */
+
+function renderEventBeerProducts() {
+
+  const container =
+    document
+      .getElementById(
+        "eventBeerProductsList"
+      );
+
+
+  if (
+    !container
+  ) {
+
+    return;
+
+  }
+
+
+  const products =
+    allProducts
+      .filter(
+        product =>
+          product.categorie ===
+          "bier"
+      );
+
+
+  if (
+    !products.length
+  ) {
+
+    container.innerHTML = `
+
+      <div class="empty">
+        Nog geen bieren beschikbaar.
+      </div>
+
+    `;
+
+    return;
+
+  }
+
+
+  container.innerHTML =
+
+    products
+      .map(
+        product => {
+
+          const unavailable =
+            product.tijdelijk_onbeschikbaar ===
+            true;
+
+
+          const currentQty =
+            eventBeerQuantities[
+              product.id
+            ] ||
+            0;
+
+
+          return `
+
+            <div
+              class="product ${
+                unavailable
+                  ? "product-unavailable"
+                  : ""
+              }"
+            >
+
+              <div class="product-name">
+
+                ${escapeHtml(
+                  product.naam
+                )}
+
+                ${
+                  unavailable
+
+                    ? `
+
+                        <span class="product-unavailable-label">
+                          Tijdelijk onbeschikbaar
+                        </span>
+
+                      `
+
+                    : product.eenheid
+
+                      ? `
+
+                          <span class="product-unit">
+                            Eenheid: ${escapeHtml(product.eenheid)}
+                          </span>
+
+                        `
+
+                      : ""
+                }
+
+              </div>
+
+
+              <div class="qty">
+
+                <button
+                  type="button"
+                  onclick="changeEventBeerQty('${product.id}', -1)"
+                  ${
+                    unavailable ||
+                    currentQty <= 0
+                      ? "disabled"
+                      : ""
+                  }
+                >
+                  −
+                </button>
+
+
+                <span id="eventBeerQty-${product.id}">
+                  ${currentQty}
+                </span>
+
+
+                <button
+                  type="button"
+                  onclick="changeEventBeerQty('${product.id}', 1)"
+                  ${unavailable ? "disabled" : ""}
+                >
+                  +
+                </button>
+
+              </div>
+
+            </div>
+
+          `;
+
+        }
+      )
+      .join("");
+
+}
+
+
+function changeEventBeerQty(
+  productId,
+  amount
+) {
+
+  const product =
+    allProducts
+      .find(
+        item =>
+          String(
+            item.id
+          ) ===
+          String(
+            productId
+          )
+      );
+
+
+  if (
+    !product ||
+    product.categorie !==
+    "bier" ||
+    product.tijdelijk_onbeschikbaar ===
+    true
+  ) {
+
+    return;
+
+  }
+
+
+  eventBeerQuantities[
+    productId
+  ] =
+    Math.max(
+      0,
+      (
+        eventBeerQuantities[
+          productId
+        ] ||
+        0
+      )
+      +
+      amount
+    );
+
+
+  renderEventBeerProducts();
+
+  updateEventReviewButton();
+
+}
+
+
+function selectedEventBeerProducts() {
+
+  return allProducts
+
+    .filter(
+      product =>
+
+        product.categorie ===
+        "bier"
+
+        &&
+
+        product.tijdelijk_onbeschikbaar !==
+        true
+
+        &&
+
+        (
+          eventBeerQuantities[
+            product.id
+          ] ||
+          0
+        ) > 0
+    )
+
+    .map(
+      product => ({
+
+        ...product,
+
+        qty:
+          eventBeerQuantities[
+            product.id
+          ],
+
+        event_item_type:
+          "bier"
+
+      })
+    );
+
+}
+
+
+function selectedEventAllProducts() {
+
+  return [
+
+    ...selectedEventProducts()
+      .map(
+        product => ({
+
+          ...product,
+
+          event_item_type:
+            "materiaal"
+
+        })
+      ),
+
+    ...selectedEventBeerProducts()
+
+  ];
+
+}
+
+
+/* ===============================
    EVENT BUTTON
 ================================ */
 
@@ -7633,7 +7947,7 @@ function updateEventReviewButton() {
 
   const total =
 
-    selectedEventProducts()
+    selectedEventAllProducts()
 
       .reduce(
         (
@@ -7709,6 +8023,21 @@ function resetEventForm() {
     );
 
 
+  Object.keys(
+    eventBeerQuantities
+  )
+    .forEach(
+      id => {
+
+        eventBeerQuantities[
+          id
+        ] =
+          0;
+
+      }
+    );
+
+
   eventAvailableStock =
     {};
 
@@ -7729,6 +8058,8 @@ function resetEventForm() {
 
 
   renderEventProducts();
+
+  renderEventBeerProducts();
 
 
   updateEventReviewButton();
@@ -7831,11 +8162,11 @@ function validateStandaloneEventData() {
 
 
   if (
-    !selectedEventProducts().length
+    !selectedEventAllProducts().length
   ) {
 
     alert(
-      "Selecteer minstens één evenementenmateriaal."
+      "Selecteer minstens één evenementmateriaal of bier."
     );
 
     return false;
@@ -7886,7 +8217,7 @@ async function showEventSummary() {
 
 
   const products =
-    selectedEventProducts();
+    selectedEventAllProducts();
 
 
   document
@@ -8009,7 +8340,7 @@ async function submitEventOrder() {
 
 
   const products =
-    selectedEventProducts();
+    selectedEventAllProducts();
 
 
   const button =
@@ -8130,7 +8461,10 @@ async function submitEventOrder() {
             product.naam,
 
           categorie:
-            "evenement",
+            product.event_item_type ===
+            "bier"
+              ? "bier"
+              : "evenement",
 
           aantal:
             product.qty
@@ -8229,12 +8563,32 @@ function openEventEmail(
   const materials =
 
     products
-
+      .filter(
+        product =>
+          product.event_item_type ===
+          "materiaal"
+      )
       .map(
         product =>
           `${product.qty} x ${product.naam}`
       )
+      .join(
+        "\n"
+      );
 
+
+  const beers =
+
+    products
+      .filter(
+        product =>
+          product.event_item_type ===
+          "bier"
+      )
+      .map(
+        product =>
+          `${product.qty} x ${product.naam}`
+      )
       .join(
         "\n"
       );
@@ -8256,12 +8610,16 @@ ${currentProfile?.email || currentUser?.email || ""}
 Evenement:
 ${event.name}
 
-Materiaal nodig:
+Periode:
 ${event.from} t/m ${event.until}
 
 EVENEMENTENMATERIAAL
 --------------------
-${materials}
+${materials || "Geen materiaal aangevraagd"}
+
+BIEREN
+--------------------
+${beers || "Geen bieren aangevraagd"}
 
 OPMERKING
 --------------------
@@ -8857,9 +9215,9 @@ checkExistingSession();
 </script>
 
 
-<script src="./admin.js?v=30"></script>
+<script src="./admin.js?v=31"></script>
 
-<script src="./wholesale.js?v=30"></script>
+<script src="./wholesale.js?v=31"></script>
 
 
 </body>
