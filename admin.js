@@ -22,6 +22,8 @@ let adminWholesaleItems = [];
 
 let adminWholesaleProofs = [];
 
+let adminEventDeliveryProofs = [];
+
 let adminProducts = [];
 
 let adminPosAvailableStock = {};
@@ -907,6 +909,8 @@ function createAdminScreen() {
 
   createReturnProblemModal();
 
+  createEventDeliveryProofModal();
+
 }
 
 
@@ -1185,6 +1189,128 @@ function adminPanelHtml(
 /* ===============================
    DETAIL SCHERM
 ================================ */
+
+/* ============================================================
+   EVENT LEVERINGSBEWIJS MODAL
+============================================================ */
+
+function createEventDeliveryProofModal() {
+
+  if (
+    document.getElementById(
+      "eventDeliveryProofModal"
+    )
+  ) {
+    return;
+  }
+
+  const modal =
+    document.createElement(
+      "div"
+    );
+
+  modal.id =
+    "eventDeliveryProofModal";
+
+  modal.className =
+    "return-problem-overlay hidden";
+
+  modal.innerHTML = `
+
+    <div
+      class="event-delivery-modal"
+      onclick="event.stopPropagation()"
+    >
+
+      <div class="return-problem-modal-head">
+
+        <div>
+          <span>UITLEENBEWIJS</span>
+          <h3 id="eventDeliveryModalTitle">Evenement</h3>
+          <small id="eventDeliveryModalPeriod"></small>
+        </div>
+
+        <button
+          type="button"
+          onclick="closeEventDeliveryProofModal()"
+        >
+          ×
+        </button>
+
+      </div>
+
+      <div
+        id="eventDeliveryItemsEditor"
+        class="event-delivery-items"
+      ></div>
+
+      <label for="eventDeliverySignerName">
+        Naam ontvanger
+      </label>
+
+      <input
+        id="eventDeliverySignerName"
+        type="text"
+        placeholder="Naam klant / ontvanger"
+      >
+
+      <label>
+        Handtekening
+      </label>
+
+      <div class="event-signature-box">
+        <canvas id="eventDeliverySignatureCanvas"></canvas>
+      </div>
+
+      <button
+        type="button"
+        class="admin-secondary"
+        onclick="clearEventDeliverySignature()"
+      >
+        Handtekening wissen
+      </button>
+
+      <div class="return-problem-actions">
+
+        <button
+          type="button"
+          class="return-problem-cancel"
+          onclick="closeEventDeliveryProofModal()"
+        >
+          Annuleren
+        </button>
+
+        <button
+          type="button"
+          class="return-problem-save"
+          onclick="saveEventDeliveryProof()"
+        >
+          Ontvangst laten tekenen
+        </button>
+
+      </div>
+
+    </div>
+
+  `;
+
+  modal.addEventListener(
+    "click",
+    event => {
+      if (
+        event.target === modal
+      ) {
+        closeEventDeliveryProofModal();
+      }
+    }
+  );
+
+  document.body.appendChild(
+    modal
+  );
+
+}
+
 
 function createAdminDetailScreen() {
 
@@ -1608,6 +1734,7 @@ async function loadAdminDashboard() {
           event_naam,
           event_vanaf,
           event_tot,
+          event_delivery_mode,
           event_returned_at,
           event_returned_by,
           opened_at,
@@ -1781,6 +1908,22 @@ async function loadAdminDashboard() {
         `);
 
 
+    const eventDeliveryProofsResult =
+      await supabaseClient
+        .from(
+          "event_delivery_proofs"
+        )
+        .select(`
+          order_id,
+          signer_name,
+          signed_at,
+          snapshot,
+          signature_data,
+          proof_hash,
+          created_at
+        `);
+
+
     adminProfiles =
       profilesResult.data ||
       [];
@@ -1933,6 +2076,16 @@ async function loadAdminDashboard() {
 
         : (
             wholesaleProofsResult.data ||
+            []
+          );
+
+    adminEventDeliveryProofs =
+      eventDeliveryProofsResult.error
+
+        ? []
+
+        : (
+            eventDeliveryProofsResult.data ||
             []
           );
 
@@ -5606,6 +5759,7 @@ async function openAdminOrder(
           event_naam,
           event_vanaf,
           event_tot,
+          event_delivery_mode,
           event_returned_at,
           event_returned_by,
           opened_at,
@@ -5807,6 +5961,16 @@ function renderAdminDetail(
               ""
             )
 
+            +
+
+            detailRow(
+              "Uitvoering",
+              order.event_delivery_mode ===
+              "enkel_levering"
+                ? "Enkel levering / uitleen"
+                : "Achel aanwezig"
+            )
+
           : detailRow(
               "Land",
               order.land ||
@@ -5879,6 +6043,11 @@ function renderAdminDetail(
 
         : ""
     }
+
+
+    ${buildEventDeliveryProofCard(
+      order
+    )}
 
 
     ${buildEventReturnEditor(
@@ -6016,6 +6185,909 @@ function categoryCard(
     </div>
 
   `;
+
+}
+
+
+/* ============================================================
+   EVENT LEVERINGSBEWIJS
+============================================================ */
+
+let activeEventDeliveryOrderId =
+  null;
+
+let eventDeliverySignatureActive =
+  false;
+
+let eventDeliverySignatureContext =
+  null;
+
+
+function getEventDeliveryProof(
+  orderId
+) {
+
+  return adminEventDeliveryProofs
+    .find(
+      proof =>
+        proof.order_id === orderId
+    ) ||
+    null;
+
+}
+
+
+function buildEventDeliveryProofCard(
+  order
+) {
+
+  if (
+    !order?.event_naam
+    ||
+    order.event_delivery_mode !==
+    "enkel_levering"
+  ) {
+    return "";
+  }
+
+  const proof =
+    getEventDeliveryProof(
+      order.id
+    );
+
+  if (
+    proof
+  ) {
+    return `
+
+      <div class="card">
+
+        <div class="admin-detail-top">
+
+          <div>
+            <small>UITLEENBEWIJS</small>
+            <h3>Levering ondertekend</h3>
+          </div>
+
+          <span class="status status-klaar">
+            Ondertekend
+          </span>
+
+        </div>
+
+        ${detailRow(
+          "Ontvangen door",
+          proof.signer_name || ""
+        )}
+
+        ${detailRow(
+          "Ondertekend op",
+          formatAdminDateTime(
+            proof.signed_at
+          )
+        )}
+
+        <button
+          type="button"
+          class="admin-primary"
+          onclick="downloadEventDeliveryProofPdf('${order.id}')"
+        >
+          PDF uitleenbewijs downloaden
+        </button>
+
+      </div>
+
+    `;
+  }
+
+  return `
+
+    <div class="card">
+
+      <h3>Uitleenbewijs</h3>
+
+      <div class="info">
+        Deze aanvraag is ingesteld op enkel levering.
+        Laat de klant bij aflevering digitaal tekenen voor de ontvangen artikelen.
+      </div>
+
+      <button
+        type="button"
+        class="admin-primary"
+        onclick="openEventDeliveryProofModal('${order.id}')"
+        style="margin-top:10px;"
+      >
+        Leveringsdocument openen
+      </button>
+
+    </div>
+
+  `;
+
+}
+
+
+function openEventDeliveryProofModal(
+  orderId
+) {
+
+  const order =
+    adminOrders.find(
+      item =>
+        item.id === orderId
+    );
+
+  if (
+    !order
+  ) {
+    return;
+  }
+
+  const proof =
+    getEventDeliveryProof(
+      orderId
+    );
+
+  if (
+    proof
+  ) {
+    downloadEventDeliveryProofPdf(
+      orderId
+    );
+    return;
+  }
+
+  activeEventDeliveryOrderId =
+    orderId;
+
+  const items =
+    getAdminOrderItems(
+      orderId
+    )
+      .filter(
+        item =>
+          item.categorie === "bier"
+          ||
+          isEventMaterialCategory(
+            item.categorie
+          )
+      );
+
+  document
+    .getElementById(
+      "eventDeliveryModalTitle"
+    )
+    .textContent =
+      order.event_naam ||
+      "Evenement";
+
+  document
+    .getElementById(
+      "eventDeliveryModalPeriod"
+    )
+    .textContent =
+      `${order.event_vanaf || ""} t/m ${order.event_tot || ""}`;
+
+  document
+    .getElementById(
+      "eventDeliverySignerName"
+    )
+    .value =
+      "";
+
+  document
+    .getElementById(
+      "eventDeliveryItemsEditor"
+    )
+    .innerHTML =
+      items
+        .map(
+          item => `
+
+            <div class="event-delivery-item">
+
+              <strong>
+                ${Number(item.aantal || 0)} × ${adminEscapeHtml(item.product_naam || "")}
+              </strong>
+
+              <small>
+                ${
+                  item.categorie === "bier"
+                    ? "Bier"
+                    : "Evenementmateriaal"
+                }
+              </small>
+
+              <label>
+                Staat bij levering
+              </label>
+
+              <input
+                type="text"
+                class="event-delivery-state"
+                data-product="${adminEscapeHtml(item.product_naam || "")}"
+                data-category="${adminEscapeHtml(item.categorie || "")}"
+                data-amount="${Number(item.aantal || 0)}"
+                value="Goed"
+              >
+
+            </div>
+
+          `
+        )
+        .join("");
+
+  document
+    .getElementById(
+      "eventDeliveryProofModal"
+    )
+    .classList
+    .remove(
+      "hidden"
+    );
+
+  document.body.style.overflow =
+    "hidden";
+
+  requestAnimationFrame(
+    () => {
+      prepareEventDeliverySignatureCanvas();
+    }
+  );
+
+}
+
+
+function closeEventDeliveryProofModal() {
+
+  document
+    .getElementById(
+      "eventDeliveryProofModal"
+    )
+    ?.classList
+    .add(
+      "hidden"
+    );
+
+  document.body.style.overflow =
+    "";
+
+  activeEventDeliveryOrderId =
+    null;
+
+}
+
+
+function prepareEventDeliverySignatureCanvas() {
+
+  const canvas =
+    document.getElementById(
+      "eventDeliverySignatureCanvas"
+    );
+
+  if (
+    !canvas
+  ) {
+    return;
+  }
+
+  const ratio =
+    Math.max(
+      1,
+      window.devicePixelRatio || 1
+    );
+
+  const width =
+    canvas.clientWidth || 300;
+
+  const height =
+    150;
+
+  canvas.width =
+    width * ratio;
+
+  canvas.height =
+    height * ratio;
+
+  canvas.style.height =
+    `${height}px`;
+
+  const context =
+    canvas.getContext(
+      "2d"
+    );
+
+  context.setTransform(
+    ratio,
+    0,
+    0,
+    ratio,
+    0,
+    0
+  );
+
+  context.lineWidth = 2;
+  context.lineCap = "round";
+  context.strokeStyle = "#182019";
+
+  eventDeliverySignatureContext =
+    context;
+
+  eventDeliverySignatureActive =
+    false;
+
+  let drawing =
+    false;
+
+  const point =
+    event => {
+      const rect =
+        canvas.getBoundingClientRect();
+
+      return {
+        x:
+          event.clientX -
+          rect.left,
+        y:
+          event.clientY -
+          rect.top
+      };
+    };
+
+  canvas.onpointerdown =
+    event => {
+      event.preventDefault();
+      drawing = true;
+
+      const p =
+        point(
+          event
+        );
+
+      context.beginPath();
+      context.moveTo(
+        p.x,
+        p.y
+      );
+
+      canvas.setPointerCapture?.(
+        event.pointerId
+      );
+    };
+
+  canvas.onpointermove =
+    event => {
+      if (
+        !drawing
+      ) {
+        return;
+      }
+
+      event.preventDefault();
+
+      const p =
+        point(
+          event
+        );
+
+      context.lineTo(
+        p.x,
+        p.y
+      );
+
+      context.stroke();
+
+      eventDeliverySignatureActive =
+        true;
+    };
+
+  canvas.onpointerup =
+    () => {
+      drawing = false;
+    };
+
+  canvas.onpointercancel =
+    () => {
+      drawing = false;
+    };
+
+}
+
+
+function clearEventDeliverySignature() {
+
+  const canvas =
+    document.getElementById(
+      "eventDeliverySignatureCanvas"
+    );
+
+  if (
+    !canvas ||
+    !eventDeliverySignatureContext
+  ) {
+    return;
+  }
+
+  eventDeliverySignatureContext.clearRect(
+    0,
+    0,
+    canvas.width,
+    canvas.height
+  );
+
+  eventDeliverySignatureActive =
+    false;
+
+}
+
+
+async function createEventDeliveryHash(
+  value
+) {
+
+  const encoded =
+    new TextEncoder()
+      .encode(
+        value
+      );
+
+  const hash =
+    await crypto.subtle.digest(
+      "SHA-256",
+      encoded
+    );
+
+  return Array
+    .from(
+      new Uint8Array(
+        hash
+      )
+    )
+    .map(
+      byte =>
+        byte
+          .toString(16)
+          .padStart(
+            2,
+            "0"
+          )
+    )
+    .join("");
+
+}
+
+
+async function saveEventDeliveryProof() {
+
+  const orderId =
+    activeEventDeliveryOrderId;
+
+  const order =
+    adminOrders.find(
+      item =>
+        item.id === orderId
+    );
+
+  if (
+    !order
+  ) {
+    return;
+  }
+
+  const signerName =
+    document
+      .getElementById(
+        "eventDeliverySignerName"
+      )
+      .value
+      .trim();
+
+  if (
+    !signerName
+  ) {
+    alert(
+      "Vul de naam van de ontvanger in."
+    );
+    return;
+  }
+
+  if (
+    !eventDeliverySignatureActive
+  ) {
+    alert(
+      "Laat de klant eerst tekenen."
+    );
+    return;
+  }
+
+  const canvas =
+    document.getElementById(
+      "eventDeliverySignatureCanvas"
+    );
+
+  const signatureData =
+    canvas.toDataURL(
+      "image/png"
+    );
+
+  const items =
+    Array
+      .from(
+        document.querySelectorAll(
+          ".event-delivery-state"
+        )
+      )
+      .map(
+        input => ({
+          product_naam:
+            input.dataset.product || "",
+          categorie:
+            input.dataset.category || "",
+          aantal:
+            Number(
+              input.dataset.amount || 0
+            ),
+          staat:
+            input.value.trim() || "Goed"
+        })
+      );
+
+  const profile =
+    getAdminProfile(
+      order.user_id
+    );
+
+  const snapshot = {
+    order_id:
+      order.id,
+    aanvraag:
+      createOrderReference(
+        order.id,
+        order.created_at
+      ),
+    evenement:
+      order.event_naam || "",
+    periode_vanaf:
+      order.event_vanaf || "",
+    periode_tot:
+      order.event_tot || "",
+    vertegenwoordiger:
+      profile?.naam || "",
+    vertegenwoordiger_email:
+      profile?.email || "",
+    opmerking:
+      order.opmerking || "",
+    items:
+      items
+  };
+
+  const signedAt =
+    new Date().toISOString();
+
+  const proofHash =
+    await createEventDeliveryHash(
+      JSON.stringify({
+        snapshot,
+        signerName,
+        signedAt,
+        signatureData
+      })
+    );
+
+  const {
+    data,
+    error
+  } =
+    await supabaseClient
+      .from(
+        "event_delivery_proofs"
+      )
+      .insert({
+        order_id:
+          order.id,
+        signer_name:
+          signerName,
+        signed_at:
+          signedAt,
+        snapshot:
+          snapshot,
+        signature_data:
+          signatureData,
+        proof_hash:
+          proofHash,
+        created_by:
+          currentUser?.id || null
+      })
+      .select(`
+        order_id,
+        signer_name,
+        signed_at,
+        snapshot,
+        signature_data,
+        proof_hash,
+        created_at
+      `)
+      .single();
+
+  if (
+    error
+  ) {
+    alert(
+      "Uitleenbewijs kon niet worden opgeslagen.\n\n" +
+      adminReadableError(
+        error
+      )
+    );
+    return;
+  }
+
+  adminEventDeliveryProofs =
+    adminEventDeliveryProofs.filter(
+      proof =>
+        proof.order_id !== order.id
+    );
+
+  adminEventDeliveryProofs.push(
+    data
+  );
+
+  closeEventDeliveryProofModal();
+
+  renderAdminDetail(
+    order
+  );
+
+}
+
+
+function downloadEventDeliveryProofPdf(
+  orderId
+) {
+
+  const proof =
+    getEventDeliveryProof(
+      orderId
+    );
+
+  if (
+    !proof
+  ) {
+    alert(
+      "Geen ondertekend uitleenbewijs gevonden."
+    );
+    return;
+  }
+
+  if (
+    !window.jspdf?.jsPDF
+  ) {
+    alert(
+      "PDF-module is niet geladen."
+    );
+    return;
+  }
+
+  const {
+    jsPDF
+  } =
+    window.jspdf;
+
+  const pdf =
+    new jsPDF({
+      unit:
+        "mm",
+      format:
+        "a4"
+    });
+
+  const snapshot =
+    proof.snapshot || {};
+
+  let y = 18;
+
+  pdf.setFontSize(18);
+  pdf.text(
+    "Achelse Kluis - Uitleenbewijs evenement",
+    15,
+    y
+  );
+
+  y += 12;
+  pdf.setFontSize(10);
+
+  const addLine =
+    (
+      label,
+      value
+    ) => {
+      pdf.setFont(
+        "helvetica",
+        "bold"
+      );
+
+      pdf.text(
+        `${label}:`,
+        15,
+        y
+      );
+
+      pdf.setFont(
+        "helvetica",
+        "normal"
+      );
+
+      pdf.text(
+        String(value || "-"),
+        55,
+        y
+      );
+
+      y += 6;
+    };
+
+  addLine(
+    "Aanvraag",
+    snapshot.aanvraag
+  );
+
+  addLine(
+    "Evenement",
+    snapshot.evenement
+  );
+
+  addLine(
+    "Periode",
+    `${snapshot.periode_vanaf || ""} t/m ${snapshot.periode_tot || ""}`
+  );
+
+  addLine(
+    "Vertegenwoordiger",
+    snapshot.vertegenwoordiger
+  );
+
+  addLine(
+    "Ontvangen door",
+    proof.signer_name
+  );
+
+  addLine(
+    "Ondertekend op",
+    formatAdminDateTime(
+      proof.signed_at
+    )
+  );
+
+  y += 5;
+
+  pdf.setFont(
+    "helvetica",
+    "bold"
+  );
+
+  pdf.text(
+    "Geleverde artikelen",
+    15,
+    y
+  );
+
+  y += 7;
+
+  pdf.setFont(
+    "helvetica",
+    "normal"
+  );
+
+  (snapshot.items || [])
+    .forEach(
+      item => {
+
+        const line =
+          `${Number(item.aantal || 0)} x ${item.product_naam || ""} - staat: ${item.staat || "Goed"}`;
+
+        const lines =
+          pdf.splitTextToSize(
+            line,
+            175
+          );
+
+        pdf.text(
+          lines,
+          15,
+          y
+        );
+
+        y +=
+          lines.length * 5;
+
+        if (
+          y > 245
+        ) {
+          pdf.addPage();
+          y = 18;
+        }
+
+      }
+    );
+
+  if (
+    snapshot.opmerking
+  ) {
+    y += 5;
+
+    pdf.setFont(
+      "helvetica",
+      "bold"
+    );
+
+    pdf.text(
+      "Opmerking",
+      15,
+      y
+    );
+
+    y += 6;
+
+    pdf.setFont(
+      "helvetica",
+      "normal"
+    );
+
+    pdf.text(
+      pdf.splitTextToSize(
+        snapshot.opmerking,
+        175
+      ),
+      15,
+      y
+    );
+  }
+
+  if (
+    proof.signature_data
+  ) {
+    y += 15;
+
+    if (
+      y > 235
+    ) {
+      pdf.addPage();
+      y = 18;
+    }
+
+    pdf.setFont(
+      "helvetica",
+      "bold"
+    );
+
+    pdf.text(
+      "Handtekening ontvanger",
+      15,
+      y
+    );
+
+    y += 5;
+
+    pdf.addImage(
+      proof.signature_data,
+      "PNG",
+      15,
+      y,
+      70,
+      28
+    );
+  }
+
+  pdf.setFontSize(7);
+
+  pdf.text(
+    `Bewijshash: ${proof.proof_hash || "-"}`,
+    15,
+    287
+  );
+
+  pdf.save(
+    `Achel_uitleenbewijs_${safeFilename(snapshot.evenement || orderId)}.pdf`
+  );
 
 }
 
@@ -12602,6 +13674,71 @@ function injectAdminStyles() {
       color:#8c948d !important;
       font-size:8px !important;
 
+    }
+
+
+
+    .event-delivery-modal {
+      width:100%;
+      max-width:560px;
+      max-height:90vh;
+      overflow-y:auto;
+      padding:14px;
+      border-radius:18px;
+      background:#f8f6f0;
+      box-shadow:0 18px 50px rgba(0,0,0,.3);
+    }
+
+    .event-delivery-items {
+      display:grid;
+      gap:8px;
+      margin-top:10px;
+    }
+
+    .event-delivery-item {
+      padding:10px;
+      border:1px solid #ded8ce;
+      border-radius:11px;
+      background:white;
+    }
+
+    .event-delivery-item strong {
+      display:block;
+      color:#182019;
+      font-size:11px;
+    }
+
+    .event-delivery-item small {
+      display:block;
+      margin-top:2px;
+      color:#7e776d;
+      font-size:8px;
+    }
+
+    .event-delivery-item label {
+      margin-top:8px;
+      font-size:8px;
+    }
+
+    .event-delivery-item input {
+      min-height:40px;
+      margin-top:4px;
+      font-size:11px;
+    }
+
+    .event-signature-box {
+      margin-top:5px;
+      overflow:hidden;
+      border:1px solid #d8d2c8;
+      border-radius:11px;
+      background:white;
+    }
+
+    #eventDeliverySignatureCanvas {
+      display:block;
+      width:100%;
+      height:150px;
+      touch-action:none;
     }
 
   `;
