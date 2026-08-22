@@ -3336,6 +3336,10 @@ let allProducts =
   [];
 
 
+let posAvailableStock =
+  {};
+
+
 let selectedCategory =
   "bier";
 
@@ -4058,9 +4062,7 @@ async function loadProducts() {
       .getElementById(
         "productsList"
       )
-      .innerHTML =
-
-        `
+      .innerHTML = `
 
         <div class="info error">
 
@@ -4070,7 +4072,7 @@ async function loadProducts() {
 
         </div>
 
-        `;
+      `;
 
 
     return;
@@ -4081,6 +4083,9 @@ async function loadProducts() {
   allProducts =
     data ||
     [];
+
+
+  await loadPosAvailableStock();
 
 
   allProducts
@@ -4130,6 +4135,169 @@ async function loadProducts() {
 
 }
 
+
+/* ===============================
+   POS BESCHIKBARE VOORRAAD
+================================ */
+
+async function loadPosAvailableStock() {
+
+  const {
+    data,
+    error
+  } =
+    await supabaseClient
+      .rpc(
+        "get_pos_available_stock"
+      );
+
+
+  if (
+    error
+  ) {
+
+    console.error(
+      "POS VOORRAAD FOUT:",
+      error
+    );
+
+
+    posAvailableStock =
+      {};
+
+
+    return;
+
+  }
+
+
+  posAvailableStock =
+    {};
+
+
+  (
+    data ||
+    []
+  )
+    .forEach(
+      row => {
+
+        posAvailableStock[
+          String(
+            row.product_id
+          )
+        ] = {
+
+          totaal:
+            Math.max(
+              0,
+              Number(
+                row.totale_voorraad ||
+                0
+              )
+            ),
+
+          gereserveerd:
+            Math.max(
+              0,
+              Number(
+                row.gereserveerd ||
+                0
+              )
+            ),
+
+          beschikbaar:
+            Math.max(
+              0,
+              Number(
+                row.beschikbaar ||
+                0
+              )
+            ),
+
+          minimum:
+            row.minimum_voorraad ===
+            null
+
+              ? null
+
+              : Number(
+                  row.minimum_voorraad
+                ),
+
+          tijdelijk_onbeschikbaar:
+            row.tijdelijk_onbeschikbaar ===
+            true
+
+        };
+
+      }
+    );
+
+}
+
+
+/* ===============================
+   POS BESCHIKBAAR AANTAL
+================================ */
+
+function getPosAvailableQuantity(
+  product
+) {
+
+  if (
+    !product ||
+    product.categorie !==
+    "pos"
+  ) {
+
+    return null;
+
+  }
+
+
+  const stock =
+    posAvailableStock[
+      String(
+        product.id
+      )
+    ];
+
+
+  if (
+    stock
+  ) {
+
+    return Math.max(
+      0,
+      Number(
+        stock.beschikbaar ||
+        0
+      )
+    );
+
+  }
+
+
+  if (
+    product.voorraad_beheren ===
+    true
+  ) {
+
+    return Math.max(
+      0,
+      Number(
+        product.voorraad ||
+        0
+      )
+    );
+
+  }
+
+
+  return null;
+
+}
 
 /* ===============================
    CATEGORY
@@ -4233,9 +4401,24 @@ function renderProducts() {
       .map(
         product => {
 
+          const stockData =
+            posAvailableStock[
+              String(
+                product.id
+              )
+            ];
+
+
           const unavailable =
+
             product.tijdelijk_onbeschikbaar ===
-            true;
+            true
+
+            ||
+
+            stockData
+              ?.tijdelijk_onbeschikbaar ===
+              true;
 
 
           const managesStock =
@@ -4246,26 +4429,15 @@ function renderProducts() {
             &&
 
             product.voorraad_beheren ===
-            true
-
-            &&
-
-            Number.isFinite(
-              Number(
-                product.voorraad
-              )
-            );
+            true;
 
 
-          const stock =
+          const available =
 
             managesStock
 
-              ? Math.max(
-                  0,
-                  Number(
-                    product.voorraad
-                  )
+              ? getPosAvailableQuantity(
+                  product
                 )
 
               : null;
@@ -4287,7 +4459,11 @@ function renderProducts() {
 
             managesStock
 
-              ? `${stock} ${unit || "stuks"} beschikbaar`
+            &&
+
+            !unavailable
+
+              ? `${available} ${unit || "stuks"} beschikbaar`
 
               : "";
 
@@ -4295,6 +4471,10 @@ function renderProducts() {
           const packageText =
 
             product.inhoud_per_eenheid
+
+            &&
+
+            !unavailable
 
               ? `${product.inhoud_per_eenheid} glazen per ${unit || "eenheid"}`
 
@@ -4313,7 +4493,7 @@ function renderProducts() {
               &&
 
               currentQty >=
-              stock
+              available
             );
 
 
@@ -4336,6 +4516,10 @@ function renderProducts() {
 
                 ${
                   product.eenheid
+
+                  &&
+
+                  !unavailable
 
                     ? `
 
@@ -4487,9 +4671,28 @@ function changeQty(
   }
 
 
-  if (
+  const stockData =
+    posAvailableStock[
+      String(
+        product.id
+      )
+    ];
+
+
+  const unavailable =
+
     product.tijdelijk_onbeschikbaar ===
     true
+
+    ||
+
+    stockData
+      ?.tijdelijk_onbeschikbaar ===
+      true;
+
+
+  if (
+    unavailable
   ) {
 
     return;
@@ -4520,15 +4723,7 @@ function changeQty(
     &&
 
     product.voorraad_beheren ===
-    true
-
-    &&
-
-    Number.isFinite(
-      Number(
-        product.voorraad
-      )
-    );
+    true;
 
 
   if (
@@ -4538,11 +4733,8 @@ function changeQty(
     next =
       Math.min(
         next,
-        Math.max(
-          0,
-          Number(
-            product.voorraad
-          )
+        getPosAvailableQuantity(
+          product
         )
       );
 
@@ -4932,6 +5124,9 @@ async function refreshProductsForOrder() {
     [];
 
 
+  await loadPosAvailableStock();
+
+
   let adjusted =
     false;
 
@@ -4970,9 +5165,28 @@ async function refreshProductsForOrder() {
         }
 
 
-        if (
+        const stockData =
+          posAvailableStock[
+            String(
+              product.id
+            )
+          ];
+
+
+        const unavailable =
+
           product.tijdelijk_onbeschikbaar ===
           true
+
+          ||
+
+          stockData
+            ?.tijdelijk_onbeschikbaar ===
+            true;
+
+
+        if (
+          unavailable
 
           &&
 
@@ -5004,41 +5218,34 @@ async function refreshProductsForOrder() {
 
           product.voorraad_beheren ===
           true
-
-          &&
-
-          Number.isFinite(
-            Number(
-              product.voorraad
-            )
-          )
-
-          &&
-
-          (
-            quantities[
-              product.id
-            ] ||
-            0
-          ) >
-          Number(
-            product.voorraad
-          )
         ) {
 
-          quantities[
-            product.id
-          ] =
-            Math.max(
-              0,
-              Number(
-                product.voorraad
-              )
+          const available =
+            getPosAvailableQuantity(
+              product
             );
 
 
-          adjusted =
-            true;
+          if (
+            (
+              quantities[
+                product.id
+              ] ||
+              0
+            ) >
+            available
+          ) {
+
+            quantities[
+              product.id
+            ] =
+              available;
+
+
+            adjusted =
+              true;
+
+          }
 
         }
 
@@ -5054,7 +5261,6 @@ async function refreshProductsForOrder() {
   return adjusted;
 
 }
-
 
 /* ===============================
    NORMAL SUMMARY
@@ -8136,9 +8342,9 @@ checkExistingSession();
 </script>
 
 
-<script src="./admin.js?v=26"></script>
+<script src="./admin.js?v=27"></script>
 
-<script src="./wholesale.js?v=26"></script>
+<script src="./wholesale.js?v=27"></script>
 
 
 </body>
