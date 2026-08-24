@@ -1725,341 +1725,9 @@ textarea {
 
 }
 
-</style>
-</head>
 
 
-<body>
-
-
-<header class="app-header">
-
-<button
-  id="menuButton"
-  class="menu-button hidden"
-  type="button"
-  onclick="openMenu()"
-  aria-label="Menu openen"
->
-
-<span class="menu-lines"></span>
-
-</button>
-
-
-<div class="header-title">
-
-<strong>
-Achel POS
-</strong>
-
-<span>
-Interne bestelapp
-</span>
-
-</div>
-
-
-<div></div>
-
-</header>
-
-
-<!-- MENU -->
-
-<div
-  id="menuOverlay"
-  class="menu-overlay"
-  onclick="closeMenuFromOverlay(event)"
->
-
-<aside
-  class="side-menu"
-  onclick="event.stopPropagation()"
->
-
-<div class="menu-profile">
-
-<strong id="menuRepName">
-Achel POS
-</strong>
-
-<small id="menuRepEmail"></small>
-
-</div>
-
-
-<button
-  class="menu-item"
-  type="button"
-  onclick="menuGoHome()"
->
-Home
-</button>
-
-
-<button
-  class="menu-item"
-  type="button"
-  onclick="menuOrders()"
->
-Aanvragen bekijken
-</button>
-
-
-<button
-  class="menu-item"
-  type="button"
-  onclick="openFreeBeer()"
->
-Gratis bier
-</button>
-
-
-<button
-  id="menuAdmin"
-  class="menu-item hidden"
-  type="button"
-  onclick="openAdminFromMenu()"
->
-Beheer
-</button>
-
-  <div
-  style="
-    margin-top:10px;
-    padding-top:10px;
-    border-top:1px solid var(--border);
-  "
->
-
-  <div
-    style="
-      padding:0 12px 6px;
-      color:var(--muted);
-      font-size:9px;
-      font-weight:900;
-      text-transform:uppercase;
-    "
-  >
-    Meldingen
-  </div>
-
-
-  <button
-    id="pushNotificationButton"
-    class="menu-item"
-    type="button"
-    onclick="enablePushNotifications()"
-  >
-    Pushmeldingen inschakelen
-  </button>
-
-
-  <div
-    id="pushNotificationStatus"
-    class="info"
-    style="
-      margin:4px 8px 8px;
-      font-size:9px;
-    "
-  >
-    Pushmeldingen zijn nog niet actief.
-  </div>
-
-</div>
-
-<button
-  class="menu-item danger"
-  type="button"
-  onclick="menuLogout()"
->
-Uitloggen
-</button>
-
-</aside>
-
-</div>
-
-
-<!-- LOGIN -->
-
-<section id="loginScreen">
-
-<div class="card login-card">
-
-<h1>
-Welkom bij Achel POS
-</h1>
-
-
-<p>
-Log in met je persoonlijke account om een aanvraag te plaatsen of je aanvragen te bekijken.
-</p>
-
-
-<label for="loginEmail">
-E-mailadres
-</label>
-
-
-<input
-  id="loginEmail"
-  type="email"
-  placeholder="naam@achelsekluis.be"
-  autocomplete="email"
->
-
-
-<label for="loginPassword">
-Wachtwoord
-</label>
-
-
-<input
-  id="loginPassword"
-  type="password"
-  placeholder="Wachtwoord"
-  autocomplete="current-password"
->
-
-
-<button
-  class="primary"
-  type="button"
-  onclick="loginUser()"
-  style="margin-top:16px;"
->
-Inloggen
-</button>
-
-
-<div
-  id="loginMessage"
-  class="info hidden"
-></div>
-
-</div>
-
-</section>
-
-
-<!-- APP -->
-
-<main
-  id="appMain"
-  class="hidden"
->
-
-
-<!-- HOME -->
-
-<section id="homeScreen">
-
-  <div class="card hero">
-
-    <h1 id="welcomeTitle">
-      Hallo
-    </h1>
-
-    <p
-      id="beerQuote"
-      class="beer-quote"
-    ></p>
-
-  </div>
-
-
-  <div class="achel-home-image">
-
-    <img
-      src="./achel-kluis-home.jpg"
-      alt="De Achelse Kluis"
-      class="achel-home-photo"
-    >
-
-    <div class="achel-image-overlay">
-
-      <img
-        src="./achel-logo.png"
-        alt="Achel"
-        class="achel-home-logo"
-      >
-
-      <div class="achel-home-caption">
-        De Achelse Kluis
-      </div>
-
-    </div>
-
-  </div>
-
-
-  <!-- BESTELZONE -->
-
-  <div class="home-order-zone">
-
-    <!-- KNOPPEN BOVEN HET GLAS -->
-
-    <div
-      id="homeOrderChoices"
-      class="home-order-choices hidden"
-    >
-
-      <button
-        type="button"
-        class="home-order-choice"
-        onclick="homeOpenPos()"
-      >
-        POS / promo bestellen
-      </button>
-
-
-      <button
-        type="button"
-        class="home-order-choice"
-        onclick="homeOpenWholesale()"
-      >
-        Groothandel bestellen
-      </button>
-
-
-      <button
-        type="button"
-        class="home-order-choice"
-        onclick="homeOpenEvent()"
-      >
-        Evenement aanvragen
-      </button>
-
-    </div>
-
-
-    <!-- INTERACTIEF ACHEL GLAS -->
-
-    <button
-      id="homeBeerButton"
-      class="home-beer-button"
-      type="button"
-      onclick="toggleHomeOrderChoices()"
-      aria-label="Bestelmenu openen"
-    >
-
-      <span class="home-beer-glow"></span>
-
-      <img
-        src="./achel-glas.png"
-        alt="Achel bierglas"
-        class="home-beer-glass"
-      >
-
-    </button>
-
-  </div>
-
-</section>
-
-  /* ============================================================
+/* ============================================================
    DONKERE APP ACHTERGROND
 ============================================================ */
 
@@ -2478,6 +2146,341 @@ body {
 
 }
 
+</style>
+</head>
+
+
+<body>
+
+
+<header class="app-header">
+
+<button
+  id="menuButton"
+  class="menu-button hidden"
+  type="button"
+  onclick="openMenu()"
+  aria-label="Menu openen"
+>
+
+<span class="menu-lines"></span>
+
+</button>
+
+
+<div class="header-title">
+
+<strong>
+Achel POS
+</strong>
+
+<span>
+Interne bestelapp
+</span>
+
+</div>
+
+
+<div></div>
+
+</header>
+
+
+<!-- MENU -->
+
+<div
+  id="menuOverlay"
+  class="menu-overlay"
+  onclick="closeMenuFromOverlay(event)"
+>
+
+<aside
+  class="side-menu"
+  onclick="event.stopPropagation()"
+>
+
+<div class="menu-profile">
+
+<strong id="menuRepName">
+Achel POS
+</strong>
+
+<small id="menuRepEmail"></small>
+
+</div>
+
+
+<button
+  class="menu-item"
+  type="button"
+  onclick="menuGoHome()"
+>
+Home
+</button>
+
+
+<button
+  class="menu-item"
+  type="button"
+  onclick="menuOrders()"
+>
+Aanvragen bekijken
+</button>
+
+
+<button
+  class="menu-item"
+  type="button"
+  onclick="openFreeBeer()"
+>
+Gratis bier
+</button>
+
+
+<button
+  id="menuAdmin"
+  class="menu-item hidden"
+  type="button"
+  onclick="openAdminFromMenu()"
+>
+Beheer
+</button>
+
+  <div
+  style="
+    margin-top:10px;
+    padding-top:10px;
+    border-top:1px solid var(--border);
+  "
+>
+
+  <div
+    style="
+      padding:0 12px 6px;
+      color:var(--muted);
+      font-size:9px;
+      font-weight:900;
+      text-transform:uppercase;
+    "
+  >
+    Meldingen
+  </div>
+
+
+  <button
+    id="pushNotificationButton"
+    class="menu-item"
+    type="button"
+    onclick="enablePushNotifications()"
+  >
+    Pushmeldingen inschakelen
+  </button>
+
+
+  <div
+    id="pushNotificationStatus"
+    class="info"
+    style="
+      margin:4px 8px 8px;
+      font-size:9px;
+    "
+  >
+    Pushmeldingen zijn nog niet actief.
+  </div>
+
+</div>
+
+<button
+  class="menu-item danger"
+  type="button"
+  onclick="menuLogout()"
+>
+Uitloggen
+</button>
+
+</aside>
+
+</div>
+
+
+<!-- LOGIN -->
+
+<section id="loginScreen">
+
+<div class="card login-card">
+
+<h1>
+Welkom bij Achel POS
+</h1>
+
+
+<p>
+Log in met je persoonlijke account om een aanvraag te plaatsen of je aanvragen te bekijken.
+</p>
+
+
+<label for="loginEmail">
+E-mailadres
+</label>
+
+
+<input
+  id="loginEmail"
+  type="email"
+  placeholder="naam@achelsekluis.be"
+  autocomplete="email"
+>
+
+
+<label for="loginPassword">
+Wachtwoord
+</label>
+
+
+<input
+  id="loginPassword"
+  type="password"
+  placeholder="Wachtwoord"
+  autocomplete="current-password"
+>
+
+
+<button
+  class="primary"
+  type="button"
+  onclick="loginUser()"
+  style="margin-top:16px;"
+>
+Inloggen
+</button>
+
+
+<div
+  id="loginMessage"
+  class="info hidden"
+></div>
+
+</div>
+
+</section>
+
+
+<!-- APP -->
+
+<main
+  id="appMain"
+  class="hidden"
+>
+
+
+<!-- HOME -->
+
+<section id="homeScreen">
+
+  <div class="card hero">
+
+    <h1 id="welcomeTitle">
+      Hallo
+    </h1>
+
+    <p
+      id="beerQuote"
+      class="beer-quote"
+    ></p>
+
+  </div>
+
+
+  <div class="achel-home-image">
+
+    <img
+      src="./achel-kluis-home.jpg"
+      alt="De Achelse Kluis"
+      class="achel-home-photo"
+    >
+
+    <div class="achel-image-overlay">
+
+      <img
+        src="./achel-logo.png"
+        alt="Achel"
+        class="achel-home-logo"
+      >
+
+      <div class="achel-home-caption">
+        De Achelse Kluis
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- BESTELZONE -->
+
+  <div class="home-order-zone">
+
+    <!-- KNOPPEN BOVEN HET GLAS -->
+
+    <div
+      id="homeOrderChoices"
+      class="home-order-choices hidden"
+    >
+
+      <button
+        type="button"
+        class="home-order-choice"
+        onclick="homeOpenPos()"
+      >
+        POS / promo bestellen
+      </button>
+
+
+      <button
+        type="button"
+        class="home-order-choice"
+        onclick="homeOpenWholesale()"
+      >
+        Groothandel bestellen
+      </button>
+
+
+      <button
+        type="button"
+        class="home-order-choice"
+        onclick="homeOpenEvent()"
+      >
+        Evenement aanvragen
+      </button>
+
+    </div>
+
+
+    <!-- INTERACTIEF ACHEL GLAS -->
+
+    <button
+      id="homeBeerButton"
+      class="home-beer-button"
+      type="button"
+      onclick="toggleHomeOrderChoices()"
+      aria-label="Bestelmenu openen"
+    >
+
+      <span class="home-beer-glow"></span>
+
+      <img
+        src="./achel-glas.png"
+        alt="Achel bierglas"
+        class="home-beer-glass"
+      >
+
+    </button>
+
+  </div>
+
+</section>
+
+  
 
 <!-- NIEUWE POS / BIER -->
 
@@ -4542,7 +4545,7 @@ function menuLogout() {
 
 }
 
-  function openFreeBeer() {
+function openFreeBeer() {
 
   closeMenu();
 
@@ -5616,6 +5619,15 @@ function goHome() {
 
   showOnly(
     "homeScreen"
+  );
+
+}
+
+
+function openNewOrder() {
+
+  showOnly(
+    "orderScreen"
   );
 
 }
