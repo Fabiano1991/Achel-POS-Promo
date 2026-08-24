@@ -1801,24 +1801,6 @@ Home
 <button
   class="menu-item"
   type="button"
-  onclick="menuNewOrder()"
->
-Nieuwe aanvraag
-</button>
-
-
-<button
-  class="menu-item"
-  type="button"
-  onclick="menuEventOrder()"
->
-Evenementaanvraag
-</button>
-
-
-<button
-  class="menu-item"
-  type="button"
   onclick="menuOrders()"
 >
 Aanvragen bekijken
@@ -1826,12 +1808,11 @@ Aanvragen bekijken
 
 
 <button
-  id="menuWholesale"
   class="menu-item"
   type="button"
-  onclick="openWholesaleOrder()"
+  onclick="openFreeBeer()"
 >
-Bestelling groothandel
+Gratis bier
 </button>
 
 
@@ -1975,48 +1956,527 @@ Inloggen
 
 <section id="homeScreen">
 
-<div class="card hero">
+  <div class="card hero">
 
-<h1 id="welcomeTitle">
-Hallo
-</h1>
+    <h1 id="welcomeTitle">
+      Hallo
+    </h1>
 
+    <p
+      id="beerQuote"
+      class="beer-quote"
+    ></p>
 
-<p
-  id="beerQuote"
-  class="beer-quote"
-></p>
-
-</div>
-
-
-<div class="achel-home-image">
-
-<img
-  src="./achel-kluis-home.jpg"
-  alt="De Achelse Kluis"
-  class="achel-home-photo"
->
+  </div>
 
 
-<div class="achel-image-overlay">
+  <div class="achel-home-image">
 
-<img
-  src="./achel-logo.png"
-  alt="Achel"
-  class="achel-home-logo"
->
+    <img
+      src="./achel-kluis-home.jpg"
+      alt="De Achelse Kluis"
+      class="achel-home-photo"
+    >
+
+    <div class="achel-image-overlay">
+
+      <img
+        src="./achel-logo.png"
+        alt="Achel"
+        class="achel-home-logo"
+      >
+
+      <div class="achel-home-caption">
+        De Achelse Kluis
+      </div>
+
+    </div>
+
+  </div>
 
 
-<div class="achel-home-caption">
-De Achelse Kluis
-</div>
+  <!-- BESTELZONE -->
 
-</div>
+  <div class="home-order-zone">
 
-</div>
+    <!-- KNOPPEN BOVEN HET GLAS -->
+
+    <div
+      id="homeOrderChoices"
+      class="home-order-choices hidden"
+    >
+
+      <button
+        type="button"
+        class="home-order-choice"
+        onclick="homeOpenPos()"
+      >
+        POS / promo bestellen
+      </button>
+
+
+      <button
+        type="button"
+        class="home-order-choice"
+        onclick="homeOpenWholesale()"
+      >
+        Groothandel bestellen
+      </button>
+
+
+      <button
+        type="button"
+        class="home-order-choice"
+        onclick="homeOpenEvent()"
+      >
+        Evenement aanvragen
+      </button>
+
+    </div>
+
+
+    <!-- INTERACTIEF ACHEL GLAS -->
+
+    <button
+      id="homeBeerButton"
+      class="home-beer-button"
+      type="button"
+      onclick="toggleHomeOrderChoices()"
+      aria-label="Bestelmenu openen"
+    >
+
+      <span class="home-beer-glow"></span>
+
+      <img
+        src="./achel-glas.png"
+        alt="Achel bierglas"
+        class="home-beer-glass"
+      >
+
+    </button>
+
+  </div>
 
 </section>
+
+  /* ============================================================
+   DONKERE APP ACHTERGROND
+============================================================ */
+
+body {
+  background:
+    radial-gradient(
+      circle at 50% 45%,
+      #20271d 0%,
+      #151a14 38%,
+      #0d110d 100%
+    );
+
+  color:var(--text);
+}
+
+
+#appMain {
+  background:
+    transparent;
+}
+
+
+/* ============================================================
+   HOME BESTELZONE
+============================================================ */
+
+.home-order-zone {
+
+  position:relative;
+
+  margin-top:18px;
+
+  padding:
+    12px 4px
+    26px;
+
+  text-align:center;
+
+}
+
+
+/* ============================================================
+   DRIE BESTELKNOPPEN
+============================================================ */
+
+.home-order-choices {
+
+  display:grid;
+
+  grid-template-columns:
+    repeat(
+      3,
+      minmax(
+        0,
+        1fr
+      )
+    );
+
+  gap:7px;
+
+  width:100%;
+
+  margin:
+    0 auto 18px;
+
+  opacity:1;
+
+  transform:
+    translateY(0);
+
+  transition:
+    opacity .22s ease,
+    transform .22s ease;
+
+}
+
+
+.home-order-choices.hidden {
+
+  display:grid !important;
+
+  opacity:0;
+
+  transform:
+    translateY(12px);
+
+  pointer-events:none;
+
+  visibility:hidden;
+
+}
+
+
+.home-order-choice {
+
+  min-width:0;
+
+  min-height:72px;
+
+  padding:
+    10px 5px;
+
+  border:
+    1px solid
+    rgba(
+      201,
+      155,
+      67,
+      .65
+    );
+
+  border-radius:13px;
+
+  background:
+    linear-gradient(
+      145deg,
+      #20271f,
+      #151a15
+    );
+
+  color:
+    #f1d28b;
+
+  box-shadow:
+
+    inset
+    0 0 0 1px
+    rgba(
+      255,
+      255,
+      255,
+      .025
+    ),
+
+    0 7px 18px
+    rgba(
+      0,
+      0,
+      0,
+      .22
+    );
+
+  font-size:10px;
+
+  line-height:1.25;
+
+  font-weight:900;
+
+  text-align:center;
+
+  text-transform:none;
+
+  transition:
+    transform .14s ease,
+    border-color .14s ease,
+    background .14s ease;
+
+}
+
+
+.home-order-choice:active {
+
+  transform:
+    scale(.96);
+
+  background:
+    #292c20;
+
+  border-color:
+    #d9ad55;
+
+}
+
+
+/* ============================================================
+   BIERGLAS KNOP
+============================================================ */
+
+.home-beer-button {
+
+  position:relative;
+
+  display:flex;
+
+  align-items:center;
+
+  justify-content:center;
+
+  width:115px;
+
+  min-height:150px;
+
+  margin:
+    0 auto;
+
+  padding:0;
+
+  border:0;
+
+  background:
+    transparent;
+
+  cursor:pointer;
+
+  -webkit-tap-highlight-color:
+    transparent;
+
+}
+
+
+/* ============================================================
+   GOUDEN GLOED
+============================================================ */
+
+.home-beer-glow {
+
+  position:absolute;
+
+  left:50%;
+
+  bottom:12px;
+
+  width:110px;
+
+  height:65px;
+
+  transform:
+    translateX(-50%);
+
+  border-radius:50%;
+
+  background:
+
+    radial-gradient(
+      ellipse at center,
+      rgba(
+        214,
+        162,
+        65,
+        .48
+      )
+      0%,
+
+      rgba(
+        194,
+        137,
+        44,
+        .24
+      )
+      32%,
+
+      transparent
+      72%
+    );
+
+  filter:
+    blur(13px);
+
+  opacity:.8;
+
+  pointer-events:none;
+
+  animation:
+    achelGlowPulse
+    2.8s
+    ease-in-out
+    infinite;
+
+}
+
+
+/* ============================================================
+   GLAS
+============================================================ */
+
+.home-beer-glass {
+
+  position:relative;
+
+  z-index:2;
+
+  display:block;
+
+  width:auto;
+
+  height:135px;
+
+  object-fit:contain;
+
+  filter:
+
+    drop-shadow(
+      0 7px 9px
+      rgba(
+        0,
+        0,
+        0,
+        .35
+      )
+    )
+
+    drop-shadow(
+      0 0 10px
+      rgba(
+        193,
+        137,
+        41,
+        .20
+      )
+    );
+
+  transition:
+    transform .16s ease,
+    filter .16s ease;
+
+}
+
+
+.home-beer-button:active
+.home-beer-glass {
+
+  transform:
+    scale(.94);
+
+}
+
+
+.home-beer-button.menu-open
+.home-beer-glass {
+
+  transform:
+    translateY(-2px)
+    scale(1.04);
+
+  filter:
+
+    drop-shadow(
+      0 8px 12px
+      rgba(
+        0,
+        0,
+        0,
+        .4
+      )
+    )
+
+    drop-shadow(
+      0 0 18px
+      rgba(
+        205,
+        151,
+        51,
+        .42
+      )
+    );
+
+}
+
+
+/* ============================================================
+   GLOED ANIMATIE
+============================================================ */
+
+@keyframes achelGlowPulse {
+
+  0%,
+  100% {
+
+    opacity:.55;
+
+    transform:
+      translateX(-50%)
+      scale(.92);
+
+  }
+
+
+  50% {
+
+    opacity:1;
+
+    transform:
+      translateX(-50%)
+      scale(1.08);
+
+  }
+
+}
+
+
+/* ============================================================
+   MOBIEL
+============================================================ */
+
+@media (
+  max-width:420px
+) {
+
+  .home-order-choice {
+
+    min-height:68px;
+
+    padding:
+      9px 3px;
+
+    font-size:9px;
+
+  }
+
+
+  .home-beer-glass {
+
+    height:125px;
+
+  }
+
+}
 
 
 <!-- NIEUWE POS / BIER -->
@@ -4082,6 +4542,15 @@ function menuLogout() {
 
 }
 
+  function openFreeBeer() {
+
+  closeMenu();
+
+  alert(
+    "De module Gratis bier wordt toegevoegd zodra het registratiesjabloon beschikbaar is."
+  );
+
+}
 
 /* ===============================
    ADMIN MENU
@@ -4968,6 +5437,120 @@ function updateReviewButton() {
    NAVIGATION
 ================================ */
 
+/* ============================================================
+   HOME BESTELMENU
+============================================================ */
+
+function toggleHomeOrderChoices() {
+
+  const choices =
+    document.getElementById(
+      "homeOrderChoices"
+    );
+
+
+  const glassButton =
+    document.getElementById(
+      "homeBeerButton"
+    );
+
+
+  if (
+    !choices ||
+    !glassButton
+  ) {
+
+    return;
+
+  }
+
+
+  const isClosed =
+    choices.classList.contains(
+      "hidden"
+    );
+
+
+  choices.classList.toggle(
+    "hidden",
+    !isClosed
+  );
+
+
+  glassButton.classList.toggle(
+    "menu-open",
+    isClosed
+  );
+
+}
+
+
+/* ============================================================
+   HOME → POS
+============================================================ */
+
+function homeOpenPos() {
+
+  closeHomeOrderChoices();
+
+  newOrder();
+
+}
+
+
+/* ============================================================
+   HOME → GROOTHANDEL
+============================================================ */
+
+function homeOpenWholesale() {
+
+  closeHomeOrderChoices();
+
+  openWholesaleOrder();
+
+}
+
+
+/* ============================================================
+   HOME → EVENEMENT
+============================================================ */
+
+function homeOpenEvent() {
+
+  closeHomeOrderChoices();
+
+  openEventOrder();
+
+}
+
+
+/* ============================================================
+   HOME BESTELMENU SLUITEN
+============================================================ */
+
+function closeHomeOrderChoices() {
+
+  document
+    .getElementById(
+      "homeOrderChoices"
+    )
+    ?.classList
+    .add(
+      "hidden"
+    );
+
+
+  document
+    .getElementById(
+      "homeBeerButton"
+    )
+    ?.classList
+    .remove(
+      "menu-open"
+    );
+
+}
+  
 function showOnly(
   screenId
 ) {
@@ -5029,17 +5612,10 @@ function goHome() {
 
   closeMenu();
 
+  closeHomeOrderChoices();
+
   showOnly(
     "homeScreen"
-  );
-
-}
-
-
-function openNewOrder() {
-
-  showOnly(
-    "orderScreen"
   );
 
 }
