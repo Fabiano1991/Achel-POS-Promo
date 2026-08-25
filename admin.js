@@ -24,6 +24,11 @@ let adminWholesaleProofs = [];
 
 let adminEventDeliveryProofs = [];
 
+let adminFreeBeerRegistrations = [];
+
+let adminFreeBeerLoaded =
+  false;
+
 let adminProducts = [];
 
 let adminPosAvailableStock = {};
@@ -244,6 +249,15 @@ function createAdminScreen() {
         type="button"
       >
         Voorraad
+      </button>
+
+
+      <button
+        id="adminTab-freebeer"
+        onclick="switchAdminTab('freebeer')"
+        type="button"
+      >
+        Gratis bier
       </button>
 
 
@@ -697,6 +711,228 @@ function createAdminScreen() {
 
 
       <div id="adminCatalogList"></div>
+
+    </div>
+
+
+    <!-- GRATIS BIER -->
+
+    <div
+      id="adminPane-freebeer"
+      class="admin-pane hidden"
+    >
+
+      <div class="admin-page-title">
+
+        <span>
+          COMMERCIEEL
+        </span>
+
+        <strong>
+          Gratis bier
+        </strong>
+
+      </div>
+
+
+      <div
+        id="adminFreeBeerLoading"
+        class="admin-freebeer-loading hidden"
+      >
+        Gratis bier laden...
+      </div>
+
+
+      <div class="admin-freebeer-kpis">
+
+        <div>
+
+          <span>
+            Eenheden
+          </span>
+
+          <strong id="adminFreeBeerUnits">
+            0
+          </strong>
+
+        </div>
+
+
+        <div>
+
+          <span>
+            Registraties
+          </span>
+
+          <strong id="adminFreeBeerRegistrationsCount">
+            0
+          </strong>
+
+        </div>
+
+
+        <div>
+
+          <span>
+            Klanten
+          </span>
+
+          <strong id="adminFreeBeerCustomersCount">
+            0
+          </strong>
+
+        </div>
+
+      </div>
+
+
+      <div class="admin-freebeer-filter-card">
+
+        <div class="admin-freebeer-filter-grid">
+
+          <div>
+
+            <label for="adminFreeBeerMonth">
+              Maand
+            </label>
+
+            <select
+              id="adminFreeBeerMonth"
+              onchange="renderAdminFreeBeer()"
+            >
+
+              <option value="">
+                Alle maanden
+              </option>
+
+              <option value="1">Januari</option>
+              <option value="2">Februari</option>
+              <option value="3">Maart</option>
+              <option value="4">April</option>
+              <option value="5">Mei</option>
+              <option value="6">Juni</option>
+              <option value="7">Juli</option>
+              <option value="8">Augustus</option>
+              <option value="9">September</option>
+              <option value="10">Oktober</option>
+              <option value="11">November</option>
+              <option value="12">December</option>
+
+            </select>
+
+          </div>
+
+
+          <div>
+
+            <label for="adminFreeBeerYear">
+              Jaar
+            </label>
+
+            <select
+              id="adminFreeBeerYear"
+              onchange="renderAdminFreeBeer()"
+            ></select>
+
+          </div>
+
+        </div>
+
+
+        <label for="adminFreeBeerRepFilter">
+          Vertegenwoordiger
+        </label>
+
+        <select
+          id="adminFreeBeerRepFilter"
+          onchange="renderAdminFreeBeer()"
+        >
+
+          <option value="">
+            Alle vertegenwoordigers
+          </option>
+
+        </select>
+
+
+        <label for="adminFreeBeerProvinceFilter">
+          Provincie
+        </label>
+
+        <select
+          id="adminFreeBeerProvinceFilter"
+          onchange="renderAdminFreeBeer()"
+        >
+
+          <option value="">
+            Alle provincies
+          </option>
+
+        </select>
+
+
+        <label for="adminFreeBeerProductFilter">
+          Product
+        </label>
+
+        <select
+          id="adminFreeBeerProductFilter"
+          onchange="renderAdminFreeBeer()"
+        >
+
+          <option value="">
+            Alle producten
+          </option>
+
+        </select>
+
+
+        <label for="adminFreeBeerSearch">
+          Zoeken
+        </label>
+
+        <input
+          id="adminFreeBeerSearch"
+          type="text"
+          placeholder="Horecaklant of drankenhandel..."
+          oninput="renderAdminFreeBeer()"
+        >
+
+      </div>
+
+
+      <div class="admin-block">
+
+        <div class="admin-block-title">
+
+          <span>
+            REGISTRATIES
+          </span>
+
+          <strong>
+            Overzicht
+          </strong>
+
+        </div>
+
+        <div id="adminFreeBeerList">
+
+          <div class="empty">
+            Open de map om gegevens te laden.
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <button
+        class="admin-export"
+        type="button"
+        onclick="exportAdminFreeBeerExcel()"
+      >
+        Excel gratis bier downloaden
+      </button>
 
     </div>
 
@@ -1468,6 +1704,7 @@ function switchAdminTab(
     "requests",
     "material",
     "stock",
+    "freebeer",
     "reports"
   ]
     .forEach(
@@ -1523,6 +1760,17 @@ function switchAdminTab(
 
   }
 
+
+
+
+  if (
+    tab ===
+    "freebeer"
+  ) {
+
+    loadAdminFreeBeerData();
+
+  }
 
   if (
     tab ===
@@ -2178,6 +2426,11 @@ function fillRepresentativeFilters() {
     document
       .getElementById(
         "reportRepresentative"
+      ),
+
+    document
+      .getElementById(
+        "adminFreeBeerRepFilter"
       )
 
   ]
@@ -10176,6 +10429,1325 @@ async function updateSelectedAdminOrderStatus(
 }
 
 
+
+/* ============================================================
+   GRATIS BIER - BEHEER
+============================================================ */
+
+async function loadAdminFreeBeerData(
+  force = false
+) {
+
+  if (
+    adminFreeBeerLoaded
+    &&
+    !force
+  ) {
+
+    renderAdminFreeBeer();
+
+    return;
+
+  }
+
+
+  const loading =
+    document.getElementById(
+      "adminFreeBeerLoading"
+    );
+
+
+  if (
+    loading
+  ) {
+
+    loading.classList.remove(
+      "hidden"
+    );
+
+  }
+
+
+  try {
+
+    const {
+      data,
+      error
+    } =
+      await supabaseClient
+
+        .from(
+          "free_beer_registrations"
+        )
+
+        .select(`
+          id,
+          user_id,
+          datum,
+          inhoud,
+          sku,
+          aantal,
+          drankenhandel,
+          horecaklant,
+          provincie,
+          created_at
+        `)
+
+        .order(
+          "datum",
+          {
+            ascending:
+              false
+          }
+        )
+
+        .order(
+          "created_at",
+          {
+            ascending:
+              false
+          }
+        );
+
+
+    if (
+      error
+    ) {
+
+      throw error;
+
+    }
+
+
+    adminFreeBeerRegistrations =
+      data ||
+      [];
+
+
+    adminFreeBeerLoaded =
+      true;
+
+
+    fillAdminFreeBeerFilters();
+
+    renderAdminFreeBeer();
+
+  }
+
+  catch (
+    error
+  ) {
+
+    console.error(
+      "GRATIS BIER BEHEER FOUT:",
+      error
+    );
+
+
+    const container =
+      document.getElementById(
+        "adminFreeBeerList"
+      );
+
+
+    if (
+      container
+    ) {
+
+      container.innerHTML = `
+
+        <div class="info error">
+
+          Gratis bier kon niet worden geladen.
+
+          <br><br>
+
+          ${adminEscapeHtml(
+            adminReadableError(
+              error
+            )
+          )}
+
+        </div>
+
+      `;
+
+    }
+
+  }
+
+  finally {
+
+    if (
+      loading
+    ) {
+
+      loading.classList.add(
+        "hidden"
+      );
+
+    }
+
+  }
+
+}
+
+
+/* ===============================
+   GRATIS BIER FILTERS
+================================ */
+
+function fillAdminFreeBeerFilters() {
+
+  const yearSelect =
+    document.getElementById(
+      "adminFreeBeerYear"
+    );
+
+
+  const monthSelect =
+    document.getElementById(
+      "adminFreeBeerMonth"
+    );
+
+
+  const provinceSelect =
+    document.getElementById(
+      "adminFreeBeerProvinceFilter"
+    );
+
+
+  const productSelect =
+    document.getElementById(
+      "adminFreeBeerProductFilter"
+    );
+
+
+  if (
+    yearSelect
+  ) {
+
+    const oldYear =
+      yearSelect.value;
+
+
+    const years =
+      [
+        ...new Set(
+          adminFreeBeerRegistrations
+            .map(
+              row =>
+                String(
+                  row.datum ||
+                  ""
+                )
+                  .slice(
+                    0,
+                    4
+                  )
+            )
+            .filter(
+              Boolean
+            )
+        )
+      ]
+        .sort(
+          (
+            first,
+            second
+          ) =>
+            Number(
+              second
+            )
+            -
+            Number(
+              first
+            )
+        );
+
+
+    const currentYear =
+      String(
+        new Date()
+          .getFullYear()
+      );
+
+
+    if (
+      !years.includes(
+        currentYear
+      )
+    ) {
+
+      years.unshift(
+        currentYear
+      );
+
+    }
+
+
+    yearSelect.innerHTML =
+      years
+
+        .map(
+          year => `
+
+            <option value="${adminEscapeHtml(year)}">
+              ${adminEscapeHtml(year)}
+            </option>
+
+          `
+        )
+
+        .join("");
+
+
+    if (
+      oldYear
+      &&
+      years.includes(
+        oldYear
+      )
+    ) {
+
+      yearSelect.value =
+        oldYear;
+
+    }
+
+    else {
+
+      yearSelect.value =
+        currentYear;
+
+    }
+
+  }
+
+
+  if (
+    monthSelect
+    &&
+    !monthSelect.dataset.initialized
+  ) {
+
+    monthSelect.value =
+      String(
+        new Date()
+          .getMonth()
+        +
+        1
+      );
+
+
+    monthSelect.dataset.initialized =
+      "1";
+
+  }
+
+
+  if (
+    provinceSelect
+  ) {
+
+    const oldProvince =
+      provinceSelect.value;
+
+
+    const provinces =
+      [
+        ...new Set(
+          adminFreeBeerRegistrations
+            .map(
+              row =>
+                String(
+                  row.provincie ||
+                  ""
+                )
+                  .trim()
+            )
+            .filter(
+              Boolean
+            )
+        )
+      ]
+        .sort(
+          (
+            first,
+            second
+          ) =>
+            first.localeCompare(
+              second,
+              "nl"
+            )
+        );
+
+
+    provinceSelect.innerHTML =
+      `
+
+        <option value="">
+          Alle provincies
+        </option>
+
+      `
+      +
+      provinces
+        .map(
+          province => `
+
+            <option value="${adminEscapeHtml(province)}">
+              ${adminEscapeHtml(province)}
+            </option>
+
+          `
+        )
+        .join("");
+
+
+    if (
+      provinces.includes(
+        oldProvince
+      )
+    ) {
+
+      provinceSelect.value =
+        oldProvince;
+
+    }
+
+  }
+
+
+  if (
+    productSelect
+  ) {
+
+    const oldProduct =
+      productSelect.value;
+
+
+    const products =
+      [
+        ...new Set(
+          adminFreeBeerRegistrations
+            .map(
+              row =>
+                String(
+                  row.sku ||
+                  ""
+                )
+                  .trim()
+            )
+            .filter(
+              Boolean
+            )
+        )
+      ]
+        .sort(
+          (
+            first,
+            second
+          ) =>
+            first.localeCompare(
+              second,
+              "nl"
+            )
+        );
+
+
+    productSelect.innerHTML =
+      `
+
+        <option value="">
+          Alle producten
+        </option>
+
+      `
+      +
+      products
+        .map(
+          product => `
+
+            <option value="${adminEscapeHtml(product)}">
+              ${adminEscapeHtml(product)}
+            </option>
+
+          `
+        )
+        .join("");
+
+
+    if (
+      products.includes(
+        oldProduct
+      )
+    ) {
+
+      productSelect.value =
+        oldProduct;
+
+    }
+
+  }
+
+}
+
+
+/* ===============================
+   GRATIS BIER FILTER DATA
+================================ */
+
+function getFilteredAdminFreeBeerRows() {
+
+  const year =
+    document
+      .getElementById(
+        "adminFreeBeerYear"
+      )
+      ?.value ||
+    "";
+
+
+  const month =
+    document
+      .getElementById(
+        "adminFreeBeerMonth"
+      )
+      ?.value ||
+    "";
+
+
+  const representative =
+    document
+      .getElementById(
+        "adminFreeBeerRepFilter"
+      )
+      ?.value ||
+    "";
+
+
+  const province =
+    document
+      .getElementById(
+        "adminFreeBeerProvinceFilter"
+      )
+      ?.value ||
+    "";
+
+
+  const product =
+    document
+      .getElementById(
+        "adminFreeBeerProductFilter"
+      )
+      ?.value ||
+    "";
+
+
+  const search =
+    (
+      document
+        .getElementById(
+          "adminFreeBeerSearch"
+        )
+        ?.value ||
+      ""
+    )
+      .trim()
+      .toLowerCase();
+
+
+  return adminFreeBeerRegistrations
+    .filter(
+      row => {
+
+        const date =
+          String(
+            row.datum ||
+            ""
+          );
+
+
+        if (
+          year
+          &&
+          date.slice(
+            0,
+            4
+          ) !==
+          year
+        ) {
+
+          return false;
+
+        }
+
+
+        if (
+          month
+          &&
+          Number(
+            date.slice(
+              5,
+              7
+            )
+          ) !==
+          Number(
+            month
+          )
+        ) {
+
+          return false;
+
+        }
+
+
+        if (
+          representative
+          &&
+          row.user_id !==
+          representative
+        ) {
+
+          return false;
+
+        }
+
+
+        if (
+          province
+          &&
+          row.provincie !==
+          province
+        ) {
+
+          return false;
+
+        }
+
+
+        if (
+          product
+          &&
+          row.sku !==
+          product
+        ) {
+
+          return false;
+
+        }
+
+
+        if (
+          search
+        ) {
+
+          const profile =
+            getAdminProfile(
+              row.user_id
+            );
+
+
+          const haystack =
+            [
+
+              row.horecaklant,
+
+              row.drankenhandel,
+
+              row.provincie,
+
+              row.sku,
+
+              profile?.naam,
+
+              profile?.email
+
+            ]
+              .filter(
+                Boolean
+              )
+              .join(
+                " "
+              )
+              .toLowerCase();
+
+
+          if (
+            !haystack.includes(
+              search
+            )
+          ) {
+
+            return false;
+
+          }
+
+        }
+
+
+        return true;
+
+      }
+    );
+
+}
+
+
+/* ===============================
+   GRATIS BIER GROEPEREN
+================================ */
+
+function groupAdminFreeBeerRows(
+  rows
+) {
+
+  const groups =
+    new Map();
+
+
+  rows
+    .forEach(
+      row => {
+
+        const key =
+          [
+
+            row.user_id ||
+            "",
+
+            row.datum ||
+            "",
+
+            row.drankenhandel ||
+            "",
+
+            row.horecaklant ||
+            "",
+
+            row.provincie ||
+            ""
+
+          ]
+            .join(
+              "||"
+            );
+
+
+        if (
+          !groups.has(
+            key
+          )
+        ) {
+
+          groups.set(
+            key,
+            {
+
+              key:
+                key,
+
+              user_id:
+                row.user_id,
+
+              datum:
+                row.datum,
+
+              drankenhandel:
+                row.drankenhandel,
+
+              horecaklant:
+                row.horecaklant,
+
+              provincie:
+                row.provincie,
+
+              created_at:
+                row.created_at,
+
+              items:
+                []
+
+            }
+          );
+
+        }
+
+
+        groups
+          .get(
+            key
+          )
+          .items
+          .push(
+            row
+          );
+
+      }
+    );
+
+
+  return [
+    ...groups.values()
+  ]
+    .sort(
+      (
+        first,
+        second
+      ) => {
+
+        const firstDate =
+          new Date(
+            first.datum ||
+            first.created_at ||
+            0
+          )
+            .getTime();
+
+
+        const secondDate =
+          new Date(
+            second.datum ||
+            second.created_at ||
+            0
+          )
+            .getTime();
+
+
+        return secondDate -
+          firstDate;
+
+      }
+    );
+
+}
+
+
+/* ===============================
+   GRATIS BIER RENDER
+================================ */
+
+function renderAdminFreeBeer() {
+
+  const container =
+    document.getElementById(
+      "adminFreeBeerList"
+    );
+
+
+  if (
+    !container
+  ) {
+
+    return;
+
+  }
+
+
+  if (
+    !adminFreeBeerLoaded
+  ) {
+
+    container.innerHTML = `
+
+      <div class="empty">
+        Gratis bier laden...
+      </div>
+
+    `;
+
+
+    return;
+
+  }
+
+
+  const rows =
+    getFilteredAdminFreeBeerRows();
+
+
+  const groups =
+    groupAdminFreeBeerRows(
+      rows
+    );
+
+
+  const totalUnits =
+    rows.reduce(
+      (
+        total,
+        row
+      ) =>
+        total +
+        Number(
+          row.aantal ||
+          0
+        ),
+      0
+    );
+
+
+  const uniqueCustomers =
+    new Set(
+      groups
+        .map(
+          group =>
+            String(
+              group.horecaklant ||
+              ""
+            )
+              .trim()
+              .toLowerCase()
+        )
+        .filter(
+          Boolean
+        )
+    )
+      .size;
+
+
+  setCount(
+    "adminFreeBeerUnits",
+    totalUnits
+  );
+
+
+  setCount(
+    "adminFreeBeerRegistrationsCount",
+    groups.length
+  );
+
+
+  setCount(
+    "adminFreeBeerCustomersCount",
+    uniqueCustomers
+  );
+
+
+  if (
+    !groups.length
+  ) {
+
+    container.innerHTML = `
+
+      <div class="admin-clear">
+
+        <b>
+          Geen registraties gevonden
+        </b>
+
+        <span>
+          Pas de filters aan of kies een andere periode.
+        </span>
+
+      </div>
+
+    `;
+
+
+    return;
+
+  }
+
+
+  container.innerHTML =
+    groups
+
+      .map(
+        group => {
+
+          const profile =
+            getAdminProfile(
+              group.user_id
+            );
+
+
+          const units =
+            group.items
+              .reduce(
+                (
+                  total,
+                  item
+                ) =>
+                  total +
+                  Number(
+                    item.aantal ||
+                    0
+                  ),
+                0
+              );
+
+
+          return `
+
+            <details class="admin-freebeer-card">
+
+              <summary>
+
+                <div>
+
+                  <span>
+                    ${adminFormatFreeBeerDate(
+                      group.datum
+                    )}
+                  </span>
+
+                  <strong>
+                    ${adminEscapeHtml(
+                      group.horecaklant ||
+                      "Geen horecaklant"
+                    )}
+                  </strong>
+
+                  <small>
+
+                    ${adminEscapeHtml(
+                      group.drankenhandel ||
+                      "Geen drankenhandel"
+                    )}
+
+                    ·
+
+                    ${adminEscapeHtml(
+                      group.provincie ||
+                      ""
+                    )}
+
+                  </small>
+
+                </div>
+
+
+                <div class="admin-freebeer-card-side">
+
+                  <b>
+                    ${units}
+                  </b>
+
+                  <small>
+                    eenheden
+                  </small>
+
+                </div>
+
+              </summary>
+
+
+              <div class="admin-freebeer-card-body">
+
+                <div class="admin-freebeer-rep">
+
+                  <span>
+                    Vertegenwoordiger
+                  </span>
+
+                  <strong>
+                    ${adminEscapeHtml(
+                      profile?.naam ||
+                      profile?.email ||
+                      "Onbekend"
+                    )}
+                  </strong>
+
+                </div>
+
+
+                ${
+                  group.items
+
+                    .map(
+                      item => `
+
+                        <div class="admin-freebeer-item">
+
+                          <div>
+
+                            <strong>
+                              ${adminEscapeHtml(
+                                item.sku ||
+                                ""
+                              )}
+                            </strong>
+
+                            <small>
+                              ${adminEscapeHtml(
+                                item.inhoud ||
+                                ""
+                              )}
+                            </small>
+
+                          </div>
+
+                          <b>
+                            ${Number(
+                              item.aantal ||
+                              0
+                            )}
+                          </b>
+
+                        </div>
+
+                      `
+                    )
+
+                    .join("")
+                }
+
+              </div>
+
+            </details>
+
+          `;
+
+        }
+      )
+
+      .join("");
+
+}
+
+
+/* ===============================
+   GRATIS BIER DATUM
+================================ */
+
+function adminFormatFreeBeerDate(
+  date
+) {
+
+  if (
+    !date
+  ) {
+
+    return "";
+
+  }
+
+
+  const parsed =
+    new Date(
+      `${date}T00:00:00`
+    );
+
+
+  if (
+    Number.isNaN(
+      parsed.getTime()
+    )
+  ) {
+
+    return String(
+      date
+    );
+
+  }
+
+
+  return parsed
+    .toLocaleDateString(
+      "nl-BE",
+      {
+
+        day:
+          "2-digit",
+
+        month:
+          "short",
+
+        year:
+          "numeric"
+
+      }
+    );
+
+}
+
+
+/* ===============================
+   GRATIS BIER EXCEL
+================================ */
+
+function exportAdminFreeBeerExcel() {
+
+  if (
+    typeof XLSX ===
+    "undefined"
+  ) {
+
+    alert(
+      "Excel-module niet geladen."
+    );
+
+    return;
+
+  }
+
+
+  const rows =
+    getFilteredAdminFreeBeerRows();
+
+
+  if (
+    !rows.length
+  ) {
+
+    alert(
+      "Geen gratis bier voor deze selectie."
+    );
+
+    return;
+
+  }
+
+
+  const excelRows =
+    rows
+      .map(
+        row => {
+
+          const profile =
+            getAdminProfile(
+              row.user_id
+            );
+
+
+          return {
+
+            "Inhoud":
+              row.inhoud ||
+              "",
+
+            "SKU":
+              row.sku ||
+              "",
+
+            "Aantal":
+              Number(
+                row.aantal ||
+                0
+              ),
+
+            "Drankenhandel":
+              row.drankenhandel ||
+              "",
+
+            "Horecaklant":
+              row.horecaklant ||
+              "",
+
+            "Provincie":
+              row.provincie ||
+              "",
+
+            "Vertegenwoordiger":
+              profile?.naam ||
+              profile?.email ||
+              ""
+
+          };
+
+        }
+      );
+
+
+  const workbook =
+    XLSX.utils
+      .book_new();
+
+
+  const worksheet =
+    XLSX.utils
+      .json_to_sheet(
+        excelRows,
+        {
+          header: [
+            "Inhoud",
+            "SKU",
+            "Aantal",
+            "Drankenhandel",
+            "Horecaklant",
+            "Provincie",
+            "Vertegenwoordiger"
+          ]
+        }
+      );
+
+
+  worksheet["!cols"] = [
+
+    {
+      wch:
+        14
+    },
+
+    {
+      wch:
+        44
+    },
+
+    {
+      wch:
+        10
+    },
+
+    {
+      wch:
+        28
+    },
+
+    {
+      wch:
+        28
+    },
+
+    {
+      wch:
+        20
+    },
+
+    {
+      wch:
+        24
+    }
+
+  ];
+
+
+  XLSX.utils
+    .book_append_sheet(
+      workbook,
+      worksheet,
+      "Gratis bier"
+    );
+
+
+  const year =
+    document
+      .getElementById(
+        "adminFreeBeerYear"
+      )
+      ?.value ||
+    "alle";
+
+
+  const month =
+    document
+      .getElementById(
+        "adminFreeBeerMonth"
+      )
+      ?.value ||
+    "alle";
+
+
+  XLSX.writeFile(
+    workbook,
+    `Achel_gratis_bier_${safeFilename(year)}_${safeFilename(month)}.xlsx`
+  );
+
+}
+
+
 /* ===============================
    REPORT YEARS
 ================================ */
@@ -11881,7 +13453,7 @@ function injectAdminStyles() {
 
       grid-template-columns:
         repeat(
-          5,
+          6,
           1fr
         );
 
@@ -13739,6 +15311,370 @@ function injectAdminStyles() {
       width:100%;
       height:150px;
       touch-action:none;
+    }
+
+
+    /* ==========================================
+       GRATIS BIER
+    ========================================== */
+
+    .admin-freebeer-loading {
+
+      margin-bottom:8px;
+      padding:9px 10px;
+
+      border-radius:10px;
+
+      background:#2a322b;
+      color:#c7cec8;
+
+      font-size:9px;
+      font-weight:850;
+
+    }
+
+
+    .admin-freebeer-kpis {
+
+      display:grid;
+      grid-template-columns:repeat(3, 1fr);
+      gap:6px;
+
+    }
+
+
+    .admin-freebeer-kpis > div {
+
+      padding:9px;
+
+      border:
+        1px solid
+        #465047;
+
+      border-radius:11px;
+
+      background:#303930;
+
+    }
+
+
+    .admin-freebeer-kpis span {
+
+      display:block;
+
+      color:#b8c0b9;
+
+      font-size:8px;
+      font-weight:900;
+
+      text-transform:uppercase;
+
+    }
+
+
+    .admin-freebeer-kpis strong {
+
+      display:block;
+
+      margin-top:2px;
+
+      color:#d7b66d;
+
+      font-size:21px;
+
+    }
+
+
+    .admin-freebeer-filter-card {
+
+      margin-top:8px;
+      padding:9px;
+
+      border:
+        1px solid
+        #414941;
+
+      border-radius:12px;
+
+      background:#2a322b;
+
+    }
+
+
+    .admin-freebeer-filter-grid {
+
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:6px;
+
+    }
+
+
+    .admin-freebeer-filter-card label {
+
+      color:#bac1bb;
+      font-size:8px;
+
+      margin:6px 0 3px;
+
+    }
+
+
+    .admin-freebeer-filter-card select,
+    .admin-freebeer-filter-card input {
+
+      min-height:39px !important;
+
+      border:
+        1px solid
+        #4a534b !important;
+
+      border-radius:10px !important;
+
+      background:#202721 !important;
+      color:white !important;
+
+      font-size:11px !important;
+
+    }
+
+
+    .admin-freebeer-card {
+
+      margin-top:6px;
+
+      border:
+        1px solid
+        #d8d5cd;
+
+      border-left:
+        4px solid
+        #b88a3e;
+
+      border-radius:11px;
+
+      background:white;
+      color:#202722;
+
+      overflow:hidden;
+
+    }
+
+
+    .admin-freebeer-card > summary {
+
+      list-style:none;
+
+      display:grid;
+
+      grid-template-columns:1fr auto;
+      gap:8px;
+      align-items:center;
+
+      padding:10px;
+
+      cursor:pointer;
+
+    }
+
+
+    .admin-freebeer-card > summary::-webkit-details-marker {
+
+      display:none;
+
+    }
+
+
+    .admin-freebeer-card > summary span {
+
+      display:block;
+
+      color:#8c692f;
+
+      font-size:8px;
+      font-weight:900;
+
+    }
+
+
+    .admin-freebeer-card > summary strong {
+
+      display:block;
+
+      margin-top:2px;
+
+      color:#202722;
+
+      font-size:12px;
+
+    }
+
+
+    .admin-freebeer-card > summary small {
+
+      display:block;
+
+      margin-top:2px;
+
+      color:#777;
+
+      font-size:8px;
+
+    }
+
+
+    .admin-freebeer-card-side {
+
+      min-width:54px;
+
+      text-align:right;
+
+    }
+
+
+    .admin-freebeer-card-side b {
+
+      display:block;
+
+      color:#8c692f;
+
+      font-size:18px;
+
+    }
+
+
+    .admin-freebeer-card-side small {
+
+      font-size:7px !important;
+
+    }
+
+
+    .admin-freebeer-card-body {
+
+      padding:0 10px 10px;
+
+      border-top:
+        1px solid
+        #ebe7de;
+
+    }
+
+
+    .admin-freebeer-rep {
+
+      display:flex;
+      justify-content:space-between;
+      gap:8px;
+
+      padding:8px 0;
+
+      border-bottom:
+        1px solid
+        #eeeae2;
+
+    }
+
+
+    .admin-freebeer-rep span {
+
+      color:#777;
+
+      font-size:8px;
+      font-weight:850;
+
+    }
+
+
+    .admin-freebeer-rep strong {
+
+      color:#202722;
+
+      font-size:9px;
+
+      text-align:right;
+
+    }
+
+
+    .admin-freebeer-item {
+
+      display:grid;
+      grid-template-columns:1fr auto;
+      align-items:center;
+      gap:8px;
+
+      padding:8px 0;
+
+      border-bottom:
+        1px solid
+        #f0ede6;
+
+    }
+
+
+    .admin-freebeer-item strong {
+
+      display:block;
+
+      color:#202722;
+
+      font-size:10px;
+
+    }
+
+
+    .admin-freebeer-item small {
+
+      display:block;
+
+      margin-top:2px;
+
+      color:#777;
+
+      font-size:8px;
+
+    }
+
+
+    .admin-freebeer-item > b {
+
+      min-width:28px;
+
+      color:#8c692f;
+
+      text-align:right;
+
+      font-size:14px;
+
+    }
+
+
+    @media (
+      max-width:520px
+    ) {
+
+      .admin-tabs button {
+
+        font-size:7px;
+
+      }
+
+
+      .admin-freebeer-kpis {
+
+        grid-template-columns:
+          repeat(3, 1fr);
+
+      }
+
+
+      .admin-freebeer-kpis strong {
+
+        font-size:18px;
+
+      }
+
     }
 
   `;
