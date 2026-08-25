@@ -11289,6 +11289,11 @@ async function loadMyPosOrders(
         "id, referentie, land, gemeente, afhaaldatum, opmerking, status, event_naam, event_vanaf, event_tot, created_at"
       )
 
+      .eq(
+        "user_id",
+        currentUser.id
+      )
+
       .is(
         "event_naam",
         null
@@ -11414,6 +11419,11 @@ async function loadMyEventOrders(
 
       .select(
         "id, referentie, land, gemeente, afhaaldatum, opmerking, status, event_naam, event_vanaf, event_tot, event_returned_at, created_at"
+      )
+
+      .eq(
+        "user_id",
+        currentUser.id
       )
 
       .not(
@@ -11829,6 +11839,11 @@ async function loadMyWholesaleOrders(
         "id, referentie, drankenhandel, opmerking, status, created_at"
       )
 
+      .eq(
+        "user_id",
+        currentUser.id
+      )
+
       .order(
         "created_at",
         {
@@ -12174,6 +12189,11 @@ async function loadMyFreeBeerRegistrations(
 
       .select(
         "id, datum, inhoud, sku, aantal, drankenhandel, horecaklant, provincie, created_at"
+      )
+
+      .eq(
+        "user_id",
+        currentUser.id
       )
 
       .order(
