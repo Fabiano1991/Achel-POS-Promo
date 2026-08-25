@@ -11727,7 +11727,43 @@ async function exportAdminFreeBeerExcel() {
             );
 
 
+          const freeBeerDate =
+            row.datum
+              ? new Date(
+                  `${row.datum}T00:00:00`
+                )
+              : null;
+
+
           return {
+
+            "Datum":
+              row.datum ||
+              "",
+
+            "Maand":
+              freeBeerDate &&
+              !Number.isNaN(
+                freeBeerDate.getTime()
+              )
+                ? freeBeerDate
+                    .toLocaleDateString(
+                      "nl-BE",
+                      {
+                        month:
+                          "long"
+                      }
+                    )
+                : "",
+
+            "Jaar":
+              freeBeerDate &&
+              !Number.isNaN(
+                freeBeerDate.getTime()
+              )
+                ? freeBeerDate
+                    .getFullYear()
+                : "",
 
             "Douano-code":
               product?.douano_code ||
@@ -11781,6 +11817,9 @@ async function exportAdminFreeBeerExcel() {
         excelRows,
         {
           header: [
+            "Datum",
+            "Maand",
+            "Jaar",
             "Douano-code",
             "Inhoud",
             "SKU",
@@ -11795,6 +11834,21 @@ async function exportAdminFreeBeerExcel() {
 
 
   worksheet["!cols"] = [
+
+    {
+      wch:
+        14
+    },
+
+    {
+      wch:
+        14
+    },
+
+    {
+      wch:
+        10
+    },
 
     {
       wch:
