@@ -29,6 +29,11 @@ let adminFreeBeerRegistrations = [];
 let adminFreeBeerLoaded =
   false;
 
+let adminProductMaster = [];
+
+let adminProductMasterLoaded =
+  false;
+
 let adminProducts = [];
 
 let adminPosAvailableStock = {};
@@ -11539,11 +11544,111 @@ function adminFormatFreeBeerDate(
 }
 
 
+/* ============================================================
+   PRODUCTMASTER - DOUANO
+   Alleen laden wanneer een export deze nodig heeft.
+============================================================ */
+
+async function loadAdminProductMaster(
+  force = false
+) {
+
+  if (
+    adminProductMasterLoaded
+    &&
+    !force
+  ) {
+
+    return adminProductMaster;
+
+  }
+
+
+  const {
+    data,
+    error
+  } =
+    await supabaseClient
+      .from(
+        "achel_product_master"
+      )
+      .select(`
+        douano_code,
+        app_name,
+        douano_name,
+        app_category,
+        active_free_beer,
+        active_wholesale
+      `)
+      .eq(
+        "active_free_beer",
+        true
+      );
+
+
+  if (
+    error
+  ) {
+
+    throw error;
+
+  }
+
+
+  adminProductMaster =
+    data || [];
+
+
+  adminProductMasterLoaded =
+    true;
+
+
+  return adminProductMaster;
+
+}
+
+
+function getAdminProductMasterForSku(
+  sku
+) {
+
+  const normalized =
+    String(
+      sku || ""
+    )
+      .trim()
+      .toLowerCase();
+
+
+  if (
+    !normalized
+  ) {
+
+    return null;
+
+  }
+
+
+  return adminProductMaster
+    .find(
+      product =>
+        String(
+          product.app_name || ""
+        )
+          .trim()
+          .toLowerCase()
+        ===
+        normalized
+    ) || null;
+
+}
+
+
 /* ===============================
    GRATIS BIER EXCEL
 ================================ */
 
-function exportAdminFreeBeerExcel() {
+async function exportAdminFreeBeerExcel() {
 
   if (
     typeof XLSX ===
@@ -11576,6 +11681,35 @@ function exportAdminFreeBeerExcel() {
   }
 
 
+  try {
+
+    await loadAdminProductMaster();
+
+  }
+
+  catch (
+    error
+  ) {
+
+    console.error(
+      "DOUANO PRODUCTMASTER FOUT:",
+      error
+    );
+
+
+    alert(
+      "De Douano-productcodes konden niet worden geladen.\n\n" +
+      adminReadableError(
+        error
+      )
+    );
+
+
+    return;
+
+  }
+
+
   const excelRows =
     rows
       .map(
@@ -11587,7 +11721,17 @@ function exportAdminFreeBeerExcel() {
             );
 
 
+          const product =
+            getAdminProductMasterForSku(
+              row.sku
+            );
+
+
           return {
+
+            "Douano-code":
+              product?.douano_code ||
+              "NIET GEKOPPELD",
 
             "Inhoud":
               row.inhoud ||
@@ -11637,6 +11781,7 @@ function exportAdminFreeBeerExcel() {
         excelRows,
         {
           header: [
+            "Douano-code",
             "Inhoud",
             "SKU",
             "Aantal",
@@ -11650,6 +11795,11 @@ function exportAdminFreeBeerExcel() {
 
 
   worksheet["!cols"] = [
+
+    {
+      wch:
+        14
+    },
 
     {
       wch:
