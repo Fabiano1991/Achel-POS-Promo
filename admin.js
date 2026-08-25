@@ -257,7 +257,7 @@ function createAdminScreen() {
         onclick="switchAdminTab('freebeer')"
         type="button"
       >
-        Gratis bier
+        Gratis bier factuur enkel leeggoed
       </button>
 
 
