@@ -2406,6 +2406,64 @@ body {
   }
 }
 
+
+
+/* ============================================================
+   GRATIS BIER - CATEGORIE WIDGETS
+============================================================ */
+
+.free-beer-category-folder {
+  margin-bottom:8px;
+  border:1px solid var(--border);
+  border-radius:14px;
+  background:white;
+  overflow:hidden;
+}
+
+.free-beer-category-folder > summary {
+  list-style:none;
+  display:grid;
+  grid-template-columns:1fr auto;
+  align-items:center;
+  gap:10px;
+  min-height:58px;
+  padding:11px 13px;
+  cursor:pointer;
+  background:var(--surface-soft);
+}
+
+.free-beer-category-folder > summary::-webkit-details-marker {
+  display:none;
+}
+
+.free-beer-category-folder > summary strong {
+  display:block;
+  color:var(--dark);
+  font-size:14px;
+  font-weight:900;
+}
+
+.free-beer-category-folder > summary span {
+  min-width:28px;
+  padding:4px 7px;
+  border-radius:999px;
+  background:var(--gold-soft);
+  color:var(--gold);
+  text-align:center;
+  font-size:9px;
+  font-weight:900;
+}
+
+.free-beer-category-body {
+  padding:8px;
+  border-top:1px solid var(--border);
+  background:white;
+}
+
+.free-beer-category-body .free-beer-product:last-child {
+  margin-bottom:0;
+}
+
 </style>
 </head>
 
@@ -10512,104 +10570,146 @@ function renderFreeBeerProducts() {
           }
 
 
+          const selectedInGroup =
+            products
+              .reduce(
+                (
+                  total,
+                  product
+                ) => {
+
+                  const key =
+                    getFreeBeerProductKey(
+                      product,
+                      product.index
+                    );
+
+
+                  return total +
+                    Number(
+                      freeBeerQuantities[
+                        key
+                      ] ||
+                      0
+                    );
+
+                },
+                0
+              );
+
+
           return `
 
-            <div class="free-beer-product-group">
+            <details class="free-beer-category-folder">
 
-              <div class="free-beer-product-group-title">
+              <summary>
 
-                ${escapeHtml(
-                  group
-                )}
+                <strong>
+                  ${escapeHtml(
+                    group
+                  )}
+                </strong>
 
-              </div>
+                <span>
+                  ${
+                    selectedInGroup > 0
+                      ? selectedInGroup
+                      : products.length
+                  }
+                </span>
 
-
-              ${
-                products
-
-                  .map(
-                    product => {
-
-                      const key =
-                        getFreeBeerProductKey(
-                          product,
-                          product.index
-                        );
+              </summary>
 
 
-                      const qty =
-                        Number(
-                          freeBeerQuantities[
-                            key
-                          ] ||
-                          0
-                        );
+              <div class="free-beer-category-body">
+
+                ${
+                  products
+
+                    .map(
+                      product => {
+
+                        const key =
+                          getFreeBeerProductKey(
+                            product,
+                            product.index
+                          );
 
 
-                      return `
+                        const qty =
+                          Number(
+                            freeBeerQuantities[
+                              key
+                            ] ||
+                            0
+                          );
 
-                        <div class="free-beer-product">
 
-                          <div class="free-beer-product-info">
+                        return `
 
-                            <div class="free-beer-product-name">
+                          <div class="free-beer-product">
 
-                              ${escapeHtml(
-                                product.sku
-                              )}
+                            <div class="free-beer-product-info">
+
+                              <div class="free-beer-product-name">
+
+                                ${escapeHtml(
+                                  product.sku
+                                )}
+
+                              </div>
+
+                              <span class="free-beer-product-sku">
+
+                                ${escapeHtml(
+                                  product.inhoud
+                                )}
+
+                              </span>
 
                             </div>
 
-                            <span class="free-beer-product-sku">
 
-                              ${escapeHtml(
-                                product.inhoud
-                              )}
+                            <div class="free-beer-qty">
 
-                            </span>
-
-                          </div>
-
-
-                          <div class="free-beer-qty">
-
-                            <button
-                              type="button"
-                              onclick="changeFreeBeerQty(${product.index}, -1)"
-                              ${qty <= 0 ? "disabled" : ""}
-                              aria-label="Aantal verminderen"
-                            >
-                              −
-                            </button>
+                              <button
+                                type="button"
+                                onclick="changeFreeBeerQty(${product.index}, -1)"
+                                ${qty <= 0 ? "disabled" : ""}
+                                aria-label="Aantal verminderen"
+                              >
+                                −
+                              </button>
 
 
-                            <span>
-                              ${qty}
-                            </span>
+                              <span>
+                                ${qty}
+                              </span>
 
 
-                            <button
-                              type="button"
-                              onclick="changeFreeBeerQty(${product.index}, 1)"
-                              aria-label="Aantal verhogen"
-                            >
-                              +
-                            </button>
+                              <button
+                                type="button"
+                                onclick="changeFreeBeerQty(${product.index}, 1)"
+                                aria-label="Aantal verhogen"
+                              >
+                                +
+                              </button>
+
+                            </div>
 
                           </div>
 
-                        </div>
+                        `;
 
-                      `;
+                      }
+                    )
 
-                    }
-                  )
+                    .join("")
+                }
 
-                  .join("")
-              }
+              </div>
 
-            </div>
+            </details>
 
           `;
 
