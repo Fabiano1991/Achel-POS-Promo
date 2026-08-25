@@ -10523,6 +10523,21 @@ function renderFreeBeerProducts() {
   }
 
 
+  const openGroups =
+    [
+      ...container.querySelectorAll(
+        ".free-beer-category-folder[open]"
+      )
+    ]
+      .map(
+        folder =>
+          folder.dataset.group
+      )
+      .filter(
+        Boolean
+      );
+
+
   const groups =
 
     [
@@ -10600,7 +10615,11 @@ function renderFreeBeerProducts() {
 
           return `
 
-            <details class="free-beer-category-folder">
+            <details
+              class="free-beer-category-folder"
+              data-group="${escapeHtml(group)}"
+              ${openGroups.includes(group) ? "open" : ""}
+            >
 
               <summary>
 
