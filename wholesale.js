@@ -3080,6 +3080,17 @@ async function submitWholesaleOrder() {
   }
 
 
+  if (
+    typeof myOrdersLoaded !==
+    "undefined"
+  ) {
+
+    myOrdersLoaded.wholesale =
+      false;
+
+  }
+
+
   const orderReference =
     createWholesaleReference(
       orderId
