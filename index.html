@@ -1176,6 +1176,131 @@ textarea {
 }
 
 
+
+/* ============================================================
+   MIJN AANVRAGEN - CATEGORIE MAPPEN
+============================================================ */
+
+.my-orders-intro {
+  margin-bottom:10px;
+}
+
+.my-orders-intro p {
+  margin:4px 0 0;
+  color:var(--muted);
+  font-size:12px;
+  line-height:1.45;
+}
+
+.my-orders-folder {
+  margin-bottom:8px;
+  border:1px solid var(--border);
+  border-radius:14px;
+  background:white;
+  overflow:hidden;
+  box-shadow:var(--shadow);
+}
+
+.my-orders-folder > summary {
+  list-style:none;
+  display:grid;
+  grid-template-columns:1fr auto;
+  align-items:center;
+  gap:10px;
+  min-height:62px;
+  padding:11px 13px;
+  cursor:pointer;
+}
+
+.my-orders-folder > summary::-webkit-details-marker {
+  display:none;
+}
+
+.my-orders-folder > summary span {
+  display:block;
+  color:var(--gold);
+  font-size:9px;
+  font-weight:900;
+  letter-spacing:.05em;
+  text-transform:uppercase;
+}
+
+.my-orders-folder > summary strong {
+  display:block;
+  margin-top:2px;
+  color:var(--dark);
+  font-size:14px;
+}
+
+.my-orders-folder > summary b {
+  min-width:31px;
+  padding:4px 7px;
+  border-radius:999px;
+  background:var(--gold-soft);
+  color:var(--gold);
+  text-align:center;
+  font-size:10px;
+}
+
+.my-orders-folder-body {
+  padding:7px;
+  border-top:1px solid var(--border);
+  background:var(--surface-soft);
+}
+
+.my-orders-folder-loading {
+  padding:18px 8px;
+  text-align:center;
+  color:var(--muted);
+  font-size:12px;
+}
+
+.my-orders-wholesale-card,
+.my-orders-freebeer-card {
+  margin-bottom:7px;
+  padding:11px;
+  border:1px solid var(--border);
+  border-radius:12px;
+  background:white;
+}
+
+.my-orders-wholesale-card > div:first-child,
+.my-orders-freebeer-card > div:first-child {
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:8px;
+}
+
+.my-orders-wholesale-card strong,
+.my-orders-freebeer-card strong {
+  color:var(--dark);
+}
+
+.my-orders-wholesale-card small,
+.my-orders-freebeer-card small {
+  display:block;
+  margin-top:3px;
+  color:var(--muted);
+  font-size:9px;
+  line-height:1.4;
+}
+
+.my-orders-products {
+  margin-top:8px;
+  padding-top:7px;
+  border-top:1px solid #eeeeee;
+  font-size:11px;
+  line-height:1.55;
+}
+
+.my-orders-freebeer-date {
+  color:var(--gold);
+  font-size:9px;
+  font-weight:900;
+}
+
+
 /* ===============================
    STATUS
 ================================ */
@@ -3276,28 +3401,189 @@ Nieuwe aanvraag
   type="button"
   onclick="goHome()"
 >
-
 ← Terug
-
 </button>
 
 
-<div class="card">
+<div class="card my-orders-intro">
 
 <h2>
 Mijn aanvragen
 </h2>
 
+<p>
+Open een categorie om je aanvragen en registraties te bekijken.
+</p>
 
-<div id="ordersList">
+</div>
+
+
+<details
+  id="myOrdersFolderPos"
+  class="my-orders-folder"
+  ontoggle="handleMyOrdersFolder('pos', this.open)"
+>
+
+<summary>
+
+<div>
+
+<span>
+AANVRAGEN
+</span>
+
+<strong>
+POS / promo aanvragen
+</strong>
+
+</div>
+
+<b id="myOrdersPosCount">
+—
+</b>
+
+</summary>
+
+
+<div class="my-orders-folder-body">
+
+<div id="myOrdersPosList">
 
 <div class="empty">
-Aanvragen laden...
+Open deze map om je POS / promo aanvragen te laden.
 </div>
 
 </div>
 
 </div>
+
+</details>
+
+
+<details
+  id="myOrdersFolderWholesale"
+  class="my-orders-folder"
+  ontoggle="handleMyOrdersFolder('wholesale', this.open)"
+>
+
+<summary>
+
+<div>
+
+<span>
+BESTELLINGEN
+</span>
+
+<strong>
+Groothandel bestellingen
+</strong>
+
+</div>
+
+<b id="myOrdersWholesaleCount">
+—
+</b>
+
+</summary>
+
+
+<div class="my-orders-folder-body">
+
+<div id="myOrdersWholesaleList">
+
+<div class="empty">
+Open deze map om je groothandelbestellingen te laden.
+</div>
+
+</div>
+
+</div>
+
+</details>
+
+
+<details
+  id="myOrdersFolderEvents"
+  class="my-orders-folder"
+  ontoggle="handleMyOrdersFolder('events', this.open)"
+>
+
+<summary>
+
+<div>
+
+<span>
+AANVRAGEN
+</span>
+
+<strong>
+Evenement aanvragen
+</strong>
+
+</div>
+
+<b id="myOrdersEventsCount">
+—
+</b>
+
+</summary>
+
+
+<div class="my-orders-folder-body">
+
+<div id="myOrdersEventsList">
+
+<div class="empty">
+Open deze map om je evenementaanvragen te laden.
+</div>
+
+</div>
+
+</div>
+
+</details>
+
+
+<details
+  id="myOrdersFolderFreeBeer"
+  class="my-orders-folder"
+  ontoggle="handleMyOrdersFolder('freebeer', this.open)"
+>
+
+<summary>
+
+<div>
+
+<span>
+REGISTRATIES
+</span>
+
+<strong>
+Gratis bier factuur enkel leeggoed
+</strong>
+
+</div>
+
+<b id="myOrdersFreeBeerCount">
+—
+</b>
+
+</summary>
+
+
+<div class="my-orders-folder-body">
+
+<div id="myOrdersFreeBeerList">
+
+<div class="empty">
+Open deze map om je registraties te laden.
+</div>
+
+</div>
+
+</div>
+
+</details>
 
 </section>
 
@@ -6922,6 +7208,10 @@ async function submitOrder() {
   }
 
 
+  myOrdersLoaded.pos =
+    false;
+
+
   const orderReference =
     createOrderReference(
       order.id,
@@ -9644,6 +9934,10 @@ async function submitEventOrder() {
   }
 
 
+  myOrdersLoaded.events =
+    false;
+
+
   const orderReference =
     createOrderReference(
       order.id,
@@ -10787,6 +11081,10 @@ async function submitFreeBeerRegistration() {
   }
 
 
+  myOrdersLoaded.freebeer =
+    false;
+
+
   showOnly(
     "freeBeerSuccessScreen"
   );
@@ -10795,37 +11093,183 @@ async function submitFreeBeerRegistration() {
 
 
 
-/* ===============================
-   MY ORDERS
-================================ */
+/* ============================================================
+   MIJN AANVRAGEN
+   CATEGORIEËN + LAZY LOAD
+============================================================ */
+
+const myOrdersLoaded = {
+
+  pos:
+    false,
+
+  wholesale:
+    false,
+
+  events:
+    false,
+
+  freebeer:
+    false
+
+};
+
 
 async function openOrders() {
+
+  closeMenu();
+
 
   showOnly(
     "ordersScreen"
   );
 
 
-  await renderOrders();
+  resetMyOrdersFolders();
 
 }
 
 
-async function renderOrders() {
+/* ===============================
+   MAPPEN RESETTEN
+================================ */
+
+function resetMyOrdersFolders() {
+
+  [
+    "myOrdersFolderPos",
+    "myOrdersFolderWholesale",
+    "myOrdersFolderEvents",
+    "myOrdersFolderFreeBeer"
+  ]
+    .forEach(
+      id => {
+
+        const folder =
+          document.getElementById(
+            id
+          );
+
+
+        if (
+          folder
+        ) {
+
+          folder.open =
+            false;
+
+        }
+
+      }
+    );
+
+}
+
+
+/* ===============================
+   MAP OPENEN
+================================ */
+
+async function handleMyOrdersFolder(
+  category,
+  open
+) {
+
+  if (
+    !open
+  ) {
+
+    return;
+
+  }
+
+
+  if (
+    category ===
+    "pos"
+  ) {
+
+    await loadMyPosOrders();
+
+    return;
+
+  }
+
+
+  if (
+    category ===
+    "wholesale"
+  ) {
+
+    await loadMyWholesaleOrders();
+
+    return;
+
+  }
+
+
+  if (
+    category ===
+    "events"
+  ) {
+
+    await loadMyEventOrders();
+
+    return;
+
+  }
+
+
+  if (
+    category ===
+    "freebeer"
+  ) {
+
+    await loadMyFreeBeerRegistrations();
+
+  }
+
+}
+
+
+/* ===============================
+   POS / PROMO
+================================ */
+
+async function loadMyPosOrders(
+  force = false
+) {
+
+  if (
+    myOrdersLoaded.pos
+    &&
+    !force
+  ) {
+
+    return;
+
+  }
+
 
   const container =
-    document
-      .getElementById(
-        "ordersList"
-      );
+    document.getElementById(
+      "myOrdersPosList"
+    );
+
+
+  if (
+    !container
+  ) {
+
+    return;
+
+  }
 
 
   container.innerHTML = `
 
-    <div class="empty">
-
-      Aanvragen laden...
-
+    <div class="my-orders-folder-loading">
+      POS / promo aanvragen laden...
     </div>
 
   `;
@@ -10845,6 +11289,11 @@ async function renderOrders() {
         "id, referentie, land, gemeente, afhaaldatum, opmerking, status, event_naam, event_vanaf, event_tot, created_at"
       )
 
+      .is(
+        "event_naam",
+        null
+      )
+
       .order(
         "created_at",
         {
@@ -10862,7 +11311,7 @@ async function renderOrders() {
 
       <div class="info error">
 
-        Aanvragen konden niet worden geladen:
+        POS / promo aanvragen konden niet worden geladen:
 
         ${escapeHtml(
           orderError.message
@@ -10878,15 +11327,123 @@ async function renderOrders() {
   }
 
 
+  const orderRows =
+    orders ||
+    [];
+
+
+  const items =
+    await loadMyOrderItems(
+      orderRows
+    );
+
+
+  renderMyStandardOrders(
+    container,
+    orderRows,
+    items,
+    false,
+    "Nog geen POS / promo aanvragen."
+  );
+
+
+  setMyOrdersCount(
+    "myOrdersPosCount",
+    orderRows.length
+  );
+
+
+  myOrdersLoaded.pos =
+    true;
+
+}
+
+
+/* ===============================
+   EVENEMENTEN
+================================ */
+
+async function loadMyEventOrders(
+  force = false
+) {
+
   if (
-    !orders?.length
+    myOrdersLoaded.events
+    &&
+    !force
+  ) {
+
+    return;
+
+  }
+
+
+  const container =
+    document.getElementById(
+      "myOrdersEventsList"
+    );
+
+
+  if (
+    !container
+  ) {
+
+    return;
+
+  }
+
+
+  container.innerHTML = `
+
+    <div class="my-orders-folder-loading">
+      Evenementaanvragen laden...
+    </div>
+
+  `;
+
+
+  const {
+    data: orders,
+    error: orderError
+  } =
+    await supabaseClient
+
+      .from(
+        "orders"
+      )
+
+      .select(
+        "id, referentie, land, gemeente, afhaaldatum, opmerking, status, event_naam, event_vanaf, event_tot, event_returned_at, created_at"
+      )
+
+      .not(
+        "event_naam",
+        "is",
+        null
+      )
+
+      .order(
+        "created_at",
+        {
+          ascending:
+            false
+        }
+      );
+
+
+  if (
+    orderError
   ) {
 
     container.innerHTML = `
 
-      <div class="empty">
+      <div class="info error">
 
-        Nog geen aanvragen.
+        Evenementaanvragen konden niet worden geladen:
+
+        ${escapeHtml(
+          orderError.message
+        )}
 
       </div>
 
@@ -10894,6 +11451,55 @@ async function renderOrders() {
 
 
     return;
+
+  }
+
+
+  const orderRows =
+    orders ||
+    [];
+
+
+  const items =
+    await loadMyOrderItems(
+      orderRows
+    );
+
+
+  renderMyStandardOrders(
+    container,
+    orderRows,
+    items,
+    true,
+    "Nog geen evenementaanvragen."
+  );
+
+
+  setMyOrdersCount(
+    "myOrdersEventsCount",
+    orderRows.length
+  );
+
+
+  myOrdersLoaded.events =
+    true;
+
+}
+
+
+/* ===============================
+   ORDER ITEMS HELP
+================================ */
+
+async function loadMyOrderItems(
+  orders
+) {
+
+  if (
+    !orders.length
+  ) {
+
+    return {};
 
   }
 
@@ -10907,8 +11513,8 @@ async function renderOrders() {
 
 
   const {
-    data: items,
-    error: itemsError
+    data,
+    error
   } =
     await supabaseClient
 
@@ -10927,25 +11533,10 @@ async function renderOrders() {
 
 
   if (
-    itemsError
+    error
   ) {
 
-    container.innerHTML = `
-
-      <div class="info error">
-
-        Artikelen konden niet worden geladen:
-
-        ${escapeHtml(
-          itemsError.message
-        )}
-
-      </div>
-
-    `;
-
-
-    return;
+    throw error;
 
   }
 
@@ -10955,7 +11546,7 @@ async function renderOrders() {
 
 
   (
-    items ||
+    data ||
     []
   )
     .forEach(
@@ -10986,6 +11577,45 @@ async function renderOrders() {
     );
 
 
+  return byOrder;
+
+}
+
+
+/* ===============================
+   POS / EVENT RENDER
+================================ */
+
+function renderMyStandardOrders(
+  container,
+  orders,
+  itemsByOrder,
+  isEvent,
+  emptyText
+) {
+
+  if (
+    !orders.length
+  ) {
+
+    container.innerHTML = `
+
+      <div class="empty">
+
+        ${escapeHtml(
+          emptyText
+        )}
+
+      </div>
+
+    `;
+
+
+    return;
+
+  }
+
+
   container.innerHTML =
 
     orders
@@ -10994,7 +11624,7 @@ async function renderOrders() {
         order => {
 
           const orderItems =
-            byOrder[
+            itemsByOrder[
               order.id
             ] ||
             [];
@@ -11002,16 +11632,23 @@ async function renderOrders() {
 
           const title =
 
-            order.event_naam ||
+            isEvent
 
-            order.referentie ||
+              ? (
+                  order.event_naam ||
+                  order.referentie ||
+                  "Evenement"
+                )
 
-            "Geen referentie";
+              : (
+                  order.referentie ||
+                  "Geen referentie"
+                );
 
 
-          const location =
+          const meta =
 
-            order.event_naam
+            isEvent
 
               ? `${order.event_vanaf || ""} t/m ${order.event_tot || ""}`
 
@@ -11059,16 +11696,24 @@ async function renderOrders() {
               <div class="order-meta">
 
                 ${
-                  order.event_naam
-
+                  isEvent
                     ? "Evenement · "
-
                     : ""
                 }
 
                 ${escapeHtml(
-                  location
+                  meta
                 )}
+
+                ${
+                  isEvent
+                  &&
+                  order.event_returned_at
+
+                    ? " · Retour afgehandeld"
+
+                    : ""
+                }
 
               </div>
 
@@ -11082,7 +11727,7 @@ async function renderOrders() {
 
                         .map(
                           item =>
-                            `${item.aantal} × ${escapeHtml(item.product_naam)}`
+                            `${Number(item.aantal || 0)} × ${escapeHtml(item.product_naam)}`
                         )
 
                         .join(
@@ -11125,6 +11770,776 @@ async function renderOrders() {
       .join("");
 
 }
+
+
+/* ===============================
+   GROOTHANDEL
+================================ */
+
+async function loadMyWholesaleOrders(
+  force = false
+) {
+
+  if (
+    myOrdersLoaded.wholesale
+    &&
+    !force
+  ) {
+
+    return;
+
+  }
+
+
+  const container =
+    document.getElementById(
+      "myOrdersWholesaleList"
+    );
+
+
+  if (
+    !container
+  ) {
+
+    return;
+
+  }
+
+
+  container.innerHTML = `
+
+    <div class="my-orders-folder-loading">
+      Groothandelbestellingen laden...
+    </div>
+
+  `;
+
+
+  const {
+    data: orders,
+    error: orderError
+  } =
+    await supabaseClient
+
+      .from(
+        "wholesale_orders"
+      )
+
+      .select(
+        "id, referentie, drankenhandel, opmerking, status, created_at"
+      )
+
+      .order(
+        "created_at",
+        {
+          ascending:
+            false
+        }
+      );
+
+
+  if (
+    orderError
+  ) {
+
+    container.innerHTML = `
+
+      <div class="info error">
+
+        Groothandelbestellingen konden niet worden geladen:
+
+        ${escapeHtml(
+          orderError.message
+        )}
+
+      </div>
+
+    `;
+
+
+    return;
+
+  }
+
+
+  const orderRows =
+    orders ||
+    [];
+
+
+  let itemsByOrder =
+    {};
+
+
+  if (
+    orderRows.length
+  ) {
+
+    const {
+      data: items,
+      error: itemsError
+    } =
+      await supabaseClient
+
+        .from(
+          "wholesale_order_items"
+        )
+
+        .select(
+          "wholesale_order_id, product_naam, eenheid, betaald_aantal, actie, gratis_aantal, totaal_aantal"
+        )
+
+        .in(
+          "wholesale_order_id",
+          orderRows.map(
+            order =>
+              order.id
+          )
+        );
+
+
+    if (
+      itemsError
+    ) {
+
+      container.innerHTML = `
+
+        <div class="info error">
+
+          Producten van groothandelbestellingen konden niet worden geladen:
+
+          ${escapeHtml(
+            itemsError.message
+          )}
+
+        </div>
+
+      `;
+
+
+      return;
+
+    }
+
+
+    (
+      items ||
+      []
+    )
+      .forEach(
+        item => {
+
+          if (
+            !itemsByOrder[
+              item.wholesale_order_id
+            ]
+          ) {
+
+            itemsByOrder[
+              item.wholesale_order_id
+            ] =
+              [];
+
+          }
+
+
+          itemsByOrder[
+            item.wholesale_order_id
+          ]
+            .push(
+              item
+            );
+
+        }
+      );
+
+  }
+
+
+  if (
+    !orderRows.length
+  ) {
+
+    container.innerHTML = `
+
+      <div class="empty">
+        Nog geen groothandelbestellingen.
+      </div>
+
+    `;
+
+  }
+
+  else {
+
+    container.innerHTML =
+
+      orderRows
+        .map(
+          order => {
+
+            const items =
+              itemsByOrder[
+                order.id
+              ] ||
+              [];
+
+
+            return `
+
+              <div class="my-orders-wholesale-card">
+
+                <div>
+
+                  <div>
+
+                    <strong>
+                      ${escapeHtml(
+                        order.referentie ||
+                        "Geen referentie"
+                      )}
+                    </strong>
+
+                    <small>
+
+                      ${escapeHtml(
+                        order.drankenhandel ||
+                        "Geen drankenhandel"
+                      )}
+
+                      ·
+
+                      ${formatMyOrdersDate(
+                        order.created_at
+                      )}
+
+                    </small>
+
+                  </div>
+
+
+                  <span
+                    class="status ${statusClass(order.status)}"
+                  >
+
+                    ${formatStatus(
+                      order.status
+                    )}
+
+                  </span>
+
+                </div>
+
+
+                <div class="my-orders-products">
+
+                  ${
+                    items.length
+
+                      ? items
+
+                          .map(
+                            item => {
+
+                              const total =
+                                Number(
+                                  item.totaal_aantal ||
+                                  item.betaald_aantal ||
+                                  0
+                                );
+
+
+                              const free =
+                                Number(
+                                  item.gratis_aantal ||
+                                  0
+                                );
+
+
+                              return `
+
+                                ${total} × ${escapeHtml(item.product_naam || "")}
+
+                                ${
+                                  free > 0
+                                    ? ` · ${free} gratis`
+                                    : ""
+                                }
+
+                              `;
+
+                            }
+                          )
+
+                          .join(
+                            "<br>"
+                          )
+
+                      : "Geen bestelregels gevonden"
+                  }
+
+                </div>
+
+
+                ${
+                  order.opmerking
+
+                    ? `
+
+                        <small>
+                          Opmerking: ${escapeHtml(order.opmerking)}
+                        </small>
+
+                      `
+
+                    : ""
+                }
+
+              </div>
+
+            `;
+
+          }
+        )
+
+        .join("");
+
+  }
+
+
+  setMyOrdersCount(
+    "myOrdersWholesaleCount",
+    orderRows.length
+  );
+
+
+  myOrdersLoaded.wholesale =
+    true;
+
+}
+
+
+/* ===============================
+   GRATIS BIER
+================================ */
+
+async function loadMyFreeBeerRegistrations(
+  force = false
+) {
+
+  if (
+    myOrdersLoaded.freebeer
+    &&
+    !force
+  ) {
+
+    return;
+
+  }
+
+
+  const container =
+    document.getElementById(
+      "myOrdersFreeBeerList"
+    );
+
+
+  if (
+    !container
+  ) {
+
+    return;
+
+  }
+
+
+  container.innerHTML = `
+
+    <div class="my-orders-folder-loading">
+      Gratis bier registraties laden...
+    </div>
+
+  `;
+
+
+  const {
+    data,
+    error
+  } =
+    await supabaseClient
+
+      .from(
+        "free_beer_registrations"
+      )
+
+      .select(
+        "id, datum, inhoud, sku, aantal, drankenhandel, horecaklant, provincie, created_at"
+      )
+
+      .order(
+        "datum",
+        {
+          ascending:
+            false
+        }
+      )
+
+      .order(
+        "created_at",
+        {
+          ascending:
+            false
+        }
+      );
+
+
+  if (
+    error
+  ) {
+
+    container.innerHTML = `
+
+      <div class="info error">
+
+        Gratis bier registraties konden niet worden geladen:
+
+        ${escapeHtml(
+          error.message
+        )}
+
+      </div>
+
+    `;
+
+
+    return;
+
+  }
+
+
+  const rows =
+    data ||
+    [];
+
+
+  const groups =
+    groupMyFreeBeerRegistrations(
+      rows
+    );
+
+
+  if (
+    !groups.length
+  ) {
+
+    container.innerHTML = `
+
+      <div class="empty">
+        Nog geen gratis bier registraties.
+      </div>
+
+    `;
+
+  }
+
+  else {
+
+    container.innerHTML =
+
+      groups
+        .map(
+          group => {
+
+            const total =
+              group.items
+                .reduce(
+                  (
+                    sum,
+                    item
+                  ) =>
+                    sum +
+                    Number(
+                      item.aantal ||
+                      0
+                    ),
+                  0
+                );
+
+
+            return `
+
+              <div class="my-orders-freebeer-card">
+
+                <div>
+
+                  <div>
+
+                    <div class="my-orders-freebeer-date">
+
+                      ${formatMyOrdersDate(
+                        group.datum
+                      )}
+
+                    </div>
+
+                    <strong>
+
+                      ${escapeHtml(
+                        group.horecaklant ||
+                        "Geen horecaklant"
+                      )}
+
+                    </strong>
+
+                    <small>
+
+                      ${escapeHtml(
+                        group.drankenhandel ||
+                        "Geen drankenhandel"
+                      )}
+
+                      ·
+
+                      ${escapeHtml(
+                        group.provincie ||
+                        ""
+                      )}
+
+                    </small>
+
+                  </div>
+
+
+                  <span class="status">
+                    ${total}
+                  </span>
+
+                </div>
+
+
+                <div class="my-orders-products">
+
+                  ${
+                    group.items
+
+                      .map(
+                        item =>
+                          `${Number(item.aantal || 0)} × ${escapeHtml(item.sku || "")}`
+                      )
+
+                      .join(
+                        "<br>"
+                      )
+                  }
+
+                </div>
+
+              </div>
+
+            `;
+
+          }
+        )
+
+        .join("");
+
+  }
+
+
+  setMyOrdersCount(
+    "myOrdersFreeBeerCount",
+    groups.length
+  );
+
+
+  myOrdersLoaded.freebeer =
+    true;
+
+}
+
+
+/* ===============================
+   GRATIS BIER GROEPEREN
+================================ */
+
+function groupMyFreeBeerRegistrations(
+  rows
+) {
+
+  const groups =
+    new Map();
+
+
+  rows
+    .forEach(
+      row => {
+
+        const key =
+          [
+
+            row.datum ||
+            "",
+
+            row.drankenhandel ||
+            "",
+
+            row.horecaklant ||
+            "",
+
+            row.provincie ||
+            ""
+
+          ]
+            .join(
+              "||"
+            );
+
+
+        if (
+          !groups.has(
+            key
+          )
+        ) {
+
+          groups.set(
+            key,
+            {
+
+              datum:
+                row.datum,
+
+              drankenhandel:
+                row.drankenhandel,
+
+              horecaklant:
+                row.horecaklant,
+
+              provincie:
+                row.provincie,
+
+              items:
+                []
+
+            }
+          );
+
+        }
+
+
+        groups
+          .get(
+            key
+          )
+          .items
+          .push(
+            row
+          );
+
+      }
+    );
+
+
+  return [
+    ...groups.values()
+  ];
+
+}
+
+
+/* ===============================
+   MIJN AANVRAGEN HELPERS
+================================ */
+
+function setMyOrdersCount(
+  id,
+  value
+) {
+
+  const element =
+    document.getElementById(
+      id
+    );
+
+
+  if (
+    element
+  ) {
+
+    element.textContent =
+      Number(
+        value ||
+        0
+      );
+
+  }
+
+}
+
+
+function formatMyOrdersDate(
+  value
+) {
+
+  if (
+    !value
+  ) {
+
+    return "";
+
+  }
+
+
+  const date =
+
+    /^\d{4}-\d{2}-\d{2}$/
+      .test(
+        String(
+          value
+        )
+      )
+
+      ? new Date(
+          `${value}T00:00:00`
+        )
+
+      : new Date(
+          value
+        );
+
+
+  if (
+    Number.isNaN(
+      date.getTime()
+    )
+  ) {
+
+    return String(
+      value
+    );
+
+  }
+
+
+  return date
+    .toLocaleDateString(
+      "nl-BE",
+      {
+
+        day:
+          "2-digit",
+
+        month:
+          "short",
+
+        year:
+          "numeric"
+
+      }
+    );
+
+}
+
+
 
 
 /* ===============================
