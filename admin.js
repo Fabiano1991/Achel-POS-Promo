@@ -251,16 +251,6 @@ function createAdminScreen() {
         Voorraad
       </button>
 
-
-      <button
-        id="adminTab-freebeer"
-        onclick="switchAdminTab('freebeer')"
-        type="button"
-      >
-        Gratis bier factuur enkel leeggoed
-      </button>
-
-
       <button
         id="adminTab-reports"
         onclick="switchAdminTab('reports')"
@@ -419,15 +409,6 @@ function createAdminScreen() {
         >
           Evenementen
         </button>
-
-        <button
-          id="adminRequestView-archive"
-          type="button"
-          onclick="setAdminRequestView('archive')"
-        >
-          Archief
-        </button>
-
       </div>
 
 
@@ -536,23 +517,6 @@ function createAdminScreen() {
 
       </div>
 
-
-      <div
-        id="adminRequestPane-archive"
-        class="hidden"
-      >
-
-        ${adminPanelHtml(
-          "Archief",
-          "adminArchiveCount",
-          "adminArchiveList",
-          "grey",
-          true,
-          "adminArchivePanel"
-        )}
-
-      </div>
-
     </div>
 
 
@@ -634,21 +598,6 @@ function createAdminScreen() {
 
       </div>
 
-
-      <div class="admin-block">
-
-        <div class="admin-block-title">
-
-          <strong>
-            Retourarchief
-          </strong>
-
-        </div>
-
-        <div id="adminReturnArchiveList"></div>
-
-      </div>
-
     </div>
 
 
@@ -715,90 +664,53 @@ function createAdminScreen() {
     </div>
 
 
-    <!-- GRATIS BIER -->
+    <!-- RAPPORTEN -->
 
     <div
-      id="adminPane-freebeer"
+      id="adminPane-reports"
       class="admin-pane hidden"
     >
 
       <div class="admin-page-title">
 
         <span>
-          COMMERCIEEL
+          ARCHIEF & ANALYSE
         </span>
 
         <strong>
-          Gratis bier
+          Rapporten
         </strong>
 
       </div>
 
 
-      <div
-        id="adminFreeBeerLoading"
-        class="admin-freebeer-loading hidden"
-      >
-        Gratis bier laden...
-      </div>
+      <div class="admin-report-central-filters">
 
-
-      <div class="admin-freebeer-kpis">
-
-        <div>
-
-          <span>
-            Eenheden
-          </span>
-
-          <strong id="adminFreeBeerUnits">
-            0
-          </strong>
-
-        </div>
-
-
-        <div>
-
-          <span>
-            Registraties
-          </span>
-
-          <strong id="adminFreeBeerRegistrationsCount">
-            0
-          </strong>
-
-        </div>
-
-
-        <div>
-
-          <span>
-            Klanten
-          </span>
-
-          <strong id="adminFreeBeerCustomersCount">
-            0
-          </strong>
-
-        </div>
-
-      </div>
-
-
-      <div class="admin-freebeer-filter-card">
-
-        <div class="admin-freebeer-filter-grid">
+        <div class="admin-report-grid">
 
           <div>
 
-            <label for="adminFreeBeerMonth">
+            <label for="reportYear">
+              Jaar
+            </label>
+
+            <select
+              id="reportYear"
+              onchange="renderCentralReports()"
+            ></select>
+
+          </div>
+
+
+          <div>
+
+            <label for="reportMonth">
               Maand
             </label>
 
             <select
-              id="adminFreeBeerMonth"
-              onchange="renderAdminFreeBeer()"
+              id="reportMonth"
+              onchange="renderCentralReports()"
             >
 
               <option value="">
@@ -822,150 +734,16 @@ function createAdminScreen() {
 
           </div>
 
-
-          <div>
-
-            <label for="adminFreeBeerYear">
-              Jaar
-            </label>
-
-            <select
-              id="adminFreeBeerYear"
-              onchange="renderAdminFreeBeer()"
-            ></select>
-
-          </div>
-
         </div>
 
 
-        <label for="adminFreeBeerRepFilter">
-          Vertegenwoordiger
-        </label>
-
-        <select
-          id="adminFreeBeerRepFilter"
-          onchange="renderAdminFreeBeer()"
-        >
-
-          <option value="">
-            Alle vertegenwoordigers
-          </option>
-
-        </select>
-
-
-        <label for="adminFreeBeerProvinceFilter">
-          Provincie
-        </label>
-
-        <select
-          id="adminFreeBeerProvinceFilter"
-          onchange="renderAdminFreeBeer()"
-        >
-
-          <option value="">
-            Alle provincies
-          </option>
-
-        </select>
-
-
-        <label for="adminFreeBeerProductFilter">
-          Product
-        </label>
-
-        <select
-          id="adminFreeBeerProductFilter"
-          onchange="renderAdminFreeBeer()"
-        >
-
-          <option value="">
-            Alle producten
-          </option>
-
-        </select>
-
-
-        <label for="adminFreeBeerSearch">
-          Zoeken
-        </label>
-
-        <input
-          id="adminFreeBeerSearch"
-          type="text"
-          placeholder="Horecaklant of drankenhandel..."
-          oninput="renderAdminFreeBeer()"
-        >
-
-      </div>
-
-
-      <div class="admin-block">
-
-        <div class="admin-block-title">
-
-          <span>
-            REGISTRATIES
-          </span>
-
-          <strong>
-            Overzicht
-          </strong>
-
-        </div>
-
-        <div id="adminFreeBeerList">
-
-          <div class="empty">
-            Open de map om gegevens te laden.
-          </div>
-
-        </div>
-
-      </div>
-
-
-      <button
-        class="admin-export"
-        type="button"
-        onclick="exportAdminFreeBeerExcel()"
-      >
-        Excel gratis bier downloaden
-      </button>
-
-    </div>
-
-
-    <!-- RAPPORTEN -->
-
-    <div
-      id="adminPane-reports"
-      class="admin-pane hidden"
-    >
-
-      <div class="admin-page-title">
-
-        <span>
-          ANALYSE
-        </span>
-
-        <strong>
-          Rapportage
-        </strong>
-
-      </div>
-
-
-      <div class="admin-report-card">
-
-        <label>
+        <label for="reportRepresentative">
           Vertegenwoordiger
         </label>
 
         <select
           id="reportRepresentative"
-          onchange="updateAdminReport()"
+          onchange="renderCentralReports()"
         >
 
           <option value="">
@@ -974,163 +752,321 @@ function createAdminScreen() {
 
         </select>
 
-
-        <label>
-          Type aanvraag
-        </label>
-
-        <select
-          id="reportRequestType"
-          onchange="updateAdminReport()"
-        >
-          <option value="all">
-            Alles
-          </option>
-
-          <option value="regular">
-            POS & bier
-          </option>
-
-          <option value="event">
-            Evenement
-          </option>
-
-          <option value="wholesale">
-            Groothandel
-          </option>
-        </select>
-
-
-        <div class="admin-report-grid">
-
-          <div>
-
-            <label>
-              Periode
-            </label>
-
-            <select
-              id="reportPeriodType"
-              onchange="toggleReportPeriod()"
-            >
-
-              <option value="month">
-                Per maand
-              </option>
-
-              <option value="year">
-                Per jaar
-              </option>
-
-            </select>
-
-          </div>
-
-          <div id="reportMonthBox">
-
-            <label>
-              Maand
-            </label>
-
-            <select
-              id="reportMonth"
-              onchange="updateAdminReport()"
-            >
-              <option value="1">Januari</option>
-              <option value="2">Februari</option>
-              <option value="3">Maart</option>
-              <option value="4">April</option>
-              <option value="5">Mei</option>
-              <option value="6">Juni</option>
-              <option value="7">Juli</option>
-              <option value="8">Augustus</option>
-              <option value="9">September</option>
-              <option value="10">Oktober</option>
-              <option value="11">November</option>
-              <option value="12">December</option>
-            </select>
-
-          </div>
-
-        </div>
-
-
-        <label>
-          Jaar
-        </label>
-
-        <select
-          id="reportYear"
-          onchange="updateAdminReport()"
-        ></select>
-
-
-        <div
-          id="adminReportSummary"
-          class="admin-report-summary"
-        ></div>
-
-
-        <div class="admin-chart">
-          <canvas id="adminMaterialsChart"></canvas>
-        </div>
-
-
-        <button
-          class="admin-export"
-          type="button"
-          onclick="exportAdminReportExcel()"
-        >
-          Excel downloaden
-        </button>
-
       </div>
 
 
-      <div class="admin-block">
+      <!-- GROOTHANDEL -->
 
-        <div class="admin-block-title">
+      <details
+        id="reportFolderWholesale"
+        class="admin-report-folder"
+        ontoggle="handleCentralReportFolder('wholesale', this.open)"
+      >
 
-          <span>
-            GROOTHANDEL
-          </span>
+        <summary>
 
-          <strong>
-            Bestellingen groothandel
-          </strong>
-
-        </div>
-
-        <div class="admin-report-card">
-
-          <div class="admin-wholesale-report-head">
+          <div>
 
             <span>
-              Historiek
+              ARCHIEF
             </span>
 
-            <strong id="adminWholesaleCount">
-              0
+            <strong>
+              Bestellingen groothandel
             </strong>
 
           </div>
 
-          <div id="adminWholesaleOrdersList"></div>
+          <b id="centralWholesaleCount">
+            0
+          </b>
+
+        </summary>
+
+
+        <div class="admin-report-folder-body">
+
+          <div id="centralWholesaleList">
+
+            <div class="empty">
+              Open deze map om het archief te bekijken.
+            </div>
+
+          </div>
 
 
           <button
             class="admin-export"
             type="button"
-            onclick="exportWholesaleReportExcel()"
+            onclick="exportCentralWholesaleExcel()"
           >
             Excel groothandel downloaden
           </button>
 
         </div>
 
-      </div>
+      </details>
+
+
+      <!-- GRATIS BIER -->
+
+      <details
+        id="reportFolderFreeBeer"
+        class="admin-report-folder"
+        ontoggle="handleCentralReportFolder('freebeer', this.open)"
+      >
+
+        <summary>
+
+          <div>
+
+            <span>
+              ARCHIEF
+            </span>
+
+            <strong>
+              Gratis bier factuur enkel leeggoed
+            </strong>
+
+          </div>
+
+          <b id="centralFreeBeerCount">
+            0
+          </b>
+
+        </summary>
+
+
+        <div class="admin-report-folder-body">
+
+          <div
+            id="adminFreeBeerLoading"
+            class="admin-freebeer-loading hidden"
+          >
+            Gratis bier laden...
+          </div>
+
+
+          <div class="admin-freebeer-kpis">
+
+            <div>
+
+              <span>
+                Eenheden
+              </span>
+
+              <strong id="adminFreeBeerUnits">
+                0
+              </strong>
+
+            </div>
+
+
+            <div>
+
+              <span>
+                Registraties
+              </span>
+
+              <strong id="adminFreeBeerRegistrationsCount">
+                0
+              </strong>
+
+            </div>
+
+
+            <div>
+
+              <span>
+                Klanten
+              </span>
+
+              <strong id="adminFreeBeerCustomersCount">
+                0
+              </strong>
+
+            </div>
+
+          </div>
+
+
+          <div class="admin-freebeer-filter-card">
+
+            <label for="adminFreeBeerProvinceFilter">
+              Provincie
+            </label>
+
+            <select
+              id="adminFreeBeerProvinceFilter"
+              onchange="renderAdminFreeBeer(); updateCentralReportCounts()"
+            >
+
+              <option value="">
+                Alle provincies
+              </option>
+
+            </select>
+
+
+            <label for="adminFreeBeerProductFilter">
+              Product
+            </label>
+
+            <select
+              id="adminFreeBeerProductFilter"
+              onchange="renderAdminFreeBeer(); updateCentralReportCounts()"
+            >
+
+              <option value="">
+                Alle producten
+              </option>
+
+            </select>
+
+
+            <label for="adminFreeBeerSearch">
+              Zoeken
+            </label>
+
+            <input
+              id="adminFreeBeerSearch"
+              type="text"
+              placeholder="Horecaklant of drankenhandel..."
+              oninput="renderAdminFreeBeer(); updateCentralReportCounts()"
+            >
+
+          </div>
+
+
+          <div id="adminFreeBeerList">
+
+            <div class="empty">
+              Open deze map om registraties te laden.
+            </div>
+
+          </div>
+
+
+          <button
+            class="admin-export"
+            type="button"
+            onclick="exportAdminFreeBeerExcel()"
+          >
+            Excel gratis bier downloaden
+          </button>
+
+        </div>
+
+      </details>
+
+
+      <!-- POS / PROMO -->
+
+      <details
+        id="reportFolderPos"
+        class="admin-report-folder"
+        ontoggle="handleCentralReportFolder('pos', this.open)"
+      >
+
+        <summary>
+
+          <div>
+
+            <span>
+              ARCHIEF
+            </span>
+
+            <strong>
+              Afgehandelde aanvragen POS / promo
+            </strong>
+
+          </div>
+
+          <b id="centralPosCount">
+            0
+          </b>
+
+        </summary>
+
+
+        <div class="admin-report-folder-body">
+
+          <div id="centralPosArchiveList">
+
+            <div class="empty">
+              Open deze map om het archief te bekijken.
+            </div>
+
+          </div>
+
+
+          <button
+            class="admin-export"
+            type="button"
+            onclick="exportCentralPosExcel()"
+          >
+            Excel POS / promo downloaden
+          </button>
+
+        </div>
+
+      </details>
+
+
+      <!-- EVENEMENTEN -->
+
+      <details
+        id="reportFolderEvents"
+        class="admin-report-folder"
+        ontoggle="handleCentralReportFolder('events', this.open)"
+      >
+
+        <summary>
+
+          <div>
+
+            <span>
+              ARCHIEF
+            </span>
+
+            <strong>
+              Afgehandelde evenementen
+            </strong>
+
+          </div>
+
+          <b id="centralEventsCount">
+            0
+          </b>
+
+        </summary>
+
+
+        <div class="admin-report-folder-body">
+
+          <div id="centralEventArchiveList">
+
+            <div class="empty">
+              Open deze map om het archief te bekijken.
+            </div>
+
+          </div>
+
+
+          <button
+            class="admin-export"
+            type="button"
+            onclick="exportCentralEventsExcel()"
+          >
+            Excel evenementen downloaden
+          </button>
+
+        </div>
+
+      </details>
 
     </div>
+
 
   `;
 
@@ -1704,7 +1640,6 @@ function switchAdminTab(
     "requests",
     "material",
     "stock",
-    "freebeer",
     "reports"
   ]
     .forEach(
@@ -1762,24 +1697,12 @@ function switchAdminTab(
 
 
 
-
-  if (
-    tab ===
-    "freebeer"
-  ) {
-
-    loadAdminFreeBeerData();
-
-  }
-
   if (
     tab ===
     "reports"
   ) {
 
-    updateAdminReport();
-
-    renderAdminWholesaleOrders();
+    renderCentralReports();
 
   }
 
@@ -2384,7 +2307,7 @@ async function loadAdminDashboard() {
 
     renderAdminSections();
 
-    updateAdminReport();
+    renderCentralReports();
 
   }
 
@@ -2426,11 +2349,6 @@ function fillRepresentativeFilters() {
     document
       .getElementById(
         "reportRepresentative"
-      ),
-
-    document
-      .getElementById(
-        "adminFreeBeerRepFilter"
       )
 
   ]
@@ -10599,18 +10517,6 @@ async function loadAdminFreeBeerData(
 
 function fillAdminFreeBeerFilters() {
 
-  const yearSelect =
-    document.getElementById(
-      "adminFreeBeerYear"
-    );
-
-
-  const monthSelect =
-    document.getElementById(
-      "adminFreeBeerMonth"
-    );
-
-
   const provinceSelect =
     document.getElementById(
       "adminFreeBeerProvinceFilter"
@@ -10621,129 +10527,6 @@ function fillAdminFreeBeerFilters() {
     document.getElementById(
       "adminFreeBeerProductFilter"
     );
-
-
-  if (
-    yearSelect
-  ) {
-
-    const oldYear =
-      yearSelect.value;
-
-
-    const years =
-      [
-        ...new Set(
-          adminFreeBeerRegistrations
-            .map(
-              row =>
-                String(
-                  row.datum ||
-                  ""
-                )
-                  .slice(
-                    0,
-                    4
-                  )
-            )
-            .filter(
-              Boolean
-            )
-        )
-      ]
-        .sort(
-          (
-            first,
-            second
-          ) =>
-            Number(
-              second
-            )
-            -
-            Number(
-              first
-            )
-        );
-
-
-    const currentYear =
-      String(
-        new Date()
-          .getFullYear()
-      );
-
-
-    if (
-      !years.includes(
-        currentYear
-      )
-    ) {
-
-      years.unshift(
-        currentYear
-      );
-
-    }
-
-
-    yearSelect.innerHTML =
-      years
-
-        .map(
-          year => `
-
-            <option value="${adminEscapeHtml(year)}">
-              ${adminEscapeHtml(year)}
-            </option>
-
-          `
-        )
-
-        .join("");
-
-
-    if (
-      oldYear
-      &&
-      years.includes(
-        oldYear
-      )
-    ) {
-
-      yearSelect.value =
-        oldYear;
-
-    }
-
-    else {
-
-      yearSelect.value =
-        currentYear;
-
-    }
-
-  }
-
-
-  if (
-    monthSelect
-    &&
-    !monthSelect.dataset.initialized
-  ) {
-
-    monthSelect.value =
-      String(
-        new Date()
-          .getMonth()
-        +
-        1
-      );
-
-
-    monthSelect.dataset.initialized =
-      "1";
-
-  }
 
 
   if (
@@ -10903,7 +10686,7 @@ function getFilteredAdminFreeBeerRows() {
   const year =
     document
       .getElementById(
-        "adminFreeBeerYear"
+        "reportYear"
       )
       ?.value ||
     "";
@@ -10912,7 +10695,7 @@ function getFilteredAdminFreeBeerRows() {
   const month =
     document
       .getElementById(
-        "adminFreeBeerMonth"
+        "reportMonth"
       )
       ?.value ||
     "";
@@ -10921,7 +10704,7 @@ function getFilteredAdminFreeBeerRows() {
   const representative =
     document
       .getElementById(
-        "adminFreeBeerRepFilter"
+        "reportRepresentative"
       )
       ?.value ||
     "";
@@ -11725,7 +11508,7 @@ function exportAdminFreeBeerExcel() {
   const year =
     document
       .getElementById(
-        "adminFreeBeerYear"
+        "reportYear"
       )
       ?.value ||
     "alle";
@@ -11734,7 +11517,7 @@ function exportAdminFreeBeerExcel() {
   const month =
     document
       .getElementById(
-        "adminFreeBeerMonth"
+        "reportMonth"
       )
       ?.value ||
     "alle";
@@ -11779,36 +11562,138 @@ function fillReportYears() {
     select.value;
 
 
-  select.innerHTML =
-    "";
-
-
-  for (
-    let year = current;
-
-    year >=
-    current - 5;
-
-    year--
-  ) {
-
-    select.insertAdjacentHTML(
-
-      "beforeend",
-
-      `<option value="${year}">${year}</option>`
-
+  const years =
+    new Set(
+      [
+        current,
+        current - 1,
+        current - 2,
+        current - 3,
+        current - 4,
+        current - 5
+      ]
     );
 
-  }
+
+  adminOrders
+    .forEach(
+      order => {
+
+        if (
+          order.created_at
+        ) {
+
+          years.add(
+            new Date(
+              order.created_at
+            )
+              .getFullYear()
+          );
+
+        }
+
+      }
+    );
+
+
+  adminWholesaleOrders
+    .forEach(
+      order => {
+
+        if (
+          order.created_at
+        ) {
+
+          years.add(
+            new Date(
+              order.created_at
+            )
+              .getFullYear()
+          );
+
+        }
+
+      }
+    );
+
+
+  adminFreeBeerRegistrations
+    .forEach(
+      row => {
+
+        const year =
+          Number(
+            String(
+              row.datum ||
+              ""
+            )
+              .slice(
+                0,
+                4
+              )
+          );
+
+
+        if (
+          year
+        ) {
+
+          years.add(
+            year
+          );
+
+        }
+
+      }
+    );
+
+
+  select.innerHTML =
+    [
+      ...years
+    ]
+      .filter(
+        Number.isFinite
+      )
+      .sort(
+        (
+          first,
+          second
+        ) =>
+          second -
+          first
+      )
+      .map(
+        year =>
+          `<option value="${year}">${year}</option>`
+      )
+      .join("");
 
 
   if (
     old
+    &&
+    [
+      ...select.options
+    ]
+      .some(
+        option =>
+          option.value ===
+          old
+      )
   ) {
 
     select.value =
       old;
+
+  }
+
+  else {
+
+    select.value =
+      String(
+        current
+      );
 
   }
 
@@ -11830,20 +11715,12 @@ function setCurrentReportMonth() {
 
   if (
     select
-
     &&
-
     !select.dataset.initialized
   ) {
 
     select.value =
-
-      new Date()
-        .getMonth()
-
-      +
-
-      1;
+      "";
 
 
     select.dataset.initialized =
@@ -11884,11 +11761,12 @@ function toggleReportPeriod() {
 }
 
 
-/* ===============================
-   REPORT HELPERS
-================================ */
 
-function getAdminReportFilters() {
+/* ============================================================
+   CENTRAAL RAPPORTEN & ARCHIEF
+============================================================ */
+
+function getCentralReportFilters() {
 
   return {
 
@@ -11900,22 +11778,6 @@ function getAdminReportFilters() {
         ?.value ||
       "",
 
-    requestType:
-      document
-        .getElementById(
-          "reportRequestType"
-        )
-        ?.value ||
-      "all",
-
-    periodType:
-      document
-        .getElementById(
-          "reportPeriodType"
-        )
-        ?.value ||
-      "month",
-
     year:
       Number(
         document
@@ -11926,13 +11788,1050 @@ function getAdminReportFilters() {
       ),
 
     month:
-      Number(
-        document
-          .getElementById(
-            "reportMonth"
+      document
+        .getElementById(
+          "reportMonth"
+        )
+        ?.value ||
+      ""
+
+  };
+
+}
+
+
+function centralReportDateMatches(
+  dateValue,
+  filters
+) {
+
+  if (
+    !dateValue
+  ) {
+
+    return false;
+
+  }
+
+
+  const date =
+    new Date(
+      dateValue
+    );
+
+
+  if (
+    Number.isNaN(
+      date.getTime()
+    )
+  ) {
+
+    return false;
+
+  }
+
+
+  if (
+    filters.year
+    &&
+    date.getFullYear() !==
+    filters.year
+  ) {
+
+    return false;
+
+  }
+
+
+  if (
+    filters.month
+    &&
+    date.getMonth() + 1 !==
+    Number(
+      filters.month
+    )
+  ) {
+
+    return false;
+
+  }
+
+
+  return true;
+
+}
+
+
+function getCentralWholesaleOrders() {
+
+  const filters =
+    getCentralReportFilters();
+
+
+  return adminWholesaleOrders
+    .filter(
+      order => {
+
+        if (
+          filters.representative
+          &&
+          order.user_id !==
+          filters.representative
+        ) {
+
+          return false;
+
+        }
+
+
+        return centralReportDateMatches(
+          order.created_at,
+          filters
+        );
+
+      }
+    );
+
+}
+
+
+function getCentralPosArchiveOrders() {
+
+  const filters =
+    getCentralReportFilters();
+
+
+  return adminOrders
+    .filter(
+      order => {
+
+        if (
+          order.event_naam
+        ) {
+
+          return false;
+
+        }
+
+
+        if (
+          !isArchivedOrder(
+            order
           )
-          ?.value
+        ) {
+
+          return false;
+
+        }
+
+
+        if (
+          filters.representative
+          &&
+          order.user_id !==
+          filters.representative
+        ) {
+
+          return false;
+
+        }
+
+
+        return centralReportDateMatches(
+          order.collected_at ||
+          order.updated_at ||
+          order.created_at,
+          filters
+        );
+
+      }
+    );
+
+}
+
+
+function getCentralEventArchiveOrders() {
+
+  const filters =
+    getCentralReportFilters();
+
+
+  return adminOrders
+    .filter(
+      order => {
+
+        if (
+          !order.event_naam
+        ) {
+
+          return false;
+
+        }
+
+
+        const completed =
+          Boolean(
+            order.event_returned_at
+          )
+          ||
+          order.status ===
+          "geannuleerd";
+
+
+        if (
+          !completed
+        ) {
+
+          return false;
+
+        }
+
+
+        if (
+          filters.representative
+          &&
+          order.user_id !==
+          filters.representative
+        ) {
+
+          return false;
+
+        }
+
+
+        return centralReportDateMatches(
+          order.event_returned_at ||
+          order.updated_at ||
+          order.created_at,
+          filters
+        );
+
+      }
+    );
+
+}
+
+
+function renderCentralReports() {
+
+  updateCentralReportCounts();
+
+
+  const wholesaleFolder =
+    document.getElementById(
+      "reportFolderWholesale"
+    );
+
+
+  if (
+    wholesaleFolder?.open
+  ) {
+
+    renderCentralWholesaleArchive();
+
+  }
+
+
+  const posFolder =
+    document.getElementById(
+      "reportFolderPos"
+    );
+
+
+  if (
+    posFolder?.open
+  ) {
+
+    renderCentralPosArchive();
+
+  }
+
+
+  const eventsFolder =
+    document.getElementById(
+      "reportFolderEvents"
+    );
+
+
+  if (
+    eventsFolder?.open
+  ) {
+
+    renderCentralEventArchive();
+
+  }
+
+
+  const freeBeerFolder =
+    document.getElementById(
+      "reportFolderFreeBeer"
+    );
+
+
+  if (
+    freeBeerFolder?.open
+    &&
+    adminFreeBeerLoaded
+  ) {
+
+    renderAdminFreeBeer();
+
+  }
+
+}
+
+
+async function handleCentralReportFolder(
+  folder,
+  open
+) {
+
+  if (
+    !open
+  ) {
+
+    return;
+
+  }
+
+
+  if (
+    folder ===
+    "wholesale"
+  ) {
+
+    renderCentralWholesaleArchive();
+
+  }
+
+
+  if (
+    folder ===
+    "pos"
+  ) {
+
+    renderCentralPosArchive();
+
+  }
+
+
+  if (
+    folder ===
+    "events"
+  ) {
+
+    renderCentralEventArchive();
+
+  }
+
+
+  if (
+    folder ===
+    "freebeer"
+  ) {
+
+    await loadAdminFreeBeerData();
+
+    fillReportYears();
+
+    renderAdminFreeBeer();
+
+  }
+
+
+  updateCentralReportCounts();
+
+}
+
+
+function updateCentralReportCounts() {
+
+  setCount(
+    "centralWholesaleCount",
+    getCentralWholesaleOrders()
+      .length
+  );
+
+
+  setCount(
+    "centralPosCount",
+    getCentralPosArchiveOrders()
+      .length
+  );
+
+
+  setCount(
+    "centralEventsCount",
+    getCentralEventArchiveOrders()
+      .length
+  );
+
+
+  if (
+    adminFreeBeerLoaded
+  ) {
+
+    setCount(
+      "centralFreeBeerCount",
+      groupAdminFreeBeerRows(
+        getFilteredAdminFreeBeerRows()
       )
+        .length
+    );
+
+  }
+
+  else {
+
+    setCount(
+      "centralFreeBeerCount",
+      0
+    );
+
+  }
+
+}
+
+
+function renderCentralWholesaleArchive() {
+
+  const container =
+    document.getElementById(
+      "centralWholesaleList"
+    );
+
+
+  if (
+    !container
+  ) {
+
+    return;
+
+  }
+
+
+  const orders =
+    getCentralWholesaleOrders();
+
+
+  if (
+    !orders.length
+  ) {
+
+    container.innerHTML = `
+
+      <div class="admin-clear">
+
+        <b>
+          Geen groothandelbestellingen gevonden
+        </b>
+
+      </div>
+
+    `;
+
+
+    return;
+
+  }
+
+
+  container.innerHTML =
+    orders
+      .map(
+        order => {
+
+          const profile =
+            getAdminProfile(
+              order.user_id
+            );
+
+
+          const items =
+            adminWholesaleItems
+              .filter(
+                item =>
+                  item.wholesale_order_id ===
+                  order.id
+              );
+
+
+          const total =
+            items
+              .reduce(
+                (
+                  sum,
+                  item
+                ) =>
+                  sum +
+                  Number(
+                    item.totaal_aantal ||
+                    item.betaald_aantal ||
+                    0
+                  ),
+                0
+              );
+
+
+          const proof =
+            adminWholesaleProofs
+              .find(
+                item =>
+                  item.order_id ===
+                  order.id
+              );
+
+
+          return `
+
+            <details class="admin-wholesale">
+
+              <summary>
+
+                <div>
+
+                  <b>
+                    ${adminEscapeHtml(
+                      order.referentie ||
+                      "Geen referentie"
+                    )}
+                  </b>
+
+                  <small>
+
+                    ${adminEscapeHtml(
+                      profile?.naam ||
+                      "Onbekend"
+                    )}
+
+                    ·
+
+                    ${adminEscapeHtml(
+                      order.drankenhandel ||
+                      "Geen drankenhandel"
+                    )}
+
+                  </small>
+
+                </div>
+
+
+                <span>
+                  ${total}
+                </span>
+
+              </summary>
+
+
+              <div>
+
+                ${
+                  items
+                    .map(
+                      item => `
+
+                        <div class="summary-line">
+
+                          <span>
+                            ${adminEscapeHtml(
+                              item.product_naam ||
+                              ""
+                            )}
+                          </span>
+
+                          <strong>
+                            ${Number(
+                              item.totaal_aantal ||
+                              item.betaald_aantal ||
+                              0
+                            )}
+                          </strong>
+
+                        </div>
+
+                      `
+                    )
+                    .join("")
+                }
+
+
+                ${
+                  proof
+                    ? `
+
+                        <button
+                          type="button"
+                          class="admin-primary"
+                          onclick="downloadWholesaleProofPdf('${order.id}')"
+                        >
+                          PDF bestelbewijs
+                        </button>
+
+                      `
+                    : ""
+                }
+
+              </div>
+
+            </details>
+
+          `;
+
+        }
+      )
+      .join("");
+
+}
+
+
+function renderCentralPosArchive() {
+
+  renderOrderList(
+    "centralPosArchiveList",
+    getCentralPosArchiveOrders(),
+    "Geen afgehandelde POS- of promo-aanvragen gevonden."
+  );
+
+}
+
+
+function renderCentralEventArchive() {
+
+  renderOrderList(
+    "centralEventArchiveList",
+    getCentralEventArchiveOrders(),
+    "Geen afgehandelde evenementen gevonden."
+  );
+
+}
+
+
+function buildCentralOrderExcelRows(
+  orders,
+  type
+) {
+
+  const rows =
+    [];
+
+
+  orders
+    .forEach(
+      order => {
+
+        const profile =
+          getAdminProfile(
+            order.user_id
+          );
+
+
+        const items =
+          getAdminOrderItems(
+            order.id
+          );
+
+
+        (
+          items.length
+            ? items
+            : [
+                {
+                  product_naam:
+                    "",
+                  categorie:
+                    "",
+                  aantal:
+                    0
+                }
+              ]
+        )
+          .forEach(
+            item => {
+
+              rows.push({
+
+                "Datum":
+                  formatExcelDate(
+                    order.event_returned_at ||
+                    order.collected_at ||
+                    order.updated_at ||
+                    order.created_at
+                  ),
+
+                "Type":
+                  type,
+
+                "Status":
+                  formatStatus(
+                    order.status
+                  ),
+
+                "Vertegenwoordiger":
+                  profile?.naam ||
+                  "",
+
+                "E-mail":
+                  profile?.email ||
+                  "",
+
+                "Referentie / evenement":
+                  order.event_naam ||
+                  order.referentie ||
+                  "",
+
+                "Gemeente":
+                  order.gemeente ||
+                  "",
+
+                "Product / materiaal":
+                  item.product_naam ||
+                  "",
+
+                "Categorie":
+                  item.categorie ||
+                  "",
+
+                "Aantal":
+                  Number(
+                    item.aantal ||
+                    0
+                  )
+
+              });
+
+            }
+          );
+
+      }
+    );
+
+
+  return rows;
+
+}
+
+
+function exportCentralPosExcel() {
+
+  exportCentralOrdersExcel(
+    getCentralPosArchiveOrders(),
+    "POS / promo",
+    "Achel_POS_promo_archief"
+  );
+
+}
+
+
+function exportCentralEventsExcel() {
+
+  exportCentralOrdersExcel(
+    getCentralEventArchiveOrders(),
+    "Evenement",
+    "Achel_evenementen_archief"
+  );
+
+}
+
+
+function exportCentralOrdersExcel(
+  orders,
+  type,
+  filename
+) {
+
+  if (
+    typeof XLSX ===
+    "undefined"
+  ) {
+
+    alert(
+      "Excel-module niet geladen."
+    );
+
+    return;
+
+  }
+
+
+  const rows =
+    buildCentralOrderExcelRows(
+      orders,
+      type
+    );
+
+
+  if (
+    !rows.length
+  ) {
+
+    alert(
+      "Geen gegevens voor deze selectie."
+    );
+
+    return;
+
+  }
+
+
+  const workbook =
+    XLSX.utils
+      .book_new();
+
+
+  XLSX.utils
+    .book_append_sheet(
+      workbook,
+      XLSX.utils
+        .json_to_sheet(
+          rows
+        ),
+      "Archief"
+    );
+
+
+  const filters =
+    getCentralReportFilters();
+
+
+  XLSX.writeFile(
+    workbook,
+    `${filename}_${filters.year || "alle"}_${filters.month || "alle"}.xlsx`
+  );
+
+}
+
+
+function exportCentralWholesaleExcel() {
+
+  if (
+    typeof XLSX ===
+    "undefined"
+  ) {
+
+    alert(
+      "Excel-module niet geladen."
+    );
+
+    return;
+
+  }
+
+
+  const orders =
+    getCentralWholesaleOrders();
+
+
+  if (
+    !orders.length
+  ) {
+
+    alert(
+      "Geen groothandelbestellingen voor deze selectie."
+    );
+
+    return;
+
+  }
+
+
+  const rows =
+    [];
+
+
+  orders
+    .forEach(
+      order => {
+
+        const profile =
+          getAdminProfile(
+            order.user_id
+          );
+
+
+        const proof =
+          adminWholesaleProofs
+            .find(
+              item =>
+                item.order_id ===
+                order.id
+            );
+
+
+        const items =
+          adminWholesaleItems
+            .filter(
+              item =>
+                item.wholesale_order_id ===
+                order.id
+            );
+
+
+        (
+          items.length
+            ? items
+            : [
+                {
+                  product_naam:
+                    "",
+                  eenheid:
+                    "",
+                  betaald_aantal:
+                    0,
+                  actie:
+                    "",
+                  gratis_aantal:
+                    0,
+                  totaal_aantal:
+                    0
+                }
+              ]
+        )
+          .forEach(
+            item => {
+
+              rows.push({
+
+                "Aanvraagdatum":
+                  formatExcelDate(
+                    order.created_at
+                  ),
+
+                "Vertegenwoordiger":
+                  profile?.naam ||
+                  "",
+
+                "E-mail":
+                  profile?.email ||
+                  "",
+
+                "Referentie":
+                  order.referentie ||
+                  "",
+
+                "Drankenhandel":
+                  order.drankenhandel ||
+                  "",
+
+                "Status":
+                  formatStatus(
+                    order.status
+                  ),
+
+                "Product":
+                  item.product_naam ||
+                  "",
+
+                "Eenheid":
+                  item.eenheid ||
+                  "",
+
+                "Betaald aantal":
+                  Number(
+                    item.betaald_aantal ||
+                    0
+                  ),
+
+                "Actie":
+                  item.actie ||
+                  "",
+
+                "Gratis aantal":
+                  Number(
+                    item.gratis_aantal ||
+                    0
+                  ),
+
+                "Totaal aantal":
+                  Number(
+                    item.totaal_aantal ||
+                    item.betaald_aantal ||
+                    0
+                  ),
+
+                "Ondertekend":
+                  proof
+                    ? "Ja"
+                    : "Nee",
+
+                "Ondertekend door":
+                  proof?.signer_name ||
+                  "",
+
+                "Ondertekend op":
+                  formatExcelDate(
+                    proof?.signed_at
+                  )
+
+              });
+
+            }
+          );
+
+      }
+    );
+
+
+  const workbook =
+    XLSX.utils
+      .book_new();
+
+
+  XLSX.utils
+    .book_append_sheet(
+      workbook,
+      XLSX.utils
+        .json_to_sheet(
+          rows
+        ),
+      "Groothandel"
+    );
+
+
+  const filters =
+    getCentralReportFilters();
+
+
+  XLSX.writeFile(
+    workbook,
+    `Achel_groothandel_${filters.year || "alle"}_${filters.month || "alle"}.xlsx`
+  );
+
+}
+
+
+
+/* ===============================
+   REPORT HELPERS
+================================ */
+
+function getAdminReportFilters() {
+
+  const central =
+    getCentralReportFilters();
+
+
+  return {
+
+    representative:
+      central.representative,
+
+    requestType:
+      "all",
+
+    periodType:
+      central.month
+        ? "month"
+        : "year",
+
+    year:
+      central.year,
+
+    month:
+      central.month
+        ? Number(
+            central.month
+          )
+        : 0
 
   };
 
@@ -13453,7 +14352,7 @@ function injectAdminStyles() {
 
       grid-template-columns:
         repeat(
-          6,
+          5,
           1fr
         );
 
@@ -15650,6 +16549,154 @@ function injectAdminStyles() {
     }
 
 
+    /* ==========================================
+       CENTRAAL RAPPORTEN & ARCHIEF
+    ========================================== */
+
+    .admin-report-central-filters {
+
+      margin-bottom:9px;
+      padding:9px;
+
+      border:
+        1px solid
+        #414941;
+
+      border-radius:12px;
+
+      background:#2a322b;
+
+    }
+
+
+    .admin-report-central-filters label {
+
+      color:#bac1bb;
+      font-size:8px;
+
+      margin:5px 0 3px;
+
+    }
+
+
+    .admin-report-central-filters select {
+
+      min-height:39px;
+
+      background:#202721;
+      color:white;
+
+      border-color:#4a534b;
+
+    }
+
+
+    .admin-report-folder {
+
+      margin-top:7px;
+
+      border:
+        1px solid
+        #414a42;
+
+      border-radius:12px;
+
+      background:#2d352e;
+
+      overflow:hidden;
+
+    }
+
+
+    .admin-report-folder > summary {
+
+      list-style:none;
+
+      display:grid;
+      grid-template-columns:1fr auto;
+      align-items:center;
+      gap:8px;
+
+      min-height:58px;
+
+      padding:9px 11px;
+
+      cursor:pointer;
+
+    }
+
+
+    .admin-report-folder > summary::-webkit-details-marker {
+
+      display:none;
+
+    }
+
+
+    .admin-report-folder > summary span {
+
+      display:block;
+
+      color:#c6b17c;
+
+      font-size:8px;
+      font-weight:900;
+      letter-spacing:.05em;
+
+    }
+
+
+    .admin-report-folder > summary strong {
+
+      display:block;
+
+      margin-top:2px;
+
+      color:white;
+
+      font-size:13px;
+
+    }
+
+
+    .admin-report-folder > summary > b {
+
+      min-width:30px;
+
+      padding:4px 7px;
+
+      border-radius:999px;
+
+      background:#e7e3d8;
+      color:#555;
+
+      text-align:center;
+
+      font-size:9px;
+
+    }
+
+
+    .admin-report-folder-body {
+
+      padding:7px;
+
+      border-top:
+        1px solid
+        #424b43;
+
+      background:#202721;
+
+    }
+
+
+    .admin-report-folder .admin-wholesale {
+
+      margin-top:6px;
+
+    }
+
+
     @media (
       max-width:520px
     ) {
@@ -17806,7 +18853,7 @@ function injectProfessionalReturnStyles() {
 
   display:grid;
   grid-template-columns:
-    repeat(3, 1fr);
+    repeat(2, 1fr);
 
   gap:5px;
 
