@@ -47,6 +47,20 @@ let adminRequestView =
 
 
 /* ===============================
+   LAZY LOAD STATUS
+================================ */
+
+let adminReportsLoaded =
+  false;
+
+let adminReportsLoading =
+  null;
+
+const adminEventDeliveryProofChecked =
+  new Set();
+
+
+/* ===============================
    INIT
 ================================ */
 
@@ -1591,12 +1605,39 @@ async function openAdminDashboard() {
     );
 
 
-    switchAdminTab(
-      "overview"
-    );
+    adminReportsLoaded =
+      false;
+
+    adminReportsLoading =
+      null;
+
+    adminWholesaleOrders =
+      [];
+
+    adminWholesaleItems =
+      [];
+
+    adminWholesaleProofs =
+      [];
+
+    adminEventDeliveryProofs =
+      [];
+
+    adminEventDeliveryProofChecked.clear();
+
+    adminFreeBeerLoaded =
+      false;
+
+    adminFreeBeerRegistrations =
+      [];
 
 
     await loadAdminDashboard();
+
+
+    await switchAdminTab(
+      "overview"
+    );
 
   }
 
@@ -1631,7 +1672,7 @@ async function openAdminDashboard() {
    TABS
 ================================ */
 
-function switchAdminTab(
+async function switchAdminTab(
   tab
 ) {
 
@@ -1701,6 +1742,10 @@ function switchAdminTab(
     tab ===
     "reports"
   ) {
+
+    await loadAdminReportsData();
+
+    fillReportYears();
 
     renderCentralReports();
 
@@ -1863,14 +1908,121 @@ async function loadAdminDashboard() {
 
   try {
 
-    const profilesResult =
-      await supabaseClient
-        .from(
-          "profiles"
-        )
-        .select(
-          "id, naam, email, rol, actief"
-        );
+    const [
+      profilesResult,
+      ordersResult,
+      itemsResult,
+      returnsResult,
+      productsResult,
+      posAvailableStockResult
+    ] =
+      await Promise.all([
+
+        supabaseClient
+          .from(
+            "profiles"
+          )
+          .select(
+            "id, naam, email, rol, actief"
+          ),
+
+        supabaseClient
+          .from(
+            "orders"
+          )
+          .select(`
+            id,
+            user_id,
+            referentie,
+            land,
+            gemeente,
+            afhaaldatum,
+            opmerking,
+            status,
+            event_naam,
+            event_vanaf,
+            event_tot,
+            event_delivery_mode,
+            event_returned_at,
+            event_returned_by,
+            opened_at,
+            completed_at,
+            collected_at,
+            created_at,
+            updated_at
+          `)
+          .order(
+            "created_at",
+            {
+              ascending:
+                false
+            }
+          ),
+
+        supabaseClient
+          .from(
+            "order_items"
+          )
+          .select(
+            "order_id, product_naam, categorie, aantal"
+          ),
+
+        supabaseClient
+          .from(
+            "event_material_returns"
+          )
+          .select(`
+            id,
+            order_id,
+            product_naam,
+            uitgeleend_aantal,
+            goed_terug,
+            beschadigd,
+            ontbreekt,
+            opmerking,
+            updated_by,
+            created_at,
+            updated_at
+          `),
+
+        supabaseClient
+          .from(
+            "products"
+          )
+          .select(`
+            id,
+            naam,
+            categorie,
+            eenheid,
+            actief,
+            sort_order,
+            voorraad,
+            minimum_voorraad,
+            voorraad_beheren,
+            tijdelijk_onbeschikbaar,
+            inhoud_per_eenheid
+          `)
+          .order(
+            "categorie",
+            {
+              ascending:
+                true
+            }
+          )
+          .order(
+            "sort_order",
+            {
+              ascending:
+                true
+            }
+          ),
+
+        supabaseClient
+          .rpc(
+            "get_pos_available_stock"
+          )
+
+      ]);
 
 
     if (
@@ -1888,41 +2040,6 @@ async function loadAdminDashboard() {
     }
 
 
-    const ordersResult =
-      await supabaseClient
-        .from(
-          "orders"
-        )
-        .select(`
-          id,
-          user_id,
-          referentie,
-          land,
-          gemeente,
-          afhaaldatum,
-          opmerking,
-          status,
-          event_naam,
-          event_vanaf,
-          event_tot,
-          event_delivery_mode,
-          event_returned_at,
-          event_returned_by,
-          opened_at,
-          completed_at,
-          collected_at,
-          created_at,
-          updated_at
-        `)
-        .order(
-          "created_at",
-          {
-            ascending:
-              false
-          }
-        );
-
-
     if (
       ordersResult.error
     ) {
@@ -1936,16 +2053,6 @@ async function loadAdminDashboard() {
       );
 
     }
-
-
-    const itemsResult =
-      await supabaseClient
-        .from(
-          "order_items"
-        )
-        .select(
-          "order_id, product_naam, categorie, aantal"
-        );
 
 
     if (
@@ -1963,26 +2070,6 @@ async function loadAdminDashboard() {
     }
 
 
-    const returnsResult =
-      await supabaseClient
-        .from(
-          "event_material_returns"
-        )
-        .select(`
-          id,
-          order_id,
-          product_naam,
-          uitgeleend_aantal,
-          goed_terug,
-          beschadigd,
-          ontbreekt,
-          opmerking,
-          updated_by,
-          created_at,
-          updated_at
-        `);
-
-
     if (
       returnsResult.error
     ) {
@@ -1996,103 +2083,6 @@ async function loadAdminDashboard() {
       );
 
     }
-
-
-    const productsResult =
-      await supabaseClient
-        .from(
-          "products"
-        )
-        .select(`
-          id,
-          naam,
-          categorie,
-          eenheid,
-          actief,
-          sort_order,
-          voorraad,
-          minimum_voorraad,
-          voorraad_beheren,
-          tijdelijk_onbeschikbaar,
-          inhoud_per_eenheid
-        `)
-        .order(
-          "categorie",
-          {
-            ascending:
-              true
-          }
-        )
-        .order(
-          "sort_order",
-          {
-            ascending:
-              true
-          }
-        );
-
-
-    const posAvailableStockResult =
-      await supabaseClient
-        .rpc(
-          "get_pos_available_stock"
-        );
-
-
-    const wholesaleResult =
-      await supabaseClient
-        .from(
-          "wholesale_orders"
-        )
-        .select(
-          "id, user_id, referentie, drankenhandel, opmerking, status, created_at"
-        )
-        .order(
-          "created_at",
-          {
-            ascending:
-              false
-          }
-        );
-
-
-    const wholesaleItemsResult =
-      await supabaseClient
-        .from(
-          "wholesale_order_items"
-        )
-        .select(
-          "wholesale_order_id, product_naam, eenheid, betaald_aantal, actie, gratis_aantal, totaal_aantal"
-        );
-
-
-    const wholesaleProofsResult =
-      await supabaseClient
-        .from(
-          "wholesale_order_proofs"
-        )
-        .select(`
-          order_id,
-          signer_name,
-          signed_at,
-          proof_hash
-        `);
-
-
-    const eventDeliveryProofsResult =
-      await supabaseClient
-        .from(
-          "event_delivery_proofs"
-        )
-        .select(`
-          order_id,
-          signer_name,
-          signed_at,
-          snapshot,
-          signature_data,
-          proof_hash,
-          created_at
-        `);
 
 
     adminProfiles =
@@ -2215,88 +2205,6 @@ async function loadAdminDashboard() {
     }
 
 
-    adminWholesaleOrders =
-
-      wholesaleResult.error
-
-        ? []
-
-        : (
-            wholesaleResult.data ||
-            []
-          );
-
-
-    adminWholesaleItems =
-
-      wholesaleItemsResult.error
-
-        ? []
-
-        : (
-            wholesaleItemsResult.data ||
-            []
-          );
-
-
-    adminWholesaleProofs =
-
-      wholesaleProofsResult.error
-
-        ? []
-
-        : (
-            wholesaleProofsResult.data ||
-            []
-          );
-
-    adminEventDeliveryProofs =
-      eventDeliveryProofsResult.error
-
-        ? []
-
-        : (
-            eventDeliveryProofsResult.data ||
-            []
-          );
-
-
-    if (
-      wholesaleResult.error
-    ) {
-
-      console.warn(
-        "WHOLESALE ORDERS:",
-        wholesaleResult.error
-      );
-
-    }
-
-
-    if (
-      wholesaleItemsResult.error
-    ) {
-
-      console.warn(
-        "WHOLESALE ITEMS:",
-        wholesaleItemsResult.error
-      );
-
-    }
-
-
-    if (
-      wholesaleProofsResult.error
-    ) {
-
-      console.warn(
-        "WHOLESALE PROOFS:",
-        wholesaleProofsResult.error
-      );
-
-    }
-
-
     fillRepresentativeFilters();
 
     fillReportYears();
@@ -2306,8 +2214,6 @@ async function loadAdminDashboard() {
     renderAdminStatistics();
 
     renderAdminSections();
-
-    renderCentralReports();
 
   }
 
@@ -2332,6 +2238,278 @@ async function loadAdminDashboard() {
   }
 
 }
+
+
+/* ============================================================
+   RAPPORTEN DATA - PAS LADEN WANNEER RAPPORTEN WORDT GEOPEND
+============================================================ */
+
+async function loadAdminReportsData(
+  force = false
+) {
+
+  if (
+    adminReportsLoaded
+    &&
+    !force
+  ) {
+
+    return;
+
+  }
+
+
+  if (
+    adminReportsLoading
+    &&
+    !force
+  ) {
+
+    return adminReportsLoading;
+
+  }
+
+
+  adminReportsLoading =
+    (async () => {
+
+      const [
+        wholesaleResult,
+        wholesaleItemsResult,
+        wholesaleProofsResult
+      ] =
+        await Promise.all([
+
+          supabaseClient
+            .from(
+              "wholesale_orders"
+            )
+            .select(
+              "id, user_id, referentie, drankenhandel, opmerking, status, created_at"
+            )
+            .order(
+              "created_at",
+              {
+                ascending:
+                  false
+              }
+            ),
+
+          supabaseClient
+            .from(
+              "wholesale_order_items"
+            )
+            .select(
+              "wholesale_order_id, product_naam, eenheid, betaald_aantal, actie, gratis_aantal, totaal_aantal"
+            ),
+
+          supabaseClient
+            .from(
+              "wholesale_order_proofs"
+            )
+            .select(`
+              order_id,
+              signer_name,
+              signed_at,
+              proof_hash
+            `)
+
+        ]);
+
+
+      adminWholesaleOrders =
+        wholesaleResult.error
+
+          ? []
+
+          : (
+              wholesaleResult.data ||
+              []
+            );
+
+
+      adminWholesaleItems =
+        wholesaleItemsResult.error
+
+          ? []
+
+          : (
+              wholesaleItemsResult.data ||
+              []
+            );
+
+
+      adminWholesaleProofs =
+        wholesaleProofsResult.error
+
+          ? []
+
+          : (
+              wholesaleProofsResult.data ||
+              []
+            );
+
+
+      if (
+        wholesaleResult.error
+      ) {
+
+        console.warn(
+          "WHOLESALE ORDERS:",
+          wholesaleResult.error
+        );
+
+      }
+
+
+      if (
+        wholesaleItemsResult.error
+      ) {
+
+        console.warn(
+          "WHOLESALE ITEMS:",
+          wholesaleItemsResult.error
+        );
+
+      }
+
+
+      if (
+        wholesaleProofsResult.error
+      ) {
+
+        console.warn(
+          "WHOLESALE PROOFS:",
+          wholesaleProofsResult.error
+        );
+
+      }
+
+
+      adminReportsLoaded =
+        !wholesaleResult.error
+        &&
+        !wholesaleItemsResult.error
+        &&
+        !wholesaleProofsResult.error;
+
+
+      fillReportYears();
+
+    })();
+
+
+  try {
+
+    await adminReportsLoading;
+
+  }
+
+  finally {
+
+    adminReportsLoading =
+      null;
+
+  }
+
+}
+
+
+/* ============================================================
+   UITLEENBEWIJS - ALLEEN VOOR DE GEOPENDE EVENTAANVRAAG
+============================================================ */
+
+async function loadAdminEventDeliveryProofForOrder(
+  orderId,
+  force = false
+) {
+
+  if (
+    !orderId
+  ) {
+
+    return;
+
+  }
+
+
+  if (
+    adminEventDeliveryProofChecked.has(
+      orderId
+    )
+    &&
+    !force
+  ) {
+
+    return;
+
+  }
+
+
+  const {
+    data,
+    error
+  } =
+    await supabaseClient
+      .from(
+        "event_delivery_proofs"
+      )
+      .select(`
+        order_id,
+        signer_name,
+        signed_at,
+        snapshot,
+        signature_data,
+        proof_hash,
+        created_at
+      `)
+      .eq(
+        "order_id",
+        orderId
+      )
+      .maybeSingle();
+
+
+  if (
+    error
+  ) {
+
+    console.warn(
+      "EVENT DELIVERY PROOF:",
+      error
+    );
+
+    return;
+
+  }
+
+
+  adminEventDeliveryProofs =
+    adminEventDeliveryProofs
+      .filter(
+        proof =>
+          proof.order_id !==
+          orderId
+      );
+
+
+  if (
+    data
+  ) {
+
+    adminEventDeliveryProofs.push(
+      data
+    );
+
+  }
+
+
+  adminEventDeliveryProofChecked.add(
+    orderId
+  );
+
+}
+
 
 /* ===============================
    REPRESENTATIVES
@@ -3494,8 +3672,6 @@ function renderAdminSections() {
   );
 
 
-  renderAdminProductManagement();
-
 
   renderMaterialOutList(
     outside
@@ -3509,8 +3685,6 @@ function renderAdminSections() {
     returnArchive
   );
 
-
-  renderAdminWholesaleOrders();
 
 
   renderAdminAttentionPanel();
@@ -5977,6 +6151,20 @@ async function openAdminOrder(
   }
 
 
+  if (
+    order.event_naam
+    &&
+    order.event_delivery_mode ===
+    "enkel_levering"
+  ) {
+
+    await loadAdminEventDeliveryProofForOrder(
+      order.id
+    );
+
+  }
+
+
   selectedAdminOrder =
     order;
 
@@ -7000,6 +7188,10 @@ async function saveEventDeliveryProof() {
 
   adminEventDeliveryProofs.push(
     data
+  );
+
+  adminEventDeliveryProofChecked.add(
+    order.id
   );
 
   closeEventDeliveryProofModal();
@@ -12091,6 +12283,15 @@ async function handleCentralReportFolder(
   ) {
 
     return;
+
+  }
+
+
+  if (
+    !adminReportsLoaded
+  ) {
+
+    await loadAdminReportsData();
 
   }
 
