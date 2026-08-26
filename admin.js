@@ -5152,12 +5152,12 @@ function buildAdminProductManagementRow(
                     <input
                       id="adminStockInput-${product.id}"
                       class="admin-stock-input"
-                      type="number"
-                      min="0"
-                      step="1"
+                      type="text"
                       inputmode="numeric"
+                      pattern="[0-9]*"
                       value="${physicalStock}"
                       aria-label="Nieuwe fysieke voorraad"
+                      oninput="this.value=this.value.replace(/[^0-9]/g,'')"
                     >
 
                     <button
@@ -18201,6 +18201,53 @@ function injectAdminStyles() {
       text-indent:0 !important;
       direction:ltr !important;
       font-variant-numeric:tabular-nums;
+    }
+
+
+
+    /* Voorraadinput iOS: volledig getal exact gecentreerd */
+    .admin-stock-control {
+      grid-template-columns:
+        38px 116px 38px !important;
+    }
+
+    .admin-stock-control .admin-stock-input {
+      display:block !important;
+
+      width:116px !important;
+      min-width:116px !important;
+      max-width:116px !important;
+
+      height:38px !important;
+      min-height:38px !important;
+
+      margin:0 !important;
+      padding:0 8px !important;
+
+      border:0 !important;
+      border-radius:0 !important;
+
+      background:#ffffff !important;
+      color:#202722 !important;
+
+      text-align:center !important;
+      text-align-last:center !important;
+      text-indent:0 !important;
+      direction:ltr !important;
+
+      font-size:17px !important;
+      font-weight:900 !important;
+      line-height:38px !important;
+      letter-spacing:0 !important;
+      font-variant-numeric:tabular-nums;
+
+      box-sizing:border-box !important;
+      box-shadow:none !important;
+      outline:none !important;
+      overflow:visible !important;
+
+      -webkit-appearance:none !important;
+      appearance:none !important;
     }
 
 
