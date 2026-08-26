@@ -14954,16 +14954,11 @@ function injectAdminStyles() {
 
     .admin-tabs {
 
-      position:sticky;
+      position:static;
 
-      top:
-        calc(
-          64px +
-          env(safe-area-inset-top)
-        );
+      top:auto;
 
-      z-index:
-        30;
+      z-index:auto;
 
       display:grid;
 
@@ -17558,17 +17553,44 @@ function injectAdminStyles() {
     }
 
     .admin-stock-control {
-      background:rgba(255,255,255,.035);
-      border-color:rgba(201,155,67,.18);
+      display:grid;
+      grid-template-columns:48px minmax(86px, 110px) 48px;
+      align-items:center;
+      justify-content:start;
+      width:max-content;
+      max-width:100%;
+      margin-top:10px;
+      overflow:hidden;
+
+      background:#f7f4ee;
+      border:1px solid #d8d2c8;
+      border-radius:12px;
     }
 
     .admin-stock-control button {
-      background:rgba(255,255,255,.05);
-      color:#e0b85f;
+      width:48px;
+      height:44px;
+      padding:0;
+      border:0;
+      border-radius:0;
+
+      background:#f3efe7;
+      color:#4f493f;
+
+      font-size:22px;
+      font-weight:700;
     }
 
-    .admin-stock-control strong {
-      color:#fff;
+    .admin-stock-control button:first-child {
+      border-right:1px solid #d8d2c8;
+    }
+
+    .admin-stock-control button:last-child {
+      border-left:1px solid #d8d2c8;
+    }
+
+    .admin-stock-control button:active {
+      background:#e9e1d4;
     }
 
     .admin-detail-row {
@@ -17684,15 +17706,15 @@ function injectAdminStyles() {
 
 
     .admin-stock-control .admin-stock-input {
-      width:90px !important;
-      min-width:0 !important;
-      min-height:42px !important;
+      width:100% !important;
+      min-width:86px !important;
+      max-width:110px !important;
+      height:44px !important;
+      min-height:44px !important;
       margin:0 !important;
-      padding:6px 8px !important;
+      padding:0 8px !important;
 
       border:0 !important;
-      border-left:1px solid #d8d2c8 !important;
-      border-right:1px solid #d8d2c8 !important;
       border-radius:0 !important;
 
       background:#ffffff !important;
@@ -17701,6 +17723,10 @@ function injectAdminStyles() {
       text-align:center !important;
       font-size:17px !important;
       font-weight:900 !important;
+      line-height:44px !important;
+
+      box-shadow:none !important;
+      outline:none !important;
 
       -moz-appearance:textfield;
     }
