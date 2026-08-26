@@ -11579,11 +11579,7 @@ async function loadAdminProductMaster(
         app_category,
         active_free_beer,
         active_wholesale
-      `)
-      .eq(
-        "active_free_beer",
-        true
-      );
+      `);
 
 
   if (
@@ -13006,7 +13002,7 @@ function exportCentralOrdersExcel(
 }
 
 
-function exportCentralWholesaleExcel() {
+async function exportCentralWholesaleExcel() {
 
   if (
     typeof XLSX ===
@@ -13033,6 +13029,35 @@ function exportCentralWholesaleExcel() {
     alert(
       "Geen groothandelbestellingen voor deze selectie."
     );
+
+    return;
+
+  }
+
+
+  try {
+
+    await loadAdminProductMaster();
+
+  }
+
+  catch (
+    error
+  ) {
+
+    console.error(
+      "DOUANO PRODUCTMASTER FOUT:",
+      error
+    );
+
+
+    alert(
+      "De Douano-productcodes konden niet worden geladen.\n\n" +
+      adminReadableError(
+        error
+      )
+    );
+
 
     return;
 
@@ -13094,12 +13119,22 @@ function exportCentralWholesaleExcel() {
           .forEach(
             item => {
 
+              const product =
+                getAdminProductMasterForSku(
+                  item.product_naam
+                );
+
+
               rows.push({
 
                 "Aanvraagdatum":
                   formatExcelDate(
                     order.created_at
                   ),
+
+                "Douano-code":
+                  product?.douano_code ||
+                  "NIET GEKOPPELD",
 
                 "Vertegenwoordiger":
                   profile?.naam ||
@@ -14142,7 +14177,7 @@ function exportAdminReportExcel() {
    EXCEL GROOTHANDEL
 ================================ */
 
-function exportWholesaleReportExcel() {
+async function exportWholesaleReportExcel() {
 
   if (
     typeof XLSX ===
@@ -14169,6 +14204,35 @@ function exportWholesaleReportExcel() {
     alert(
       "Geen groothandelbestellingen beschikbaar."
     );
+
+    return;
+
+  }
+
+
+  try {
+
+    await loadAdminProductMaster();
+
+  }
+
+  catch (
+    error
+  ) {
+
+    console.error(
+      "DOUANO PRODUCTMASTER FOUT:",
+      error
+    );
+
+
+    alert(
+      "De Douano-productcodes konden niet worden geladen.\n\n" +
+      adminReadableError(
+        error
+      )
+    );
+
 
     return;
 
@@ -14232,12 +14296,22 @@ function exportWholesaleReportExcel() {
           .forEach(
             item => {
 
+              const product =
+                getAdminProductMasterForSku(
+                  item.product_naam
+                );
+
+
               rows.push({
 
                 "Aanvraagdatum":
                   formatExcelDate(
                     order.created_at
                   ),
+
+                "Douano-code":
+                  product?.douano_code ||
+                  "NIET GEKOPPELD",
 
                 "Vertegenwoordiger":
                   profile?.naam ||
