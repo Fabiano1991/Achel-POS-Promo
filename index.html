@@ -810,6 +810,83 @@ textarea {
 }
 
 
+
+
+/* ===============================
+   HOME WELKOMSTKAART — ACHEL STIJL
+================================ */
+
+.hero {
+  position:relative;
+  overflow:hidden;
+  border:1px solid rgba(201,155,67,.30);
+  border-radius:18px;
+  padding:18px 18px 17px;
+  background:
+    radial-gradient(
+      circle at 88% 10%,
+      rgba(201,155,67,.18),
+      transparent 34%
+    ),
+    linear-gradient(
+      145deg,
+      #202a22,
+      #121813
+    );
+  color:white;
+  box-shadow:
+    0 12px 30px rgba(0,0,0,.22),
+    inset 0 0 0 1px rgba(255,255,255,.02);
+}
+
+.hero::before {
+  content:"ACHEL";
+  display:block;
+  position:relative;
+  z-index:1;
+  margin-bottom:7px;
+  color:#c99b43;
+  font-size:10px;
+  font-weight:950;
+  letter-spacing:.18em;
+}
+
+.hero h1 {
+  position:relative;
+  z-index:1;
+  margin:0 0 8px;
+  color:white;
+  font-size:27px;
+  line-height:1.12;
+}
+
+.beer-quote {
+  position:relative;
+  z-index:1;
+  margin:0;
+  max-width:92%;
+  color:rgba(255,255,255,.72);
+  font-size:13px;
+  font-style:italic;
+  line-height:1.5;
+}
+
+.hero::after {
+  content:"";
+  position:absolute;
+  width:120px;
+  height:120px;
+  right:-45px;
+  bottom:-56px;
+  border-radius:50%;
+  border:1px solid rgba(201,155,67,.16);
+  box-shadow:
+    0 0 0 18px rgba(201,155,67,.035),
+    0 0 0 36px rgba(201,155,67,.02);
+  pointer-events:none;
+}
+
+
 /* ===============================
    PROFILE
 ================================ */
@@ -2462,6 +2539,713 @@ body {
 
 .free-beer-category-body .free-beer-product:last-child {
   margin-bottom:0;
+}
+
+
+
+/* ============================================================
+   ACHEL UNIFIED APP THEME
+   Volledige visuele stijl gebaseerd op de homepagina.
+   Alleen CSS — bestaande logica blijft behouden.
+============================================================ */
+
+:root {
+  --achel-night:#0d110d;
+  --achel-deep:#121813;
+  --achel-forest:#182019;
+  --achel-forest-2:#202a22;
+  --achel-gold:#c99b43;
+  --achel-gold-bright:#e0b85f;
+  --achel-gold-soft:rgba(201,155,67,.13);
+  --achel-line:rgba(201,155,67,.32);
+  --achel-text:#f6f0e3;
+  --achel-muted:rgba(246,240,227,.62);
+  --achel-panel:linear-gradient(145deg,#20271f,#151a15);
+  --achel-panel-soft:rgba(255,255,255,.035);
+  --achel-shadow:0 12px 30px rgba(0,0,0,.26);
+}
+
+/* Algemene schermbasis */
+#loginScreen,
+#appMain,
+#adminScreen,
+#adminDetailScreen,
+#wholesaleScreen,
+#wholesaleSummaryScreen {
+  color:var(--achel-text);
+}
+
+#appMain > section:not(#homeScreen),
+#adminScreen,
+#adminDetailScreen,
+#wholesaleScreen,
+#wholesaleSummaryScreen {
+  animation:achelScreenIn .18s ease-out;
+}
+
+@keyframes achelScreenIn {
+  from { opacity:0; transform:translateY(5px); }
+  to { opacity:1; transform:translateY(0); }
+}
+
+/* Kaarten doorheen de hele app */
+#appMain > section:not(#homeScreen) .card,
+#loginScreen .card,
+.admin-block,
+.admin-panel,
+.admin-card,
+.admin-order-card,
+.admin-stock-card,
+.admin-catalog-card,
+.admin-report-folder,
+.admin-report-central-filters,
+.admin-freebeer-filter-card,
+.admin-freebeer-card,
+.admin-material-card,
+.admin-kpi,
+.admin-detail-card,
+.wholesale-card,
+.wholesale-order-card,
+.wholesale-summary-card,
+.wholesale-admin-order,
+.dashboard-fold {
+  background:
+    radial-gradient(circle at 100% 0%, rgba(201,155,67,.08), transparent 31%),
+    var(--achel-panel);
+  border:1px solid var(--achel-line);
+  color:var(--achel-text);
+  box-shadow:var(--achel-shadow);
+}
+
+/* Titels */
+#appMain > section:not(#homeScreen) h1,
+#appMain > section:not(#homeScreen) h2,
+#appMain > section:not(#homeScreen) h3,
+#loginScreen h1,
+.admin-head strong,
+.admin-page-title strong,
+.admin-block-title strong,
+.admin-panel h2,
+.admin-panel h3,
+.wholesale-card h2,
+.wholesale-card h3 {
+  color:#fff;
+}
+
+#appMain > section:not(#homeScreen) h2,
+#loginScreen h1 {
+  position:relative;
+  padding-bottom:10px;
+}
+
+#appMain > section:not(#homeScreen) h2::after,
+#loginScreen h1::after {
+  content:"";
+  display:block;
+  width:42px;
+  height:2px;
+  margin-top:9px;
+  border-radius:999px;
+  background:linear-gradient(90deg,var(--achel-gold),transparent);
+}
+
+/* Labels en gewone tekst */
+#appMain > section:not(#homeScreen) label,
+#loginScreen label,
+.admin-panel label,
+.admin-block label,
+.wholesale-card label {
+  color:rgba(246,240,227,.78);
+}
+
+#appMain > section:not(#homeScreen) p,
+#loginScreen p,
+.admin-panel p,
+.admin-block p,
+.wholesale-card p {
+  color:rgba(246,240,227,.72);
+}
+
+/* Inputs */
+#appMain > section:not(#homeScreen) input[type="text"],
+#appMain > section:not(#homeScreen) input[type="email"],
+#appMain > section:not(#homeScreen) input[type="password"],
+#appMain > section:not(#homeScreen) input[type="date"],
+#appMain > section:not(#homeScreen) input[type="number"],
+#appMain > section:not(#homeScreen) input[type="search"],
+#appMain > section:not(#homeScreen) select,
+#appMain > section:not(#homeScreen) textarea,
+#loginScreen input,
+.admin-panel input,
+.admin-panel select,
+.admin-panel textarea,
+.admin-block input,
+.admin-block select,
+.admin-block textarea,
+.wholesale-card input,
+.wholesale-card select,
+.wholesale-card textarea,
+.admin-searchbar input {
+  background:rgba(255,255,255,.055);
+  border:1px solid rgba(201,155,67,.24);
+  color:#fff;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.02);
+}
+
+#appMain > section:not(#homeScreen) input::placeholder,
+#appMain > section:not(#homeScreen) textarea::placeholder,
+#loginScreen input::placeholder,
+.admin-panel input::placeholder,
+.admin-block input::placeholder,
+.wholesale-card input::placeholder {
+  color:rgba(246,240,227,.33);
+}
+
+#appMain > section:not(#homeScreen) input:focus,
+#appMain > section:not(#homeScreen) select:focus,
+#appMain > section:not(#homeScreen) textarea:focus,
+#loginScreen input:focus,
+.admin-panel input:focus,
+.admin-panel select:focus,
+.admin-panel textarea:focus,
+.admin-block input:focus,
+.admin-block select:focus,
+.admin-block textarea:focus,
+.wholesale-card input:focus,
+.wholesale-card select:focus,
+.wholesale-card textarea:focus {
+  border-color:var(--achel-gold);
+  box-shadow:0 0 0 3px rgba(201,155,67,.11);
+}
+
+#appMain select option,
+.admin-panel select option,
+.admin-block select option,
+.wholesale-card select option {
+  background:#182019;
+  color:#fff;
+}
+
+/* Profielblokken */
+.profile-box {
+  background:rgba(255,255,255,.045);
+  border:1px solid rgba(201,155,67,.22);
+  color:white;
+}
+
+.profile-box small {
+  color:var(--achel-muted);
+}
+
+/* Primaire knoppen */
+.primary,
+.admin-export,
+.admin-primary,
+.wholesale-primary,
+.event-calendar-confirm {
+  border:1px solid rgba(235,190,97,.34);
+  background:linear-gradient(180deg,#b98936,#8d6427);
+  color:#fff;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.15),
+    0 8px 20px rgba(91,61,18,.34);
+  transition:transform .12s ease, box-shadow .12s ease, filter .12s ease;
+}
+
+.primary:active,
+.admin-export:active,
+.admin-primary:active,
+.wholesale-primary:active,
+.event-calendar-confirm:active {
+  transform:translateY(1px) scale(.995);
+  filter:brightness(.97);
+  box-shadow:0 4px 11px rgba(91,61,18,.25);
+}
+
+.primary:disabled,
+.admin-primary:disabled,
+.wholesale-primary:disabled {
+  opacity:.42;
+}
+
+/* Secundaire knoppen */
+.secondary,
+.admin-secondary,
+.wholesale-secondary {
+  background:rgba(255,255,255,.045);
+  border:1px solid rgba(201,155,67,.26);
+  color:var(--achel-gold-bright);
+}
+
+/* Terugknop */
+.top-back,
+.admin-back,
+.wholesale-back {
+  background:rgba(18,24,19,.94);
+  border:1px solid rgba(201,155,67,.38);
+  color:var(--achel-gold-bright);
+  box-shadow:0 7px 18px rgba(0,0,0,.22);
+}
+
+/* Categorie tabs */
+.category-tabs,
+.admin-tabs,
+.admin-request-switch,
+.admin-catalog-switch,
+.wholesale-tabs {
+  background:rgba(255,255,255,.035);
+  border:1px solid rgba(201,155,67,.18);
+}
+
+.category-button,
+.admin-tabs button,
+.admin-request-switch button,
+.admin-catalog-switch button,
+.wholesale-tabs button {
+  color:rgba(246,240,227,.48);
+}
+
+.category-button.active,
+.admin-tabs button.active,
+.admin-request-switch button.active,
+.admin-catalog-switch button.active,
+.wholesale-tabs button.active {
+  background:linear-gradient(145deg,rgba(201,155,67,.18),rgba(201,155,67,.08));
+  color:var(--achel-gold-bright);
+  box-shadow:inset 0 0 0 1px rgba(201,155,67,.20);
+}
+
+/* Productrijen */
+.product,
+.free-beer-product,
+.order-card,
+.my-orders-wholesale-card,
+.my-orders-freebeer-card {
+  background:rgba(255,255,255,.045);
+  border:1px solid rgba(201,155,67,.18);
+  color:var(--achel-text);
+}
+
+.product-name,
+.free-beer-product-name,
+.order-title,
+.my-orders-wholesale-card strong,
+.my-orders-freebeer-card strong {
+  color:#fff;
+}
+
+.product-unit,
+.free-beer-product-sku,
+.order-meta,
+.my-orders-wholesale-card small,
+.my-orders-freebeer-card small {
+  color:var(--achel-muted);
+}
+
+.product-stock {
+  color:#8ed5a7;
+}
+
+.qty button,
+.free-beer-qty button {
+  background:rgba(255,255,255,.055);
+  border:1px solid rgba(201,155,67,.24);
+  color:var(--achel-gold-bright);
+}
+
+.qty span,
+.free-beer-qty span {
+  color:#fff;
+}
+
+/* Mijn aanvragen mappen */
+.my-orders-intro p {
+  color:var(--achel-muted);
+}
+
+.my-orders-folder,
+.free-beer-category-folder {
+  background:var(--achel-panel);
+  border:1px solid var(--achel-line);
+  box-shadow:var(--achel-shadow);
+}
+
+.my-orders-folder > summary,
+.free-beer-category-folder > summary {
+  background:
+    radial-gradient(circle at 100% 0%,rgba(201,155,67,.08),transparent 32%),
+    linear-gradient(145deg,#20271f,#151a15);
+}
+
+.my-orders-folder > summary strong,
+.free-beer-category-folder > summary strong {
+  color:#fff;
+}
+
+.my-orders-folder > summary span,
+.free-beer-category-folder > summary span {
+  color:var(--achel-gold);
+}
+
+.my-orders-folder > summary b,
+.free-beer-category-folder > summary span {
+  background:rgba(201,155,67,.13);
+  border:1px solid rgba(201,155,67,.16);
+  color:var(--achel-gold-bright);
+}
+
+.my-orders-folder-body,
+.free-beer-category-body {
+  background:rgba(7,10,8,.32);
+  border-top:1px solid rgba(201,155,67,.16);
+}
+
+/* Samenvattingen */
+.summary-section-title,
+.my-orders-freebeer-date,
+.free-beer-product-group-title {
+  color:var(--achel-gold-bright);
+}
+
+.summary-line {
+  border-bottom:1px solid rgba(255,255,255,.07);
+  color:var(--achel-text);
+}
+
+.summary-line strong {
+  color:var(--achel-gold-bright);
+}
+
+.order-items,
+.my-orders-products {
+  border-color:rgba(255,255,255,.07);
+  color:rgba(246,240,227,.78);
+}
+
+/* Status */
+.status {
+  background:rgba(201,155,67,.14);
+  border:1px solid rgba(201,155,67,.18);
+  color:var(--achel-gold-bright);
+}
+
+.status.status-klaar {
+  background:rgba(75,152,98,.16);
+  border-color:rgba(92,181,119,.22);
+  color:#91dbaa;
+}
+
+.status.status-geannuleerd {
+  background:rgba(167,70,70,.18);
+  border-color:rgba(199,91,91,.22);
+  color:#e49b9b;
+}
+
+/* Info meldingen */
+.info {
+  background:rgba(201,155,67,.10);
+  border:1px solid rgba(201,155,67,.16);
+  color:#e4c17e;
+}
+
+.info.ok {
+  background:rgba(62,126,82,.18);
+  border-color:rgba(91,170,116,.22);
+  color:#9bd9ae;
+}
+
+.info.error {
+  background:rgba(142,58,58,.20);
+  border-color:rgba(190,83,83,.24);
+  color:#eba3a3;
+}
+
+/* Empty states */
+.empty,
+.my-orders-folder-loading {
+  color:rgba(246,240,227,.46);
+}
+
+/* Succes */
+.success-mark,
+.free-beer-success-mark {
+  background:rgba(69,145,93,.18);
+  border:1px solid rgba(110,193,137,.25);
+  color:#96daa9;
+}
+
+/* Gratis bier samenvatting */
+.free-beer-summary {
+  background:rgba(201,155,67,.10);
+  border:1px solid rgba(201,155,67,.22);
+  color:#e5c47d;
+}
+
+/* Evenement kalender */
+.event-date-range-display {
+  background:rgba(255,255,255,.055);
+  border:1px solid rgba(201,155,67,.24);
+  color:white;
+}
+
+.event-date-range-display span {
+  color:var(--achel-gold);
+}
+
+.event-date-range-display strong {
+  color:#fff;
+}
+
+.event-calendar-sheet {
+  background:
+    radial-gradient(circle at 100% 0%,rgba(201,155,67,.10),transparent 34%),
+    #151a15;
+  border-top:1px solid rgba(201,155,67,.30);
+  color:white;
+}
+
+.event-calendar-header strong,
+.event-calendar-navigation strong,
+.event-calendar-selection strong {
+  color:#fff;
+}
+
+.event-calendar-header span,
+.event-calendar-selection span {
+  color:var(--achel-gold);
+}
+
+.event-calendar-header button,
+.event-calendar-navigation button,
+.event-calendar-reset {
+  background:rgba(255,255,255,.055);
+  border:1px solid rgba(201,155,67,.20);
+  color:var(--achel-gold-bright);
+}
+
+.event-calendar-selection {
+  background:rgba(255,255,255,.045);
+}
+
+.event-calendar-weekdays span {
+  color:rgba(246,240,227,.42);
+}
+
+.event-calendar-day {
+  color:rgba(255,255,255,.82);
+}
+
+.event-calendar-day.in-range {
+  background:rgba(201,155,67,.20);
+  color:#f2d99f;
+}
+
+.event-calendar-day.range-start,
+.event-calendar-day.range-end {
+  background:linear-gradient(180deg,#b98936,#8d6427);
+  color:#fff;
+}
+
+.event-calendar-day.today {
+  box-shadow:inset 0 0 0 1px var(--achel-gold);
+}
+
+/* Login */
+.login-card {
+  border:1px solid rgba(201,155,67,.30) !important;
+  background:
+    radial-gradient(circle at 90% 7%,rgba(201,155,67,.13),transparent 30%),
+    var(--achel-panel) !important;
+}
+
+.login-card p {
+  color:var(--achel-muted) !important;
+}
+
+/* Side menu volledig Achel */
+.side-menu {
+  background:
+    radial-gradient(circle at 0% 0%,rgba(201,155,67,.11),transparent 30%),
+    linear-gradient(180deg,#1a221b,#111611);
+  color:white;
+  border-right:1px solid rgba(201,155,67,.18);
+}
+
+.menu-profile {
+  border-bottom:1px solid rgba(201,155,67,.16);
+}
+
+.menu-profile strong {
+  color:#fff;
+}
+
+.menu-profile small {
+  color:var(--achel-muted);
+}
+
+.menu-item {
+  color:rgba(255,255,255,.86);
+}
+
+.menu-item:active {
+  background:rgba(201,155,67,.10);
+}
+
+.menu-item.danger {
+  color:#dd8f8f;
+}
+
+/* Admin generieke structuur */
+.admin-head {
+  background:
+    radial-gradient(circle at 90% 0%,rgba(201,155,67,.16),transparent 34%),
+    linear-gradient(145deg,#202a22,#121813);
+  border:1px solid rgba(201,155,67,.28);
+  border-radius:18px;
+  box-shadow:var(--achel-shadow);
+}
+
+.admin-head span,
+.admin-page-title span,
+.admin-block-title span,
+.admin-report-folder summary span {
+  color:var(--achel-gold);
+}
+
+.admin-row {
+  background:rgba(255,255,255,.045);
+  border:1px solid rgba(201,155,67,.17);
+  color:var(--achel-text);
+}
+
+.admin-row b,
+.admin-row strong {
+  color:#fff;
+}
+
+.admin-row small {
+  color:var(--achel-muted);
+}
+
+.admin-row > i {
+  color:var(--achel-gold-bright);
+}
+
+.admin-row > strong,
+.admin-count,
+.dashboard-count,
+.admin-badge {
+  background:rgba(201,155,67,.13);
+  border:1px solid rgba(201,155,67,.16);
+  color:var(--achel-gold-bright);
+}
+
+.admin-kpis > div,
+.admin-material-kpis > div,
+.admin-freebeer-kpis > div {
+  background:rgba(255,255,255,.045);
+  border:1px solid rgba(201,155,67,.17);
+  color:var(--achel-text);
+}
+
+.admin-kpis span,
+.admin-material-kpis span,
+.admin-freebeer-kpis span {
+  color:var(--achel-muted);
+}
+
+.admin-kpis strong,
+.admin-material-kpis strong,
+.admin-freebeer-kpis strong {
+  color:#fff;
+}
+
+.admin-searchbar button {
+  background:rgba(255,255,255,.045);
+  border:1px solid rgba(201,155,67,.22);
+  color:var(--achel-gold-bright);
+}
+
+/* Admin collapsibles */
+.dashboard-fold,
+.admin-report-folder,
+.wholesale-admin-order {
+  overflow:hidden;
+  border-radius:15px;
+}
+
+.dashboard-fold > summary,
+.admin-report-folder > summary,
+.wholesale-admin-order > summary {
+  background:rgba(255,255,255,.025);
+  color:white;
+}
+
+.dashboard-fold > summary::after,
+.admin-report-folder > summary::after {
+  color:var(--achel-gold-bright);
+}
+
+.dashboard-fold-body,
+.admin-report-folder-body,
+.wholesale-admin-body {
+  border-top:1px solid rgba(201,155,67,.15);
+  background:rgba(0,0,0,.12);
+}
+
+/* Wholesale generiek */
+[id^="wholesale"] .card,
+.wholesale-card,
+.wholesale-order-card {
+  background:
+    radial-gradient(circle at 100% 0%,rgba(201,155,67,.08),transparent 31%),
+    var(--achel-panel);
+  border:1px solid var(--achel-line);
+  color:var(--achel-text);
+}
+
+[id^="wholesale"] h2,
+[id^="wholesale"] h3 {
+  color:#fff;
+}
+
+[id^="wholesale"] label {
+  color:rgba(246,240,227,.78);
+}
+
+/* Sticky actie op donkere achtergrond */
+.sticky-action {
+  background:
+    linear-gradient(
+      to top,
+      rgba(13,17,13,.98) 58%,
+      rgba(13,17,13,0)
+    );
+  padding-bottom:2px;
+}
+
+/* Mobiele spacing */
+@media (max-width:520px) {
+  #loginScreen,
+  main {
+    padding-left:12px;
+    padding-right:12px;
+  }
+
+  #appMain > section:not(#homeScreen) .card,
+  #loginScreen .card {
+    border-radius:16px;
+    padding:14px;
+  }
+
+  #appMain > section:not(#homeScreen) h2 {
+    font-size:19px;
+  }
+
+  .product,
+  .free-beer-product {
+    border-radius:12px;
+  }
 }
 
 </style>
@@ -4551,17 +5335,25 @@ const supabaseClient =
 
 const BEER_QUOTES = [
 
-  "Goed bier brengt goede mensen samen.",
+  "Achel. Gebrouwen om te delen, gemaakt om bij te blijven.",
 
-  "Een sterk verhaal begint vaak bij een goed glas bier.",
+  "Een goed moment krijgt meer karakter met Achel in het glas.",
 
-  "Proef het moment, deel het verhaal.",
+  "Achel brengt smaak, verhaal en mensen samen.",
 
-  "Waar bier verbindt, ontstaan mooie gesprekken.",
+  "Van De Kluis tot in het glas: Achel proef je met karakter.",
 
-  "Kwaliteit proef je. Gastvrijheid onthoud je.",
+  "Achel. Belgisch bier met een verhaal dat blijft hangen.",
 
-  "Een goed bier krijgt pas waarde wanneer het gedeeld wordt."
+  "Waar Achel geschonken wordt, begint vaak een goed gesprek.",
+
+  "Karakter in het glas. Achel op zijn best.",
+
+  "Achel laat je niet alleen proeven, maar ook ontdekken.",
+
+  "Een sterk verhaal verdient een sterk bier. Achel.",
+
+  "Achel. Voor momenten die net iets langer mogen duren."
 
 ];
 
