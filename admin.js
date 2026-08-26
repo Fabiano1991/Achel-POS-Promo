@@ -5116,9 +5116,17 @@ function buildAdminProductManagementRow(
                   −
                 </button>
 
-                <strong>
-                  ${shownStock}
-                </strong>
+                <input
+                  id="adminStockInput-${product.id}"
+                  class="admin-stock-input"
+                  type="number"
+                  min="0"
+                  step="1"
+                  inputmode="numeric"
+                  value="${shownStock}"
+                  aria-label="Voorraad rechtstreeks instellen"
+                  onchange="setAdminProductStock('${product.id}', this.value)"
+                >
 
                 <button
                   type="button"
@@ -5277,6 +5285,136 @@ async function changeAdminProductStock(
       "Voorraad kon niet worden aangepast.\n\n" +
       adminReadableError(error)
     );
+
+    return;
+
+  }
+
+
+  updateLocalAdminProduct(
+    data
+  );
+
+
+  try {
+
+    await refreshAdminPosAvailableStock();
+
+  }
+
+  catch (
+    refreshError
+  ) {
+
+    console.warn(
+      "Voorraad werd aangepast, maar beschikbaar aantal kon niet opnieuw worden berekend:",
+      refreshError
+    );
+
+  }
+
+
+  renderAdminProductManagement();
+
+  renderAdminAttentionPanel();
+
+}
+
+
+
+async function setAdminProductStock(
+  productId,
+  value
+) {
+
+  const product =
+    adminProducts
+      .find(
+        item =>
+          String(item.id) ===
+          String(productId)
+      );
+
+
+  if (
+    !product
+    ||
+    product.voorraad_beheren !==
+      true
+  ) {
+
+    return;
+
+  }
+
+
+  const next =
+    Math.max(
+      0,
+      Math.floor(
+        Number(
+          value ||
+          0
+        )
+      )
+    );
+
+
+  if (
+    Number.isNaN(
+      next
+    )
+  ) {
+
+    renderAdminProductManagement();
+
+    return;
+
+  }
+
+
+  const {
+    data,
+    error
+  } =
+    await supabaseClient
+      .from(
+        "products"
+      )
+      .update({
+        voorraad:
+          next
+      })
+      .eq(
+        "id",
+        product.id
+      )
+      .select(`
+        id,
+        naam,
+        categorie,
+        eenheid,
+        actief,
+        sort_order,
+        voorraad,
+        minimum_voorraad,
+        voorraad_beheren,
+        tijdelijk_onbeschikbaar,
+        inhoud_per_eenheid
+      `)
+      .single();
+
+
+  if (
+    error
+  ) {
+
+    alert(
+      "Voorraad kon niet worden aangepast.\n\n" +
+      adminReadableError(error)
+    );
+
+    renderAdminProductManagement();
 
     return;
 
@@ -17541,6 +17679,36 @@ function injectAdminStyles() {
       background:rgba(255,255,255,.045);
       border:1px solid rgba(201,155,67,.22);
       color:#e0b85f;
+    }
+
+
+
+    .admin-stock-control .admin-stock-input {
+      width:90px !important;
+      min-width:0 !important;
+      min-height:42px !important;
+      margin:0 !important;
+      padding:6px 8px !important;
+
+      border:0 !important;
+      border-left:1px solid #d8d2c8 !important;
+      border-right:1px solid #d8d2c8 !important;
+      border-radius:0 !important;
+
+      background:#ffffff !important;
+      color:#202722 !important;
+
+      text-align:center !important;
+      font-size:17px !important;
+      font-weight:900 !important;
+
+      -moz-appearance:textfield;
+    }
+
+    .admin-stock-control .admin-stock-input::-webkit-outer-spin-button,
+    .admin-stock-control .admin-stock-input::-webkit-inner-spin-button {
+      margin:0;
+      -webkit-appearance:none;
     }
 
 
