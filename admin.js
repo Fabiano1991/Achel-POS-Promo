@@ -20869,6 +20869,16 @@ function injectProfessionalReturnStyles() {
       color:#f6f0e3;
     }
 
+    .return-simple-item.good {
+      background:rgba(57,126,79,.11);
+      border-left-color:#5ca675;
+    }
+
+    .return-simple-item.problem {
+      background:rgba(153,65,65,.11);
+      border-left-color:#c96b5f;
+    }
+
     .return-product-info strong,
     .return-simple-item strong,
     .return-archive-row strong {
@@ -20973,6 +20983,87 @@ function injectProfessionalReturnStyles() {
       background:rgba(153,65,65,.20);
       border-color:rgba(203,91,91,.28);
       color:#e9a2a2;
+    }
+
+    .return-problem-modal {
+      background:
+        radial-gradient(circle at 100% 0%,rgba(201,155,67,.10),transparent 33%),
+        linear-gradient(145deg,#20271f,#151a15);
+      border:1px solid rgba(201,155,67,.27);
+      color:#f6f0e3;
+      box-shadow:0 18px 50px rgba(0,0,0,.38);
+    }
+
+    .return-problem-modal-head {
+      border-bottom-color:rgba(201,155,67,.17);
+    }
+
+    .return-problem-modal-head span {
+      color:#c99b43;
+    }
+
+    .return-problem-modal-head h3 {
+      color:#fff;
+    }
+
+    .return-problem-modal-head small {
+      color:rgba(246,240,227,.55);
+    }
+
+    .return-problem-modal-head > button {
+      background:rgba(255,255,255,.06);
+      color:#e0b85f;
+    }
+
+    .return-problem-good-preview,
+    .return-problem-option {
+      background:rgba(255,255,255,.045);
+      border-color:rgba(201,155,67,.17);
+    }
+
+    .return-problem-good-preview strong,
+    .return-problem-option strong {
+      color:#fff;
+    }
+
+    .return-problem-good-preview span,
+    .return-problem-option span {
+      color:rgba(246,240,227,.55);
+    }
+
+    .return-problem-stepper {
+      background:rgba(255,255,255,.035);
+      border-color:rgba(201,155,67,.18);
+    }
+
+    .return-problem-stepper button {
+      background:rgba(255,255,255,.055);
+      color:#e0b85f;
+    }
+
+    .return-problem-stepper strong {
+      color:#fff;
+    }
+
+    .return-problem-modal label {
+      color:#d8c8a8;
+    }
+
+    .return-problem-modal textarea {
+      background:rgba(255,255,255,.055);
+      border-color:rgba(201,155,67,.18);
+      color:#fff;
+    }
+
+    .return-problem-cancel {
+      background:rgba(255,255,255,.045);
+      border-color:rgba(201,155,67,.22);
+      color:#e0b85f;
+    }
+
+    .return-problem-save {
+      background:linear-gradient(180deg,#b98936,#8d6427);
+      color:#fff;
     }
 
 
