@@ -4841,6 +4841,133 @@ function injectWholesaleStyles() {
 
     }
 
+
+    /* ============================================================
+       ACHEL HOME THEME — GROOTHANDEL OVERRIDES
+       Alleen vormgeving. Geen bestel- of handtekeninglogica.
+    ============================================================ */
+
+    #wholesaleScreen,
+    #wholesaleSummaryScreen {
+      color:#f6f0e3;
+    }
+
+    .wholesale-title span,
+    .wholesale-signature-title span,
+    .wholesale-proof-header span {
+      color:#c99b43;
+    }
+
+    .wholesale-title h2,
+    .wholesale-signature-title h2,
+    .wholesale-proof-header h2 {
+      color:#fff;
+    }
+
+    .wholesale-intro,
+    .wholesale-signature-card > p {
+      color:rgba(246,240,227,.60);
+    }
+
+    .wholesale-product,
+    .wholesale-proof-preview,
+    .wholesale-signature-card {
+      background:
+        radial-gradient(circle at 100% 0%,rgba(201,155,67,.08),transparent 32%),
+        linear-gradient(145deg,#20271f,#151a15);
+      border:1px solid rgba(201,155,67,.25);
+      color:#f6f0e3;
+      box-shadow:0 10px 26px rgba(0,0,0,.20);
+    }
+
+    .wholesale-product-head > div:first-child > strong,
+    .wholesale-summary-product > strong,
+    .wholesale-proof-grid strong,
+    .wholesale-proof-note strong {
+      color:#fff;
+    }
+
+    .wholesale-product-head > div:first-child > span,
+    .wholesale-proof-grid span,
+    .wholesale-proof-note span {
+      color:rgba(246,240,227,.52);
+    }
+
+    .wholesale-proof-preview {
+      border-top:4px solid #c99b43;
+    }
+
+    .wholesale-signature-card {
+      border-top:4px solid #4e8d62;
+    }
+
+    .wholesale-proof-header,
+    .wholesale-summary-product,
+    .wholesale-proof-note {
+      border-color:rgba(255,255,255,.07);
+    }
+
+    .wholesale-proof-header > strong {
+      background:rgba(201,155,67,.13);
+      border:1px solid rgba(201,155,67,.18);
+      color:#e0b85f;
+    }
+
+    .wholesale-commercial-note {
+      background:rgba(201,155,67,.09);
+      border:1px solid rgba(201,155,67,.16);
+      color:#e1c079;
+    }
+
+    .wholesale-signature-box {
+      border:2px dashed rgba(201,155,67,.36);
+      background:#f7f4ec;
+    }
+
+    .wholesale-signature-placeholder {
+      color:#948b7a;
+    }
+
+    .wholesale-clear-signature {
+      background:rgba(255,255,255,.045);
+      border:1px solid rgba(201,155,67,.22);
+      color:#e0b85f;
+    }
+
+    .wholesale-approval {
+      background:rgba(255,255,255,.04);
+      border:1px solid rgba(201,155,67,.17);
+      color:rgba(246,240,227,.76);
+    }
+
+    .wholesale-signature-status {
+      background:rgba(201,155,67,.10);
+      border:1px solid rgba(201,155,67,.16);
+      color:#dcb873;
+    }
+
+    .wholesale-signature-status.signed {
+      background:rgba(66,136,88,.17);
+      border-color:rgba(98,182,123,.23);
+      color:#94d9aa;
+    }
+
+    .wholesale-product label {
+      color:rgba(246,240,227,.70);
+    }
+
+    .wholesale-product select {
+      background:rgba(255,255,255,.055);
+      border:1px solid rgba(201,155,67,.23);
+      color:#fff;
+    }
+
+    .wholesale-product select option {
+      background:#182019;
+      color:#fff;
+    }
+
+
   `;
 
 
