@@ -1,1 +1,233 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
 
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1, viewport-fit=cover"
+  >
+
+  <meta name="theme-color" content="#17130f">
+
+  <title>Achel B2B</title>
+
+  <link rel="stylesheet" href="./b2b.css">
+</head>
+
+<body>
+
+  <div class="b2b-app">
+
+    <!-- HEADER -->
+    <header class="b2b-header">
+
+      <a href="../index.html" class="back-button" aria-label="Terug">
+        ←
+      </a>
+
+      <div class="header-text">
+        <span class="header-eyebrow">Achelse Kluis</span>
+        <h1>B2B</h1>
+      </div>
+
+    </header>
+
+
+    <!-- WELKOM -->
+    <main class="b2b-main">
+
+      <section class="welcome-section">
+
+        <p class="welcome-label">B2B beheer</p>
+
+        <h2 id="welcomeName">
+          Welkom
+        </h2>
+
+        <p class="welcome-description">
+          Beheer je B2B-dagen, klanten en commerciële opvolging.
+        </p>
+
+      </section>
+
+
+      <!-- SNEL OVERZICHT -->
+      <section class="summary-grid">
+
+        <article class="summary-card">
+          <span class="summary-label">
+            Komende B2B-dagen
+          </span>
+
+          <strong
+            id="upcomingDaysCount"
+            class="summary-value"
+          >
+            —
+          </strong>
+        </article>
+
+
+        <article class="summary-card">
+          <span class="summary-label">
+            Mijn inschrijvingen
+          </span>
+
+          <strong
+            id="registrationsCount"
+            class="summary-value"
+          >
+            —
+          </strong>
+        </article>
+
+
+        <article class="summary-card">
+          <span class="summary-label">
+            Open follow-ups
+          </span>
+
+          <strong
+            id="followupsCount"
+            class="summary-value"
+          >
+            —
+          </strong>
+        </article>
+
+      </section>
+
+
+      <!-- B2B FUNCTIES -->
+      <section class="menu-section">
+
+        <h3>B2B</h3>
+
+
+        <a
+          href="./dagen.html"
+          class="menu-card"
+        >
+
+          <div class="menu-card-content">
+
+            <span class="menu-card-label">
+              Planning
+            </span>
+
+            <strong>
+              B2B-dagen
+            </strong>
+
+            <p>
+              Bekijk beschikbare B2B-dagen, capaciteit en jouw quota.
+            </p>
+
+          </div>
+
+          <span class="menu-arrow">›</span>
+
+        </a>
+
+
+        <a
+          href="./inschrijven.html"
+          class="menu-card menu-card-primary"
+        >
+
+          <div class="menu-card-content">
+
+            <span class="menu-card-label">
+              Klanten
+            </span>
+
+            <strong>
+              Nieuwe inschrijving
+            </strong>
+
+            <p>
+              Schrijf een klant en zijn gasten in voor een B2B-dag.
+            </p>
+
+          </div>
+
+          <span class="menu-arrow">›</span>
+
+        </a>
+
+
+        <a
+          href="./mijn-inschrijvingen.html"
+          class="menu-card"
+        >
+
+          <div class="menu-card-content">
+
+            <span class="menu-card-label">
+              Overzicht
+            </span>
+
+            <strong>
+              Mijn inschrijvingen
+            </strong>
+
+            <p>
+              Bekijk, wijzig en beheer je bestaande inschrijvingen.
+            </p>
+
+          </div>
+
+          <span class="menu-arrow">›</span>
+
+        </a>
+
+
+        <a
+          href="./opvolging.html"
+          class="menu-card"
+        >
+
+          <div class="menu-card-content">
+
+            <span class="menu-card-label">
+              Sales
+            </span>
+
+            <strong>
+              Commerciële opvolging
+            </strong>
+
+            <p>
+              Volg klanten, opportuniteiten en volgende acties op.
+            </p>
+
+          </div>
+
+          <span class="menu-arrow">›</span>
+
+        </a>
+
+      </section>
+
+
+      <!-- STATUS -->
+      <div
+        id="b2bStatus"
+        class="status-message"
+        hidden
+      ></div>
+
+    </main>
+
+  </div>
+
+
+  <!-- Supabase -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <!-- Alleen B2B-code -->
+  <script src="./b2b.js"></script>
+
+</body>
+</html>
