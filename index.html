@@ -3248,6 +3248,62 @@ body {
   }
 }
 
+
+
+/* ===============================
+   POS / PROMO COMPACT FORM
+================================ */
+
+#orderScreen > .card:first-of-type {
+  padding:14px;
+}
+
+#orderScreen > .card:first-of-type label {
+  margin-top:10px;
+}
+
+#orderScreen .profile-box {
+  padding:9px 11px;
+}
+
+#orderScreen #reference,
+#orderScreen #country,
+#orderScreen #pickup {
+  min-height:44px;
+}
+
+.pos-note-toggle-wrap {
+  margin-top:10px;
+}
+
+.pos-note-toggle {
+  width:auto;
+  min-height:36px;
+  padding:0 12px;
+
+  border:1px solid rgba(201,155,67,.28);
+  border-radius:999px;
+
+  background:rgba(255,255,255,.045);
+  color:var(--achel-gold-bright);
+
+  font-size:11px;
+  font-weight:850;
+}
+
+.pos-note-box {
+  margin-top:8px;
+}
+
+.pos-note-box label {
+  margin-top:0 !important;
+}
+
+.pos-note-box textarea {
+  min-height:74px;
+}
+
+
 </style>
 </head>
 
@@ -3631,7 +3687,8 @@ Referentie
 <input
   id="reference"
   type="text"
-  placeholder="Bijv. Café De Markt"
+  value="POS & Promo"
+  placeholder="POS & Promo"
 >
 
 
@@ -3653,15 +3710,10 @@ Nederland
 </select>
 
 
-<label for="municipality">
-Stad / gemeente
-</label>
-
-
 <input
   id="municipality"
-  type="text"
-  placeholder="Bijv. Genk"
+  type="hidden"
+  value=""
 >
 
 
@@ -3686,15 +3738,35 @@ De aanvraag moet minstens 2 dagen vóór afhaling gebeuren.
 </div>
 
 
+<div class="pos-note-toggle-wrap">
+
+<button
+  id="posNoteToggle"
+  class="pos-note-toggle"
+  type="button"
+  onclick="togglePosNote()"
+  aria-expanded="false"
+>
++ Opmerking toevoegen
+</button>
+
+<div
+  id="posNoteBox"
+  class="pos-note-box hidden"
+>
+
 <label for="note">
 Opmerking
 </label>
-
 
 <textarea
   id="note"
   placeholder="Extra informatie voor de verantwoordelijke"
 ></textarea>
+
+</div>
+
+</div>
 
 </div>
 
@@ -3800,13 +3872,10 @@ Referentie
 </p>
 
 
-<p>
-<strong>
-Locatie
-</strong>
-<br>
-<span id="summaryLocation"></span>
-</p>
+<span
+  id="summaryLocation"
+  class="hidden"
+></span>
 
 
 <p>
@@ -8250,6 +8319,76 @@ Deze aanvraag is centraal opgeslagen in Achel POS.`;
 
 
 /* ===============================
+   POS OPMERKING
+================================ */
+
+function togglePosNote() {
+
+  const box =
+    document.getElementById(
+      "posNoteBox"
+    );
+
+  const button =
+    document.getElementById(
+      "posNoteToggle"
+    );
+
+
+  if (
+    !box ||
+    !button
+  ) {
+
+    return;
+
+  }
+
+
+  const willOpen =
+    box.classList.contains(
+      "hidden"
+    );
+
+
+  box.classList.toggle(
+    "hidden",
+    !willOpen
+  );
+
+
+  button.setAttribute(
+    "aria-expanded",
+    String(
+      willOpen
+    )
+  );
+
+
+  button.innerText =
+    willOpen
+
+      ? "− Opmerking sluiten"
+
+      : "+ Opmerking toevoegen";
+
+
+  if (
+    willOpen
+  ) {
+
+    document
+      .getElementById(
+        "note"
+      )
+      ?.focus();
+
+  }
+
+}
+
+
+/* ===============================
    RESET NORMAL
 ================================ */
 
@@ -8260,7 +8399,7 @@ function resetForm() {
       "reference"
     )
     .value =
-      "";
+      "POS & Promo";
 
 
   document
@@ -8293,6 +8432,41 @@ function resetForm() {
     )
     .value =
       "";
+
+
+  document
+    .getElementById(
+      "posNoteBox"
+    )
+    ?.classList
+    .add(
+      "hidden"
+    );
+
+
+  const posNoteToggle =
+    document
+      .getElementById(
+        "posNoteToggle"
+      );
+
+
+  if (
+    posNoteToggle
+  ) {
+
+    posNoteToggle
+      .setAttribute(
+        "aria-expanded",
+        "false"
+      );
+
+
+    posNoteToggle
+      .innerText =
+        "+ Opmerking toevoegen";
+
+  }
 
 
   Object.keys(
