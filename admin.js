@@ -18189,6 +18189,21 @@ function injectAdminStyles() {
     }
 
 
+
+    /* Voorraadinput: volledige getal exact vanuit het midden tonen */
+    .admin-stock-control .admin-stock-input {
+      width:96px !important;
+      min-width:96px !important;
+      max-width:96px !important;
+      padding-left:4px !important;
+      padding-right:4px !important;
+      text-align:center !important;
+      text-indent:0 !important;
+      direction:ltr !important;
+      font-variant-numeric:tabular-nums;
+    }
+
+
   `;
 
 
