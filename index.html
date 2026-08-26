@@ -2248,6 +2248,77 @@ body {
 }
 
 
+/* ============================================================
+   BIERGLAS VULANIMATIE
+============================================================ */
+
+.home-beer-fill {
+  position:absolute;
+  z-index:1;
+  left:50%;
+  bottom:20px;
+  width:58px;
+  height:104px;
+  overflow:hidden;
+  transform:translateX(-50%);
+  clip-path:polygon(12% 0,88% 0,82% 100%,18% 100%);
+  pointer-events:none;
+}
+
+.home-beer-fill::before {
+  content:"";
+  position:absolute;
+  left:0;
+  right:0;
+  bottom:0;
+  height:0;
+  background:linear-gradient(180deg,#e4b84f 0%,#c98a21 34%,#9a5d13 100%);
+  box-shadow:inset 0 0 10px rgba(255,215,116,.24);
+}
+
+.home-beer-fill::after {
+  content:"";
+  position:absolute;
+  left:3px;
+  right:3px;
+  bottom:0;
+  height:8px;
+  border-radius:50%;
+  background:linear-gradient(180deg,#fff7dc,#ead7a6);
+  opacity:0;
+}
+
+.home-beer-button.beer-filling .home-beer-fill::before {
+  animation:achelBeerFill 1.45s cubic-bezier(.22,.72,.28,1) forwards;
+}
+
+.home-beer-button.beer-filling .home-beer-fill::after {
+  animation:achelFoamRise 1.45s cubic-bezier(.22,.72,.28,1) forwards;
+}
+
+@keyframes achelBeerFill {
+  0% { height:0; }
+  100% { height:88%; }
+}
+
+@keyframes achelFoamRise {
+  0% { bottom:0; opacity:0; }
+  12% { opacity:0; }
+  35% { opacity:.95; }
+  100% { bottom:calc(88% - 4px); opacity:1; }
+}
+
+@media (prefers-reduced-motion:reduce) {
+  .home-beer-button.beer-filling .home-beer-fill::before {
+    animation-duration:.01ms;
+  }
+
+  .home-beer-button.beer-filling .home-beer-fill::after {
+    animation-duration:.01ms;
+  }
+}
+
+
 .home-beer-button:active
 .home-beer-glass {
 
@@ -3569,6 +3640,11 @@ Inloggen
     >
 
       <span class="home-beer-glow"></span>
+
+      <span
+        class="home-beer-fill"
+        aria-hidden="true"
+      ></span>
 
       <img
         src="./achel-glas.png"
@@ -7135,6 +7211,43 @@ function showOnly(
 }
 
 
+function playHomeBeerFillAnimation() {
+
+  const button =
+    document
+      .getElementById(
+        "homeBeerButton"
+      );
+
+
+  if (
+    !button
+  ) {
+
+    return;
+
+  }
+
+
+  button
+    .classList
+    .remove(
+      "beer-filling"
+    );
+
+
+  void button.offsetWidth;
+
+
+  button
+    .classList
+    .add(
+      "beer-filling"
+    );
+
+}
+
+
 function goHome() {
 
   closeMenu();
@@ -7144,6 +7257,8 @@ function goHome() {
   showOnly(
     "homeScreen"
   );
+
+  playHomeBeerFillAnimation();
 
 }
 
