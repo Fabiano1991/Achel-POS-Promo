@@ -17203,6 +17203,344 @@ function injectAdminStyles() {
 
     }
 
+
+    /* ============================================================
+       ACHEL HOME THEME — ADMIN OVERRIDES
+       Alleen vormgeving. Geen functionele logica.
+    ============================================================ */
+
+    .admin-shell {
+      color:#f6f0e3;
+    }
+
+    .admin-head {
+      background:
+        radial-gradient(circle at 90% 8%, rgba(201,155,67,.16), transparent 34%),
+        linear-gradient(145deg,#202a22,#121813);
+      border:1px solid rgba(201,155,67,.30);
+      border-radius:18px;
+      box-shadow:0 12px 30px rgba(0,0,0,.24);
+    }
+
+    .admin-head span,
+    .admin-page-title span,
+    .admin-block-title span {
+      color:#c99b43;
+    }
+
+    .admin-head strong,
+    .admin-page-title strong,
+    .admin-block-title strong {
+      color:#fff;
+    }
+
+    .admin-tabs,
+    .admin-request-switch,
+    .admin-catalog-switch {
+      background:rgba(255,255,255,.035);
+      border:1px solid rgba(201,155,67,.18);
+    }
+
+    .admin-tabs button,
+    .admin-request-switch button,
+    .admin-catalog-switch button {
+      color:rgba(246,240,227,.48);
+      background:transparent;
+    }
+
+    .admin-tabs button.active,
+    .admin-request-switch button.active,
+    .admin-catalog-switch button.active {
+      color:#e0b85f;
+      background:
+        linear-gradient(
+          145deg,
+          rgba(201,155,67,.18),
+          rgba(201,155,67,.07)
+        );
+      box-shadow:
+        inset 0 0 0 1px
+        rgba(201,155,67,.20);
+    }
+
+    .admin-block,
+    .admin-panel,
+    .admin-report-folder,
+    .admin-report-central-filters,
+    .admin-freebeer-filter-card,
+    .admin-freebeer-card,
+    .admin-material-card,
+    .admin-problem,
+    .admin-catalog-item,
+    .admin-order-card,
+    .admin-wholesale {
+      background:
+        radial-gradient(circle at 100% 0%, rgba(201,155,67,.07), transparent 32%),
+        linear-gradient(145deg,#20271f,#151a15);
+      border:1px solid rgba(201,155,67,.24);
+      color:#f6f0e3;
+      box-shadow:0 10px 24px rgba(0,0,0,.18);
+    }
+
+    .admin-panel > summary,
+    .admin-report-folder > summary,
+    .admin-freebeer-card > summary,
+    .admin-wholesale > summary {
+      background:rgba(255,255,255,.025);
+      color:#fff;
+    }
+
+    .admin-row,
+    .admin-attention,
+    .admin-kpi {
+      background:rgba(255,255,255,.045);
+      border:1px solid rgba(201,155,67,.18);
+      color:#f6f0e3;
+    }
+
+    .admin-row b,
+    .admin-row strong,
+    .admin-attention strong,
+    .admin-kpi strong {
+      color:#fff;
+    }
+
+    .admin-row small,
+    .admin-attention span,
+    .admin-kpi span,
+    .admin-material-head small,
+    .admin-problem small,
+    .admin-catalog-item small,
+    .admin-order-card small {
+      color:rgba(246,240,227,.58);
+    }
+
+    .admin-row > i,
+    .admin-attention > i {
+      color:#e0b85f;
+    }
+
+    .admin-row > strong,
+    .admin-count,
+    .admin-badge,
+    .admin-freebeer-card-side b {
+      background:rgba(201,155,67,.13);
+      border:1px solid rgba(201,155,67,.18);
+      color:#e0b85f;
+    }
+
+    .admin-searchbar input,
+    .admin-filters input,
+    .admin-filters select,
+    .admin-report-central-filters input,
+    .admin-report-central-filters select,
+    .admin-freebeer-filter-card input,
+    .admin-freebeer-filter-card select,
+    .admin-catalog-item input,
+    .admin-catalog-item select {
+      background:rgba(255,255,255,.055);
+      border:1px solid rgba(201,155,67,.24);
+      color:#fff;
+    }
+
+    .admin-searchbar input::placeholder,
+    .admin-freebeer-filter-card input::placeholder {
+      color:rgba(246,240,227,.32);
+    }
+
+    .admin-searchbar button,
+    .admin-secondary,
+    .problem-view {
+      background:rgba(255,255,255,.045);
+      border:1px solid rgba(201,155,67,.24);
+      color:#e0b85f;
+    }
+
+    .admin-primary,
+    .admin-export,
+    .admin-material-card > button,
+    .admin-problem button:not(.problem-view),
+    .problem-resolve.gold {
+      background:linear-gradient(180deg,#b98936,#8d6427);
+      border:1px solid rgba(235,190,97,.28);
+      color:#fff;
+      box-shadow:0 7px 18px rgba(91,61,18,.28);
+    }
+
+    .problem-resolve.green {
+      background:linear-gradient(180deg,#387d51,#285f3d);
+      color:#fff;
+    }
+
+    .admin-stock-intro,
+    .admin-clear,
+    .admin-stock-warning,
+    .admin-problem-note {
+      background:rgba(255,255,255,.04);
+      border:1px solid rgba(201,155,67,.15);
+      color:rgba(246,240,227,.70);
+    }
+
+    .admin-clear b,
+    .admin-material-head strong,
+    .admin-material-line strong,
+    .admin-problem strong,
+    .admin-catalog-item strong,
+    .admin-order-card > strong {
+      color:#fff;
+    }
+
+    .admin-material-line {
+      border-top:1px solid rgba(255,255,255,.07);
+      color:rgba(246,240,227,.66);
+    }
+
+    .admin-material-line .ok {
+      color:#91dbaa;
+    }
+
+    .admin-material-line .bad,
+    .admin-problem b {
+      color:#e69b9b;
+    }
+
+    .admin-availability-toggle.on {
+      background:rgba(66,136,88,.17);
+      border:1px solid rgba(97,181,122,.24);
+      color:#91dbaa;
+    }
+
+    .admin-availability-toggle.off {
+      background:rgba(151,67,67,.18);
+      border:1px solid rgba(197,94,94,.24);
+      color:#e49b9b;
+    }
+
+    .admin-stock-control {
+      background:rgba(255,255,255,.035);
+      border-color:rgba(201,155,67,.18);
+    }
+
+    .admin-stock-control button {
+      background:rgba(255,255,255,.05);
+      color:#e0b85f;
+    }
+
+    .admin-stock-control strong {
+      color:#fff;
+    }
+
+    .admin-detail-row {
+      border-bottom:1px solid rgba(255,255,255,.07);
+    }
+
+    .admin-detail-row span {
+      color:rgba(246,240,227,.52);
+    }
+
+    .admin-detail-row strong {
+      color:#fff;
+    }
+
+    .admin-timeline-row strong {
+      color:#fff;
+    }
+
+    .admin-timeline-row small {
+      color:rgba(246,240,227,.50);
+    }
+
+    .admin-timeline-row i {
+      background:rgba(255,255,255,.12);
+      border-color:rgba(201,155,67,.18);
+    }
+
+    .admin-timeline-row.active i {
+      background:#c99b43;
+      border-color:#c99b43;
+    }
+
+    .admin-freebeer-item,
+    .admin-freebeer-rep,
+    .event-delivery-item {
+      background:rgba(255,255,255,.04);
+      border-color:rgba(201,155,67,.16);
+      color:#f6f0e3;
+    }
+
+    .admin-freebeer-item strong,
+    .admin-freebeer-rep strong,
+    .event-delivery-item strong {
+      color:#fff;
+    }
+
+    .admin-freebeer-item small,
+    .admin-freebeer-rep span,
+    .event-delivery-item small {
+      color:rgba(246,240,227,.54);
+    }
+
+    .event-delivery-modal,
+    .return-problem-modal {
+      background:
+        radial-gradient(circle at 100% 0%,rgba(201,155,67,.10),transparent 33%),
+        linear-gradient(145deg,#20271f,#151a15);
+      border:1px solid rgba(201,155,67,.27);
+      color:#f6f0e3;
+      box-shadow:0 18px 50px rgba(0,0,0,.38);
+    }
+
+    .return-problem-modal-head h3,
+    .event-delivery-modal h3 {
+      color:#fff;
+    }
+
+    .return-problem-modal-head span {
+      color:#c99b43;
+    }
+
+    .return-problem-modal-head small {
+      color:rgba(246,240,227,.55);
+    }
+
+    .return-problem-option,
+    .return-problem-good-preview {
+      background:rgba(255,255,255,.045);
+      border-color:rgba(201,155,67,.17);
+    }
+
+    .return-problem-option strong,
+    .return-problem-good-preview strong {
+      color:#fff;
+    }
+
+    .return-problem-option span,
+    .return-problem-good-preview span {
+      color:rgba(246,240,227,.55);
+    }
+
+    .return-problem-stepper button {
+      background:rgba(255,255,255,.055);
+      border-color:rgba(201,155,67,.20);
+      color:#e0b85f;
+    }
+
+    .return-problem-stepper strong {
+      color:#fff;
+    }
+
+    .return-problem-save {
+      background:linear-gradient(180deg,#b98936,#8d6427);
+      color:#fff;
+    }
+
+    .return-problem-cancel {
+      background:rgba(255,255,255,.045);
+      border:1px solid rgba(201,155,67,.22);
+      color:#e0b85f;
+    }
+
+
   `;
 
 
@@ -19736,6 +20074,183 @@ function injectProfessionalReturnStyles() {
   font-size:12px;
 
 }
+
+    /* ============================================================
+       ACHEL HOME THEME — RETOUR OVERRIDES
+       Alleen vormgeving. Geen retourlogica aangepast.
+    ============================================================ */
+
+    .return-workspace,
+    .return-simple-workspace,
+    .return-archive-card {
+      background:
+        radial-gradient(circle at 100% 0%,rgba(201,155,67,.08),transparent 32%),
+        linear-gradient(145deg,#20271f,#151a15);
+      border:1px solid rgba(201,155,67,.25);
+      color:#f6f0e3;
+      box-shadow:0 12px 30px rgba(0,0,0,.22);
+    }
+
+    .return-workspace-header,
+    .return-simple-header,
+    .return-archive-head {
+      background:rgba(255,255,255,.025);
+      border-bottom:1px solid rgba(201,155,67,.16);
+    }
+
+    .return-kicker,
+    .return-simple-header span,
+    .return-archive-head span {
+      color:#c99b43;
+    }
+
+    .return-header-top h2,
+    .return-simple-header h2,
+    .return-archive-head h3 {
+      color:#fff;
+    }
+
+    .return-summary-bar,
+    .return-simple-summary {
+      background:rgba(255,255,255,.04);
+      border:1px solid rgba(201,155,67,.17);
+    }
+
+    .return-summary-stat:not(:last-child) {
+      border-right:1px solid rgba(255,255,255,.07);
+    }
+
+    .return-summary-stat span,
+    .return-simple-summary span {
+      color:rgba(246,240,227,.48);
+    }
+
+    .return-summary-stat strong,
+    .return-simple-summary strong {
+      color:#fff;
+    }
+
+    .return-table-header {
+      background:rgba(201,155,67,.08);
+      border-color:rgba(201,155,67,.14);
+      color:rgba(246,240,227,.52);
+    }
+
+    .return-product-row,
+    .return-simple-item,
+    .return-archive-row {
+      background:rgba(255,255,255,.035);
+      border-color:rgba(255,255,255,.07);
+      color:#f6f0e3;
+    }
+
+    .return-product-info strong,
+    .return-simple-item strong,
+    .return-archive-row strong {
+      color:#fff;
+    }
+
+    .return-product-info span,
+    .return-simple-item span,
+    .return-archive-row small {
+      color:rgba(246,240,227,.52);
+    }
+
+    .return-loaned,
+    .return-counter-value {
+      color:#fff;
+    }
+
+    .return-stepper {
+      background:rgba(255,255,255,.035);
+      border-color:rgba(201,155,67,.17);
+    }
+
+    .return-stepper button {
+      background:rgba(255,255,255,.045);
+      color:#e0b85f;
+    }
+
+    .return-stepper b {
+      background:rgba(255,255,255,.025);
+      color:#fff;
+    }
+
+    .return-note {
+      background:rgba(255,255,255,.045);
+      border-color:rgba(201,155,67,.18);
+      color:#fff;
+    }
+
+    .return-note-toggle {
+      color:#d7b36b;
+    }
+
+    .return-workspace-footer,
+    .return-simple-footer {
+      background:rgba(9,12,10,.34);
+      border-top:1px solid rgba(201,155,67,.14);
+    }
+
+    .return-cancel,
+    .return-simple-cancel,
+    .return-reopen-button {
+      background:rgba(255,255,255,.045);
+      border:1px solid rgba(201,155,67,.22);
+      color:#e0b85f;
+    }
+
+    .return-save-main,
+    .return-simple-save,
+    .return-all-good {
+      background:linear-gradient(180deg,#b98936,#8d6427);
+      color:#fff;
+      box-shadow:0 7px 18px rgba(91,61,18,.26);
+    }
+
+    .return-help,
+    .return-validation,
+    .return-archive-note {
+      background:rgba(201,155,67,.08);
+      border:1px solid rgba(201,155,67,.14);
+      color:rgba(246,240,227,.64);
+    }
+
+    .return-simple-status.pending {
+      background:rgba(201,155,67,.10);
+      color:#d8b36e;
+    }
+
+    .return-simple-status.good {
+      background:rgba(67,139,88,.16);
+      color:#91dbaa;
+    }
+
+    .return-simple-status.problem {
+      background:rgba(151,67,67,.18);
+      color:#e49b9b;
+    }
+
+    .return-good-toggle,
+    .return-problem-button {
+      background:rgba(255,255,255,.04);
+      border:1px solid rgba(201,155,67,.18);
+      color:rgba(246,240,227,.68);
+    }
+
+    .return-good-toggle.selected {
+      background:rgba(57,126,79,.20);
+      border-color:rgba(99,187,126,.28);
+      color:#9cdeb0;
+    }
+
+    .return-problem-button.selected {
+      background:rgba(153,65,65,.20);
+      border-color:rgba(203,91,91,.28);
+      color:#e9a2a2;
+    }
+
+
   `;
 
 
