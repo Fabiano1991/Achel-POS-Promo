@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-
 <html lang="nl">
 <head>
 <meta charset="UTF-8">
@@ -12,13 +11,10 @@
 <title>Achel POS</title>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
 <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
-
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
-
+  
 <link rel="manifest" href="./manifest.json">
 
 <style>
@@ -2013,7 +2009,7 @@ body {
 
 .home-order-choices.hidden {
 
-  display:none !important;
+  display:grid !important;
 
   opacity:0;
 
@@ -3253,25 +3249,26 @@ body {
 }
 
 </style>
-
 </head>
 
+
 <body>
+
 
 <header class="app-header">
 
 <button
-id="menuButton"
-class="menu-button hidden"
-type="button"
-onclick="openMenu()"
-aria-label="Menu openen"
-
-
+  id="menuButton"
+  class="menu-button hidden"
+  type="button"
+  onclick="openMenu()"
+  aria-label="Menu openen"
+>
 
 <span class="menu-lines"></span>
 
 </button>
+
 
 <div class="header-title">
 
@@ -3285,9 +3282,11 @@ Interne bestelapp
 
 </div>
 
+
 <div></div>
 
 </header>
+
 
 <!-- MENU -->
 
@@ -3312,44 +3311,40 @@ Achel POS
 
 </div>
 
+
 <button
-class="menu-item"
-type="button"
-onclick="menuGoHome()"
-
-
-
+  class="menu-item"
+  type="button"
+  onclick="menuGoHome()"
+>
 Home
 </button>
 
+
 <button
-class="menu-item"
-type="button"
-onclick="menuOrders()"
-
-
-
+  class="menu-item"
+  type="button"
+  onclick="menuOrders()"
+>
 Aanvragen bekijken
 </button>
 
+
 <button
-class="menu-item"
-type="button"
-onclick="openFreeBeer()"
-
-
-
+  class="menu-item"
+  type="button"
+  onclick="openFreeBeer()"
+>
 Gratis bier
 </button>
 
+
 <button
-id="menuAdmin"
-class="menu-item hidden"
-type="button"
-onclick="openAdminFromMenu()"
-
-
-
+  id="menuAdmin"
+  class="menu-item hidden"
+  type="button"
+  onclick="openAdminFromMenu()"
+>
 Beheer
 </button>
 
@@ -3373,17 +3368,16 @@ Beheer
     Meldingen
   </div>
 
-<button
-id="pushNotificationButton"
-class="menu-item"
-type="button"
-onclick="enablePushNotifications()"
 
-
-
-Pushmeldingen inschakelen
-
+  <button
+    id="pushNotificationButton"
+    class="menu-item"
+    type="button"
+    onclick="enablePushNotifications()"
+  >
+    Pushmeldingen inschakelen
   </button>
+
 
   <div
     id="pushNotificationStatus"
@@ -3399,18 +3393,17 @@ Pushmeldingen inschakelen
 </div>
 
 <button
-class="menu-item danger"
-type="button"
-onclick="menuLogout()"
-
-
-
+  class="menu-item danger"
+  type="button"
+  onclick="menuLogout()"
+>
 Uitloggen
 </button>
 
 </aside>
 
 </div>
+
 
 <!-- LOGIN -->
 
@@ -3422,44 +3415,47 @@ Uitloggen
 Welkom bij Achel POS
 </h1>
 
+
 <p>
 Log in met je persoonlijke account om een aanvraag te plaatsen of je aanvragen te bekijken.
 </p>
+
 
 <label for="loginEmail">
 E-mailadres
 </label>
 
-<input
-id="loginEmail"
-type="email"
-placeholder="naam@achelsekluis.be"
-autocomplete="email"
 
+<input
+  id="loginEmail"
+  type="email"
+  placeholder="naam@achelsekluis.be"
+  autocomplete="email"
+>
 
 
 <label for="loginPassword">
 Wachtwoord
 </label>
 
-<input
-id="loginPassword"
-type="password"
-placeholder="Wachtwoord"
-autocomplete="current-password"
 
+<input
+  id="loginPassword"
+  type="password"
+  placeholder="Wachtwoord"
+  autocomplete="current-password"
+>
 
 
 <button
-class="primary"
-type="button"
-onclick="loginUser()"
-style="margin-top:16px;"
-
-
-
+  class="primary"
+  type="button"
+  onclick="loginUser()"
+  style="margin-top:16px;"
+>
 Inloggen
 </button>
+
 
 <div
   id="loginMessage"
@@ -3470,6 +3466,7 @@ Inloggen
 
 </section>
 
+
 <!-- APP -->
 
 <main
@@ -3477,112 +3474,115 @@ Inloggen
   class="hidden"
 >
 
+
 <!-- HOME -->
 
 <section id="homeScreen">
 
   <div class="card hero">
 
-<h1 id="welcomeTitle">
-  Hallo
-</h1>
+    <h1 id="welcomeTitle">
+      Hallo
+    </h1>
 
-<p
-  id="beerQuote"
-  class="beer-quote"
-></p>
+    <p
+      id="beerQuote"
+      class="beer-quote"
+    ></p>
 
   </div>
+
 
   <div class="achel-home-image">
 
-<img
-  src="./achel-kluis-home.jpg"
-  alt="De Achelse Kluis"
-  class="achel-home-photo"
->
+    <img
+      src="./achel-kluis-home.jpg"
+      alt="De Achelse Kluis"
+      class="achel-home-photo"
+    >
 
-<div class="achel-image-overlay">
+    <div class="achel-image-overlay">
 
-  <img
-    src="./achel-logo.png"
-    alt="Achel"
-    class="achel-home-logo"
-  >
+      <img
+        src="./achel-logo.png"
+        alt="Achel"
+        class="achel-home-logo"
+      >
 
-  <div class="achel-home-caption">
-    De Achelse Kluis
+      <div class="achel-home-caption">
+        De Achelse Kluis
+      </div>
+
+    </div>
+
   </div>
 
-</div>
-
-  </div>
 
   <!-- BESTELZONE -->
 
   <div class="home-order-zone">
 
-<!-- KNOPPEN BOVEN HET GLAS -->
+    <!-- KNOPPEN BOVEN HET GLAS -->
 
-<div
-  id="homeOrderChoices"
-  class="home-order-choices hidden"
->
+    <div
+      id="homeOrderChoices"
+      class="home-order-choices hidden"
+    >
 
-  <button
-    type="button"
-    class="home-order-choice"
-    onclick="homeOpenPos()"
-  >
-    POS / promo bestellen
-  </button>
-
-
-  <button
-    type="button"
-    class="home-order-choice"
-    onclick="homeOpenWholesale()"
-  >
-    Groothandel bestellen
-  </button>
+      <button
+        type="button"
+        class="home-order-choice"
+        onclick="homeOpenPos()"
+      >
+        POS / promo bestellen
+      </button>
 
 
-  <button
-    type="button"
-    class="home-order-choice"
-    onclick="homeOpenEvent()"
-  >
-    Evenement aanvragen
-  </button>
-
-</div>
+      <button
+        type="button"
+        class="home-order-choice"
+        onclick="homeOpenWholesale()"
+      >
+        Groothandel bestellen
+      </button>
 
 
-<!-- INTERACTIEF ACHEL GLAS -->
+      <button
+        type="button"
+        class="home-order-choice"
+        onclick="homeOpenEvent()"
+      >
+        Evenement aanvragen
+      </button>
 
-<button
-  id="homeBeerButton"
-  class="home-beer-button"
-  type="button"
-  onclick="toggleHomeOrderChoices()"
-  aria-label="Bestelmenu openen"
->
+    </div>
 
-  <span class="home-beer-glow"></span>
 
-  <img
-    src="./achel-glas.png"
-    alt="Achel bierglas"
-    class="home-beer-glass"
-  >
+    <!-- INTERACTIEF ACHEL GLAS -->
 
-</button>
+    <button
+      id="homeBeerButton"
+      class="home-beer-button"
+      type="button"
+      onclick="toggleHomeOrderChoices()"
+      aria-label="Bestelmenu openen"
+    >
+
+      <span class="home-beer-glow"></span>
+
+      <img
+        src="./achel-glas.png"
+        alt="Achel bierglas"
+        class="home-beer-glass"
+      >
+
+    </button>
 
   </div>
 
 </section>
 
-
+  
 
 <!-- NIEUWE POS / BIER -->
 
@@ -3592,14 +3592,13 @@ Inloggen
 >
 
 <button
-class="top-back"
-type="button"
-onclick="goHome()"
-
-
-
+  class="top-back"
+  type="button"
+  onclick="goHome()"
+>
 ← Terug
 </button>
+
 
 <div class="card">
 
@@ -3607,9 +3606,11 @@ onclick="goHome()"
 Nieuwe aanvraag
 </h2>
 
+
 <label>
 Vertegenwoordiger
 </label>
+
 
 <div class="profile-box">
 
@@ -3621,20 +3622,23 @@ Gebruiker laden...
 
 </div>
 
+
 <label for="reference">
 Referentie
 </label>
 
-<input
-id="reference"
-type="text"
-placeholder="Bijv. Café De Markt"
 
+<input
+  id="reference"
+  type="text"
+  placeholder="Bijv. Café De Markt"
+>
 
 
 <label for="country">
 Land
 </label>
+
 
 <select id="country">
 
@@ -3648,25 +3652,28 @@ Nederland
 
 </select>
 
+
 <label for="municipality">
 Stad / gemeente
 </label>
 
-<input
-id="municipality"
-type="text"
-placeholder="Bijv. Genk"
 
+<input
+  id="municipality"
+  type="text"
+  placeholder="Bijv. Genk"
+>
 
 
 <label for="pickup">
 Gewenste afhaaldatum
 </label>
 
-<input
-id="pickup"
-type="date"
 
+<input
+  id="pickup"
+  type="date"
+>
 
 
 <div
@@ -3678,9 +3685,11 @@ De aanvraag moet minstens 2 dagen vóór afhaling gebeuren.
 
 </div>
 
+
 <label for="note">
 Opmerking
 </label>
+
 
 <textarea
   id="note"
@@ -3689,37 +3698,37 @@ Opmerking
 
 </div>
 
+
 <div class="card">
 
 <h2>
 Bier & POS
 </h2>
 
+
 <div class="category-tabs">
 
 <button
-id="tab-bier"
-class="category-button active"
-type="button"
-onclick="setCategory('bier')"
-
-
-
+  id="tab-bier"
+  class="category-button active"
+  type="button"
+  onclick="setCategory('bier')"
+>
 BIER
 </button>
 
+
 <button
-id="tab-pos"
-class="category-button"
-type="button"
-onclick="setCategory('pos')"
-
-
-
+  id="tab-pos"
+  class="category-button"
+  type="button"
+  onclick="setCategory('pos')"
+>
 POS
 </button>
 
 </div>
+
 
 <div id="productsList">
 
@@ -3731,15 +3740,15 @@ Producten laden...
 
 </div>
 
+
 <div class="sticky-action">
 
 <button
-id="reviewButton"
-class="primary"
-type="button"
-onclick="showSummary()"
-
-
+  id="reviewButton"
+  class="primary"
+  type="button"
+  onclick="showSummary()"
+>
 
 Aanvraag controleren
 
@@ -3749,6 +3758,7 @@ Aanvraag controleren
 
 </section>
 
+
 <!-- POS / BIER CONTROLE -->
 
 <section
@@ -3757,20 +3767,20 @@ Aanvraag controleren
 >
 
 <button
-class="top-back"
-type="button"
-onclick="backToOrder()"
-
-
-
+  class="top-back"
+  type="button"
+  onclick="backToOrder()"
+>
 ← Terug aanpassen
 </button>
+
 
 <div class="card">
 
 <h2>
 Controleer aanvraag
 </h2>
+
 
 <p>
 <strong>
@@ -3780,6 +3790,7 @@ Vertegenwoordiger
 <span id="summaryRep"></span>
 </p>
 
+
 <p>
 <strong>
 Referentie
@@ -3787,6 +3798,7 @@ Referentie
 <br>
 <span id="summaryReference"></span>
 </p>
+
 
 <p>
 <strong>
@@ -3796,6 +3808,7 @@ Locatie
 <span id="summaryLocation"></span>
 </p>
 
+
 <p>
 <strong>
 Afhalen
@@ -3804,17 +3817,19 @@ Afhalen
 <span id="summaryPickup"></span>
 </p>
 
+
 <div id="summaryProducts"></div>
+
 
 <p id="summaryNote"></p>
 
+
 <button
-id="submitButton"
-class="primary"
-type="button"
-onclick="submitOrder()"
-
-
+  id="submitButton"
+  class="primary"
+  type="button"
+  onclick="submitOrder()"
+>
 
 Aanvraag verzenden
 
@@ -3824,6 +3839,7 @@ Aanvraag verzenden
 
 </section>
 
+
 <!-- EVENT AANVRAAG -->
 
 <section
@@ -3832,14 +3848,13 @@ Aanvraag verzenden
 >
 
 <button
-class="top-back"
-type="button"
-onclick="goHome()"
-
-
-
+  class="top-back"
+  type="button"
+  onclick="goHome()"
+>
 ← Terug
 </button>
+
 
 <div class="card">
 
@@ -3847,9 +3862,11 @@ onclick="goHome()"
 Evenementaanvraag
 </h2>
 
+
 <label>
 Vertegenwoordiger
 </label>
+
 
 <div class="profile-box">
 
@@ -3861,20 +3878,23 @@ Gebruiker laden...
 
 </div>
 
+
 <label for="eventName">
 Naam evenement
 </label>
 
-<input
-id="eventName"
-type="text"
-placeholder="Bijv. Dorpsfeest Neeroeteren"
 
+<input
+  id="eventName"
+  type="text"
+  placeholder="Bijv. Dorpsfeest Neeroeteren"
+>
 
 
 <label>
 Periode materiaal
 </label>
+
 
 <div
   id="eventDateRange"
@@ -3882,11 +3902,10 @@ Periode materiaal
 >
 
 <button
-class="event-date-range-display"
-type="button"
-onclick="openEventCalendar()"
-
-
+  class="event-date-range-display"
+  type="button"
+  onclick="openEventCalendar()"
+>
 
 <div>
 
@@ -3900,9 +3919,11 @@ Kies datum
 
 </div>
 
+
 <div class="event-date-arrow">
 →
 </div>
+
 
 <div>
 
@@ -3918,19 +3939,20 @@ Kies datum
 
 </button>
 
-<input
-id="eventFrom"
-type="hidden"
-
-
 
 <input
-id="eventUntil"
-type="hidden"
+  id="eventFrom"
+  type="hidden"
+>
 
 
+<input
+  id="eventUntil"
+  type="hidden"
+>
 
 </div>
+
 
 <label for="eventDeliveryMode">
 Uitvoering
@@ -3955,9 +3977,11 @@ Enkel levering / uitleen aan klant
 Bij enkel levering kan de klant bij aflevering digitaal tekenen voor de ontvangen artikelen.
 </div>
 
+
 <label for="eventNote">
 Opmerking
 </label>
+
 
 <textarea
   id="eventNote"
@@ -3965,6 +3989,7 @@ Opmerking
 ></textarea>
 
 </div>
+
 
 <div class="card">
 
@@ -3975,24 +4000,20 @@ Evenement
 <div class="category-tabs">
 
 <button
-id="eventTab-material"
-class="category-button active"
-type="button"
-onclick="setEventRequestCategory('material')"
-
-
-
+  id="eventTab-material"
+  class="category-button active"
+  type="button"
+  onclick="setEventRequestCategory('material')"
+>
 MATERIAAL
 </button>
 
 <button
-id="eventTab-beer"
-class="category-button"
-type="button"
-onclick="setEventRequestCategory('beer')"
-
-
-
+  id="eventTab-beer"
+  class="category-button"
+  type="button"
+  onclick="setEventRequestCategory('beer')"
+>
 BIER
 </button>
 
@@ -4031,15 +4052,15 @@ Bieren laden...
 
 </div>
 
+
 <div class="sticky-action">
 
 <button
-id="eventReviewButton"
-class="primary"
-type="button"
-onclick="showEventSummary()"
-
-
+  id="eventReviewButton"
+  class="primary"
+  type="button"
+  onclick="showEventSummary()"
+>
 
 Evenementaanvraag controleren
 
@@ -4049,6 +4070,7 @@ Evenementaanvraag controleren
 
 </section>
 
+
 <!-- EVENT CONTROLE -->
 
 <section
@@ -4057,21 +4079,22 @@ Evenementaanvraag controleren
 >
 
 <button
-class="top-back"
-type="button"
-onclick="backToEventOrder()"
-
-
+  class="top-back"
+  type="button"
+  onclick="backToEventOrder()"
+>
 
 ← Terug aanpassen
 
 </button>
+
 
 <div class="card">
 
 <h2>
 Controleer evenementaanvraag
 </h2>
+
 
 <p>
 
@@ -4085,6 +4108,7 @@ Vertegenwoordiger
 
 </p>
 
+
 <p>
 
 <strong>
@@ -4096,6 +4120,7 @@ Evenement
 <span id="eventSummaryName"></span>
 
 </p>
+
 
 <p>
 
@@ -4109,6 +4134,7 @@ Periode
 
 </p>
 
+
 <p>
 
 <strong>
@@ -4121,17 +4147,19 @@ Uitvoering
 
 </p>
 
+
 <div id="eventSummaryProducts"></div>
+
 
 <p id="eventSummaryNote"></p>
 
+
 <button
-id="eventSubmitButton"
-class="primary"
-type="button"
-onclick="submitEventOrder()"
-
-
+  id="eventSubmitButton"
+  class="primary"
+  type="button"
+  onclick="submitEventOrder()"
+>
 
 Evenementaanvraag verzenden
 
@@ -4140,6 +4168,7 @@ Evenementaanvraag verzenden
 </div>
 
 </section>
+
 
 <!-- SUCCESS -->
 
@@ -4154,9 +4183,11 @@ Evenementaanvraag verzenden
 ✓
 </div>
 
+
 <h2>
 Aanvraag geregistreerd
 </h2>
+
 
 <p>
 
@@ -4168,27 +4199,28 @@ Referentie aanvraag:
 
 </p>
 
+
 <p>
 De aanvraag is centraal opgeslagen en staat bij Mijn aanvragen.
 </p>
 
+
 <button
-class="primary"
-type="button"
-onclick="openOrders()"
-
-
+  class="primary"
+  type="button"
+  onclick="openOrders()"
+>
 
 Mijn aanvragen bekijken
 
 </button>
 
+
 <button
-class="secondary"
-type="button"
-onclick="newOrder()"
-
-
+  class="secondary"
+  type="button"
+  onclick="newOrder()"
+>
 
 Nieuwe aanvraag
 
@@ -4198,6 +4230,7 @@ Nieuwe aanvraag
 
 </section>
 
+
 <!-- MIJN AANVRAGEN -->
 
 <section
@@ -4206,14 +4239,13 @@ Nieuwe aanvraag
 >
 
 <button
-class="top-back"
-type="button"
-onclick="goHome()"
-
-
-
+  class="top-back"
+  type="button"
+  onclick="goHome()"
+>
 ← Terug
 </button>
+
 
 <div class="card my-orders-intro">
 
@@ -4226,6 +4258,7 @@ Open een categorie om je aanvragen en registraties te bekijken.
 </p>
 
 </div>
+
 
 <details
   id="myOrdersFolderPos"
@@ -4253,6 +4286,7 @@ POS / promo aanvragen
 
 </summary>
 
+
 <div class="my-orders-folder-body">
 
 <div id="myOrdersPosList">
@@ -4266,6 +4300,7 @@ Open deze map om je POS / promo aanvragen te laden.
 </div>
 
 </details>
+
 
 <details
   id="myOrdersFolderWholesale"
@@ -4293,6 +4328,7 @@ Groothandel bestellingen
 
 </summary>
 
+
 <div class="my-orders-folder-body">
 
 <div id="myOrdersWholesaleList">
@@ -4306,6 +4342,7 @@ Open deze map om je groothandelbestellingen te laden.
 </div>
 
 </details>
+
 
 <details
   id="myOrdersFolderEvents"
@@ -4333,6 +4370,7 @@ Evenement aanvragen
 
 </summary>
 
+
 <div class="my-orders-folder-body">
 
 <div id="myOrdersEventsList">
@@ -4346,6 +4384,7 @@ Open deze map om je evenementaanvragen te laden.
 </div>
 
 </details>
+
 
 <details
   id="myOrdersFolderFreeBeer"
@@ -4373,6 +4412,7 @@ Gratis bier factuur enkel leeggoed
 
 </summary>
 
+
 <div class="my-orders-folder-body">
 
 <div id="myOrdersFreeBeerList">
@@ -4399,14 +4439,13 @@ Open deze map om je registraties te laden.
 >
 
 <button
-class="top-back"
-type="button"
-onclick="goHome()"
-
-
-
+  class="top-back"
+  type="button"
+  onclick="goHome()"
+>
 ← Terug
 </button>
+
 
 <div class="card free-beer-intro">
 
@@ -4417,6 +4456,7 @@ Gratis bier
 <p>
 Registreer hier gratis bier dat bij een klant of actie wordt weggegeven.
 </p>
+
 
 <label>
 Vertegenwoordiger
@@ -4432,14 +4472,15 @@ Gebruiker laden...
 
 </div>
 
+
 <label for="freeBeerDate">
 Datum
 </label>
 
 <input
-id="freeBeerDate"
-type="date"
-
+  id="freeBeerDate"
+  type="date"
+>
 
 
 <label for="freeBeerDealer">
@@ -4447,11 +4488,11 @@ Drankenhandel
 </label>
 
 <input
-id="freeBeerDealer"
-type="text"
-placeholder="Bijv. Drinks As Nelissen"
-autocomplete="off"
-
+  id="freeBeerDealer"
+  type="text"
+  placeholder="Bijv. Drinks As Nelissen"
+  autocomplete="off"
+>
 
 
 <label for="freeBeerCustomer">
@@ -4459,11 +4500,11 @@ Horecaklant
 </label>
 
 <input
-id="freeBeerCustomer"
-type="text"
-placeholder="Bijv. Café De Markt"
-autocomplete="off"
-
+  id="freeBeerCustomer"
+  type="text"
+  placeholder="Bijv. Café De Markt"
+  autocomplete="off"
+>
 
 
 <label for="freeBeerProvince">
@@ -4528,6 +4569,7 @@ Nederland
 
 </div>
 
+
 <div class="card">
 
 <h2>
@@ -4542,6 +4584,7 @@ Producten laden...
 
 </div>
 
+
 <div
   id="freeBeerSelectedSummary"
   class="free-beer-summary hidden"
@@ -4549,15 +4592,15 @@ Producten laden...
 
 </div>
 
+
 <div class="sticky-action">
 
 <button
-id="freeBeerSubmitButton"
-class="primary"
-type="button"
-onclick="submitFreeBeerRegistration()"
-
-
+  id="freeBeerSubmitButton"
+  class="primary"
+  type="button"
+  onclick="submitFreeBeerRegistration()"
+>
 
 Gratis bier registreren
 
@@ -4566,6 +4609,7 @@ Gratis bier registreren
 </div>
 
 </section>
+
 
 <!-- GRATIS BIER SUCCES -->
 
@@ -4589,22 +4633,18 @@ Het gratis bier is centraal geregistreerd.
 </p>
 
 <button
-class="primary"
-type="button"
-onclick="openFreeBeer()"
-
-
-
+  class="primary"
+  type="button"
+  onclick="openFreeBeer()"
+>
 Nieuwe registratie
 </button>
 
 <button
-class="secondary"
-type="button"
-onclick="goHome()"
-
-
-
+  class="secondary"
+  type="button"
+  onclick="goHome()"
+>
 Terug naar home
 </button>
 
@@ -4612,7 +4652,9 @@ Terug naar home
 
 </section>
 
+
 </main>
+
 
 <!-- EVENT KALENDER -->
 
@@ -4626,6 +4668,7 @@ Terug naar home
   class="event-calendar-sheet"
   onclick="event.stopPropagation()"
 >
+
 
 <div class="event-calendar-header">
 
@@ -4641,17 +4684,18 @@ Kies de eerste dag
 
 </div>
 
+
 <button
-type="button"
-onclick="closeEventCalendar()"
-
-
+  type="button"
+  onclick="closeEventCalendar()"
+>
 
 ×
 
 </button>
 
 </div>
+
 
 <div class="event-calendar-selection">
 
@@ -4667,9 +4711,11 @@ Vanaf
 
 </div>
 
+
 <div class="event-calendar-selection-arrow">
 →
 </div>
+
 
 <div>
 
@@ -4685,31 +4731,31 @@ Tot
 
 </div>
 
+
 <div class="event-calendar-navigation">
 
 <button
-type="button"
-onclick="changeEventCalendarMonth(-1)"
-
-
-
+  type="button"
+  onclick="changeEventCalendarMonth(-1)"
+>
 ‹
 </button>
+
 
 <strong id="eventCalendarMonthTitle">
 Maand
 </strong>
 
+
 <button
-type="button"
-onclick="changeEventCalendarMonth(1)"
-
-
-
+  type="button"
+  onclick="changeEventCalendarMonth(1)"
+>
 ›
 </button>
 
 </div>
+
 
 <div class="event-calendar-weekdays">
 
@@ -4723,32 +4769,33 @@ onclick="changeEventCalendarMonth(1)"
 
 </div>
 
+
 <div
   id="eventCalendarDays"
   class="event-calendar-days"
 ></div>
 
+
 <div class="event-calendar-actions">
 
 <button
-class="event-calendar-reset"
-type="button"
-onclick="resetEventCalendarSelection()"
-
-
+  class="event-calendar-reset"
+  type="button"
+  onclick="resetEventCalendarSelection()"
+>
 
 Wissen
 
 </button>
 
+
 <button
-id="eventCalendarConfirm"
-class="event-calendar-confirm"
-type="button"
-onclick="confirmEventCalendar()"
-disabled
-
-
+  id="eventCalendarConfirm"
+  class="event-calendar-confirm"
+  type="button"
+  onclick="confirmEventCalendar()"
+  disabled
+>
 
 Periode gebruiken
 
@@ -4759,6 +4806,7 @@ Periode gebruiken
 </div>
 
 </div>
+
 
 <script>
 
@@ -13653,9 +13701,11 @@ checkExistingSession();
 
 </script>
 
+
 <script src="./admin.js?v=32"></script>
 
 <script src="./wholesale.js?v=32"></script>
+
 
 </body>
 </html>
