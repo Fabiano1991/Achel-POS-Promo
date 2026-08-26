@@ -17554,7 +17554,7 @@ function injectAdminStyles() {
 
     .admin-stock-control {
       display:grid;
-      grid-template-columns:48px minmax(86px, 110px) 48px;
+      grid-template-columns:52px 130px 52px;
       align-items:center;
       justify-content:start;
       width:max-content;
@@ -17568,8 +17568,8 @@ function injectAdminStyles() {
     }
 
     .admin-stock-control button {
-      width:48px;
-      height:44px;
+      width:52px;
+      height:50px;
       padding:0;
       border:0;
       border-radius:0;
@@ -17706,13 +17706,14 @@ function injectAdminStyles() {
 
 
     .admin-stock-control .admin-stock-input {
-      width:100% !important;
-      min-width:86px !important;
-      max-width:110px !important;
-      height:44px !important;
-      min-height:44px !important;
+      display:block !important;
+      width:130px !important;
+      min-width:130px !important;
+      max-width:130px !important;
+      height:50px !important;
+      min-height:50px !important;
       margin:0 !important;
-      padding:0 8px !important;
+      padding:0 12px !important;
 
       border:0 !important;
       border-radius:0 !important;
@@ -17721,9 +17722,11 @@ function injectAdminStyles() {
       color:#202722 !important;
 
       text-align:center !important;
-      font-size:17px !important;
+      text-align-last:center !important;
+      font-size:20px !important;
       font-weight:900 !important;
-      line-height:44px !important;
+      line-height:normal !important;
+      box-sizing:border-box !important;
 
       box-shadow:none !important;
       outline:none !important;
