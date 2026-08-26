@@ -6613,6 +6613,12 @@ async function openAdminOrder(
     "adminDetailScreen"
   );
 
+
+  window.scrollTo({
+    top: 0,
+    behavior: "auto"
+  });
+
 }
 
 
@@ -20824,6 +20830,15 @@ function injectProfessionalReturnStyles() {
     .return-simple-summary {
       background:rgba(255,255,255,.04);
       border:1px solid rgba(201,155,67,.17);
+    }
+
+    .return-simple-summary > div {
+      background:rgba(255,255,255,.045);
+      border:1px solid rgba(201,155,67,.12);
+    }
+
+    .return-simple-list {
+      background:transparent;
     }
 
     .return-summary-stat:not(:last-child) {
