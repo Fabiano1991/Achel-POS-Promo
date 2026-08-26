@@ -2009,7 +2009,7 @@ body {
 
 .home-order-choices.hidden {
 
-  display:grid !important;
+  display:none !important;
 
   opacity:0;
 
@@ -2286,6 +2286,59 @@ body {
       )
     );
 
+}
+
+
+/* ============================================================
+   ACHEL BIERGLAS — EENMALIGE VULANIMATIE
+============================================================ */
+
+.home-beer-glass-wrap {
+  position:relative;
+  z-index:2;
+  display:block;
+  height:135px;
+}
+
+.home-beer-glass-wrap .home-beer-glass {
+  height:135px;
+}
+
+.home-beer-fill {
+  position:absolute;
+  inset:0;
+  z-index:3;
+  overflow:hidden;
+  pointer-events:none;
+  clip-path:inset(100% 0 0 0);
+}
+
+.home-beer-fill img {
+  display:block;
+  width:auto;
+  height:135px;
+  object-fit:contain;
+}
+
+.home-beer-button.beer-filling .home-beer-fill {
+  animation:achelBeerFill 1.8s cubic-bezier(.22,.72,.28,1) forwards;
+}
+
+.home-beer-button.beer-filled .home-beer-fill {
+  clip-path:inset(0 0 0 0);
+}
+
+@keyframes achelBeerFill {
+  from { clip-path:inset(100% 0 0 0); }
+  to   { clip-path:inset(0 0 0 0); }
+}
+
+@media (max-width:420px) {
+  .home-beer-glass-wrap,
+  .home-beer-glass-wrap .home-beer-glass,
+  .home-beer-fill img {
+    height:125px;
+  }
 }
 
 
@@ -3570,11 +3623,16 @@ Inloggen
 
       <span class="home-beer-glow"></span>
 
-      <img
-        src="./achel-glas.png"
-        alt="Achel bierglas"
-        class="home-beer-glass"
-      >
+      <span class="home-beer-glass-wrap">
+  <img
+    src="./achel-glas.png"
+    alt="Achel bierglas"
+    class="home-beer-glass"
+  >
+  <span class="home-beer-fill" aria-hidden="true">
+    <img src="./achel-glas.png" alt="">
+  </span>
+</span>
 
     </button>
 
@@ -6964,6 +7022,43 @@ function updateReviewButton() {
    HOME BESTELMENU
 ============================================================ */
 
+function playHomeBeerFill() {
+
+  const glassButton =
+    document.getElementById(
+      "homeBeerButton"
+    );
+
+  if (!glassButton) {
+    return;
+  }
+
+  glassButton.classList.remove(
+    "beer-filling",
+    "beer-filled"
+  );
+
+  void glassButton.offsetWidth;
+
+  glassButton.classList.add(
+    "beer-filling"
+  );
+
+  window.setTimeout(
+    () => {
+      glassButton.classList.remove(
+        "beer-filling"
+      );
+      glassButton.classList.add(
+        "beer-filled"
+      );
+    },
+    1850
+  );
+
+}
+
+
 function toggleHomeOrderChoices() {
 
   const choices =
@@ -7144,6 +7239,8 @@ function goHome() {
   showOnly(
     "homeScreen"
   );
+
+  playHomeBeerFill();
 
 }
 
