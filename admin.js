@@ -5106,35 +5106,91 @@ function buildAdminProductManagementRow(
 
           ? `
 
-              <div class="admin-stock-control">
+              <div class="admin-stock-edit-wrap">
 
                 <button
                   type="button"
-                  aria-label="Voorraad verlagen"
-                  onclick="changeAdminProductStock('${product.id}', -1)"
+                  class="admin-stock-edit-toggle"
+                  onclick="openAdminStockEditor('${product.id}')"
                 >
-                  −
+                  Voorraad aanpassen
                 </button>
 
-                <input
-                  id="adminStockInput-${product.id}"
-                  class="admin-stock-input"
-                  type="number"
-                  min="0"
-                  step="1"
-                  inputmode="numeric"
-                  value="${shownStock}"
-                  aria-label="Voorraad rechtstreeks instellen"
-                  onchange="setAdminProductStock('${product.id}', this.value)"
+                <div
+                  id="adminStockEditor-${product.id}"
+                  class="admin-stock-editor hidden"
                 >
 
-                <button
-                  type="button"
-                  aria-label="Voorraad verhogen"
-                  onclick="changeAdminProductStock('${product.id}', 1)"
-                >
-                  +
-                </button>
+                  <div class="admin-stock-editor-label">
+
+                    <span>
+                      Fysieke voorraad
+                    </span>
+
+                    ${
+                      category === "pos"
+                        ? `
+                            <small>
+                              Beschikbaar: ${availableStock}
+                            </small>
+                          `
+                        : ""
+                    }
+
+                  </div>
+
+                  <div class="admin-stock-control">
+
+                    <button
+                      type="button"
+                      aria-label="Voorraad verlagen"
+                      onclick="adjustAdminStockDraft('${product.id}', -1)"
+                    >
+                      −
+                    </button>
+
+                    <input
+                      id="adminStockInput-${product.id}"
+                      class="admin-stock-input"
+                      type="number"
+                      min="0"
+                      step="1"
+                      inputmode="numeric"
+                      value="${physicalStock}"
+                      aria-label="Nieuwe fysieke voorraad"
+                    >
+
+                    <button
+                      type="button"
+                      aria-label="Voorraad verhogen"
+                      onclick="adjustAdminStockDraft('${product.id}', 1)"
+                    >
+                      +
+                    </button>
+
+                  </div>
+
+                  <div class="admin-stock-editor-actions">
+
+                    <button
+                      type="button"
+                      class="admin-stock-cancel"
+                      onclick="cancelAdminStockEditor('${product.id}')"
+                    >
+                      Annuleren
+                    </button>
+
+                    <button
+                      type="button"
+                      class="admin-stock-save"
+                      onclick="saveAdminStockEditor('${product.id}')"
+                    >
+                      Opslaan
+                    </button>
+
+                  </div>
+
+                </div>
 
               </div>
 
@@ -5187,6 +5243,235 @@ function formatAdminProductUnit(
 
 }
 
+
+
+function openAdminStockEditor(
+  productId
+) {
+
+  document
+    .querySelectorAll(
+      ".admin-stock-editor"
+    )
+    .forEach(
+      editor => {
+
+        if (
+          editor.id !==
+          `adminStockEditor-${productId}`
+        ) {
+
+          editor.classList.add(
+            "hidden"
+          );
+
+        }
+
+      }
+    );
+
+
+  const editor =
+    document.getElementById(
+      `adminStockEditor-${productId}`
+    );
+
+
+  if (
+    !editor
+  ) {
+
+    return;
+
+  }
+
+
+  editor.classList.toggle(
+    "hidden"
+  );
+
+
+  if (
+    !editor.classList.contains(
+      "hidden"
+    )
+  ) {
+
+    const input =
+      document.getElementById(
+        `adminStockInput-${productId}`
+      );
+
+
+    input?.focus();
+
+    input?.select();
+
+  }
+
+}
+
+
+function adjustAdminStockDraft(
+  productId,
+  amount
+) {
+
+  const input =
+    document.getElementById(
+      `adminStockInput-${productId}`
+    );
+
+
+  if (
+    !input
+  ) {
+
+    return;
+
+  }
+
+
+  const current =
+    Math.max(
+      0,
+      Math.floor(
+        Number(
+          input.value ||
+          0
+        )
+      )
+    );
+
+
+  input.value =
+    Math.max(
+      0,
+      current +
+      Number(
+        amount ||
+        0
+      )
+    );
+
+}
+
+
+function cancelAdminStockEditor(
+  productId
+) {
+
+  const product =
+    adminProducts
+      .find(
+        item =>
+          String(
+            item.id
+          ) ===
+          String(
+            productId
+          )
+      );
+
+
+  const input =
+    document.getElementById(
+      `adminStockInput-${productId}`
+    );
+
+
+  if (
+    input &&
+    product
+  ) {
+
+    input.value =
+      Math.max(
+        0,
+        Number(
+          product.voorraad ||
+          0
+        )
+      );
+
+  }
+
+
+  document
+    .getElementById(
+      `adminStockEditor-${productId}`
+    )
+    ?.classList
+    .add(
+      "hidden"
+    );
+
+}
+
+
+async function saveAdminStockEditor(
+  productId
+) {
+
+  const input =
+    document.getElementById(
+      `adminStockInput-${productId}`
+    );
+
+
+  if (
+    !input
+  ) {
+
+    return;
+
+  }
+
+
+  const rawValue =
+    String(
+      input.value ??
+      ""
+    )
+      .trim();
+
+
+  if (
+    rawValue === ""
+    ||
+    !Number.isFinite(
+      Number(
+        rawValue
+      )
+    )
+  ) {
+
+    alert(
+      "Vul een geldig voorraadgetal in."
+    );
+
+    return;
+
+  }
+
+
+  const next =
+    Math.max(
+      0,
+      Math.floor(
+        Number(
+          rawValue
+        )
+      )
+    );
+
+
+  await setAdminProductStock(
+    productId,
+    next
+  );
+
+}
 
 async function changeAdminProductStock(
   productId,
@@ -5348,29 +5633,36 @@ async function setAdminProductStock(
   }
 
 
-  const next =
-    Math.max(
-      0,
-      Math.floor(
-        Number(
-          value ||
-          0
-        )
-      )
+  const numericValue =
+    Number(
+      value
     );
 
 
   if (
-    Number.isNaN(
-      next
+    !Number.isFinite(
+      numericValue
     )
   ) {
+
+    alert(
+      "Vul een geldig voorraadgetal in."
+    );
 
     renderAdminProductManagement();
 
     return;
 
   }
+
+
+  const next =
+    Math.max(
+      0,
+      Math.floor(
+        numericValue
+      )
+    );
 
 
   const {
@@ -17738,6 +18030,162 @@ function injectAdminStyles() {
     .admin-stock-control .admin-stock-input::-webkit-inner-spin-button {
       margin:0;
       -webkit-appearance:none;
+    }
+
+
+
+    /* ==========================================
+       VOORRAADEDITOR - COMPACT & ALLEEN OP KLIK
+    ========================================== */
+
+    .admin-stock-edit-wrap {
+      margin-top:8px;
+    }
+
+    .admin-stock-edit-toggle {
+      width:auto;
+      min-height:30px;
+      padding:0 10px;
+
+      border:1px solid #d8d2c8;
+      border-radius:999px;
+
+      background:#f7f4ee;
+      color:#6f624d;
+
+      font-size:9px;
+      font-weight:850;
+    }
+
+    .admin-stock-edit-toggle:active {
+      background:#eee8dc;
+    }
+
+    .admin-stock-editor {
+      margin-top:8px;
+      padding:9px;
+
+      border:1px solid #ddd6ca;
+      border-radius:11px;
+
+      background:#f7f4ee;
+    }
+
+    .admin-stock-editor-label {
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:8px;
+      margin-bottom:7px;
+    }
+
+    .admin-stock-editor-label span {
+      color:#5f5a51;
+      font-size:9px;
+      font-weight:900;
+    }
+
+    .admin-stock-editor-label small {
+      color:#8b857a !important;
+      font-size:8px !important;
+    }
+
+    .admin-stock-control {
+      display:grid;
+      grid-template-columns:38px minmax(78px, 96px) 38px;
+      width:max-content;
+      max-width:100%;
+
+      overflow:hidden;
+
+      border:1px solid #d7d0c4;
+      border-radius:10px;
+
+      background:#fff;
+    }
+
+    .admin-stock-control button {
+      width:38px;
+      height:38px;
+      padding:0;
+
+      border:0;
+      border-radius:0;
+
+      background:#f3efe7;
+      color:#5c554b;
+
+      font-size:18px;
+      font-weight:800;
+    }
+
+    .admin-stock-control button:first-child {
+      border-right:1px solid #ddd6ca;
+    }
+
+    .admin-stock-control button:last-child {
+      border-left:1px solid #ddd6ca;
+    }
+
+    .admin-stock-control .admin-stock-input {
+      width:100% !important;
+      min-width:78px !important;
+      max-width:96px !important;
+      height:38px !important;
+      min-height:38px !important;
+      margin:0 !important;
+      padding:0 6px !important;
+
+      border:0 !important;
+      border-radius:0 !important;
+
+      background:#fff !important;
+      color:#202722 !important;
+
+      text-align:center !important;
+      font-size:16px !important;
+      font-weight:900 !important;
+
+      box-sizing:border-box !important;
+      box-shadow:none !important;
+      outline:none !important;
+
+      -moz-appearance:textfield;
+    }
+
+    .admin-stock-control .admin-stock-input::-webkit-outer-spin-button,
+    .admin-stock-control .admin-stock-input::-webkit-inner-spin-button {
+      margin:0;
+      -webkit-appearance:none;
+    }
+
+    .admin-stock-editor-actions {
+      display:flex;
+      justify-content:flex-end;
+      gap:6px;
+      margin-top:8px;
+    }
+
+    .admin-stock-editor-actions button {
+      min-height:30px;
+      padding:0 10px;
+
+      border-radius:999px;
+
+      font-size:9px;
+      font-weight:900;
+    }
+
+    .admin-stock-cancel {
+      border:1px solid #d8d2c8;
+      background:#fff;
+      color:#6d675d;
+    }
+
+    .admin-stock-save {
+      border:1px solid #8c692f;
+      background:#8c692f;
+      color:#fff;
     }
 
 
