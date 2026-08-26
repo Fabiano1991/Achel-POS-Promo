@@ -17385,9 +17385,12 @@ function injectAdminStyles() {
     .admin-material-head strong,
     .admin-material-line strong,
     .admin-problem strong,
-    .admin-catalog-item strong,
     .admin-order-card > strong {
       color:#fff;
+    }
+
+    .admin-catalog-item strong {
+      color:#202722;
     }
 
     .admin-material-line {
