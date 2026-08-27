@@ -3820,3 +3820,86 @@ document.addEventListener(
   "DOMContentLoaded",
   initEditAdminB2BDay
 );
+
+// =========================================================
+// B2B ADMIN KAART TONEN
+// =========================================================
+
+async function showB2BAdminCardIfAllowed() {
+
+  const card =
+    document.getElementById(
+      "b2bAdminCard"
+    );
+
+
+  if (!card) {
+    return;
+  }
+
+
+  try {
+
+    const {
+      data: { session }
+    } =
+      await supabaseClient.auth.getSession();
+
+
+    if (!session?.user) {
+      return;
+    }
+
+
+    const {
+      data: profile,
+      error
+    } =
+      await supabaseClient
+        .from("profiles")
+        .select(
+          "rol, actief"
+        )
+        .eq(
+          "id",
+          session.user.id
+        )
+        .single();
+
+
+    if (error || !profile) {
+      return;
+    }
+
+
+    const canManage =
+      profile.actief === true
+      &&
+      (
+        profile.rol === "admin"
+        ||
+        profile.rol === "verantwoordelijke"
+      );
+
+
+    card.hidden =
+      !canManage;
+
+  }
+
+  catch (error) {
+
+    console.error(
+      "B2B ADMIN KAART FOUT:",
+      error
+    );
+
+  }
+
+}
+
+
+document.addEventListener(
+  "DOMContentLoaded",
+  showB2BAdminCardIfAllowed
+);
