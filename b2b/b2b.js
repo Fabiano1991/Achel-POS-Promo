@@ -1889,3 +1889,627 @@ document.addEventListener(
   "DOMContentLoaded",
   initB2BFollowupEditPage
 );
+
+// =========================================================
+// B2B ADMIN
+// =========================================================
+
+async function initB2BAdminPage() {
+
+  const container =
+    document.getElementById(
+      "adminB2BDaysList"
+    );
+
+
+  if (!container) {
+    return;
+  }
+
+
+  try {
+
+    const {
+      data: { session },
+      error: sessionError
+    } =
+      await supabaseClient.auth.getSession();
+
+
+    if (sessionError) {
+      throw sessionError;
+    }
+
+
+    if (!session?.user) {
+
+      window.location.href =
+        "../index.html";
+
+      return;
+    }
+
+
+    const {
+      data: profile,
+      error: profileError
+    } =
+      await supabaseClient
+        .from("profiles")
+        .select(
+          "id, naam, rol, actief"
+        )
+        .eq(
+          "id",
+          session.user.id
+        )
+        .single();
+
+
+    if (
+      profileError ||
+      !profile
+    ) {
+
+      throw profileError ||
+        new Error(
+          "Profiel niet gevonden."
+        );
+
+    }
+
+
+    const canManage =
+      profile.actief === true
+      &&
+      (
+        profile.rol === "admin"
+        ||
+        profile.rol === "verantwoordelijke"
+      );
+
+
+    if (!canManage) {
+
+      window.location.href =
+        "./index.html";
+
+      return;
+    }
+
+
+    await loadAdminB2BDays();
+
+  }
+
+  catch (error) {
+
+    console.error(
+      "B2B ADMIN FOUT:",
+      error
+    );
+
+
+    container.innerHTML = `
+      <div class="status-message">
+        B2B-beheer kon niet worden geladen.
+      </div>
+    `;
+
+  }
+
+}
+
+
+// =========================================================
+// B2B-DAG AANMAKEN
+// =========================================================
+
+async function createB2BDay() {
+
+  const button =
+    document.getElementById(
+      "adminCreateDayButton"
+    );
+
+
+  try {
+
+    const title =
+      document
+        .getElementById(
+          "adminDayTitle"
+        )
+        .value
+        .trim();
+
+
+    const eventDate =
+      document
+        .getElementById(
+          "adminDayDate"
+        )
+        .value;
+
+
+    const startTime =
+      document
+        .getElementById(
+          "adminStartTime"
+        )
+        .value;
+
+
+    const endTime =
+      document
+        .getElementById(
+          "adminEndTime"
+        )
+        .value;
+
+
+    const location =
+      document
+        .getElementById(
+          "adminLocation"
+        )
+        .value
+        .trim();
+
+
+    const capacity =
+      Number(
+        document
+          .getElementById(
+            "adminCapacity"
+          )
+          .value ||
+        0
+      );
+
+
+    const status =
+      document
+        .getElementById(
+          "adminDayStatus"
+        )
+        .value;
+
+
+    const description =
+      document
+        .getElementById(
+          "adminDescription"
+        )
+        .value
+        .trim();
+
+
+    if (!title) {
+
+      showAdminCreateDayMessage(
+        "Vul een naam in.",
+        true
+      );
+
+      return;
+    }
+
+
+    if (!eventDate) {
+
+      showAdminCreateDayMessage(
+        "Kies een datum.",
+        true
+      );
+
+      return;
+    }
+
+
+    if (
+      capacity < 0
+    ) {
+
+      showAdminCreateDayMessage(
+        "De capaciteit kan niet negatief zijn.",
+        true
+      );
+
+      return;
+    }
+
+
+    button.disabled =
+      true;
+
+
+    button.textContent =
+      "B2B-dag opslaan...";
+
+
+    const {
+      error
+    } =
+      await supabaseClient
+        .from("b2b_days")
+        .insert({
+
+          title:
+            title,
+
+          event_date:
+            eventDate,
+
+          start_time:
+            startTime || null,
+
+          end_time:
+            endTime || null,
+
+          location:
+            location || null,
+
+          description:
+            description || null,
+
+          max_capacity:
+            capacity,
+
+          status:
+            status
+
+        });
+
+
+    if (error) {
+      throw error;
+    }
+
+
+    showAdminCreateDayMessage(
+      "✓ B2B-dag aangemaakt.",
+      false
+    );
+
+
+    resetB2BDayAdminForm();
+
+
+    await loadAdminB2BDays();
+
+  }
+
+  catch (error) {
+
+    console.error(
+      "B2B-DAG AANMAKEN FOUT:",
+      error
+    );
+
+
+    showAdminCreateDayMessage(
+      error?.message ||
+      "B2B-dag kon niet worden aangemaakt.",
+      true
+    );
+
+  }
+
+  finally {
+
+    if (button) {
+
+      button.disabled =
+        false;
+
+
+      button.textContent =
+        "B2B-dag aanmaken";
+
+    }
+
+  }
+
+}
+
+
+// =========================================================
+// ADMIN DAGEN LADEN
+// =========================================================
+
+async function loadAdminB2BDays() {
+
+  const container =
+    document.getElementById(
+      "adminB2BDaysList"
+    );
+
+
+  if (!container) {
+    return;
+  }
+
+
+  const {
+    data,
+    error
+  } =
+    await supabaseClient
+      .from("b2b_days")
+      .select(`
+        id,
+        title,
+        event_date,
+        start_time,
+        end_time,
+        location,
+        max_capacity,
+        status
+      `)
+      .order(
+        "event_date",
+        {
+          ascending: false
+        }
+      );
+
+
+  if (error) {
+    throw error;
+  }
+
+
+  const days =
+    data || [];
+
+
+  if (!days.length) {
+
+    container.innerHTML = `
+      <div class="status-message">
+        Nog geen B2B-dagen aangemaakt.
+      </div>
+    `;
+
+    return;
+  }
+
+
+  container.innerHTML =
+    days
+      .map(
+        day => `
+
+          <article class="b2b-day-card">
+
+            <div class="b2b-day-top">
+
+              <div>
+
+                <span class="menu-card-label">
+                  ${formatB2BDate(
+                    day.event_date
+                  )}
+                </span>
+
+                <strong>
+                  ${escapeB2BHtml(
+                    day.title
+                  )}
+                </strong>
+
+              </div>
+
+
+              <span class="b2b-day-status">
+
+                ${formatAdminDayStatus(
+                  day.status
+                )}
+
+              </span>
+
+            </div>
+
+
+            <div class="b2b-day-meta">
+
+              ${
+                day.location
+
+                  ? `
+                    <span>
+                      ${escapeB2BHtml(
+                        day.location
+                      )}
+                    </span>
+                  `
+
+                  : ""
+              }
+
+
+              <span>
+                Capaciteit:
+                ${Number(
+                  day.max_capacity || 0
+                )}
+              </span>
+
+            </div>
+
+
+            <div class="b2b-registration-actions">
+
+              <button
+                type="button"
+                class="b2b-small-action edit"
+                onclick="openB2BQuotaAdmin('${day.id}')"
+              >
+                Quota beheren
+              </button>
+
+
+              <button
+                type="button"
+                class="b2b-small-action edit"
+                onclick="openB2BDayEdit('${day.id}')"
+              >
+                Dag wijzigen
+              </button>
+
+            </div>
+
+          </article>
+
+        `
+      )
+      .join("");
+
+}
+
+
+// =========================================================
+// ADMIN HELPERS
+// =========================================================
+
+function resetB2BDayAdminForm() {
+
+  [
+    "adminDayTitle",
+    "adminDayDate",
+    "adminStartTime",
+    "adminEndTime",
+    "adminLocation",
+    "adminDescription"
+  ]
+    .forEach(
+      id => {
+
+        const element =
+          document.getElementById(id);
+
+        if (element) {
+          element.value = "";
+        }
+
+      }
+    );
+
+
+  document
+    .getElementById(
+      "adminCapacity"
+    )
+    .value = "0";
+
+
+  document
+    .getElementById(
+      "adminDayStatus"
+    )
+    .value = "draft";
+
+}
+
+
+function formatAdminDayStatus(
+  status
+) {
+
+  return (
+
+    {
+      draft:
+        "Concept",
+
+      open:
+        "Open",
+
+      full:
+        "Volzet",
+
+      closed:
+        "Afgesloten",
+
+      cancelled:
+        "Geannuleerd"
+
+    }[
+      status
+    ]
+
+    ||
+
+    status
+
+  );
+
+}
+
+
+function showAdminCreateDayMessage(
+  message,
+  isError
+) {
+
+  const element =
+    document.getElementById(
+      "adminCreateDayMessage"
+    );
+
+
+  if (!element) {
+    return;
+  }
+
+
+  element.textContent =
+    message;
+
+
+  element.hidden =
+    false;
+
+
+  element.style.color =
+    isError
+      ? "#eba3a3"
+      : "#9bd9ae";
+
+}
+
+
+function openB2BQuotaAdmin(
+  dayId
+) {
+
+  window.location.href =
+    `./admin-quota.html?day=${encodeURIComponent(
+      dayId
+    )}`;
+
+}
+
+
+function openB2BDayEdit(
+  dayId
+) {
+
+  window.location.href =
+    `./admin-dag-bewerken.html?id=${encodeURIComponent(
+      dayId
+    )}`;
+
+}
+
+
+// =========================================================
+// START
+// =========================================================
+
+document.addEventListener(
+  "DOMContentLoaded",
+  initB2BAdminPage
+);
