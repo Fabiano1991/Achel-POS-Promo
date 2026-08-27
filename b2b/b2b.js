@@ -22,6 +22,15 @@ const supabaseClient = window.supabase.createClient(
 document.addEventListener("DOMContentLoaded", initB2B);
 
 async function initB2B() {
+
+  // Dashboard alleen laden op de echte B2B-homepagina.
+  // Andere B2B-pagina's voeren hierdoor geen onnodige queries uit.
+  if (
+    !document.getElementById("upcomingDaysCount")
+  ) {
+    return;
+  }
+
   try {
     const {
       data: { session },
