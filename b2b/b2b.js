@@ -3201,3 +3201,622 @@ document.addEventListener(
   "DOMContentLoaded",
   initB2BQuotaAdmin
 );
+
+// =========================================================
+// B2B-DAG BEWERKEN
+// =========================================================
+
+let editAdminB2BDay = null;
+
+
+// =========================================================
+// INIT
+// =========================================================
+
+async function initEditAdminB2BDay() {
+
+  const heading =
+    document.getElementById(
+      "editDayHeading"
+    );
+
+
+  if (!heading) {
+    return;
+  }
+
+
+  try {
+
+    const {
+      data: { session },
+      error: sessionError
+    } =
+      await supabaseClient.auth.getSession();
+
+
+    if (sessionError) {
+      throw sessionError;
+    }
+
+
+    if (!session?.user) {
+
+      window.location.href =
+        "../index.html";
+
+      return;
+    }
+
+
+    const {
+      data: profile,
+      error: profileError
+    } =
+      await supabaseClient
+        .from("profiles")
+        .select(
+          "id, rol, actief"
+        )
+        .eq(
+          "id",
+          session.user.id
+        )
+        .single();
+
+
+    if (
+      profileError ||
+      !profile
+    ) {
+
+      throw profileError ||
+        new Error(
+          "Profiel niet gevonden."
+        );
+
+    }
+
+
+    const canManage =
+      profile.actief === true
+      &&
+      (
+        profile.rol === "admin"
+        ||
+        profile.rol === "verantwoordelijke"
+      );
+
+
+    if (!canManage) {
+
+      window.location.href =
+        "./index.html";
+
+      return;
+    }
+
+
+    const params =
+      new URLSearchParams(
+        window.location.search
+      );
+
+
+    const dayId =
+      params.get("id");
+
+
+    if (!dayId) {
+
+      throw new Error(
+        "Geen B2B-dag geselecteerd."
+      );
+
+    }
+
+
+    await loadAdminDayForEdit(
+      dayId
+    );
+
+  }
+
+  catch (error) {
+
+    console.error(
+      "B2B-DAG BEWERKEN LADEN FOUT:",
+      error
+    );
+
+
+    showEditDayMessage(
+      error?.message ||
+      "B2B-dag kon niet worden geladen.",
+      true
+    );
+
+  }
+
+}
+
+
+// =========================================================
+// DAG LADEN
+// =========================================================
+
+async function loadAdminDayForEdit(
+  dayId
+) {
+
+  const {
+    data,
+    error
+  } =
+    await supabaseClient
+      .from("b2b_days")
+      .select(`
+        id,
+        title,
+        event_date,
+        start_time,
+        end_time,
+        location,
+        description,
+        max_capacity,
+        status
+      `)
+      .eq(
+        "id",
+        dayId
+      )
+      .single();
+
+
+  if (
+    error ||
+    !data
+  ) {
+
+    throw error ||
+      new Error(
+        "B2B-dag niet gevonden."
+      );
+
+  }
+
+
+  editAdminB2BDay =
+    data;
+
+
+  renderAdminDayEdit();
+
+}
+
+
+// =========================================================
+// RENDER
+// =========================================================
+
+function renderAdminDayEdit() {
+
+  if (!editAdminB2BDay) {
+    return;
+  }
+
+
+  document
+    .getElementById(
+      "editDayHeading"
+    )
+    .textContent =
+      editAdminB2BDay.title;
+
+
+  document
+    .getElementById(
+      "editDayTitle"
+    )
+    .value =
+      editAdminB2BDay.title ||
+      "";
+
+
+  document
+    .getElementById(
+      "editDayDate"
+    )
+    .value =
+      editAdminB2BDay.event_date ||
+      "";
+
+
+  document
+    .getElementById(
+      "editDayStartTime"
+    )
+    .value =
+      editAdminB2BDay.start_time
+        ? String(
+            editAdminB2BDay.start_time
+          ).slice(0,5)
+        : "";
+
+
+  document
+    .getElementById(
+      "editDayEndTime"
+    )
+    .value =
+      editAdminB2BDay.end_time
+        ? String(
+            editAdminB2BDay.end_time
+          ).slice(0,5)
+        : "";
+
+
+  document
+    .getElementById(
+      "editDayLocation"
+    )
+    .value =
+      editAdminB2BDay.location ||
+      "";
+
+
+  document
+    .getElementById(
+      "editDayCapacity"
+    )
+    .value =
+      Number(
+        editAdminB2BDay.max_capacity ||
+        0
+      );
+
+
+  document
+    .getElementById(
+      "editDayStatus"
+    )
+    .value =
+      editAdminB2BDay.status ||
+      "draft";
+
+
+  document
+    .getElementById(
+      "editDayDescription"
+    )
+    .value =
+      editAdminB2BDay.description ||
+      "";
+
+}
+
+
+// =========================================================
+// OPSLAAN
+// =========================================================
+
+async function saveB2BDayChanges() {
+
+  if (!editAdminB2BDay) {
+    return;
+  }
+
+
+  const button =
+    document.getElementById(
+      "editDaySaveButton"
+    );
+
+
+  try {
+
+    const title =
+      document
+        .getElementById(
+          "editDayTitle"
+        )
+        .value
+        .trim();
+
+
+    const eventDate =
+      document
+        .getElementById(
+          "editDayDate"
+        )
+        .value;
+
+
+    const startTime =
+      document
+        .getElementById(
+          "editDayStartTime"
+        )
+        .value;
+
+
+    const endTime =
+      document
+        .getElementById(
+          "editDayEndTime"
+        )
+        .value;
+
+
+    const location =
+      document
+        .getElementById(
+          "editDayLocation"
+        )
+        .value
+        .trim();
+
+
+    const description =
+      document
+        .getElementById(
+          "editDayDescription"
+        )
+        .value
+        .trim();
+
+
+    const capacity =
+      Number(
+        document
+          .getElementById(
+            "editDayCapacity"
+          )
+          .value ||
+        0
+      );
+
+
+    const status =
+      document
+        .getElementById(
+          "editDayStatus"
+        )
+        .value;
+
+
+    if (!title) {
+
+      showEditDayMessage(
+        "Vul een naam in.",
+        true
+      );
+
+      return;
+    }
+
+
+    if (!eventDate) {
+
+      showEditDayMessage(
+        "Kies een datum.",
+        true
+      );
+
+      return;
+    }
+
+
+    if (
+      capacity < 0
+    ) {
+
+      showEditDayMessage(
+        "De capaciteit kan niet negatief zijn.",
+        true
+      );
+
+      return;
+    }
+
+
+    // Controleer of bestaande quota
+    // niet groter zijn dan nieuwe capaciteit.
+
+    const {
+      data: quotas,
+      error: quotaError
+    } =
+      await supabaseClient
+        .from("b2b_quotas")
+        .select("quota")
+        .eq(
+          "b2b_day_id",
+          editAdminB2BDay.id
+        );
+
+
+    if (quotaError) {
+      throw quotaError;
+    }
+
+
+    const assigned =
+      (quotas || [])
+        .reduce(
+          (
+            total,
+            row
+          ) =>
+            total +
+            Number(
+              row.quota || 0
+            ),
+          0
+        );
+
+
+    if (
+      capacity <
+      assigned
+    ) {
+
+      showEditDayMessage(
+        `De capaciteit kan niet lager zijn dan de reeds verdeelde quota (${assigned}).`,
+        true
+      );
+
+      return;
+    }
+
+
+    button.disabled =
+      true;
+
+
+    button.textContent =
+      "Wijzigingen opslaan...";
+
+
+    const {
+      error
+    } =
+      await supabaseClient
+        .from("b2b_days")
+        .update({
+
+          title:
+            title,
+
+          event_date:
+            eventDate,
+
+          start_time:
+            startTime || null,
+
+          end_time:
+            endTime || null,
+
+          location:
+            location || null,
+
+          description:
+            description || null,
+
+          max_capacity:
+            capacity,
+
+          status:
+            status,
+
+          updated_at:
+            new Date().toISOString()
+
+        })
+        .eq(
+          "id",
+          editAdminB2BDay.id
+        );
+
+
+    if (error) {
+      throw error;
+    }
+
+
+    showEditDayMessage(
+      "✓ B2B-dag gewijzigd.",
+      false
+    );
+
+
+    setTimeout(
+      () => {
+
+        window.location.href =
+          "./admin.html";
+
+      },
+      600
+    );
+
+  }
+
+  catch (error) {
+
+    console.error(
+      "B2B-DAG WIJZIGEN FOUT:",
+      error
+    );
+
+
+    showEditDayMessage(
+      error?.message ||
+      "De B2B-dag kon niet worden gewijzigd.",
+      true
+    );
+
+  }
+
+  finally {
+
+    if (button) {
+
+      button.disabled =
+        false;
+
+
+      button.textContent =
+        "Wijzigingen opslaan";
+
+    }
+
+  }
+
+}
+
+
+// =========================================================
+// MELDING
+// =========================================================
+
+function showEditDayMessage(
+  message,
+  isError
+) {
+
+  const element =
+    document.getElementById(
+      "editDayMessage"
+    );
+
+
+  if (!element) {
+    return;
+  }
+
+
+  element.textContent =
+    message;
+
+
+  element.hidden =
+    false;
+
+
+  element.style.color =
+    isError
+      ? "#eba3a3"
+      : "#9bd9ae";
+
+}
+
+
+// =========================================================
+// START
+// =========================================================
+
+document.addEventListener(
+  "DOMContentLoaded",
+  initEditAdminB2BDay
+);
