@@ -499,3 +499,94 @@ a {
 .b2b-submit:disabled {
   opacity: .4;
 }
+
+/* =========================================================
+   MIJN B2B INSCHRIJVINGEN
+========================================================= */
+
+.b2b-registration-card {
+  margin-bottom: 11px;
+  padding: 16px;
+  background:
+    radial-gradient(
+      circle at 100% 0%,
+      rgba(200,154,82,.07),
+      transparent 32%
+    ),
+    var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+}
+
+.b2b-registration-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.b2b-registration-top strong {
+  display: block;
+  color: var(--cream);
+  font-size: 17px;
+}
+
+.b2b-registration-meta {
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.b2b-registration-count {
+  flex-shrink: 0;
+  min-width: 38px;
+  padding: 6px 9px;
+  border-radius: 999px;
+  background: rgba(200,154,82,.13);
+  border: 1px solid rgba(200,154,82,.18);
+  color: var(--gold-light);
+  text-align: center;
+  font-size: 11px;
+  font-weight: 850;
+}
+
+.b2b-registration-details {
+  margin-top: 12px;
+  padding-top: 11px;
+  border-top: 1px solid rgba(255,255,255,.07);
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.6;
+}
+
+.b2b-registration-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 13px;
+}
+
+.b2b-small-action {
+  min-height: 42px;
+  border-radius: 11px;
+  font-size: 11px;
+  font-weight: 850;
+}
+
+.b2b-small-action.edit {
+  border: 1px solid rgba(200,154,82,.28);
+  background: rgba(255,255,255,.045);
+  color: var(--gold-light);
+}
+
+.b2b-small-action.cancel {
+  border: 1px solid rgba(190,83,83,.28);
+  background: rgba(142,58,58,.12);
+  color: #e9a0a0;
+}
+
+.b2b-registration-cancelled {
+  opacity: .5;
+}
