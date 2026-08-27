@@ -399,3 +399,103 @@ a {
   pointer-events: none;
   opacity: .38;
 }
+
+/* =========================================================
+   B2B INSCHRIJFFORMULIER
+========================================================= */
+
+.b2b-form-card {
+  margin-top: 16px;
+  padding: 17px;
+  background:
+    radial-gradient(
+      circle at 100% 0%,
+      rgba(200,154,82,.07),
+      transparent 32%
+    ),
+    var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+}
+
+.b2b-form-card label {
+  display: block;
+  margin: 14px 0 6px;
+  color: var(--cream);
+  font-size: 12px;
+  font-weight: 750;
+}
+
+.b2b-form-card label:first-child {
+  margin-top: 0;
+}
+
+.b2b-form-card input,
+.b2b-form-card textarea {
+  width: 100%;
+  min-height: 48px;
+  padding: 12px 13px;
+  border: 1px solid rgba(200,154,82,.24);
+  border-radius: 12px;
+  outline: none;
+  background: rgba(255,255,255,.045);
+  color: var(--cream);
+  font: inherit;
+}
+
+.b2b-form-card textarea {
+  min-height: 85px;
+  resize: vertical;
+}
+
+.b2b-form-card input:focus,
+.b2b-form-card textarea:focus {
+  border-color: var(--gold);
+  box-shadow: 0 0 0 3px rgba(200,154,82,.10);
+}
+
+.b2b-form-card input::placeholder,
+.b2b-form-card textarea::placeholder {
+  color: rgba(243,234,219,.35);
+}
+
+.guest-selector {
+  display: grid;
+  grid-template-columns: 48px 1fr 48px;
+  align-items: center;
+  gap: 8px;
+}
+
+.guest-selector button {
+  width: 48px;
+  height: 48px;
+  border: 1px solid rgba(200,154,82,.24);
+  border-radius: 12px;
+  background: rgba(255,255,255,.05);
+  color: var(--gold-light);
+  font-size: 24px;
+}
+
+.guest-selector strong {
+  text-align: center;
+  color: var(--cream);
+  font-size: 21px;
+}
+
+.b2b-submit {
+  width: 100%;
+  min-height: 50px;
+  margin-top: 18px;
+  border: 1px solid rgba(235,190,97,.34);
+  border-radius: 12px;
+  background: linear-gradient(180deg,#b98936,#8d6427);
+  color: white;
+  font-size: 14px;
+  font-weight: 850;
+  box-shadow: 0 8px 20px rgba(91,61,18,.30);
+}
+
+.b2b-submit:disabled {
+  opacity: .4;
+}
