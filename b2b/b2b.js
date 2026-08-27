@@ -2418,7 +2418,7 @@ function resetB2BDayAdminForm() {
     .getElementById(
       "adminDayStatus"
     )
-    .value = "draft";
+   .value = "open";
 
 }
 
