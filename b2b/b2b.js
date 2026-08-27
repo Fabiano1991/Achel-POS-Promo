@@ -4,9 +4,11 @@
 // Alleen B2B-data wordt hier geladen.
 // =========================================================
 
-const SUPABASE_URL = "PLAK_HIER_JE_BESTAANDE_SUPABASE_URL";
-const SUPABASE_ANON_KEY = "PLAK_HIER_JE_BESTAANDE_ANON_KEY";
+const SUPABASE_URL =
+  "https://qosjfznmdnswwfnglxqt.supabase.co";
 
+const SUPABASE_ANON_KEY =
+  "sb_publishable_pyiiMmH2tpl-lL3e_edcow_4ztJX-Ul";
 const supabaseClient = window.supabase.createClient(
   SUPABASE_URL,
   SUPABASE_ANON_KEY
