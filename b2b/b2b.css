@@ -590,3 +590,87 @@ a {
 .b2b-registration-cancelled {
   opacity: .5;
 }
+
+/* =========================================================
+   B2B QUOTA ADMIN
+========================================================= */
+
+.quota-summary-card {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-bottom: 18px;
+}
+
+.quota-summary-card > div {
+  min-width: 0;
+  padding: 13px 10px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  box-shadow: var(--shadow);
+}
+
+.quota-summary-card span {
+  display: block;
+  min-height: 28px;
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.3;
+}
+
+.quota-summary-card strong {
+  display: block;
+  margin-top: 5px;
+  color: var(--gold-light);
+  font-size: 22px;
+}
+
+.quota-rep-card {
+  display: grid;
+  grid-template-columns: minmax(0,1fr) 90px;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 9px;
+  padding: 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+}
+
+.quota-rep-info {
+  min-width: 0;
+}
+
+.quota-rep-info strong {
+  display: block;
+  color: var(--cream);
+  font-size: 14px;
+}
+
+.quota-rep-info small {
+  display: block;
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: 10px;
+  word-break: break-word;
+}
+
+.quota-rep-input {
+  width: 100%;
+  min-height: 44px;
+  padding: 8px;
+  border: 1px solid rgba(200,154,82,.24);
+  border-radius: 11px;
+  background: rgba(255,255,255,.045);
+  color: var(--cream);
+  text-align: center;
+  font: inherit;
+  font-weight: 850;
+}
+
+.quota-rep-input:focus {
+  outline: none;
+  border-color: var(--gold);
+  box-shadow: 0 0 0 3px rgba(200,154,82,.10);
+}
