@@ -2513,3 +2513,691 @@ document.addEventListener(
   "DOMContentLoaded",
   initB2BAdminPage
 );
+
+// =========================================================
+// B2B QUOTA ADMIN
+// =========================================================
+
+let quotaAdminDay = null;
+let quotaAdminRepresentatives = [];
+let quotaAdminCurrent = {};
+
+
+// =========================================================
+// INIT
+// =========================================================
+
+async function initB2BQuotaAdmin() {
+
+  const container =
+    document.getElementById(
+      "quotaRepresentativesList"
+    );
+
+
+  if (!container) {
+    return;
+  }
+
+
+  try {
+
+    const {
+      data: { session },
+      error: sessionError
+    } =
+      await supabaseClient.auth.getSession();
+
+
+    if (sessionError) {
+      throw sessionError;
+    }
+
+
+    if (!session?.user) {
+
+      window.location.href =
+        "../index.html";
+
+      return;
+    }
+
+
+    const params =
+      new URLSearchParams(
+        window.location.search
+      );
+
+
+    const dayId =
+      params.get("day");
+
+
+    if (!dayId) {
+
+      throw new Error(
+        "Geen B2B-dag geselecteerd."
+      );
+
+    }
+
+
+    await loadQuotaAdminDay(
+      dayId
+    );
+
+
+    await loadQuotaRepresentatives();
+
+
+    await loadExistingQuotas(
+      dayId
+    );
+
+
+    renderQuotaAdmin();
+
+  }
+
+  catch (error) {
+
+    console.error(
+      "B2B QUOTA ADMIN FOUT:",
+      error
+    );
+
+
+    container.innerHTML = `
+      <div class="status-message">
+        Quota konden niet worden geladen.
+      </div>
+    `;
+
+  }
+
+}
+
+
+// =========================================================
+// DAG LADEN
+// =========================================================
+
+async function loadQuotaAdminDay(
+  dayId
+) {
+
+  const {
+    data,
+    error
+  } =
+    await supabaseClient
+      .from("b2b_days")
+      .select(`
+        id,
+        title,
+        event_date,
+        location,
+        max_capacity
+      `)
+      .eq(
+        "id",
+        dayId
+      )
+      .single();
+
+
+  if (
+    error ||
+    !data
+  ) {
+
+    throw error ||
+      new Error(
+        "B2B-dag niet gevonden."
+      );
+
+  }
+
+
+  quotaAdminDay =
+    data;
+
+}
+
+
+// =========================================================
+// VERTEGENWOORDIGERS LADEN
+// =========================================================
+
+async function loadQuotaRepresentatives() {
+
+  const {
+    data,
+    error
+  } =
+    await supabaseClient
+      .from("profiles")
+      .select(
+        "id, naam, email, rol, actief"
+      )
+      .eq(
+        "actief",
+        true
+      )
+      .order(
+        "naam",
+        {
+          ascending: true
+        }
+      );
+
+
+  if (error) {
+    throw error;
+  }
+
+
+  quotaAdminRepresentatives =
+    (data || [])
+      .filter(
+        profile =>
+          profile.rol ===
+          "vertegenwoordiger"
+          ||
+          profile.rol ===
+          "admin"
+          ||
+          profile.rol ===
+          "verantwoordelijke"
+      );
+
+}
+
+
+// =========================================================
+// BESTAANDE QUOTA
+// =========================================================
+
+async function loadExistingQuotas(
+  dayId
+) {
+
+  const {
+    data,
+    error
+  } =
+    await supabaseClient
+      .from("b2b_quotas")
+      .select(`
+        representative_id,
+        quota
+      `)
+      .eq(
+        "b2b_day_id",
+        dayId
+      );
+
+
+  if (error) {
+    throw error;
+  }
+
+
+  quotaAdminCurrent =
+    {};
+
+
+  (data || [])
+    .forEach(
+      row => {
+
+        quotaAdminCurrent[
+          row.representative_id
+        ] =
+          Number(
+            row.quota || 0
+          );
+
+      }
+    );
+
+}
+
+
+// =========================================================
+// RENDER
+// =========================================================
+
+function renderQuotaAdmin() {
+
+  if (!quotaAdminDay) {
+    return;
+  }
+
+
+  document
+    .getElementById(
+      "quotaDayTitle"
+    )
+    .textContent =
+      quotaAdminDay.title;
+
+
+  const meta = [];
+
+
+  if (
+    quotaAdminDay.event_date
+  ) {
+
+    meta.push(
+      formatB2BDate(
+        quotaAdminDay.event_date
+      )
+    );
+
+  }
+
+
+  if (
+    quotaAdminDay.location
+  ) {
+
+    meta.push(
+      quotaAdminDay.location
+    );
+
+  }
+
+
+  document
+    .getElementById(
+      "quotaDayMeta"
+    )
+    .textContent =
+      meta.join(" · ");
+
+
+  const container =
+    document.getElementById(
+      "quotaRepresentativesList"
+    );
+
+
+  if (
+    !quotaAdminRepresentatives.length
+  ) {
+
+    container.innerHTML = `
+      <div class="status-message">
+        Geen actieve vertegenwoordigers gevonden.
+      </div>
+    `;
+
+    return;
+  }
+
+
+  container.innerHTML =
+    quotaAdminRepresentatives
+      .map(
+        profile => `
+
+          <div class="quota-rep-card">
+
+            <div class="quota-rep-info">
+
+              <strong>
+                ${escapeB2BHtml(
+                  profile.naam ||
+                  "Geen naam"
+                )}
+              </strong>
+
+              <small>
+                ${escapeB2BHtml(
+                  profile.email ||
+                  ""
+                )}
+              </small>
+
+            </div>
+
+
+            <input
+              class="quota-rep-input"
+              type="number"
+              min="0"
+              step="1"
+              value="${
+                quotaAdminCurrent[
+                  profile.id
+                ] || 0
+              }"
+              data-user-id="${profile.id}"
+              oninput="updateQuotaAdminTotals()"
+            >
+
+          </div>
+
+        `
+      )
+      .join("");
+
+
+  updateQuotaAdminTotals();
+
+}
+
+
+// =========================================================
+// TOTALEN
+// =========================================================
+
+function updateQuotaAdminTotals() {
+
+  if (!quotaAdminDay) {
+    return;
+  }
+
+
+  const inputs =
+    [
+      ...document.querySelectorAll(
+        ".quota-rep-input"
+      )
+    ];
+
+
+  const assigned =
+    inputs.reduce(
+      (
+        total,
+        input
+      ) =>
+
+        total +
+        Math.max(
+          0,
+          Number(
+            input.value || 0
+          )
+        ),
+
+      0
+    );
+
+
+  const capacity =
+    Number(
+      quotaAdminDay.max_capacity ||
+      0
+    );
+
+
+  const remaining =
+    capacity -
+    assigned;
+
+
+  document
+    .getElementById(
+      "quotaTotalCapacity"
+    )
+    .textContent =
+      capacity;
+
+
+  document
+    .getElementById(
+      "quotaAssignedTotal"
+    )
+    .textContent =
+      assigned;
+
+
+  document
+    .getElementById(
+      "quotaUnassignedTotal"
+    )
+    .textContent =
+      remaining;
+
+
+  const saveButton =
+    document.getElementById(
+      "quotaSaveButton"
+    );
+
+
+  if (saveButton) {
+
+    saveButton.disabled =
+      assigned > capacity;
+
+  }
+
+
+  const remainingElement =
+    document.getElementById(
+      "quotaUnassignedTotal"
+    );
+
+
+  if (remainingElement) {
+
+    remainingElement.style.color =
+      remaining < 0
+        ? "#eba3a3"
+        : "";
+
+  }
+
+}
+
+
+// =========================================================
+// OPSLAAN
+// =========================================================
+
+async function saveB2BQuotas() {
+
+  if (!quotaAdminDay) {
+    return;
+  }
+
+
+  const button =
+    document.getElementById(
+      "quotaSaveButton"
+    );
+
+
+  try {
+
+    const inputs =
+      [
+        ...document.querySelectorAll(
+          ".quota-rep-input"
+        )
+      ];
+
+
+    const rows =
+      inputs.map(
+        input => ({
+
+          b2b_day_id:
+            quotaAdminDay.id,
+
+          representative_id:
+            input.dataset.userId,
+
+          quota:
+            Math.max(
+              0,
+              Number(
+                input.value || 0
+              )
+            )
+
+        })
+      );
+
+
+    const assigned =
+      rows.reduce(
+        (
+          total,
+          row
+        ) =>
+          total +
+          row.quota,
+        0
+      );
+
+
+    const capacity =
+      Number(
+        quotaAdminDay.max_capacity ||
+        0
+      );
+
+
+    if (
+      assigned >
+      capacity
+    ) {
+
+      showQuotaSaveMessage(
+        "De verdeelde quota overschrijden de totale capaciteit.",
+        true
+      );
+
+      return;
+    }
+
+
+    button.disabled =
+      true;
+
+
+    button.textContent =
+      "Quota opslaan...";
+
+
+    const {
+      error
+    } =
+      await supabaseClient
+        .from("b2b_quotas")
+        .upsert(
+          rows,
+          {
+            onConflict:
+              "b2b_day_id,representative_id"
+          }
+        );
+
+
+    if (error) {
+      throw error;
+    }
+
+
+    showQuotaSaveMessage(
+      "✓ Quota opgeslagen.",
+      false
+    );
+
+
+    await loadExistingQuotas(
+      quotaAdminDay.id
+    );
+
+
+    renderQuotaAdmin();
+
+  }
+
+  catch (error) {
+
+    console.error(
+      "B2B QUOTA OPSLAAN FOUT:",
+      error
+    );
+
+
+    showQuotaSaveMessage(
+      error?.message ||
+      "Quota konden niet worden opgeslagen.",
+      true
+    );
+
+  }
+
+  finally {
+
+    if (button) {
+
+      button.disabled =
+        false;
+
+
+      button.textContent =
+        "Quota opslaan";
+
+
+      updateQuotaAdminTotals();
+
+    }
+
+  }
+
+}
+
+
+// =========================================================
+// MELDING
+// =========================================================
+
+function showQuotaSaveMessage(
+  message,
+  isError
+) {
+
+  const element =
+    document.getElementById(
+      "quotaSaveMessage"
+    );
+
+
+  if (!element) {
+    return;
+  }
+
+
+  element.textContent =
+    message;
+
+
+  element.hidden =
+    false;
+
+
+  element.style.color =
+    isError
+      ? "#eba3a3"
+      : "#9bd9ae";
+
+}
+
+
+// =========================================================
+// START
+// =========================================================
+
+document.addEventListener(
+  "DOMContentLoaded",
+  initB2BQuotaAdmin
+);
