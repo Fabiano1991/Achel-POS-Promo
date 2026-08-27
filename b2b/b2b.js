@@ -1373,3 +1373,519 @@ document.addEventListener(
   "DOMContentLoaded",
   initEditB2BRegistration
 );
+
+// =========================================================
+// FOLLOW-UP BEWERKEN
+// =========================================================
+
+let followupEditRegistration = null;
+
+
+// =========================================================
+// INIT
+// =========================================================
+
+async function initB2BFollowupEditPage() {
+
+  const company =
+    document.getElementById(
+      "followupEditCompany"
+    );
+
+
+  if (!company) {
+    return;
+  }
+
+
+  try {
+
+    const {
+      data: { session },
+      error: sessionError
+    } =
+      await supabaseClient.auth.getSession();
+
+
+    if (sessionError) {
+      throw sessionError;
+    }
+
+
+    if (!session?.user) {
+
+      window.location.href =
+        "../index.html";
+
+      return;
+    }
+
+
+    const params =
+      new URLSearchParams(
+        window.location.search
+      );
+
+
+    const registrationId =
+      params.get("id");
+
+
+    if (!registrationId) {
+
+      showFollowupEditMessage(
+        "Geen klant geselecteerd.",
+        true
+      );
+
+      return;
+    }
+
+
+    await loadB2BFollowupEditData(
+      registrationId,
+      session.user.id
+    );
+
+  }
+
+  catch (error) {
+
+    console.error(
+      "FOLLOW-UP LADEN FOUT:",
+      error
+    );
+
+
+    showFollowupEditMessage(
+      "De commerciële fiche kon niet worden geladen.",
+      true
+    );
+
+  }
+
+}
+
+
+// =========================================================
+// DATA LADEN
+// =========================================================
+
+async function loadB2BFollowupEditData(
+  registrationId,
+  userId
+) {
+
+  const {
+    data: registration,
+    error: registrationError
+  } =
+    await supabaseClient
+      .from("b2b_registrations")
+      .select(`
+        id,
+        company_name,
+        contact_name,
+        email,
+        phone,
+        representative_id,
+        b2b_days (
+          title,
+          event_date
+        )
+      `)
+      .eq(
+        "id",
+        registrationId
+      )
+      .eq(
+        "representative_id",
+        userId
+      )
+      .single();
+
+
+  if (
+    registrationError ||
+    !registration
+  ) {
+
+    throw registrationError ||
+      new Error(
+        "Klant niet gevonden."
+      );
+
+  }
+
+
+  followupEditRegistration =
+    registration;
+
+
+  const {
+    data: followup,
+    error: followupError
+  } =
+    await supabaseClient
+      .from("b2b_followups")
+      .select(`
+        id,
+        status,
+        interested_products,
+        commercial_note,
+        next_action,
+        followup_date
+      `)
+      .eq(
+        "registration_id",
+        registrationId
+      )
+      .eq(
+        "representative_id",
+        userId
+      )
+      .maybeSingle();
+
+
+  if (followupError) {
+    throw followupError;
+  }
+
+
+  renderB2BFollowupEdit(
+    registration,
+    followup
+  );
+
+}
+
+
+// =========================================================
+// RENDER
+// =========================================================
+
+function renderB2BFollowupEdit(
+  registration,
+  followup
+) {
+
+  document
+    .getElementById(
+      "followupEditCompany"
+    )
+    .textContent =
+      registration.company_name;
+
+
+  const meta = [];
+
+
+  if (
+    registration.contact_name
+  ) {
+
+    meta.push(
+      registration.contact_name
+    );
+
+  }
+
+
+  const day =
+    registration.b2b_days ||
+    {};
+
+
+  if (day.title) {
+    meta.push(day.title);
+  }
+
+
+  if (day.event_date) {
+
+    meta.push(
+      formatB2BDate(
+        day.event_date
+      )
+    );
+
+  }
+
+
+  document
+    .getElementById(
+      "followupEditMeta"
+    )
+    .textContent =
+      meta.join(" · ");
+
+
+  document
+    .getElementById(
+      "followupEditStatus"
+    )
+    .value =
+      followup?.status ||
+      "to_follow_up";
+
+
+  document
+    .getElementById(
+      "followupEditProducts"
+    )
+    .value =
+      followup?.interested_products ||
+      "";
+
+
+  document
+    .getElementById(
+      "followupEditNote"
+    )
+    .value =
+      followup?.commercial_note ||
+      "";
+
+
+  document
+    .getElementById(
+      "followupEditNextAction"
+    )
+    .value =
+      followup?.next_action ||
+      "";
+
+
+  document
+    .getElementById(
+      "followupEditDate"
+    )
+    .value =
+      followup?.followup_date ||
+      "";
+
+}
+
+
+// =========================================================
+// OPSLAAN / UPSERT
+// =========================================================
+
+async function saveB2BFollowup() {
+
+  if (!followupEditRegistration) {
+    return;
+  }
+
+
+  const button =
+    document.getElementById(
+      "followupEditSaveButton"
+    );
+
+
+  try {
+
+    const {
+      data: { session }
+    } =
+      await supabaseClient.auth.getSession();
+
+
+    if (!session?.user) {
+      return;
+    }
+
+
+    const status =
+      document
+        .getElementById(
+          "followupEditStatus"
+        )
+        .value;
+
+
+    const products =
+      document
+        .getElementById(
+          "followupEditProducts"
+        )
+        .value
+        .trim();
+
+
+    const note =
+      document
+        .getElementById(
+          "followupEditNote"
+        )
+        .value
+        .trim();
+
+
+    const nextAction =
+      document
+        .getElementById(
+          "followupEditNextAction"
+        )
+        .value
+        .trim();
+
+
+    const followupDate =
+      document
+        .getElementById(
+          "followupEditDate"
+        )
+        .value;
+
+
+    button.disabled =
+      true;
+
+
+    button.textContent =
+      "Opvolging opslaan...";
+
+
+    const {
+      error
+    } =
+      await supabaseClient
+        .from("b2b_followups")
+        .upsert(
+          {
+
+            registration_id:
+              followupEditRegistration.id,
+
+            representative_id:
+              session.user.id,
+
+            status:
+              status,
+
+            interested_products:
+              products || null,
+
+            commercial_note:
+              note || null,
+
+            next_action:
+              nextAction || null,
+
+            followup_date:
+              followupDate || null,
+
+            updated_at:
+              new Date().toISOString()
+
+          },
+          {
+            onConflict:
+              "registration_id"
+          }
+        );
+
+
+    if (error) {
+      throw error;
+    }
+
+
+    showFollowupEditMessage(
+      "✓ Commerciële opvolging opgeslagen.",
+      false
+    );
+
+
+    setTimeout(
+      () => {
+
+        window.location.href =
+          "./opvolging.html";
+
+      },
+      600
+    );
+
+  }
+
+  catch (error) {
+
+    console.error(
+      "FOLLOW-UP OPSLAAN FOUT:",
+      error
+    );
+
+
+    showFollowupEditMessage(
+      error?.message ||
+      "De opvolging kon niet worden opgeslagen.",
+      true
+    );
+
+  }
+
+  finally {
+
+    if (button) {
+
+      button.disabled =
+        false;
+
+
+      button.textContent =
+        "Opvolging opslaan";
+
+    }
+
+  }
+
+}
+
+
+// =========================================================
+// MELDING
+// =========================================================
+
+function showFollowupEditMessage(
+  message,
+  isError
+) {
+
+  const element =
+    document.getElementById(
+      "followupEditMessage"
+    );
+
+
+  if (!element) {
+    return;
+  }
+
+
+  element.textContent =
+    message;
+
+
+  element.hidden =
+    false;
+
+
+  element.style.color =
+    isError
+      ? "#eba3a3"
+      : "#9bd9ae";
+
+}
+
+
+// =========================================================
+// START
+// =========================================================
+
+document.addEventListener(
+  "DOMContentLoaded",
+  initB2BFollowupEditPage
+);
