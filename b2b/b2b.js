@@ -1635,6 +1635,257 @@ document.addEventListener(
 );
 
 // =========================================================
+// COMMERCIËLE OPVOLGING OVERZICHT
+// =========================================================
+
+async function initB2BFollowupOverviewPage() {
+  const container = document.getElementById("followupList");
+  if (!container) return;
+
+  try {
+    const {
+      data: { session },
+      error: sessionError
+    } = await supabaseClient.auth.getSession();
+
+    if (sessionError) throw sessionError;
+
+    if (!session?.user) {
+      window.location.href = "../index.html";
+      return;
+    }
+
+    const userId = session.user.id;
+
+    const {
+      data: registrations,
+      error: registrationsError
+    } = await supabaseClient
+      .from("b2b_registrations")
+      .select(`
+        id,
+        company_name,
+        contact_name,
+        email,
+        phone,
+        number_of_guests,
+        registration_status,
+        attendance_status,
+        created_at,
+        b2b_days (
+          title,
+          event_date
+        )
+      `)
+      .eq("representative_id", userId)
+      .neq("registration_status", "cancelled")
+      .order("created_at", { ascending: false });
+
+    if (registrationsError) throw registrationsError;
+
+    const {
+      data: followups,
+      error: followupsError
+    } = await supabaseClient
+      .from("b2b_followups")
+      .select(`
+        id,
+        registration_id,
+        status,
+        interested_products,
+        commercial_note,
+        next_action,
+        followup_date
+      `)
+      .eq("representative_id", userId);
+
+    if (followupsError) throw followupsError;
+
+    const followupMap = {};
+    (followups || []).forEach(row => {
+      followupMap[row.registration_id] = row;
+    });
+
+    renderB2BFollowupOverview(registrations || [], followupMap);
+  } catch (error) {
+    console.error("COMMERCIËLE OPVOLGING OVERZICHT FOUT:", error);
+
+    container.innerHTML = `
+      <div class="status-message">
+        Commerciële opvolging kon niet worden geladen.
+      </div>
+    `;
+
+    setCounter("followupTodoCount", "—");
+    setCounter("followupInterestedCount", "—");
+    setCounter("followupCustomerCount", "—");
+  }
+}
+
+function renderB2BFollowupOverview(registrations, followupMap) {
+  const container = document.getElementById("followupList");
+  if (!container) return;
+
+  let todo = 0;
+  let interested = 0;
+  let customer = 0;
+
+  registrations.forEach(registration => {
+    const status =
+      followupMap[registration.id]?.status ||
+      "to_follow_up";
+
+    if (
+      status === "to_follow_up" ||
+      status === "contacted"
+    ) {
+      todo += 1;
+    }
+
+    if (
+      status === "interested" ||
+      status === "trial_or_offer"
+    ) {
+      interested += 1;
+    }
+
+    if (status === "customer") {
+      customer += 1;
+    }
+  });
+
+  setCounter("followupTodoCount", todo);
+  setCounter("followupInterestedCount", interested);
+  setCounter("followupCustomerCount", customer);
+
+  if (!registrations.length) {
+    container.innerHTML = `
+      <div class="status-message">
+        Je hebt nog geen klanten om commercieel op te volgen.
+      </div>
+    `;
+    return;
+  }
+
+  container.innerHTML = registrations
+    .map(registration => {
+      const followup = followupMap[registration.id] || null;
+      const status = followup?.status || "to_follow_up";
+      const day = registration.b2b_days || {};
+
+      const meta = [];
+
+      if (registration.contact_name) {
+        meta.push(registration.contact_name);
+      }
+
+      if (day.title) {
+        meta.push(day.title);
+      }
+
+      if (day.event_date) {
+        meta.push(formatB2BDate(day.event_date));
+      }
+
+      if (registration.number_of_guests) {
+        meta.push(
+          `${Number(registration.number_of_guests)} ${
+            Number(registration.number_of_guests) === 1
+              ? "persoon"
+              : "personen"
+          }`
+        );
+      }
+
+      return `
+        <article class="b2b-followup-card">
+
+          <div class="b2b-day-top">
+
+            <div>
+              <span class="menu-card-label">
+                ${escapeB2BHtml(formatB2BFollowupStatus(status))}
+              </span>
+
+              <strong>
+                ${escapeB2BHtml(registration.company_name)}
+              </strong>
+            </div>
+
+          </div>
+
+          <div class="b2b-day-meta">
+            <span>
+              ${escapeB2BHtml(meta.join(" · "))}
+            </span>
+          </div>
+
+          ${
+            followup?.next_action
+              ? `
+                <div class="b2b-day-meta">
+                  <span>
+                    Volgende actie: ${escapeB2BHtml(followup.next_action)}
+                  </span>
+                </div>
+              `
+              : ""
+          }
+
+          ${
+            followup?.followup_date
+              ? `
+                <div class="b2b-day-meta">
+                  <span>
+                    Opvolgen op: ${escapeB2BHtml(formatB2BDate(followup.followup_date))}
+                  </span>
+                </div>
+              `
+              : ""
+          }
+
+          <div class="b2b-registration-actions">
+            <button
+              type="button"
+              class="b2b-small-action edit"
+              onclick="openB2BFollowup('${registration.id}')"
+            >
+              Commercieel opvolgen
+            </button>
+          </div>
+
+        </article>
+      `;
+    })
+    .join("");
+}
+
+function formatB2BFollowupStatus(status) {
+  return (
+    {
+      to_follow_up: "Te contacteren",
+      contacted: "Gecontacteerd",
+      interested: "Interesse",
+      trial_or_offer: "Proef / voorstel",
+      customer: "Klant geworden",
+      not_interested: "Geen interesse"
+    }[status] ||
+    status ||
+    "Te contacteren"
+  );
+}
+
+function openB2BFollowup(registrationId) {
+  window.location.href =
+    `./opvolging-bewerken.html?id=${encodeURIComponent(registrationId)}`;
+}
+
+document.addEventListener(
+  "DOMContentLoaded",
+  initB2BFollowupOverviewPage
+);
+
+// =========================================================
 // FOLLOW-UP BEWERKEN
 // =========================================================
 
