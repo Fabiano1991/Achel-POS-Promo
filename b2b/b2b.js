@@ -564,6 +564,246 @@ function escapeB2BHtml(value) {
 }
 
 // =========================================================
+// NIEUWE B2B INSCHRIJVING
+// =========================================================
+
+let activeB2BDay = null;
+let activeB2BQuota = 0;
+let activeB2BUsed = 0;
+let activeB2BRemaining = 0;
+
+async function initB2BRegistrationPage() {
+  const title = document.getElementById("registrationDayTitle");
+  if (!title) return;
+
+  try {
+    const { data: { session }, error: sessionError } =
+      await supabaseClient.auth.getSession();
+
+    if (sessionError) throw sessionError;
+
+    if (!session?.user) {
+      window.location.href = "../index.html";
+      return;
+    }
+
+    const params = new URLSearchParams(window.location.search);
+    const dayId = params.get("day");
+
+    if (!dayId) {
+      showRegistrationStatus("Geen B2B-dag geselecteerd.", true);
+      return;
+    }
+
+    await loadRegistrationDay(dayId, session.user.id);
+  } catch (error) {
+    console.error("INSCHRIJFPAGINA FOUT:", error);
+    showRegistrationStatus(
+      error?.message || "De inschrijfpagina kon niet worden geladen.",
+      true
+    );
+  }
+}
+
+async function loadRegistrationDay(dayId, userId) {
+  const { data: day, error: dayError } =
+    await supabaseClient
+      .from("b2b_days")
+      .select("id, title, event_date, start_time, end_time, location, status")
+      .eq("id", dayId)
+      .single();
+
+  if (dayError || !day) {
+    throw dayError || new Error("B2B-dag niet gevonden.");
+  }
+
+  if (!["open", "full"].includes(day.status)) {
+    throw new Error("Deze B2B-dag staat niet open voor inschrijvingen.");
+  }
+
+  activeB2BDay = day;
+
+  const { data: quotaRow, error: quotaError } =
+    await supabaseClient
+      .from("b2b_quotas")
+      .select("quota")
+      .eq("b2b_day_id", dayId)
+      .eq("representative_id", userId)
+      .maybeSingle();
+
+  if (quotaError) throw quotaError;
+
+  activeB2BQuota = Number(quotaRow?.quota || 0);
+
+  const { data: registrations, error: registrationsError } =
+    await supabaseClient
+      .from("b2b_registrations")
+      .select("number_of_guests")
+      .eq("b2b_day_id", dayId)
+      .eq("representative_id", userId)
+      .neq("registration_status", "cancelled");
+
+  if (registrationsError) throw registrationsError;
+
+  activeB2BUsed = (registrations || []).reduce(
+    (sum, row) => sum + Number(row.number_of_guests || 0),
+    0
+  );
+
+  activeB2BRemaining = Math.max(0, activeB2BQuota - activeB2BUsed);
+  renderRegistrationDay();
+}
+
+function renderRegistrationDay() {
+  if (!activeB2BDay) return;
+
+  document.getElementById("registrationDayTitle").textContent =
+    activeB2BDay.title;
+
+  const metaParts = [];
+  if (activeB2BDay.event_date) metaParts.push(formatB2BDate(activeB2BDay.event_date));
+  if (activeB2BDay.location) metaParts.push(activeB2BDay.location);
+  if (activeB2BDay.start_time) {
+    let time = formatB2BTime(activeB2BDay.start_time);
+    if (activeB2BDay.end_time) time += " – " + formatB2BTime(activeB2BDay.end_time);
+    metaParts.push(time);
+  }
+
+  document.getElementById("registrationDayMeta").textContent = metaParts.join(" · ");
+  document.getElementById("registrationQuotaText").textContent =
+    `${activeB2BRemaining} van ${activeB2BQuota} beschikbaar`;
+
+  const percentage = activeB2BQuota > 0
+    ? Math.min(100, Math.round((activeB2BUsed / activeB2BQuota) * 100))
+    : 0;
+
+  document.getElementById("registrationQuotaProgress").style.width = `${percentage}%`;
+  updateGuestSelector();
+}
+
+function changeGuestCount(amount) {
+  const input = document.getElementById("guestCount");
+  if (!input) return;
+
+  if (activeB2BRemaining <= 0) {
+    input.value = 0;
+    updateGuestSelector();
+    return;
+  }
+
+  let value = Number(input.value || 1) + Number(amount || 0);
+  value = Math.max(1, Math.min(activeB2BRemaining, value));
+  input.value = value;
+  updateGuestSelector();
+}
+
+function updateGuestSelector() {
+  const input = document.getElementById("guestCount");
+  const display = document.getElementById("guestCountDisplay");
+  if (!input || !display) return;
+
+  let value = Number(input.value || 1);
+  if (activeB2BRemaining <= 0) value = 0;
+  else value = Math.max(1, Math.min(value, activeB2BRemaining));
+
+  input.value = value;
+  display.textContent = value;
+
+  const button = document.getElementById("registrationSubmitButton");
+  if (button) button.disabled = activeB2BRemaining <= 0;
+}
+
+async function submitB2BRegistration() {
+  const button = document.getElementById("registrationSubmitButton");
+
+  try {
+    const { data: { session }, error: sessionError } =
+      await supabaseClient.auth.getSession();
+    if (sessionError) throw sessionError;
+    if (!session?.user) {
+      window.location.href = "../index.html";
+      return;
+    }
+
+    if (!activeB2BDay) {
+      showRegistrationStatus("Geen B2B-dag geselecteerd.", true);
+      return;
+    }
+
+    const companyName = document.getElementById("companyName").value.trim();
+    const contactName = document.getElementById("contactName").value.trim();
+    const email = document.getElementById("customerEmail").value.trim();
+    const phone = document.getElementById("customerPhone").value.trim();
+    const notes = document.getElementById("registrationNotes").value.trim();
+    const numberOfGuests = Number(document.getElementById("guestCount").value || 0);
+
+    if (!companyName) {
+      showRegistrationStatus("Vul de bedrijfsnaam of horecazaak in.", true);
+      return;
+    }
+
+    await loadRegistrationDay(activeB2BDay.id, session.user.id);
+
+    if (numberOfGuests <= 0 || numberOfGuests > activeB2BRemaining) {
+      showRegistrationStatus("Het gekozen aantal gasten past niet binnen je beschikbare quota.", true);
+      return;
+    }
+
+    if (button) {
+      button.disabled = true;
+      button.textContent = "Inschrijving opslaan...";
+    }
+
+    const { error } = await supabaseClient
+      .from("b2b_registrations")
+      .insert({
+        b2b_day_id: activeB2BDay.id,
+        representative_id: session.user.id,
+        company_name: companyName,
+        contact_name: contactName || null,
+        email: email || null,
+        phone: phone || null,
+        number_of_guests: numberOfGuests,
+        notes: notes || null,
+        registration_status: "registered",
+        attendance_status: "unknown"
+      });
+
+    if (error) throw error;
+
+    showRegistrationStatus("✓ Klant succesvol ingeschreven.", false);
+    document.getElementById("companyName").value = "";
+    document.getElementById("contactName").value = "";
+    document.getElementById("customerEmail").value = "";
+    document.getElementById("customerPhone").value = "";
+    document.getElementById("registrationNotes").value = "";
+    document.getElementById("guestCount").value = "1";
+
+    await loadRegistrationDay(activeB2BDay.id, session.user.id);
+  } catch (error) {
+    console.error("B2B INSCHRIJVING FOUT:", error);
+    showRegistrationStatus(error?.message || "De inschrijving kon niet worden opgeslagen.", true);
+  } finally {
+    if (button) {
+      button.disabled = activeB2BRemaining <= 0;
+      button.textContent = "Klant inschrijven";
+    }
+  }
+}
+
+function showRegistrationStatus(message, isError) {
+  const element = document.getElementById("registrationStatus");
+  if (!element) return;
+  element.textContent = message;
+  element.hidden = false;
+  element.style.borderColor = isError ? "rgba(190,83,83,.40)" : "rgba(91,170,116,.35)";
+  element.style.color = isError ? "#eba3a3" : "#9bd9ae";
+}
+
+document.addEventListener("DOMContentLoaded", initB2BRegistrationPage);
+
+
+// =========================================================
 // B2B INSCHRIJVING BEWERKEN
 // =========================================================
 
@@ -1003,13 +1243,13 @@ function renderEditRegistration() {
 // AANTAL GASTEN
 // =========================================================
 
-function changeGuestCount(
+function changeEditGuestCount(
   amount
 ) {
 
   const input =
     document.getElementById(
-      "guestCount"
+      "editGuestCount"
     );
 
 
@@ -1019,12 +1259,12 @@ function changeGuestCount(
 
 
   if (
-    activeB2BRemaining <= 0
+    editMaxGuests <= 0
   ) {
 
     input.value = 0;
 
-    updateGuestSelector();
+    updateEditGuestSelector();
 
     return;
 
@@ -1050,7 +1290,7 @@ function changeGuestCount(
 
   value =
     Math.min(
-      activeB2BRemaining,
+      editMaxGuests,
       value
     );
 
@@ -1059,7 +1299,7 @@ function changeGuestCount(
     value;
 
 
-  updateGuestSelector();
+  updateEditGuestSelector();
 
 }
 
