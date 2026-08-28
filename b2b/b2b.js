@@ -1003,18 +1003,31 @@ function renderEditRegistration() {
 // AANTAL GASTEN
 // =========================================================
 
-function changeEditGuestCount(
+function changeGuestCount(
   amount
 ) {
 
   const input =
     document.getElementById(
-      "editGuestCount"
+      "guestCount"
     );
 
 
   if (!input) {
     return;
+  }
+
+
+  if (
+    activeB2BRemaining <= 0
+  ) {
+
+    input.value = 0;
+
+    updateGuestSelector();
+
+    return;
+
   }
 
 
@@ -1024,7 +1037,8 @@ function changeEditGuestCount(
     );
 
 
-  value += amount;
+  value =
+    value + amount;
 
 
   value =
@@ -1036,10 +1050,7 @@ function changeEditGuestCount(
 
   value =
     Math.min(
-      Math.max(
-        1,
-        editMaxGuests
-      ),
+      activeB2BRemaining,
       value
     );
 
@@ -1048,7 +1059,7 @@ function changeEditGuestCount(
     value;
 
 
-  updateEditGuestSelector();
+  updateGuestSelector();
 
 }
 
