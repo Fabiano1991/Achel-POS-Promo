@@ -754,24 +754,93 @@ async function submitB2BRegistration() {
       button.textContent = "Inschrijving opslaan...";
     }
 
-    const { error } = await supabaseClient
-      .from("b2b_registrations")
-      .insert({
-        b2b_day_id: activeB2BDay.id,
-        representative_id: session.user.id,
-        company_name: companyName,
-        contact_name: contactName || null,
-        email: email || null,
-        phone: phone || null,
-        number_of_guests: numberOfGuests,
-        notes: notes || null,
-        registration_status: "registered",
-        attendance_status: "unknown"
-      });
+   const {
+  data: newRegistration,
+  error
+} = await supabaseClient
+  .from("b2b_registrations")
+  .insert({
+    b2b_day_id: activeB2BDay.id,
+    representative_id: session.user.id,
+    company_name: companyName,
+    contact_name: contactName || null,
+    email: email || null,
+    phone: phone || null,
+    number_of_guests: numberOfGuests,
+    notes: notes || null,
+    registration_status: "registered",
+    attendance_status: "unknown"
+  })
+  .select("id")
+  .single();
 
-    if (error) throw error;
+if (error) throw error;
 
-    showRegistrationStatus("✓ Klant succesvol ingeschreven.", false);
+
+// Alleen een bevestigingsmail proberen te sturen
+// wanneer er een e-mailadres is ingevuld.
+let confirmationMailSent = false;
+
+if (email && newRegistration?.id) {
+
+  try {
+
+    const {
+      data: mailResult,
+      error: mailError
+    } = await supabaseClient.functions.invoke(
+      "b2b-confirmation-email",
+      {
+        body: {
+          registration_id: newRegistration.id
+        }
+      }
+    );
+
+    if (mailError) {
+      throw mailError;
+    }
+
+    confirmationMailSent =
+      mailResult?.success === true;
+
+  } catch (mailError) {
+
+    // BELANGRIJK:
+    // De inschrijving blijft geldig wanneer alleen
+    // de e-mailverzending zou mislukken.
+    console.error(
+      "B2B BEVESTIGINGSMAIL FOUT:",
+      mailError
+    );
+
+  }
+
+}
+
+
+if (!email) {
+
+  showRegistrationStatus(
+    "✓ Klant succesvol ingeschreven. Geen bevestigingsmail verzonden omdat geen e-mailadres werd ingevuld.",
+    false
+  );
+
+} else if (confirmationMailSent) {
+
+  showRegistrationStatus(
+    "✓ Klant succesvol ingeschreven en bevestigingsmail verzonden.",
+    false
+  );
+
+} else {
+
+  showRegistrationStatus(
+    "✓ Klant succesvol ingeschreven. De bevestigingsmail kon niet worden verzonden.",
+    false
+  );
+
+}
     document.getElementById("companyName").value = "";
     document.getElementById("contactName").value = "";
     document.getElementById("customerEmail").value = "";
