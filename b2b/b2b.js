@@ -50,12 +50,12 @@ async function initB2B() {
     setWelcomeName(user);
 
     // Alleen kleine queries voor deze dashboardtellers.
-    await Promise.all([
-      loadUpcomingDays(),
-      loadMyRegistrations(user.id),
-      loadMyFollowups(user.id)
-      loadB2BHomeInsights(user.id)
-    ]);
+   await Promise.all([
+  loadUpcomingDays(),
+  loadMyRegistrations(user.id),
+  loadMyFollowups(user.id),
+  loadB2BHomeInsights(user.id)
+]);
 
   } catch (error) {
     console.error("B2B initialisatie mislukt:", error);
