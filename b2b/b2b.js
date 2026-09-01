@@ -54,6 +54,7 @@ async function initB2B() {
       loadUpcomingDays(),
       loadMyRegistrations(user.id),
       loadMyFollowups(user.id)
+      loadB2BHomeInsights(user.id)
     ]);
 
   } catch (error) {
