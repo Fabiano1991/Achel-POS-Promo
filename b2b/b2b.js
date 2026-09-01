@@ -66,6 +66,107 @@ async function initB2B() {
   }
 }
 
+async function loadB2BHomeInsights(userId) {
+  const nextText = document.getElementById("nextB2BDayText");
+  const occupancyText = document.getElementById("monthlyOccupancyText");
+  const occupancyBar = document.getElementById("monthlyOccupancyBar");
+
+  if (!nextText || !occupancyText || !occupancyBar) return;
+
+  try {
+    const now = new Date();
+    const today = now.toISOString().slice(0, 10);
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1)
+      .toISOString().slice(0, 10);
+    const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0)
+      .toISOString().slice(0, 10);
+
+    const { data: nextDays, error: nextDayError } = await supabaseClient
+      .from("b2b_days")
+      .select("id, event_date")
+      .gte("event_date", today)
+      .in("status", ["open", "full"])
+      .order("event_date", { ascending: true })
+      .limit(1);
+
+    if (nextDayError) throw nextDayError;
+
+    const nextDay = nextDays?.[0] || null;
+
+    if (nextDay?.event_date) {
+      const todayDate = new Date(`${today}T00:00:00`);
+      const eventDate = new Date(`${nextDay.event_date}T00:00:00`);
+      const diffDays = Math.max(0, Math.ceil((eventDate - todayDate) / 86400000));
+
+      if (diffDays === 0) {
+        nextText.innerHTML = "Eerstvolgende B2B-dag<br><strong>vandaag</strong>";
+      } else if (diffDays === 1) {
+        nextText.innerHTML = "Eerstvolgende B2B-dag<br><strong>morgen</strong>";
+      } else {
+        nextText.innerHTML = `Eerstvolgende B2B-dag<br>over <strong>${diffDays} dagen</strong>`;
+      }
+    } else {
+      nextText.textContent = "Geen komende B2B-dag";
+    }
+
+    const { data: monthDays, error: monthDaysError } = await supabaseClient
+      .from("b2b_days")
+      .select("id")
+      .gte("event_date", monthStart)
+      .lte("event_date", monthEnd)
+      .in("status", ["open", "full", "closed"]);
+
+    if (monthDaysError) throw monthDaysError;
+
+    const dayIds = (monthDays || []).map(day => day.id);
+
+    if (!dayIds.length) {
+      occupancyText.textContent = "0%";
+      occupancyBar.style.width = "0%";
+      return;
+    }
+
+    const [quotaResult, registrationResult] = await Promise.all([
+      supabaseClient
+        .from("b2b_quotas")
+        .select("b2b_day_id, quota")
+        .eq("representative_id", userId)
+        .in("b2b_day_id", dayIds),
+
+      supabaseClient
+        .from("b2b_registrations")
+        .select("b2b_day_id, number_of_guests")
+        .eq("representative_id", userId)
+        .neq("registration_status", "cancelled")
+        .in("b2b_day_id", dayIds)
+    ]);
+
+    if (quotaResult.error) throw quotaResult.error;
+    if (registrationResult.error) throw registrationResult.error;
+
+    const totalQuota = (quotaResult.data || []).reduce(
+      (sum, row) => sum + Number(row.quota || 0),
+      0
+    );
+
+    const totalUsed = (registrationResult.data || []).reduce(
+      (sum, row) => sum + Number(row.number_of_guests || 0),
+      0
+    );
+
+    const percentage = totalQuota > 0
+      ? Math.min(100, Math.round((totalUsed / totalQuota) * 100))
+      : 0;
+
+    occupancyText.textContent = `${percentage}%`;
+    occupancyBar.style.width = `${percentage}%`;
+  } catch (error) {
+    console.error("B2B HOME INZICHTEN FOUT:", error);
+    nextText.textContent = "Eerstvolgende B2B-dag niet beschikbaar";
+    occupancyText.textContent = "—";
+    occupancyBar.style.width = "0%";
+  }
+}
 
 // =========================================================
 // WELKOM
