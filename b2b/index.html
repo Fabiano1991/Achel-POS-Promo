@@ -2,258 +2,129 @@
 <html lang="nl">
 <head>
   <meta charset="UTF-8">
-
-  <meta
-    name="viewport"
-    content="width=device-width, initial-scale=1, viewport-fit=cover"
-  >
-
-  <meta name="theme-color" content="#17130f">
-
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#15110e">
   <title>Achel B2B</title>
-
   <link rel="stylesheet" href="./b2b.css">
 </head>
-
 <body>
-
   <div class="b2b-app">
-
-    <!-- HEADER -->
     <header class="b2b-header">
-
-      <a href="../index.html" class="back-button" aria-label="Terug">
-        ←
-      </a>
-
-      <div class="header-text">
-        <span class="header-eyebrow">Achelse Kluis</span>
-        <h1>B2B</h1>
+      <div class="b2b-header-left">
+        <a href="../index.html" class="back-button" aria-label="Terug">←</a>
+        <div class="header-text">
+          <span class="header-eyebrow">Achelse Kluis</span>
+          <h1>B2B</h1>
+        </div>
       </div>
-
+      <div class="b2b-header-brand" aria-hidden="true">
+        <img src="../achel-glas.png" alt="" class="b2b-header-glass">
+      </div>
     </header>
 
-
-    <!-- WELKOM -->
     <main class="b2b-main">
+      <section class="b2b-dashboard">
+        <div class="dashboard-topline">
+          <div class="dashboard-days">
+            <strong id="upcomingDaysCount" class="dashboard-days-number">—</strong>
+            <span class="dashboard-days-label">dagen</span>
+          </div>
+          <div id="nextB2BDayText" class="dashboard-next-day">Eerstvolgende B2B-dag laden...</div>
+        </div>
 
-      <section class="welcome-section">
+        <div class="dashboard-progress">
+          <div class="dashboard-progress-track">
+            <span id="monthlyOccupancyBar" class="dashboard-progress-fill" style="width:0%"></span>
+          </div>
+          <div class="dashboard-progress-meta">
+            <span>Bezetting deze maand</span>
+            <strong id="monthlyOccupancyText">—</strong>
+          </div>
+        </div>
 
-        <p class="welcome-label">B2B beheer</p>
+        <div class="dashboard-stats">
+          <a href="./mijn-inschrijvingen.html" class="dashboard-stat">
+            <strong id="registrationsCount">—</strong>
+            <span>Mijn inschrijvingen</span>
+          </a>
 
-        <h2 id="welcomeName">
-          Welkom
-        </h2>
+          <a href="./opvolging.html" class="dashboard-stat dashboard-stat-followup">
+            <span class="followup-indicator" aria-hidden="true"></span>
+            <strong id="followupsCount">—</strong>
+            <span>Open follow-ups</span>
+          </a>
+        </div>
 
-        <p class="welcome-description">
-          Beheer je B2B-dagen, klanten en commerciële opvolging.
-        </p>
-
+        <a href="./dagen.html" class="new-registration-button">
+          <span class="new-registration-plus">＋</span>
+          <span>Nieuwe inschrijving</span>
+        </a>
       </section>
 
-
-      <!-- SNEL OVERZICHT -->
-      <section class="summary-grid">
-
-        <article class="summary-card">
-          <span class="summary-label">
-            Komende B2B-dagen
-          </span>
-
-          <strong
-            id="upcomingDaysCount"
-            class="summary-value"
-          >
-            —
-          </strong>
-        </article>
-
-
-        <article class="summary-card">
-          <span class="summary-label">
-            Mijn inschrijvingen
-          </span>
-
-          <strong
-            id="registrationsCount"
-            class="summary-value"
-          >
-            —
-          </strong>
-        </article>
-
-
-        <article class="summary-card">
-          <span class="summary-label">
-            Open follow-ups
-          </span>
-
-          <strong
-            id="followupsCount"
-            class="summary-value"
-          >
-            —
-          </strong>
-        </article>
-
-      </section>
-
-
-      <!-- B2B FUNCTIES -->
       <section class="menu-section">
+        <h2 class="menu-section-title">B2B</h2>
 
-        <h3>B2B</h3>
-
-
-        <a
-          href="./dagen.html"
-          class="menu-card"
-        >
-
-          <div class="menu-card-content">
-
-            <span class="menu-card-label">
-              Planning
-            </span>
-
-            <strong>
-              B2B-dagen
-            </strong>
-
-            <p>
-              Bekijk beschikbare B2B-dagen, capaciteit en jouw quota.
-            </p>
-
-          </div>
-
-          <span class="menu-arrow">›</span>
-
+        <a href="./dagen.html" class="b2b-nav-row">
+          <span class="b2b-nav-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <rect x="3" y="5" width="18" height="16" rx="2"></rect>
+              <path d="M16 3v4M8 3v4M3 10h18"></path>
+            </svg>
+          </span>
+          <span class="b2b-nav-copy">
+            <strong>B2B-dagen</strong>
+            <small>Beschikbaarheid, capaciteit &amp; quota</small>
+          </span>
+          <span class="b2b-nav-arrow">›</span>
         </a>
 
-<a
-  href="./dagen.html"
-  class="menu-card menu-card-primary"
->
-
-          <div class="menu-card-content">
-
-            <span class="menu-card-label">
-              Klanten
-            </span>
-
-            <strong>
-              Nieuwe inschrijving
-            </strong>
-
-            <p>
-              Schrijf een klant en zijn gasten in voor een B2B-dag.
-            </p>
-
-          </div>
-
-          <span class="menu-arrow">›</span>
-
+        <a href="./mijn-inschrijvingen.html" class="b2b-nav-row">
+          <span class="b2b-nav-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <circle cx="12" cy="8" r="4"></circle>
+              <path d="M4.5 21c.7-4.5 3.2-7 7.5-7s6.8 2.5 7.5 7"></path>
+            </svg>
+          </span>
+          <span class="b2b-nav-copy">
+            <strong>Mijn inschrijvingen</strong>
+            <small>Bekijk en wijzig bestaande inschrijvingen</small>
+          </span>
+          <span class="b2b-nav-arrow">›</span>
         </a>
 
-
-        <a
-          href="./mijn-inschrijvingen.html"
-          class="menu-card"
-        >
-
-          <div class="menu-card-content">
-
-            <span class="menu-card-label">
-              Overzicht
-            </span>
-
-            <strong>
-              Mijn inschrijvingen
-            </strong>
-
-            <p>
-              Bekijk, wijzig en beheer je bestaande inschrijvingen.
-            </p>
-
-          </div>
-
-          <span class="menu-arrow">›</span>
-
+        <a href="./opvolging.html" class="b2b-nav-row">
+          <span class="b2b-nav-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M5 20V10M12 20V4M19 20v-7"></path>
+            </svg>
+          </span>
+          <span class="b2b-nav-copy">
+            <strong>Commerciële opvolging</strong>
+            <small>Klanten, opportuniteiten, acties</small>
+          </span>
+          <span class="b2b-nav-arrow">›</span>
         </a>
 
-
-        <a
-          href="./opvolging.html"
-          class="menu-card"
-        >
-
-          <div class="menu-card-content">
-
-            <span class="menu-card-label">
-              Sales
-            </span>
-
-            <strong>
-              Commerciële opvolging
-            </strong>
-
-            <p>
-              Volg klanten, opportuniteiten en volgende acties op.
-            </p>
-
-          </div>
-
-          <span class="menu-arrow">›</span>
-
+        <a id="b2bAdminCard" href="./admin.html" class="b2b-nav-row" hidden>
+          <span class="b2b-nav-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <circle cx="12" cy="12" r="3"></circle>
+              <path d="M12 2v2M12 20v2M4.93 4.93l1.42 1.42M17.65 17.65l1.42 1.42M2 12h2M20 12h2M4.93 19.07l1.42-1.42M17.65 6.35l1.42-1.42"></path>
+            </svg>
+          </span>
+          <span class="b2b-nav-copy">
+            <strong>B2B beheer</strong>
+            <small>Beheer B2B-dagen, capaciteit en quota</small>
+          </span>
+          <span class="b2b-nav-arrow">›</span>
         </a>
-
-        <a
-  id="b2bAdminCard"
-  href="./admin.html"
-  class="menu-card"
-  hidden
->
-
-  <div class="menu-card-content">
-
-    <span class="menu-card-label">
-      Beheer
-    </span>
-
-    <strong>
-      B2B beheer
-    </strong>
-
-    <p>
-      Beheer B2B-dagen, capaciteit en quota.
-    </p>
-
-  </div>
-
-  <span class="menu-arrow">›</span>
-
-</a>
-
       </section>
 
-
-      <!-- STATUS -->
-      <div
-        id="b2bStatus"
-        class="status-message"
-        hidden
-      ></div>
-
+      <div id="b2bStatus" class="status-message" hidden></div>
     </main>
-
   </div>
 
-
-  <!-- Supabase -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-  <!-- Alleen B2B-code -->
   <script src="./b2b.js"></script>
-
 </body>
 </html>
