@@ -2,128 +2,36 @@
 <html lang="nl">
 <head>
   <meta charset="UTF-8">
-
-  <meta
-    name="viewport"
-    content="width=device-width, initial-scale=1, viewport-fit=cover"
-  >
-
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#17130f">
-
   <title>Achel B2B - Commerciële opvolging</title>
-
   <link rel="stylesheet" href="./b2b.css">
 </head>
-
 <body>
-
   <div class="b2b-app">
-
     <header class="b2b-header">
-
-      <a
-        href="./index.html"
-        class="back-button"
-        aria-label="Terug"
-      >
-        ←
-      </a>
-
+      <a href="./index.html" class="back-button" aria-label="Terug">←</a>
       <div class="header-text">
         <span class="header-eyebrow">Achelse Kluis</span>
-        <h1>Commerciële opvolging</h1>
+        <h1>Opvolging</h1>
       </div>
-
     </header>
-
-
     <main class="b2b-main">
-
       <section class="welcome-section">
-
-        <p class="welcome-label">
-          Sales
-        </p>
-
-        <h2>
-          Mijn opportuniteiten
-        </h2>
-
-        <p class="welcome-description">
-          Volg klanten na een B2B-dag op en leg de volgende commerciële actie vast.
-        </p>
-
+        <p class="welcome-label">Sales</p>
+        <h2>Mijn opportuniteiten</h2>
+        <p class="welcome-description">Volg klanten na een B2B-dag op en leg de volgende commerciële actie vast.</p>
       </section>
-
-
       <section class="summary-grid">
-
-        <article class="summary-card">
-          <span class="summary-label">
-            Nog opvolgen
-          </span>
-
-          <strong
-            id="followupTodoCount"
-            class="summary-value"
-          >
-            —
-          </strong>
-        </article>
-
-
-        <article class="summary-card">
-          <span class="summary-label">
-            Interesse
-          </span>
-
-          <strong
-            id="followupInterestedCount"
-            class="summary-value"
-          >
-            —
-          </strong>
-        </article>
-
-
-        <article class="summary-card">
-          <span class="summary-label">
-            Klant geworden
-          </span>
-
-          <strong
-            id="followupCustomerCount"
-            class="summary-value"
-          >
-            —
-          </strong>
-        </article>
-
+        <article class="summary-card"><span class="summary-label">Nog opvolgen</span><strong id="followupTodoCount" class="summary-value">—</strong></article>
+        <article class="summary-card"><span class="summary-label">Interesse</span><strong id="followupInterestedCount" class="summary-value">—</strong></article>
+        <article class="summary-card"><span class="summary-label">Klant geworden</span><strong id="followupCustomerCount" class="summary-value">—</strong></article>
       </section>
-
-
-      <section id="followupList">
-
-        <div class="status-message">
-          Commerciële opvolging laden...
-        </div>
-
-      </section>
-
-
-      <div
-        id="followupStatusMessage"
-        class="status-message"
-        hidden
-      ></div>
-
+      <section id="followupList"><div class="status-message">Commerciële opvolging laden...</div></section>
+      <div id="followupStatusMessage" class="status-message" hidden></div>
     </main>
-
   </div>
-
-
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="./b2b.js"></script>
-
 </body>
 </html>
