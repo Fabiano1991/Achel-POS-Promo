@@ -50,12 +50,12 @@ async function initB2B() {
     setWelcomeName(user);
 
     // Alleen kleine queries voor deze dashboardtellers.
-   await Promise.all([
-  loadUpcomingDays(),
-  loadMyRegistrations(user.id),
-  loadMyFollowups(user.id),
-  loadB2BHomeInsights(user.id)
-]);
+    await Promise.all([
+      loadUpcomingDays(),
+      loadMyRegistrations(user.id),
+      loadMyFollowups(user.id),
+      loadB2BHomeInsights(user.id)
+    ]);
 
   } catch (error) {
     console.error("B2B initialisatie mislukt:", error);
@@ -167,6 +167,7 @@ async function loadB2BHomeInsights(userId) {
     occupancyBar.style.width = "0%";
   }
 }
+
 
 // =========================================================
 // WELKOM
@@ -856,93 +857,24 @@ async function submitB2BRegistration() {
       button.textContent = "Inschrijving opslaan...";
     }
 
-   const {
-  data: newRegistration,
-  error
-} = await supabaseClient
-  .from("b2b_registrations")
-  .insert({
-    b2b_day_id: activeB2BDay.id,
-    representative_id: session.user.id,
-    company_name: companyName,
-    contact_name: contactName || null,
-    email: email || null,
-    phone: phone || null,
-    number_of_guests: numberOfGuests,
-    notes: notes || null,
-    registration_status: "registered",
-    attendance_status: "unknown"
-  })
-  .select("id")
-  .single();
+    const { error } = await supabaseClient
+      .from("b2b_registrations")
+      .insert({
+        b2b_day_id: activeB2BDay.id,
+        representative_id: session.user.id,
+        company_name: companyName,
+        contact_name: contactName || null,
+        email: email || null,
+        phone: phone || null,
+        number_of_guests: numberOfGuests,
+        notes: notes || null,
+        registration_status: "registered",
+        attendance_status: "unknown"
+      });
 
-if (error) throw error;
+    if (error) throw error;
 
-
-// Alleen een bevestigingsmail proberen te sturen
-// wanneer er een e-mailadres is ingevuld.
-let confirmationMailSent = false;
-
-if (email && newRegistration?.id) {
-
-  try {
-
-    const {
-      data: mailResult,
-      error: mailError
-    } = await supabaseClient.functions.invoke(
-      "b2b-confirmation-email",
-      {
-        body: {
-          registration_id: newRegistration.id
-        }
-      }
-    );
-
-    if (mailError) {
-      throw mailError;
-    }
-
-    confirmationMailSent =
-      mailResult?.success === true;
-
-  } catch (mailError) {
-
-    // BELANGRIJK:
-    // De inschrijving blijft geldig wanneer alleen
-    // de e-mailverzending zou mislukken.
-    console.error(
-      "B2B BEVESTIGINGSMAIL FOUT:",
-      mailError
-    );
-
-  }
-
-}
-
-
-if (!email) {
-
-  showRegistrationStatus(
-    "✓ Klant succesvol ingeschreven. Geen bevestigingsmail verzonden omdat geen e-mailadres werd ingevuld.",
-    false
-  );
-
-} else if (confirmationMailSent) {
-
-  showRegistrationStatus(
-    "✓ Klant succesvol ingeschreven en bevestigingsmail verzonden.",
-    false
-  );
-
-} else {
-
-  showRegistrationStatus(
-    "✓ Klant succesvol ingeschreven. De bevestigingsmail kon niet worden verzonden.",
-    false
-  );
-
-}
+    showRegistrationStatus("✓ Klant succesvol ingeschreven.", false);
     document.getElementById("companyName").value = "";
     document.getElementById("contactName").value = "";
     document.getElementById("customerEmail").value = "";
@@ -1806,6 +1738,223 @@ document.addEventListener(
 );
 
 // =========================================================
+// MIJN INSCHRIJVINGEN OVERZICHT
+// =========================================================
+
+async function initB2BMyRegistrationsPage() {
+  const container = document.getElementById("myB2BRegistrations");
+  if (!container) return;
+
+  try {
+    const { data: { session }, error: sessionError } =
+      await supabaseClient.auth.getSession();
+
+    if (sessionError) throw sessionError;
+
+    if (!session?.user) {
+      window.location.href = "../index.html";
+      return;
+    }
+
+    const { data: registrations, error: registrationsError } =
+      await supabaseClient
+        .from("b2b_registrations")
+        .select(`
+          id,
+          company_name,
+          contact_name,
+          email,
+          phone,
+          number_of_guests,
+          notes,
+          registration_status,
+          attendance_status,
+          created_at,
+          b2b_days (
+            title,
+            event_date,
+            start_time,
+            end_time,
+            location
+          )
+        `)
+        .eq("representative_id", session.user.id)
+        .order("created_at", { ascending: false });
+
+    if (registrationsError) throw registrationsError;
+
+    renderMyB2BRegistrations(registrations || []);
+  } catch (error) {
+    console.error("MIJN B2B INSCHRIJVINGEN FOUT:", error);
+
+    container.innerHTML = `
+      <div class="status-message">
+        Inschrijvingen konden niet worden geladen.
+      </div>
+    `;
+
+    showMyRegistrationsStatus(
+      error?.message || "Probeer de pagina opnieuw te openen.",
+      true
+    );
+  }
+}
+
+function renderMyB2BRegistrations(registrations) {
+  const container = document.getElementById("myB2BRegistrations");
+  if (!container) return;
+
+  if (!registrations.length) {
+    container.innerHTML = `
+      <div class="status-message">
+        Je hebt nog geen B2B-inschrijvingen.
+      </div>
+    `;
+    return;
+  }
+
+  container.innerHTML = registrations
+    .map(registration => {
+      const day = registration.b2b_days || {};
+      const cancelled = registration.registration_status === "cancelled";
+      const meta = [];
+
+      if (day.title) meta.push(day.title);
+      if (day.event_date) meta.push(formatB2BDate(day.event_date));
+      if (day.location) meta.push(day.location);
+
+      const contactLines = [];
+      if (registration.contact_name) contactLines.push(registration.contact_name);
+      if (registration.email) contactLines.push(registration.email);
+      if (registration.phone) contactLines.push(registration.phone);
+
+      return `
+        <article class="b2b-registration-card ${cancelled ? "b2b-registration-cancelled" : ""}">
+          <div class="b2b-registration-top">
+            <div>
+              <span class="menu-card-label">
+                ${cancelled ? "Geannuleerd" : "Ingeschreven"}
+              </span>
+              <strong>${escapeB2BHtml(registration.company_name)}</strong>
+            </div>
+
+            <span class="b2b-registration-count">
+              ${Number(registration.number_of_guests || 0)} pers.
+            </span>
+          </div>
+
+          <div class="b2b-registration-meta">
+            ${escapeB2BHtml(meta.join(" · "))}
+          </div>
+
+          ${
+            contactLines.length || registration.notes
+              ? `
+                <div class="b2b-registration-details">
+                  ${
+                    contactLines.length
+                      ? `<div>${escapeB2BHtml(contactLines.join(" · "))}</div>`
+                      : ""
+                  }
+                  ${
+                    registration.notes
+                      ? `<div><strong>Opmerking:</strong> ${escapeB2BHtml(registration.notes)}</div>`
+                      : ""
+                  }
+                </div>
+              `
+              : ""
+          }
+
+          ${
+            cancelled
+              ? ""
+              : `
+                <div class="b2b-registration-actions">
+                  <button
+                    type="button"
+                    class="b2b-small-action edit"
+                    onclick="openB2BRegistrationEdit('${registration.id}')"
+                  >
+                    Wijzigen
+                  </button>
+
+                  <button
+                    type="button"
+                    class="b2b-small-action cancel"
+                    onclick="cancelB2BRegistration('${registration.id}')"
+                  >
+                    Annuleren
+                  </button>
+                </div>
+              `
+          }
+        </article>
+      `;
+    })
+    .join("");
+}
+
+function openB2BRegistrationEdit(registrationId) {
+  window.location.href =
+    `./inschrijving-bewerken.html?id=${encodeURIComponent(registrationId)}`;
+}
+
+async function cancelB2BRegistration(registrationId) {
+  const confirmed = window.confirm(
+    "Deze inschrijving annuleren? De gebruikte plaatsen komen opnieuw vrij."
+  );
+
+  if (!confirmed) return;
+
+  try {
+    const { data: { session }, error: sessionError } =
+      await supabaseClient.auth.getSession();
+
+    if (sessionError) throw sessionError;
+
+    if (!session?.user) {
+      window.location.href = "../index.html";
+      return;
+    }
+
+    const { error } = await supabaseClient
+      .from("b2b_registrations")
+      .update({
+        registration_status: "cancelled",
+        updated_at: new Date().toISOString()
+      })
+      .eq("id", registrationId)
+      .eq("representative_id", session.user.id);
+
+    if (error) throw error;
+
+    showMyRegistrationsStatus("✓ Inschrijving geannuleerd.", false);
+    await initB2BMyRegistrationsPage();
+  } catch (error) {
+    console.error("B2B INSCHRIJVING ANNULEREN FOUT:", error);
+    showMyRegistrationsStatus(
+      error?.message || "De inschrijving kon niet worden geannuleerd.",
+      true
+    );
+  }
+}
+
+function showMyRegistrationsStatus(message, isError) {
+  const element = document.getElementById("myRegistrationsStatus");
+  if (!element) return;
+
+  element.textContent = message;
+  element.hidden = false;
+  element.style.color = isError ? "#eba3a3" : "#9bd9ae";
+}
+
+document.addEventListener(
+  "DOMContentLoaded",
+  initB2BMyRegistrationsPage
+);
+
+// =========================================================
 // COMMERCIËLE OPVOLGING OVERZICHT
 // =========================================================
 
@@ -2346,8 +2495,75 @@ function renderB2BFollowupEdit(
       followup?.followup_date ||
       "";
 
+
+  syncB2BFollowupStatusButtons();
+  syncB2BFollowupProductChips();
+
 }
 
+
+// =========================================================
+// FOLLOW-UP UI HELPERS
+// =========================================================
+
+function selectB2BFollowupStatus(status) {
+  const select = document.getElementById("followupEditStatus");
+  if (!select) return;
+
+  select.value = status;
+  syncB2BFollowupStatusButtons();
+}
+
+function syncB2BFollowupStatusButtons() {
+  const select = document.getElementById("followupEditStatus");
+  if (!select) return;
+
+  document.querySelectorAll("[data-followup-status]").forEach(button => {
+    button.classList.toggle(
+      "active",
+      button.dataset.followupStatus === select.value
+    );
+  });
+}
+
+function toggleB2BFollowupProduct(product) {
+  const input = document.getElementById("followupEditProducts");
+  if (!input) return;
+
+  const current = String(input.value || "")
+    .split(",")
+    .map(item => item.trim())
+    .filter(Boolean);
+
+  const normalized = product.toLowerCase();
+  const exists = current.some(item => item.toLowerCase() === normalized);
+
+  const next = exists
+    ? current.filter(item => item.toLowerCase() !== normalized)
+    : [...current, product];
+
+  input.value = next.join(", ");
+  syncB2BFollowupProductChips();
+}
+
+function syncB2BFollowupProductChips() {
+  const input = document.getElementById("followupEditProducts");
+  if (!input) return;
+
+  const selected = String(input.value || "")
+    .split(",")
+    .map(item => item.trim().toLowerCase())
+    .filter(Boolean);
+
+  document.querySelectorAll("[data-followup-product]").forEach(button => {
+    button.classList.toggle(
+      "active",
+      selected.includes(
+        String(button.dataset.followupProduct || "").toLowerCase()
+      )
+    );
+  });
+}
 
 // =========================================================
 // OPSLAAN / UPSERT
