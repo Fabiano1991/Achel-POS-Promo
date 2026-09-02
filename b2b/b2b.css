@@ -228,3 +228,307 @@ button, input, textarea, select { font: inherit; }
   .b2b-nav-icon svg { width: 28px; height: 28px; }
   .b2b-nav-copy small { font-size: 12px; }
 }
+
+/* =========================================================
+   GEDEELDE B2B SUBPAGINA-STIJL
+   ========================================================= */
+
+[hidden] { display: none !important; }
+
+.welcome-section {
+  padding: 24px 0 22px;
+  border-top: 1px solid rgba(201,138,66,.20);
+}
+
+.welcome-label,
+.menu-card-label {
+  display: block;
+  margin: 0 0 8px;
+  color: var(--gold);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 2.1px;
+  text-transform: uppercase;
+}
+
+.welcome-section h2 {
+  margin: 0;
+  color: #fff7ec;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(28px, 7vw, 38px);
+  font-weight: 500;
+  line-height: 1.08;
+}
+
+.welcome-description {
+  margin: 10px 0 0;
+  color: #c9beb0;
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.page-section-title {
+  margin: 0 0 17px;
+  color: #fff7ec;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 24px;
+  font-weight: 500;
+}
+
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin: 0 0 24px;
+}
+
+.summary-card {
+  min-width: 0;
+  min-height: 98px;
+  padding: 14px 12px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: radial-gradient(circle at 100% 0%, rgba(200,154,82,.07), transparent 42%), var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.summary-label {
+  display: block;
+  min-height: 32px;
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.3;
+}
+
+.summary-value {
+  display: block;
+  margin-top: 7px;
+  color: var(--gold-light);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 30px;
+  font-weight: 500;
+}
+
+.b2b-day-top strong,
+.b2b-registration-top strong {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 20px;
+  font-weight: 500;
+  line-height: 1.15;
+}
+
+.b2b-registration-details strong {
+  color: var(--cream);
+  font-weight: 700;
+}
+
+.b2b-submit {
+  min-height: 56px;
+  border-radius: 15px;
+  background: linear-gradient(180deg, #e1a04f 0%, #c97c2d 100%);
+  color: #19120d;
+  font-size: 15px;
+  font-weight: 900;
+}
+
+/* =========================================================
+   COMMERCIËLE OPVOLGING - NIEUWE MOCKUPSTIJL
+   ========================================================= */
+
+.followup-customer-card {
+  display: grid;
+  grid-template-columns: 48px minmax(0,1fr);
+  gap: 14px;
+  align-items: center;
+  margin-bottom: 26px;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.followup-customer-icon {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border: 1px solid rgba(201,138,66,.28);
+  border-radius: 50%;
+  color: var(--gold-strong);
+  background: rgba(201,138,66,.07);
+}
+
+.followup-customer-icon svg {
+  width: 24px;
+  height: 24px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.followup-customer-copy h2 {
+  margin: 0;
+  color: #fff7ec;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 23px;
+  font-weight: 500;
+}
+
+.followup-customer-copy p {
+  margin: 6px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.followup-section { margin-top: 27px; }
+
+.followup-section-title {
+  margin: 0 0 12px;
+  color: var(--cream);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.followup-option-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.followup-status-button,
+.followup-product-chip {
+  min-height: 48px;
+  padding: 10px 12px;
+  border: 1px solid rgba(201,138,66,.22);
+  border-radius: 13px;
+  background: rgba(255,255,255,.035);
+  color: #c9beb0;
+  font-size: 12px;
+  font-weight: 800;
+  text-align: center;
+}
+
+.followup-status-button.active,
+.followup-product-chip.active {
+  border-color: rgba(255,204,134,.38);
+  background: linear-gradient(180deg, #dda04f 0%, #c37a2e 100%);
+  color: #1a120c;
+  box-shadow: 0 8px 18px rgba(95,58,22,.24);
+}
+
+.followup-product-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 9px;
+}
+
+.followup-product-chip {
+  min-height: 42px;
+  padding: 9px 16px;
+  border-radius: 999px;
+}
+
+.followup-control-card {
+  position: relative;
+  margin-top: 11px;
+  padding: 14px 14px 12px 48px;
+  border: 1px solid var(--border);
+  border-radius: 15px;
+  background: var(--surface);
+}
+
+.followup-control-icon {
+  position: absolute;
+  left: 15px;
+  top: 18px;
+  color: var(--gold-strong);
+}
+
+.followup-control-icon svg {
+  width: 21px;
+  height: 21px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.followup-control-card label {
+  display: block;
+  margin: 0 0 5px;
+  color: var(--gold);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 1.3px;
+  text-transform: uppercase;
+}
+
+.followup-control-input {
+  width: 100%;
+  min-height: 34px;
+  padding: 0;
+  border: 0;
+  outline: none;
+  background: transparent;
+  color: var(--cream);
+  font: inherit;
+}
+
+.followup-control-input::placeholder { color: rgba(243,234,219,.35); }
+
+.followup-note-details {
+  margin-top: 12px;
+  border: 1px solid var(--border);
+  border-radius: 15px;
+  background: var(--surface);
+  overflow: hidden;
+}
+
+.followup-note-details summary {
+  list-style: none;
+  cursor: pointer;
+  padding: 15px 16px;
+  color: var(--gold-light);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.followup-note-details summary::-webkit-details-marker { display: none; }
+.followup-note-details summary::after { content: "+"; float: right; color: var(--gold); font-size: 19px; }
+.followup-note-details[open] summary::after { content: "−"; }
+
+.followup-note-details textarea {
+  display: block;
+  width: calc(100% - 28px);
+  min-height: 100px;
+  margin: 0 14px 14px;
+  padding: 12px 13px;
+  border: 1px solid rgba(200,154,82,.24);
+  border-radius: 12px;
+  outline: none;
+  background: rgba(255,255,255,.04);
+  color: var(--cream);
+  resize: vertical;
+}
+
+.followup-native-control {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+@media (max-width: 480px) {
+  .summary-grid { gap: 7px; }
+  .summary-card { padding: 12px 9px; }
+  .summary-value { font-size: 26px; }
+  .followup-option-grid { gap: 8px; }
+  .followup-status-button { font-size: 11px; }
+  .b2b-registration-actions { grid-template-columns: 1fr; }
+}
