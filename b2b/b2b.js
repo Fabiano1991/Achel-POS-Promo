@@ -1813,7 +1813,23 @@ function renderMyB2BRegistrations(registrations) {
     return;
   }
 
-  container.innerHTML = registrations
+  const attendanceOrder = {
+    present: 0,
+    unknown: 1,
+    absent: 2
+  };
+
+  container.innerHTML = [...registrations]
+    .sort(
+      (a, b) =>
+        (
+          attendanceOrder[a.attendance_status] ?? 1
+        )
+        -
+        (
+          attendanceOrder[b.attendance_status] ?? 1
+        )
+    )
     .map(registration => {
       const day = registration.b2b_days || {};
       const cancelled = registration.registration_status === "cancelled";
@@ -2228,6 +2244,7 @@ async function initB2BFollowupOverviewPage() {
       </div>
     `;
 
+    setCounter("followupPresentCount", "—");
     setCounter("followupTodoCount", "—");
     setCounter("followupInterestedCount", "—");
     setCounter("followupCustomerCount", "—");
@@ -2238,6 +2255,7 @@ function renderB2BFollowupOverview(registrations, followupMap) {
   const container = document.getElementById("followupList");
   if (!container) return;
 
+  let present = 0;
   let todo = 0;
   let interested = 0;
   let customer = 0;
@@ -2246,6 +2264,13 @@ function renderB2BFollowupOverview(registrations, followupMap) {
     const status =
       followupMap[registration.id]?.status ||
       "to_follow_up";
+
+    if (
+      registration.attendance_status ===
+      "present"
+    ) {
+      present += 1;
+    }
 
     if (
       status === "to_follow_up" ||
@@ -2266,6 +2291,7 @@ function renderB2BFollowupOverview(registrations, followupMap) {
     }
   });
 
+  setCounter("followupPresentCount", present);
   setCounter("followupTodoCount", todo);
   setCounter("followupInterestedCount", interested);
   setCounter("followupCustomerCount", customer);
@@ -2323,6 +2349,22 @@ function renderB2BFollowupOverview(registrations, followupMap) {
                 ${escapeB2BHtml(registration.company_name)}
               </strong>
             </div>
+
+            <span class="followup-attendance-badge ${
+              registration.attendance_status === "present"
+                ? "present"
+                : registration.attendance_status === "absent"
+                  ? "absent"
+                  : "unknown"
+            }">
+              ${
+                registration.attendance_status === "present"
+                  ? "Aanwezig"
+                  : registration.attendance_status === "absent"
+                    ? "Afwezig"
+                    : "Onbekend"
+              }
+            </span>
 
           </div>
 
@@ -3735,11 +3777,64 @@ async function toggleB2BAdminRegistrations(dayId) {
     }
 
 
+    const registrationIds =
+      rows.map(
+        row => row.id
+      );
+
+
+    let followupMap =
+      {};
+
+
+    if (
+      registrationIds.length
+    ) {
+
+      const {
+        data: followups,
+        error: followupsError
+      } =
+        await supabaseClient
+          .from("b2b_followups")
+          .select(`
+            registration_id,
+            status,
+            next_action,
+            followup_date
+          `)
+          .in(
+            "registration_id",
+            registrationIds
+          );
+
+
+      if (followupsError) {
+        throw followupsError;
+      }
+
+
+      (followups || [])
+        .forEach(
+          followup => {
+
+            followupMap[
+              followup.registration_id
+            ] =
+              followup;
+
+          }
+        );
+
+    }
+
+
     b2bAdminRegistrationExportData[
       dayId
     ] = {
       registrations: rows,
-      profileMap: profileMap
+      profileMap: profileMap,
+      followupMap: followupMap
     };
 
 
@@ -3747,7 +3842,8 @@ async function toggleB2BAdminRegistrations(dayId) {
       panel,
       rows,
       profileMap,
-      dayId
+      dayId,
+      followupMap
     );
 
 
@@ -3779,7 +3875,8 @@ function renderB2BAdminRegistrations(
   panel,
   registrations,
   profileMap,
-  dayId
+  dayId,
+  followupMap
 ) {
 
   const active =
@@ -3813,8 +3910,48 @@ function renderB2BAdminRegistrations(
     );
 
 
+  const presentCount =
+    active.filter(
+      registration =>
+        registration.attendance_status ===
+        "present"
+    ).length;
+
+
+  const absentCount =
+    active.filter(
+      registration =>
+        registration.attendance_status ===
+        "absent"
+    ).length;
+
+
+  const interestedCount =
+    active.filter(
+      registration =>
+        [
+          "interested",
+          "trial_or_offer"
+        ].includes(
+          followupMap?.[
+            registration.id
+          ]?.status
+        )
+    ).length;
+
+
+  const customerCount =
+    active.filter(
+      registration =>
+        followupMap?.[
+          registration.id
+        ]?.status ===
+        "customer"
+    ).length;
+
+
   const summary = `
-    <div class="admin-registration-summary">
+    <div class="admin-registration-summary admin-results-summary">
 
       <div>
         <span>Inschrijvingen</span>
@@ -3827,8 +3964,23 @@ function renderB2BAdminRegistrations(
       </div>
 
       <div>
-        <span>Geannuleerd</span>
-        <strong>${cancelled.length}</strong>
+        <span>Aanwezig</span>
+        <strong>${presentCount}</strong>
+      </div>
+
+      <div>
+        <span>Afwezig</span>
+        <strong>${absentCount}</strong>
+      </div>
+
+      <div>
+        <span>Interesse</span>
+        <strong>${interestedCount}</strong>
+      </div>
+
+      <div>
+        <span>Nieuwe klant</span>
+        <strong>${customerCount}</strong>
       </div>
 
     </div>
@@ -4066,6 +4218,43 @@ function renderB2BAdminRegistrations(
                   : ""
               }
 
+              ${
+                !isCancelled
+                  ? `
+                    <div class="admin-followup-readonly">
+                      <span>Commerciële status</span>
+                      <strong>
+                        ${escapeB2BHtml(
+                          formatB2BFollowupStatus(
+                            followupMap?.[
+                              registration.id
+                            ]?.status ||
+                            "to_follow_up"
+                          )
+                        )}
+                      </strong>
+
+                      ${
+                        followupMap?.[
+                          registration.id
+                        ]?.next_action
+                          ? `
+                            <small>
+                              Volgende actie:
+                              ${escapeB2BHtml(
+                                followupMap[
+                                  registration.id
+                                ].next_action
+                              )}
+                            </small>
+                          `
+                          : ""
+                      }
+                    </div>
+                  `
+                  : ""
+              }
+
               <div class="admin-registration-extra">
 
                 <div>
@@ -4270,6 +4459,26 @@ function exportB2BGuestList(dayId) {
                     ? "Afwezig"
                     : "Niet geregistreerd",
 
+              "Commerciële status":
+                formatB2BFollowupStatus(
+                  exportData.followupMap?.[
+                    registration.id
+                  ]?.status ||
+                  "to_follow_up"
+                ),
+
+              "Volgende actie":
+                exportData.followupMap?.[
+                  registration.id
+                ]?.next_action ||
+                "",
+
+              "Opvolgdatum":
+                exportData.followupMap?.[
+                  registration.id
+                ]?.followup_date ||
+                "",
+
               "Opmerking":
                 registration.notes ||
                 ""
@@ -4297,6 +4506,9 @@ function exportB2BGuestList(dayId) {
       { wch: 16 },
       { wch: 24 },
       { wch: 18 },
+      { wch: 22 },
+      { wch: 28 },
+      { wch: 14 },
       { wch: 36 }
     ];
 
