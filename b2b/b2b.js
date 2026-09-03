@@ -1870,34 +1870,34 @@ function renderMyB2BRegistrations(registrations) {
             cancelled
               ? ""
               : `
-                <div class="my-attendance-block">
-                  <span class="my-attendance-label">
-                    Aanwezigheid
-                  </span>
+                <div class="b2b-registration-details">
+                  <strong>Aanwezigheid</strong>
 
-                  <div class="my-attendance-actions">
+                  <div class="b2b-registration-actions">
                     <button
                       type="button"
-                      class="my-attendance-button present ${
-                        registration.attendance_status === "present"
-                          ? "active"
-                          : ""
-                      }"
+                      class="b2b-small-action edit"
+                      data-attendance-choice="present"
                       onclick="setMyB2BAttendance('${registration.id}', 'present', this)"
                     >
-                      Aanwezig
+                      ${
+                        registration.attendance_status === "present"
+                          ? "✓ Aanwezig"
+                          : "Aanwezig"
+                      }
                     </button>
 
                     <button
                       type="button"
-                      class="my-attendance-button absent ${
-                        registration.attendance_status === "absent"
-                          ? "active"
-                          : ""
-                      }"
+                      class="b2b-small-action cancel"
+                      data-attendance-choice="absent"
                       onclick="setMyB2BAttendance('${registration.id}', 'absent', this)"
                     >
-                      Afwezig
+                      ${
+                        registration.attendance_status === "absent"
+                          ? "✓ Afwezig"
+                          : "Afwezig"
+                      }
                     </button>
                   </div>
                 </div>
@@ -1952,7 +1952,7 @@ async function setMyB2BAttendance(
     card
       ? [
           ...card.querySelectorAll(
-            ".my-attendance-button"
+            "[data-attendance-choice]"
           )
         ]
       : [];
@@ -1990,7 +1990,6 @@ async function setMyB2BAttendance(
 
 
     const {
-      data,
       error
     } =
       await supabaseClient
@@ -2009,9 +2008,7 @@ async function setMyB2BAttendance(
         .eq(
           "representative_id",
           session.user.id
-        )
-        .select("id")
-        .maybeSingle();
+        );
 
 
     if (error) {
@@ -2019,38 +2016,35 @@ async function setMyB2BAttendance(
     }
 
 
-    if (!data) {
-
-      throw new Error(
-        "Deze inschrijving kon niet worden aangepast."
-      );
-
-    }
-
-
     buttons.forEach(
       item => {
 
-        item.classList.toggle(
-          "active",
-          (
-            attendanceStatus ===
-              "present"
-            &&
-            item.classList.contains(
-              "present"
-            )
-          )
-          ||
-          (
-            attendanceStatus ===
-              "absent"
-            &&
-            item.classList.contains(
-              "absent"
-            )
-          )
-        );
+        const choice =
+          item.dataset.attendanceChoice;
+
+
+        if (
+          choice === "present"
+        ) {
+
+          item.textContent =
+            attendanceStatus === "present"
+              ? "✓ Aanwezig"
+              : "Aanwezig";
+
+        }
+
+
+        if (
+          choice === "absent"
+        ) {
+
+          item.textContent =
+            attendanceStatus === "absent"
+              ? "✓ Afwezig"
+              : "Afwezig";
+
+        }
 
       }
     );
@@ -2058,8 +2052,8 @@ async function setMyB2BAttendance(
 
     showMyRegistrationsStatus(
       attendanceStatus === "present"
-        ? "✓ Aanwezigheid geregistreerd."
-        : "✓ Afwezigheid geregistreerd.",
+        ? "✓ Aanwezigheid opgeslagen."
+        : "✓ Afwezigheid opgeslagen.",
       false
     );
 
@@ -2068,7 +2062,7 @@ async function setMyB2BAttendance(
   catch (error) {
 
     console.error(
-      "B2B EIGEN AANWEZIGHEID OPSLAAN FOUT:",
+      "B2B AANWEZIGHEID OPSLAAN FOUT:",
       error
     );
 
@@ -2092,7 +2086,6 @@ async function setMyB2BAttendance(
   }
 
 }
-
 
 function openB2BRegistrationEdit(registrationId) {
   window.location.href =
