@@ -1870,6 +1870,38 @@ function renderMyB2BRegistrations(registrations) {
             cancelled
               ? ""
               : `
+                <div class="my-attendance-block">
+                  <span class="my-attendance-label">
+                    Aanwezigheid
+                  </span>
+
+                  <div class="my-attendance-actions">
+                    <button
+                      type="button"
+                      class="my-attendance-button present ${
+                        registration.attendance_status === "present"
+                          ? "active"
+                          : ""
+                      }"
+                      onclick="setMyB2BAttendance('${registration.id}', 'present', this)"
+                    >
+                      Aanwezig
+                    </button>
+
+                    <button
+                      type="button"
+                      class="my-attendance-button absent ${
+                        registration.attendance_status === "absent"
+                          ? "active"
+                          : ""
+                      }"
+                      onclick="setMyB2BAttendance('${registration.id}', 'absent', this)"
+                    >
+                      Afwezig
+                    </button>
+                  </div>
+                </div>
+
                 <div class="b2b-registration-actions">
                   <button
                     type="button"
@@ -1894,6 +1926,173 @@ function renderMyB2BRegistrations(registrations) {
     })
     .join("");
 }
+
+async function setMyB2BAttendance(
+  registrationId,
+  attendanceStatus,
+  button
+) {
+
+  if (
+    !["present", "absent"].includes(
+      attendanceStatus
+    )
+  ) {
+    return;
+  }
+
+
+  const card =
+    button?.closest(
+      ".b2b-registration-card"
+    );
+
+
+  const buttons =
+    card
+      ? [
+          ...card.querySelectorAll(
+            ".my-attendance-button"
+          )
+        ]
+      : [];
+
+
+  try {
+
+    const {
+      data: { session },
+      error: sessionError
+    } =
+      await supabaseClient.auth.getSession();
+
+
+    if (sessionError) {
+      throw sessionError;
+    }
+
+
+    if (!session?.user) {
+
+      window.location.href =
+        "../index.html";
+
+      return;
+
+    }
+
+
+    buttons.forEach(
+      item => {
+        item.disabled = true;
+      }
+    );
+
+
+    const {
+      data,
+      error
+    } =
+      await supabaseClient
+        .from("b2b_registrations")
+        .update({
+          attendance_status:
+            attendanceStatus,
+
+          updated_at:
+            new Date().toISOString()
+        })
+        .eq(
+          "id",
+          registrationId
+        )
+        .eq(
+          "representative_id",
+          session.user.id
+        )
+        .select("id")
+        .maybeSingle();
+
+
+    if (error) {
+      throw error;
+    }
+
+
+    if (!data) {
+
+      throw new Error(
+        "Deze inschrijving kon niet worden aangepast."
+      );
+
+    }
+
+
+    buttons.forEach(
+      item => {
+
+        item.classList.toggle(
+          "active",
+          (
+            attendanceStatus ===
+              "present"
+            &&
+            item.classList.contains(
+              "present"
+            )
+          )
+          ||
+          (
+            attendanceStatus ===
+              "absent"
+            &&
+            item.classList.contains(
+              "absent"
+            )
+          )
+        );
+
+      }
+    );
+
+
+    showMyRegistrationsStatus(
+      attendanceStatus === "present"
+        ? "✓ Aanwezigheid geregistreerd."
+        : "✓ Afwezigheid geregistreerd.",
+      false
+    );
+
+  }
+
+  catch (error) {
+
+    console.error(
+      "B2B EIGEN AANWEZIGHEID OPSLAAN FOUT:",
+      error
+    );
+
+
+    showMyRegistrationsStatus(
+      error?.message ||
+      "Aanwezigheid kon niet worden opgeslagen.",
+      true
+    );
+
+  }
+
+  finally {
+
+    buttons.forEach(
+      item => {
+        item.disabled = false;
+      }
+    );
+
+  }
+
+}
+
 
 function openB2BRegistrationEdit(registrationId) {
   window.location.href =
@@ -3852,12 +4051,23 @@ function renderB2BAdminRegistrations(
               ${
                 !isCancelled
                   ? `
-                    <div class="admin-attendance-block">
-                      <span class="admin-attendance-label">Aanwezigheid</span>
-                      <div class="admin-attendance-actions">
-                        <button type="button" class="admin-attendance-button present ${registration.attendance_status === "present" ? "active" : ""}" onclick="setB2BAttendance('${registration.id}', '${dayId}', 'present', this)">Aanwezig</button>
-                        <button type="button" class="admin-attendance-button absent ${registration.attendance_status === "absent" ? "active" : ""}" onclick="setB2BAttendance('${registration.id}', '${dayId}', 'absent', this)">Afwezig</button>
-                      </div>
+                    <div class="admin-attendance-readonly">
+                      <span>Aanwezigheid</span>
+                      <strong class="${
+                        registration.attendance_status === "present"
+                          ? "is-present"
+                          : registration.attendance_status === "absent"
+                            ? "is-absent"
+                            : "is-unknown"
+                      }">
+                        ${
+                          registration.attendance_status === "present"
+                            ? "Aanwezig"
+                            : registration.attendance_status === "absent"
+                              ? "Afwezig"
+                              : "Nog niet geregistreerd"
+                        }
+                      </strong>
                     </div>
                   `
                   : ""
@@ -3910,47 +4120,6 @@ function renderB2BAdminRegistrations(
 }
 
 
-
-async function setB2BAttendance(registrationId, dayId, attendanceStatus, button) {
-  if (!["present", "absent"].includes(attendanceStatus)) return;
-
-  const row = button?.closest(".admin-registration-row");
-  const buttons = row ? [...row.querySelectorAll(".admin-attendance-button")] : [];
-
-  try {
-    buttons.forEach(item => { item.disabled = true; });
-
-    const { error } = await supabaseClient
-      .from("b2b_registrations")
-      .update({
-        attendance_status: attendanceStatus,
-        updated_at: new Date().toISOString()
-      })
-      .eq("id", registrationId);
-
-    if (error) throw error;
-
-    const exportData = b2bAdminRegistrationExportData[dayId];
-    const registration = exportData?.registrations?.find(
-      item => String(item.id) === String(registrationId)
-    );
-
-    if (registration) registration.attendance_status = attendanceStatus;
-
-    buttons.forEach(item => {
-      item.classList.toggle(
-        "active",
-        (attendanceStatus === "present" && item.classList.contains("present")) ||
-        (attendanceStatus === "absent" && item.classList.contains("absent"))
-      );
-    });
-  } catch (error) {
-    console.error("B2B AANWEZIGHEID OPSLAAN FOUT:", error);
-    window.alert(error?.message || "Aanwezigheid kon niet worden opgeslagen.");
-  } finally {
-    buttons.forEach(item => { item.disabled = false; });
-  }
-}
 
 function exportB2BGuestList(dayId) {
 
