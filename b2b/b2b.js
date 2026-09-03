@@ -4263,6 +4263,13 @@ function exportB2BGuestList(dayId) {
                 profile.email ||
                 "",
 
+              "Aanwezigheid":
+                registration.attendance_status === "present"
+                  ? "Aanwezig"
+                  : registration.attendance_status === "absent"
+                    ? "Afwezig"
+                    : "Niet geregistreerd",
+
               "Opmerking":
                 registration.notes ||
                 ""
@@ -4289,6 +4296,7 @@ function exportB2BGuestList(dayId) {
       { wch: 18 },
       { wch: 16 },
       { wch: 24 },
+      { wch: 18 },
       { wch: 36 }
     ];
 
