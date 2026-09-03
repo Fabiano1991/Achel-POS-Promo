@@ -677,3 +677,58 @@ button, input, textarea, select { font: inherit; }
   }
 }
 
+/* =========================================================
+   ADMIN GASTENLIJST + EXCEL EXPORT
+   ========================================================= */
+
+.admin-guest-list-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin: 0 0 12px;
+  padding: 13px;
+  border: 1px solid rgba(201,138,66,.18);
+  border-radius: 13px;
+  background: rgba(201,138,66,.045);
+}
+
+.admin-guest-list-actions .menu-card-label {
+  margin-bottom: 4px;
+}
+
+.admin-guest-list-actions small {
+  display: block;
+  color: var(--muted);
+  font-size: 9px;
+  line-height: 1.4;
+}
+
+.admin-export-button {
+  flex-shrink: 0;
+  min-height: 40px;
+  padding: 9px 13px;
+  border: 1px solid rgba(255,204,134,.34);
+  border-radius: 11px;
+  background: linear-gradient(180deg, #dda04f 0%, #c37a2e 100%);
+  color: #19120d;
+  font-size: 10px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.admin-export-button:active {
+  transform: scale(.985);
+}
+
+@media (max-width: 480px) {
+  .admin-guest-list-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .admin-export-button {
+    width: 100%;
+  }
+}
+
