@@ -2792,6 +2792,8 @@ document.addEventListener(
 // B2B ADMIN
 // =========================================================
 
+const b2bAdminRegistrationExportData = {};
+
 async function initB2BAdminPage() {
 
   const container =
@@ -3179,7 +3181,13 @@ async function loadAdminB2BDays() {
       .map(
         day => `
 
-          <article class="b2b-day-card">
+          <article
+            class="b2b-day-card"
+            data-admin-day-id="${day.id}"
+            data-admin-day-title="${escapeB2BHtml(day.title)}"
+            data-admin-day-date="${escapeB2BHtml(day.event_date || "")}"
+            data-admin-day-location="${escapeB2BHtml(day.location || "")}"
+          >
 
             <div class="b2b-day-top">
 
@@ -3535,10 +3543,19 @@ async function toggleB2BAdminRegistrations(dayId) {
     }
 
 
+    b2bAdminRegistrationExportData[
+      dayId
+    ] = {
+      registrations: rows,
+      profileMap: profileMap
+    };
+
+
     renderB2BAdminRegistrations(
       panel,
       rows,
-      profileMap
+      profileMap,
+      dayId
     );
 
 
@@ -3569,7 +3586,8 @@ async function toggleB2BAdminRegistrations(dayId) {
 function renderB2BAdminRegistrations(
   panel,
   registrations,
-  profileMap
+  profileMap,
+  dayId
 ) {
 
   const active =
@@ -3625,12 +3643,38 @@ function renderB2BAdminRegistrations(
   `;
 
 
+  const guestListActions = `
+    <div class="admin-guest-list-actions">
+
+      <div>
+        <span class="menu-card-label">
+          Gastenlijst
+        </span>
+
+        <small>
+          Alleen actieve inschrijvingen worden geëxporteerd.
+        </small>
+      </div>
+
+      <button
+        type="button"
+        class="admin-export-button"
+        onclick="exportB2BGuestList('${dayId}')"
+      >
+        Excel exporteren
+      </button>
+
+    </div>
+  `;
+
+
   if (
     !registrations.length
   ) {
 
     panel.innerHTML =
       summary +
+      guestListActions +
       `
         <div class="admin-registration-empty">
           Nog geen klanten ingeschreven voor deze B2B-dag.
@@ -3846,7 +3890,245 @@ function renderB2BAdminRegistrations(
 
   panel.innerHTML =
     summary +
+    guestListActions +
     `<div class="admin-registration-list">${cards}</div>`;
+
+}
+
+
+function exportB2BGuestList(dayId) {
+
+  try {
+
+    if (
+      typeof XLSX ===
+      "undefined"
+    ) {
+
+      throw new Error(
+        "Excel-module kon niet worden geladen."
+      );
+
+    }
+
+
+    const exportData =
+      b2bAdminRegistrationExportData[
+        dayId
+      ];
+
+
+    if (!exportData) {
+
+      throw new Error(
+        "Open eerst de inschrijvingen van deze B2B-dag."
+      );
+
+    }
+
+
+    const registrations =
+      (
+        exportData.registrations ||
+        []
+      )
+        .filter(
+          registration =>
+            registration.registration_status !==
+            "cancelled"
+        );
+
+
+    if (
+      !registrations.length
+    ) {
+
+      window.alert(
+        "Er zijn geen actieve inschrijvingen om te exporteren."
+      );
+
+      return;
+
+    }
+
+
+    const dayCard =
+      document.querySelector(
+        `[data-admin-day-id="${dayId}"]`
+      );
+
+
+    const dayTitle =
+      dayCard?.dataset.adminDayTitle ||
+      "B2B-dag";
+
+
+    const dayDate =
+      dayCard?.dataset.adminDayDate ||
+      "";
+
+
+    const dayLocation =
+      dayCard?.dataset.adminDayLocation ||
+      "";
+
+
+    const profileMap =
+      exportData.profileMap ||
+      {};
+
+
+    const rows =
+      registrations
+        .sort(
+          (
+            a,
+            b
+          ) =>
+            String(
+              a.company_name ||
+              ""
+            )
+              .localeCompare(
+                String(
+                  b.company_name ||
+                  ""
+                ),
+                "nl"
+              )
+        )
+        .map(
+          registration => {
+
+            const profile =
+              profileMap[
+                registration.representative_id
+              ] ||
+              {};
+
+
+            return {
+
+              "B2B-dag":
+                dayTitle,
+
+              "Datum":
+                dayDate,
+
+              "Locatie":
+                dayLocation,
+
+              "Horecazaak / bedrijf":
+                registration.company_name ||
+                "",
+
+              "Contactpersoon":
+                registration.contact_name ||
+                "",
+
+              "E-mail":
+                registration.email ||
+                "",
+
+              "Telefoon":
+                registration.phone ||
+                "",
+
+              "Aantal personen":
+                Number(
+                  registration.number_of_guests ||
+                  0
+                ),
+
+              "Vertegenwoordiger":
+                profile.naam ||
+                profile.email ||
+                "",
+
+              "Opmerking":
+                registration.notes ||
+                ""
+
+            };
+
+          }
+        );
+
+
+    const worksheet =
+      XLSX.utils.json_to_sheet(
+        rows
+      );
+
+
+    worksheet["!cols"] = [
+      { wch: 24 },
+      { wch: 13 },
+      { wch: 22 },
+      { wch: 28 },
+      { wch: 24 },
+      { wch: 30 },
+      { wch: 18 },
+      { wch: 16 },
+      { wch: 24 },
+      { wch: 36 }
+    ];
+
+
+    const workbook =
+      XLSX.utils.book_new();
+
+
+    XLSX.utils.book_append_sheet(
+      workbook,
+      worksheet,
+      "Gastenlijst"
+    );
+
+
+    const safeTitle =
+      String(
+        dayTitle
+      )
+        .replace(
+          /[\\/:*?"<>|]+/g,
+          "-"
+        )
+        .replace(
+          /\s+/g,
+          "_"
+        )
+        .slice(
+          0,
+          60
+        );
+
+
+    const fileName =
+      `Achel_B2B_gastenlijst_${dayDate || "datum"}_${safeTitle}.xlsx`;
+
+
+    XLSX.writeFile(
+      workbook,
+      fileName
+    );
+
+  }
+
+  catch (error) {
+
+    console.error(
+      "B2B GASTENLIJST EXPORT FOUT:",
+      error
+    );
+
+
+    window.alert(
+      error?.message ||
+      "De gastenlijst kon niet worden geëxporteerd."
+    );
+
+  }
 
 }
 
