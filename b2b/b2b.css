@@ -843,3 +843,81 @@ button, input, textarea, select { font: inherit; }
   color: var(--gold-light);
 }
 
+
+
+/* =========================================================
+   OPVOLGING - AANWEZIGHEID + RESULTATEN
+   ========================================================= */
+
+.followup-summary-grid {
+  grid-template-columns: repeat(4, 1fr);
+}
+
+.followup-attendance-badge {
+  flex-shrink: 0;
+  padding: 5px 9px;
+  border-radius: 999px;
+  font-size: 9px;
+  font-weight: 850;
+  letter-spacing: .4px;
+}
+
+.followup-attendance-badge.present {
+  border: 1px solid rgba(91,170,116,.30);
+  background: rgba(91,170,116,.12);
+  color: #9bd9ae;
+}
+
+.followup-attendance-badge.absent {
+  border: 1px solid rgba(190,83,83,.30);
+  background: rgba(142,58,58,.12);
+  color: #eba3a3;
+}
+
+.followup-attendance-badge.unknown {
+  border: 1px solid rgba(201,138,66,.24);
+  background: rgba(201,138,66,.08);
+  color: var(--gold-light);
+}
+
+.admin-results-summary {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.admin-followup-readonly {
+  margin-top: 10px;
+  padding-top: 9px;
+  border-top: 1px solid rgba(255,255,255,.06);
+}
+
+.admin-followup-readonly span {
+  display: block;
+  color: var(--muted);
+  font-size: 9px;
+}
+
+.admin-followup-readonly strong {
+  display: block;
+  margin-top: 3px;
+  color: var(--gold-light);
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.admin-followup-readonly small {
+  display: block;
+  margin-top: 4px;
+  color: #c9beb0;
+  font-size: 9px;
+  line-height: 1.4;
+}
+
+@media (max-width: 560px) {
+  .followup-summary-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .admin-results-summary {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
