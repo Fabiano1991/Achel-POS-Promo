@@ -22,12 +22,30 @@
         <h2>Mijn opportuniteiten</h2>
         <p class="welcome-description">Volg klanten na een B2B-dag op en leg de volgende commerciële actie vast.</p>
       </section>
-      <section class="summary-grid">
-        <article class="summary-card"><span class="summary-label">Nog opvolgen</span><strong id="followupTodoCount" class="summary-value">—</strong></article>
-        <article class="summary-card"><span class="summary-label">Interesse</span><strong id="followupInterestedCount" class="summary-value">—</strong></article>
-        <article class="summary-card"><span class="summary-label">Klant geworden</span><strong id="followupCustomerCount" class="summary-value">—</strong></article>
+
+      <section class="summary-grid followup-summary-grid">
+        <article class="summary-card">
+          <span class="summary-label">Aanwezig</span>
+          <strong id="followupPresentCount" class="summary-value">—</strong>
+        </article>
+        <article class="summary-card">
+          <span class="summary-label">Nog opvolgen</span>
+          <strong id="followupTodoCount" class="summary-value">—</strong>
+        </article>
+        <article class="summary-card">
+          <span class="summary-label">Interesse</span>
+          <strong id="followupInterestedCount" class="summary-value">—</strong>
+        </article>
+        <article class="summary-card">
+          <span class="summary-label">Klant geworden</span>
+          <strong id="followupCustomerCount" class="summary-value">—</strong>
+        </article>
       </section>
-      <section id="followupList"><div class="status-message">Commerciële opvolging laden...</div></section>
+
+      <section id="followupList">
+        <div class="status-message">Commerciële opvolging laden...</div>
+      </section>
+
       <div id="followupStatusMessage" class="status-message" hidden></div>
     </main>
   </div>
