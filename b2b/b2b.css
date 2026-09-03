@@ -532,3 +532,148 @@ button, input, textarea, select { font: inherit; }
   .followup-status-button { font-size: 11px; }
   .b2b-registration-actions { grid-template-columns: 1fr; }
 }
+
+/* =========================================================
+   ADMIN INSCHRIJVINGENOVERZICHT
+   ========================================================= */
+
+.admin-day-actions {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.admin-registrations-panel {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(255,255,255,.07);
+}
+
+.admin-registration-summary {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 7px;
+  margin-bottom: 12px;
+}
+
+.admin-registration-summary > div {
+  min-width: 0;
+  padding: 11px 9px;
+  border: 1px solid rgba(201,138,66,.18);
+  border-radius: 12px;
+  background: rgba(255,255,255,.03);
+}
+
+.admin-registration-summary span {
+  display: block;
+  min-height: 26px;
+  color: var(--muted);
+  font-size: 9px;
+  line-height: 1.3;
+}
+
+.admin-registration-summary strong {
+  display: block;
+  margin-top: 4px;
+  color: var(--gold-light);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 22px;
+  font-weight: 500;
+}
+
+.admin-registration-list {
+  display: grid;
+  gap: 8px;
+}
+
+.admin-registration-row {
+  padding: 13px;
+  border: 1px solid rgba(201,138,66,.16);
+  border-radius: 13px;
+  background: rgba(255,255,255,.025);
+}
+
+.admin-registration-row.is-cancelled {
+  opacity: .48;
+}
+
+.admin-registration-row-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.admin-registration-state {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--gold);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+}
+
+.admin-registration-row-top strong {
+  display: block;
+  color: var(--cream);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 17px;
+  font-weight: 500;
+}
+
+.admin-registration-guests {
+  flex-shrink: 0;
+  padding: 5px 8px;
+  border: 1px solid rgba(201,138,66,.18);
+  border-radius: 999px;
+  background: rgba(201,138,66,.10);
+  color: var(--gold-light);
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.admin-registration-contact {
+  margin-top: 7px;
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.5;
+  word-break: break-word;
+}
+
+.admin-registration-extra {
+  display: grid;
+  gap: 7px;
+  margin-top: 10px;
+  padding-top: 9px;
+  border-top: 1px solid rgba(255,255,255,.06);
+}
+
+.admin-registration-extra span {
+  display: block;
+  color: var(--muted);
+  font-size: 9px;
+}
+
+.admin-registration-extra strong {
+  display: block;
+  margin-top: 2px;
+  color: #d9cdbf;
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 1.45;
+}
+
+.admin-registration-empty {
+  padding: 13px;
+  border: 1px solid rgba(201,138,66,.16);
+  border-radius: 12px;
+  color: var(--muted);
+  font-size: 11px;
+  text-align: center;
+}
+
+@media (max-width: 480px) {
+  .admin-day-actions {
+    grid-template-columns: 1fr;
+  }
+}
+
