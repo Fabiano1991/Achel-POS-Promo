@@ -3849,6 +3849,20 @@ function renderB2BAdminRegistrations(
               }
 
 
+              ${
+                !isCancelled
+                  ? `
+                    <div class="admin-attendance-block">
+                      <span class="admin-attendance-label">Aanwezigheid</span>
+                      <div class="admin-attendance-actions">
+                        <button type="button" class="admin-attendance-button present ${registration.attendance_status === "present" ? "active" : ""}" onclick="setB2BAttendance('${registration.id}', '${dayId}', 'present', this)">Aanwezig</button>
+                        <button type="button" class="admin-attendance-button absent ${registration.attendance_status === "absent" ? "active" : ""}" onclick="setB2BAttendance('${registration.id}', '${dayId}', 'absent', this)">Afwezig</button>
+                      </div>
+                    </div>
+                  `
+                  : ""
+              }
+
               <div class="admin-registration-extra">
 
                 <div>
@@ -3895,6 +3909,48 @@ function renderB2BAdminRegistrations(
 
 }
 
+
+
+async function setB2BAttendance(registrationId, dayId, attendanceStatus, button) {
+  if (!["present", "absent"].includes(attendanceStatus)) return;
+
+  const row = button?.closest(".admin-registration-row");
+  const buttons = row ? [...row.querySelectorAll(".admin-attendance-button")] : [];
+
+  try {
+    buttons.forEach(item => { item.disabled = true; });
+
+    const { error } = await supabaseClient
+      .from("b2b_registrations")
+      .update({
+        attendance_status: attendanceStatus,
+        updated_at: new Date().toISOString()
+      })
+      .eq("id", registrationId);
+
+    if (error) throw error;
+
+    const exportData = b2bAdminRegistrationExportData[dayId];
+    const registration = exportData?.registrations?.find(
+      item => String(item.id) === String(registrationId)
+    );
+
+    if (registration) registration.attendance_status = attendanceStatus;
+
+    buttons.forEach(item => {
+      item.classList.toggle(
+        "active",
+        (attendanceStatus === "present" && item.classList.contains("present")) ||
+        (attendanceStatus === "absent" && item.classList.contains("absent"))
+      );
+    });
+  } catch (error) {
+    console.error("B2B AANWEZIGHEID OPSLAAN FOUT:", error);
+    window.alert(error?.message || "Aanwezigheid kon niet worden opgeslagen.");
+  } finally {
+    buttons.forEach(item => { item.disabled = false; });
+  }
+}
 
 function exportB2BGuestList(dayId) {
 
