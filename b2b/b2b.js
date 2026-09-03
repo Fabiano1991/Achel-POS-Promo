@@ -3238,7 +3238,15 @@ async function loadAdminB2BDays() {
             </div>
 
 
-            <div class="b2b-registration-actions">
+            <div class="b2b-registration-actions admin-day-actions">
+
+              <button
+                type="button"
+                class="b2b-small-action edit"
+                onclick="toggleB2BAdminRegistrations('${day.id}')"
+              >
+                Inschrijvingen
+              </button>
 
               <button
                 type="button"
@@ -3258,6 +3266,12 @@ async function loadAdminB2BDays() {
               </button>
 
             </div>
+
+            <div
+              id="adminRegistrations-${day.id}"
+              class="admin-registrations-panel"
+              hidden
+            ></div>
 
           </article>
 
@@ -3375,6 +3389,464 @@ function showAdminCreateDayMessage(
     isError
       ? "#eba3a3"
       : "#9bd9ae";
+
+}
+
+
+
+async function toggleB2BAdminRegistrations(dayId) {
+
+  const panel =
+    document.getElementById(
+      `adminRegistrations-${dayId}`
+    );
+
+
+  if (!panel) {
+    return;
+  }
+
+
+  if (!panel.hidden) {
+
+    panel.hidden =
+      true;
+
+    return;
+  }
+
+
+  panel.hidden =
+    false;
+
+
+  if (
+    panel.dataset.loaded ===
+    "true"
+  ) {
+
+    return;
+
+  }
+
+
+  panel.innerHTML = `
+    <div class="status-message">
+      Inschrijvingen laden...
+    </div>
+  `;
+
+
+  try {
+
+    const {
+      data: registrations,
+      error: registrationsError
+    } =
+      await supabaseClient
+        .from("b2b_registrations")
+        .select(`
+          id,
+          representative_id,
+          company_name,
+          contact_name,
+          email,
+          phone,
+          number_of_guests,
+          notes,
+          registration_status,
+          attendance_status,
+          created_at
+        `)
+        .eq(
+          "b2b_day_id",
+          dayId
+        )
+        .order(
+          "created_at",
+          {
+            ascending: true
+          }
+        );
+
+
+    if (registrationsError) {
+      throw registrationsError;
+    }
+
+
+    const rows =
+      registrations || [];
+
+
+    const representativeIds =
+      [
+        ...new Set(
+          rows
+            .map(
+              row =>
+                row.representative_id
+            )
+            .filter(Boolean)
+        )
+      ];
+
+
+    let profileMap =
+      {};
+
+
+    if (
+      representativeIds.length
+    ) {
+
+      const {
+        data: profiles,
+        error: profilesError
+      } =
+        await supabaseClient
+          .from("profiles")
+          .select(
+            "id, naam, email"
+          )
+          .in(
+            "id",
+            representativeIds
+          );
+
+
+      if (profilesError) {
+        throw profilesError;
+      }
+
+
+      (profiles || [])
+        .forEach(
+          profile => {
+
+            profileMap[
+              profile.id
+            ] =
+              profile;
+
+          }
+        );
+
+    }
+
+
+    renderB2BAdminRegistrations(
+      panel,
+      rows,
+      profileMap
+    );
+
+
+    panel.dataset.loaded =
+      "true";
+
+  }
+
+  catch (error) {
+
+    console.error(
+      "B2B ADMIN INSCHRIJVINGEN FOUT:",
+      error
+    );
+
+
+    panel.innerHTML = `
+      <div class="status-message">
+        Inschrijvingen konden niet worden geladen.
+      </div>
+    `;
+
+  }
+
+}
+
+
+function renderB2BAdminRegistrations(
+  panel,
+  registrations,
+  profileMap
+) {
+
+  const active =
+    registrations.filter(
+      registration =>
+        registration.registration_status !==
+        "cancelled"
+    );
+
+
+  const cancelled =
+    registrations.filter(
+      registration =>
+        registration.registration_status ===
+        "cancelled"
+    );
+
+
+  const totalGuests =
+    active.reduce(
+      (
+        total,
+        registration
+      ) =>
+        total +
+        Number(
+          registration.number_of_guests ||
+          0
+        ),
+      0
+    );
+
+
+  const summary = `
+    <div class="admin-registration-summary">
+
+      <div>
+        <span>Inschrijvingen</span>
+        <strong>${active.length}</strong>
+      </div>
+
+      <div>
+        <span>Personen</span>
+        <strong>${totalGuests}</strong>
+      </div>
+
+      <div>
+        <span>Geannuleerd</span>
+        <strong>${cancelled.length}</strong>
+      </div>
+
+    </div>
+  `;
+
+
+  if (
+    !registrations.length
+  ) {
+
+    panel.innerHTML =
+      summary +
+      `
+        <div class="admin-registration-empty">
+          Nog geen klanten ingeschreven voor deze B2B-dag.
+        </div>
+      `;
+
+    return;
+
+  }
+
+
+  const cards =
+    [...registrations]
+      .sort(
+        (
+          a,
+          b
+        ) => {
+
+          const aCancelled =
+            a.registration_status ===
+            "cancelled"
+              ? 1
+              : 0;
+
+
+          const bCancelled =
+            b.registration_status ===
+            "cancelled"
+              ? 1
+              : 0;
+
+
+          if (
+            aCancelled !==
+            bCancelled
+          ) {
+
+            return (
+              aCancelled -
+              bCancelled
+            );
+
+          }
+
+
+          return String(
+            a.company_name ||
+            ""
+          )
+            .localeCompare(
+              String(
+                b.company_name ||
+                ""
+              ),
+              "nl"
+            );
+
+        }
+      )
+      .map(
+        registration => {
+
+          const isCancelled =
+            registration.registration_status ===
+            "cancelled";
+
+
+          const profile =
+            profileMap[
+              registration.representative_id
+            ] ||
+            {};
+
+
+          const representativeName =
+            profile.naam ||
+            profile.email ||
+            "Onbekende vertegenwoordiger";
+
+
+          const contactParts =
+            [];
+
+
+          if (
+            registration.contact_name
+          ) {
+
+            contactParts.push(
+              registration.contact_name
+            );
+
+          }
+
+
+          if (
+            registration.email
+          ) {
+
+            contactParts.push(
+              registration.email
+            );
+
+          }
+
+
+          if (
+            registration.phone
+          ) {
+
+            contactParts.push(
+              registration.phone
+            );
+
+          }
+
+
+          return `
+
+            <div class="admin-registration-row ${
+              isCancelled
+                ? "is-cancelled"
+                : ""
+            }">
+
+              <div class="admin-registration-row-top">
+
+                <div>
+
+                  <span class="admin-registration-state">
+                    ${
+                      isCancelled
+                        ? "Geannuleerd"
+                        : "Ingeschreven"
+                    }
+                  </span>
+
+                  <strong>
+                    ${escapeB2BHtml(
+                      registration.company_name
+                    )}
+                  </strong>
+
+                </div>
+
+
+                <span class="admin-registration-guests">
+                  ${Number(
+                    registration.number_of_guests ||
+                    0
+                  )} pers.
+                </span>
+
+              </div>
+
+
+              ${
+                contactParts.length
+
+                  ? `
+                    <div class="admin-registration-contact">
+                      ${escapeB2BHtml(
+                        contactParts.join(
+                          " · "
+                        )
+                      )}
+                    </div>
+                  `
+
+                  : ""
+              }
+
+
+              <div class="admin-registration-extra">
+
+                <div>
+                  <span>Vertegenwoordiger</span>
+                  <strong>
+                    ${escapeB2BHtml(
+                      representativeName
+                    )}
+                  </strong>
+                </div>
+
+                ${
+                  registration.notes
+
+                    ? `
+                      <div>
+                        <span>Opmerking</span>
+                        <strong>
+                          ${escapeB2BHtml(
+                            registration.notes
+                          )}
+                        </strong>
+                      </div>
+                    `
+
+                    : ""
+                }
+
+              </div>
+
+            </div>
+
+          `;
+
+        }
+      )
+      .join("");
+
+
+  panel.innerHTML =
+    summary +
+    `<div class="admin-registration-list">${cards}</div>`;
 
 }
 
