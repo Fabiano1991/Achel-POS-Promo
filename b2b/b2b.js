@@ -1813,115 +1813,168 @@ function renderMyB2BRegistrations(registrations) {
     return;
   }
 
-  const attendanceOrder = {
-    present: 0,
-    unknown: 1,
-    absent: 2
-  };
-
-  container.innerHTML = [...registrations]
-    .sort(
-      (a, b) =>
-        (
-          attendanceOrder[a.attendance_status] ?? 1
-        )
-        -
-        (
-          attendanceOrder[b.attendance_status] ?? 1
-        )
-    )
+  container.innerHTML = registrations
     .map(registration => {
       const day = registration.b2b_days || {};
       const cancelled = registration.registration_status === "cancelled";
       const meta = [];
 
-      if (day.title) meta.push(day.title);
-      if (day.event_date) meta.push(formatB2BDate(day.event_date));
-      if (day.location) meta.push(day.location);
+      if (day.event_date) {
+        meta.push(formatB2BDate(day.event_date));
+      }
 
-      const contactLines = [];
-      if (registration.contact_name) contactLines.push(registration.contact_name);
-      if (registration.email) contactLines.push(registration.email);
-      if (registration.phone) contactLines.push(registration.phone);
+      if (day.title) {
+        meta.push(day.title);
+      }
+
+      if (day.location) {
+        meta.push(day.location);
+      }
+
+      const emailLink =
+        registration.email
+          ? `
+            <a
+              class="registration-contact-link"
+              href="mailto:${escapeB2BHtml(registration.email)}"
+            >
+              ${escapeB2BHtml(registration.email)}
+            </a>
+          `
+          : "";
+
+      const phoneLink =
+        registration.phone
+          ? `
+            <a
+              class="registration-contact-link"
+              href="tel:${escapeB2BHtml(registration.phone)}"
+            >
+              ${escapeB2BHtml(registration.phone)}
+            </a>
+          `
+          : "";
+
+      const contactName =
+        registration.contact_name
+          ? `
+            <span class="registration-contact-name">
+              ${escapeB2BHtml(registration.contact_name)}
+            </span>
+          `
+          : "";
 
       return `
         <article class="b2b-registration-card ${cancelled ? "b2b-registration-cancelled" : ""}">
+
           <div class="b2b-registration-top">
+
             <div>
               <span class="menu-card-label">
                 ${cancelled ? "Geannuleerd" : "Ingeschreven"}
               </span>
-              <strong>${escapeB2BHtml(registration.company_name)}</strong>
+
+              <strong>
+                ${escapeB2BHtml(registration.company_name)}
+              </strong>
             </div>
 
             <span class="b2b-registration-count">
               ${Number(registration.number_of_guests || 0)} pers.
             </span>
+
           </div>
+
 
           <div class="b2b-registration-meta">
             ${escapeB2BHtml(meta.join(" · "))}
           </div>
 
+
           ${
-            contactLines.length || registration.notes
+            contactName ||
+            emailLink ||
+            phoneLink
               ? `
-                <div class="b2b-registration-details">
-                  ${
-                    contactLines.length
-                      ? `<div>${escapeB2BHtml(contactLines.join(" · "))}</div>`
-                      : ""
-                  }
-                  ${
-                    registration.notes
-                      ? `<div><strong>Opmerking:</strong> ${escapeB2BHtml(registration.notes)}</div>`
-                      : ""
-                  }
+                <div class="registration-contact-block">
+                  ${contactName}
+
+                  <div class="registration-contact-links">
+                    ${emailLink}
+                    ${phoneLink}
+                  </div>
                 </div>
               `
               : ""
           }
 
+
+          ${
+            registration.notes
+              ? `
+                <div class="b2b-registration-details">
+                  <div>
+                    <strong>Opmerking:</strong>
+                    ${escapeB2BHtml(registration.notes)}
+                  </div>
+                </div>
+              `
+              : ""
+          }
+
+
           ${
             cancelled
               ? ""
               : `
-                <div class="b2b-registration-details">
-                  <strong>Aanwezigheid</strong>
+                <div class="attendance-segmented-wrap">
 
-                  <div class="b2b-registration-actions">
+                  <span class="attendance-segmented-label">
+                    Aanwezigheid
+                  </span>
+
+                  <div
+                    class="attendance-segmented"
+                    role="group"
+                    aria-label="Aanwezigheid"
+                  >
+
                     <button
                       type="button"
-                      class="b2b-small-action edit"
+                      class="attendance-segment ${
+                        registration.attendance_status === "present"
+                          ? "active present"
+                          : ""
+                      }"
                       data-attendance-choice="present"
                       onclick="setMyB2BAttendance('${registration.id}', 'present', this)"
                     >
-                      ${
-                        registration.attendance_status === "present"
-                          ? "✓ Aanwezig"
-                          : "Aanwezig"
-                      }
+                      Aanwezig
                     </button>
 
                     <button
                       type="button"
-                      class="b2b-small-action cancel"
+                      class="attendance-segment ${
+                        registration.attendance_status === "absent"
+                          ? "active absent"
+                          : ""
+                      }"
                       data-attendance-choice="absent"
                       onclick="setMyB2BAttendance('${registration.id}', 'absent', this)"
                     >
-                      ${
-                        registration.attendance_status === "absent"
-                          ? "✓ Afwezig"
-                          : "Afwezig"
-                      }
+                      Afwezig
                     </button>
+
                   </div>
+
                 </div>
 
-                <div class="b2b-registration-actions">
+
+                <div class="registration-secondary-actions">
+
                   <button
                     type="button"
-                    class="b2b-small-action edit"
+                    class="registration-text-action"
                     onclick="openB2BRegistrationEdit('${registration.id}')"
                   >
                     Wijzigen
@@ -1929,14 +1982,16 @@ function renderMyB2BRegistrations(registrations) {
 
                   <button
                     type="button"
-                    class="b2b-small-action cancel"
+                    class="registration-text-action danger"
                     onclick="cancelB2BRegistration('${registration.id}')"
                   >
                     Annuleren
                   </button>
+
                 </div>
               `
           }
+
         </article>
       `;
     })
@@ -2038,27 +2093,21 @@ async function setMyB2BAttendance(
         const choice =
           item.dataset.attendanceChoice;
 
+        item.classList.remove(
+          "active",
+          "present",
+          "absent"
+        );
 
         if (
-          choice === "present"
+          choice ===
+          attendanceStatus
         ) {
 
-          item.textContent =
-            attendanceStatus === "present"
-              ? "✓ Aanwezig"
-              : "Aanwezig";
-
-        }
-
-
-        if (
-          choice === "absent"
-        ) {
-
-          item.textContent =
-            attendanceStatus === "absent"
-              ? "✓ Afwezig"
-              : "Afwezig";
+          item.classList.add(
+            "active",
+            attendanceStatus
+          );
 
         }
 
