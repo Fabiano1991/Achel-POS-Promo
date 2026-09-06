@@ -22,18 +22,60 @@
     </section>
 
     <section class="followup-section">
-      <h3 class="followup-section-title">Commerciële status</h3>
+      <h3 class="followup-section-title">Traject</h3>
+
       <select id="followupEditStatus" class="followup-native-control" tabindex="-1" aria-hidden="true">
-        <option value="to_follow_up">Te contacteren</option><option value="contacted">Gecontacteerd</option><option value="interested">Interesse</option><option value="trial_or_offer">Proef / voorstel</option><option value="customer">Klant geworden</option><option value="not_interested">Geen interesse</option>
+        <option value="to_follow_up">Te contacteren</option>
+        <option value="contacted">Gecontacteerd</option>
+        <option value="interested">Interesse</option>
+        <option value="trial_or_offer">Proef / voorstel</option>
+        <option value="customer">Klant geworden</option>
+        <option value="not_interested">Geen interesse</option>
       </select>
-      <div class="followup-option-grid">
-        <button type="button" class="followup-status-button" data-followup-status="to_follow_up" onclick="selectB2BFollowupStatus('to_follow_up')">Te contacteren</button>
-        <button type="button" class="followup-status-button" data-followup-status="contacted" onclick="selectB2BFollowupStatus('contacted')">Gecontacteerd</button>
-        <button type="button" class="followup-status-button" data-followup-status="interested" onclick="selectB2BFollowupStatus('interested')">Interesse</button>
-        <button type="button" class="followup-status-button" data-followup-status="trial_or_offer" onclick="selectB2BFollowupStatus('trial_or_offer')">Proef / voorstel</button>
-        <button type="button" class="followup-status-button" data-followup-status="customer" onclick="selectB2BFollowupStatus('customer')">Klant geworden</button>
-        <button type="button" class="followup-status-button" data-followup-status="not_interested" onclick="selectB2BFollowupStatus('not_interested')">Geen interesse</button>
+
+      <div class="followup-funnel-card">
+        <div class="followup-funnel" aria-label="Commercieel traject">
+          <button type="button" class="followup-funnel-step" data-followup-status="to_follow_up" onclick="selectB2BFollowupStatus('to_follow_up')">
+            <span class="followup-funnel-dot">1</span>
+            <span class="followup-funnel-label">Te contacteren</span>
+          </button>
+
+          <button type="button" class="followup-funnel-step" data-followup-status="contacted" onclick="selectB2BFollowupStatus('contacted')">
+            <span class="followup-funnel-dot">2</span>
+            <span class="followup-funnel-label">Gecontacteerd</span>
+          </button>
+
+          <button type="button" class="followup-funnel-step" data-followup-status="interested" onclick="selectB2BFollowupStatus('interested')">
+            <span class="followup-funnel-dot">3</span>
+            <span class="followup-funnel-label">Interesse</span>
+          </button>
+
+          <button type="button" class="followup-funnel-step" data-followup-status="trial_or_offer" onclick="selectB2BFollowupStatus('trial_or_offer')">
+            <span class="followup-funnel-dot">4</span>
+            <span class="followup-funnel-label">Proef / voorstel</span>
+          </button>
+
+          <button type="button" class="followup-funnel-step" data-followup-status="customer" onclick="selectB2BFollowupStatus('customer')">
+            <span class="followup-funnel-dot">5</span>
+            <span class="followup-funnel-label">Klant</span>
+          </button>
+        </div>
+
+        <div id="followupCurrentStatus" class="followup-current-status">
+          Huidige status: Te contacteren
+        </div>
       </div>
+
+      <button
+        id="followupNotInterestedButton"
+        type="button"
+        class="followup-not-interested-button"
+        data-followup-status="not_interested"
+        onclick="selectB2BFollowupStatus('not_interested')"
+      >
+        Geen interesse
+        <span>Markeer als afgehandeld</span>
+      </button>
     </section>
 
     <section class="followup-section">
