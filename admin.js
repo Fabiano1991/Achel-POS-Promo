@@ -7184,32 +7184,52 @@ function openEventDeliveryProofModal(
         .map(
           item => `
 
-            <div class="event-delivery-item">
+            <div
+              class="event-delivery-item event-delivery-check-item"
+            >
 
-              <strong>
-                ${Number(item.aantal || 0)} × ${adminEscapeHtml(item.product_naam || "")}
-              </strong>
+              <div class="event-delivery-check-main">
 
-              <small>
-                ${
-                  item.categorie === "bier"
-                    ? "Bier"
-                    : "Evenementmateriaal"
-                }
-              </small>
+                <div>
 
-              <label>
-                Staat bij levering
-              </label>
+                  <strong>
+                    ${Number(item.aantal || 0)} × ${adminEscapeHtml(item.product_naam || "")}
+                  </strong>
+
+                  <small>
+                    ${
+                      item.categorie === "bier"
+                        ? "Bier"
+                        : "Evenementmateriaal"
+                    }
+                  </small>
+
+                </div>
+
+                <span class="event-delivery-check-status">
+                  Nog te leveren
+                </span>
+
+              </div>
 
               <input
-                type="text"
+                type="hidden"
                 class="event-delivery-state"
                 data-product="${adminEscapeHtml(item.product_naam || "")}"
                 data-category="${adminEscapeHtml(item.categorie || "")}"
                 data-amount="${Number(item.aantal || 0)}"
-                value="Goed"
+                data-delivered="false"
+                value="Niet geleverd"
               >
+
+              <button
+                type="button"
+                class="event-delivery-check-toggle"
+                onclick="toggleEventDeliveryItem(this)"
+              >
+                <span>✓</span>
+                Geleverd
+              </button>
 
             </div>
 
@@ -7234,6 +7254,76 @@ function openEventDeliveryProofModal(
       prepareEventDeliverySignatureCanvas();
     }
   );
+
+}
+
+
+function toggleEventDeliveryItem(
+  button
+) {
+
+  const item =
+    button?.closest(
+      ".event-delivery-check-item"
+    );
+
+
+  const input =
+    item?.querySelector(
+      ".event-delivery-state"
+    );
+
+
+  const status =
+    item?.querySelector(
+      ".event-delivery-check-status"
+    );
+
+
+  if (
+    !item ||
+    !input ||
+    !status
+  ) {
+
+    return;
+
+  }
+
+
+  const next =
+    input.dataset.delivered !==
+    "true";
+
+
+  input.dataset.delivered =
+    next
+      ? "true"
+      : "false";
+
+
+  input.value =
+    next
+      ? "Geleverd"
+      : "Niet geleverd";
+
+
+  item.classList.toggle(
+    "delivered",
+    next
+  );
+
+
+  button.classList.toggle(
+    "selected",
+    next
+  );
+
+
+  status.textContent =
+    next
+      ? "Geleverd"
+      : "Nog te leveren";
 
 }
 
@@ -7473,6 +7563,48 @@ async function saveEventDeliveryProof() {
   ) {
     return;
   }
+
+  const deliveryInputs =
+    Array
+      .from(
+        document.querySelectorAll(
+          ".event-delivery-state"
+        )
+      );
+
+
+  const notDelivered =
+    deliveryInputs
+      .find(
+        input =>
+          input.dataset.delivered !==
+          "true"
+      );
+
+
+  if (
+    notDelivered
+  ) {
+
+    alert(
+      "Vink eerst elk geleverd artikel af."
+    );
+
+    notDelivered
+      .closest(
+        ".event-delivery-check-item"
+      )
+      ?.scrollIntoView({
+        behavior:
+          "smooth",
+        block:
+          "center"
+      });
+
+    return;
+
+  }
+
 
   const signerName =
     document
@@ -7786,7 +7918,7 @@ function downloadEventDeliveryProofPdf(
       item => {
 
         const line =
-          `${Number(item.aantal || 0)} x ${item.product_naam || ""} - staat: ${item.staat || "Goed"}`;
+          `${Number(item.aantal || 0)} x ${item.product_naam || ""} - levering: ${item.staat || "Geleverd"}`;
 
         const lines =
           pdf.splitTextToSize(
@@ -18254,6 +18386,93 @@ function injectAdminStyles() {
 
       -webkit-appearance:none !important;
       appearance:none !important;
+    }
+
+
+
+    /* ============================================================
+       EVENT LEVERING - EENVOUDIG AFVINKEN
+    ============================================================ */
+
+    .event-delivery-check-item {
+      padding:10px !important;
+    }
+
+    .event-delivery-check-main {
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:10px;
+    }
+
+    .event-delivery-check-main > div {
+      min-width:0;
+    }
+
+    .event-delivery-check-main strong {
+      display:block;
+    }
+
+    .event-delivery-check-main small {
+      display:block;
+      margin-top:2px;
+    }
+
+    .event-delivery-check-status {
+      flex:0 0 auto;
+      padding:4px 8px;
+      border-radius:999px;
+      background:rgba(201,155,67,.10);
+      color:#d8b36e;
+      font-size:9px;
+      font-weight:900;
+      white-space:nowrap;
+    }
+
+    .event-delivery-check-item.delivered {
+      border-left:4px solid #4d9a65 !important;
+      background:rgba(58,116,76,.12) !important;
+    }
+
+    .event-delivery-check-item.delivered .event-delivery-check-status {
+      background:rgba(66,136,88,.18);
+      color:#91dbaa;
+    }
+
+    .event-delivery-check-toggle {
+      width:100%;
+      min-height:42px;
+      margin-top:9px;
+      border:1px solid rgba(201,155,67,.22);
+      border-radius:10px;
+      background:rgba(255,255,255,.045);
+      color:rgba(246,240,227,.72);
+      font-size:10px;
+      font-weight:900;
+    }
+
+    .event-delivery-check-toggle span {
+      display:inline-grid;
+      place-items:center;
+      width:24px;
+      height:24px;
+      margin-right:7px;
+      border:1px solid rgba(201,155,67,.28);
+      border-radius:50%;
+      color:transparent;
+      vertical-align:middle;
+    }
+
+    .event-delivery-check-toggle.selected {
+      border-color:rgba(87,167,111,.35);
+      background:rgba(59,128,81,.18);
+      color:#9bdeb0;
+    }
+
+    .event-delivery-check-toggle.selected span {
+      border-color:#4d9a65;
+      background:#2f7449;
+      color:#fff;
     }
 
 
