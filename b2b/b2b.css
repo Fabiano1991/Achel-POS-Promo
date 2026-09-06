@@ -1044,3 +1044,182 @@ button, input, textarea, select { font: inherit; }
 .registration-text-action:active {
   opacity: .65;
 }
+
+
+/* =========================================================
+   COMMERCIËLE OPVOLGING - FUNNEL / EINDRESULTAAT
+   ========================================================= */
+
+.followup-funnel-card {
+  padding: 18px 14px 14px;
+  border: 1px solid rgba(201,138,66,.26);
+  border-radius: 22px;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(48,31,18,.92),
+      rgba(37,25,17,.96)
+    );
+}
+
+.followup-funnel {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 0;
+}
+
+.followup-funnel::before {
+  content: "";
+  position: absolute;
+  top: 18px;
+  left: 10%;
+  right: 10%;
+  height: 3px;
+  border-radius: 999px;
+  background: rgba(201,138,66,.18);
+}
+
+.followup-funnel-step {
+  position: relative;
+  z-index: 1;
+  min-width: 0;
+  padding: 0 3px;
+  border: 0;
+  background: transparent;
+  color: #a99a88;
+  text-align: center;
+  cursor: pointer;
+}
+
+.followup-funnel-dot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  margin: 0 auto 8px;
+  border: 4px solid #3c2b1a;
+  border-radius: 50%;
+  background: #241a12;
+  color: #c8b69e;
+  font-size: 15px;
+  font-weight: 850;
+  box-sizing: border-box;
+}
+
+.followup-funnel-label {
+  display: block;
+  min-height: 34px;
+  font-size: 9px;
+  font-weight: 750;
+  line-height: 1.25;
+}
+
+.followup-funnel-step.completed .followup-funnel-dot {
+  border-color: #748648;
+  background: #9daf61;
+  color: #18200f;
+}
+
+.followup-funnel-step.completed {
+  color: #b7c27e;
+}
+
+.followup-funnel-step.active .followup-funnel-dot {
+  border-color: #6d421d;
+  background: linear-gradient(180deg, #efa946 0%, #d68a30 100%);
+  color: #25170d;
+  box-shadow: 0 0 0 4px rgba(224,145,49,.10);
+}
+
+.followup-funnel-step.active {
+  color: #f0e5d7;
+}
+
+.followup-current-status {
+  margin-top: 14px;
+  padding-top: 13px;
+  border-top: 1px solid rgba(201,138,66,.16);
+  color: #e99d3b;
+  font-size: 13px;
+  font-weight: 750;
+  text-align: center;
+}
+
+.followup-current-status.closed {
+  color: #ee9696;
+}
+
+.followup-not-interested-button {
+  width: 100%;
+  margin-top: 12px;
+  padding: 12px 14px;
+  border: 1px solid rgba(182,73,73,.28);
+  border-radius: 15px;
+  background: rgba(125,45,45,.08);
+  color: #d89a9a;
+  font-size: 12px;
+  font-weight: 850;
+  text-align: left;
+  cursor: pointer;
+}
+
+.followup-not-interested-button span {
+  display: block;
+  margin-top: 2px;
+  color: #a98585;
+  font-size: 9px;
+  font-weight: 650;
+}
+
+.followup-not-interested-button.active {
+  border-color: rgba(222,89,89,.52);
+  background: rgba(145,48,48,.22);
+  color: #ffb0b0;
+  box-shadow:
+    inset 0 0 0 1px rgba(211,76,76,.10);
+}
+
+.b2b-followup-card.followup-handled-no-interest {
+  border-color: rgba(178,67,67,.25);
+  background:
+    linear-gradient(
+      180deg,
+      rgba(61,27,23,.40),
+      rgba(28,21,18,.96)
+    );
+}
+
+.b2b-followup-card.followup-handled-customer {
+  border-color: rgba(91,170,116,.22);
+}
+
+.followup-status-red {
+  color: #ef9696 !important;
+}
+
+.followup-status-green {
+  color: #9bd9ae !important;
+}
+
+@media (max-width: 560px) {
+  .followup-funnel-card {
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+
+  .followup-funnel-dot {
+    width: 34px;
+    height: 34px;
+    font-size: 13px;
+  }
+
+  .followup-funnel::before {
+    top: 16px;
+  }
+
+  .followup-funnel-label {
+    font-size: 8px;
+  }
+}
