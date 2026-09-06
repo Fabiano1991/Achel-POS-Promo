@@ -2419,7 +2419,39 @@ function renderB2BFollowupOverview(registrations, followupMap) {
     return;
   }
 
-  container.innerHTML = registrations
+  const terminalStatuses = [
+    "customer",
+    "not_interested"
+  ];
+
+  const sortedRegistrations =
+    [...registrations]
+      .sort(
+        (a, b) => {
+          const aStatus =
+            followupMap[a.id]?.status ||
+            "to_follow_up";
+
+          const bStatus =
+            followupMap[b.id]?.status ||
+            "to_follow_up";
+
+          const aTerminal =
+            terminalStatuses.includes(
+              aStatus
+            );
+
+          const bTerminal =
+            terminalStatuses.includes(
+              bStatus
+            );
+
+          return Number(aTerminal) -
+            Number(bTerminal);
+        }
+      );
+
+  container.innerHTML = sortedRegistrations
     .map(registration => {
       const followup = followupMap[registration.id] || null;
       const status = followup?.status || "to_follow_up";
@@ -2450,13 +2482,35 @@ function renderB2BFollowupOverview(registrations, followupMap) {
       }
 
       return `
-        <article class="b2b-followup-card">
+        <article class="b2b-followup-card ${
+          status === "not_interested"
+            ? "followup-handled-no-interest"
+            : status === "customer"
+              ? "followup-handled-customer"
+              : ""
+        }">
 
           <div class="b2b-day-top">
 
             <div>
-              <span class="menu-card-label">
-                ${escapeB2BHtml(formatB2BFollowupStatus(status))}
+              <span class="menu-card-label ${
+                status === "not_interested"
+                  ? "followup-status-red"
+                  : status === "customer"
+                    ? "followup-status-green"
+                    : ""
+              }">
+                ${
+                  status === "not_interested"
+                    ? "Afgehandeld · Geen interesse"
+                    : status === "customer"
+                      ? "Afgehandeld · Klant geworden"
+                      : escapeB2BHtml(
+                          formatB2BFollowupStatus(
+                            status
+                          )
+                        )
+                }
               </span>
 
               <strong>
@@ -2518,7 +2572,11 @@ function renderB2BFollowupOverview(registrations, followupMap) {
               class="b2b-small-action edit"
               onclick="openB2BFollowup('${registration.id}')"
             >
-              Commercieel opvolgen
+              ${
+                terminalStatuses.includes(status)
+                  ? "Resultaat bekijken"
+                  : "Commercieel opvolgen"
+              }
             </button>
           </div>
 
@@ -2863,15 +2921,132 @@ function selectB2BFollowupStatus(status) {
 }
 
 function syncB2BFollowupStatusButtons() {
-  const select = document.getElementById("followupEditStatus");
+  const select =
+    document.getElementById(
+      "followupEditStatus"
+    );
+
   if (!select) return;
 
-  document.querySelectorAll("[data-followup-status]").forEach(button => {
-    button.classList.toggle(
-      "active",
-      button.dataset.followupStatus === select.value
+  const status =
+    select.value ||
+    "to_follow_up";
+
+  const funnelStatuses = [
+    "to_follow_up",
+    "contacted",
+    "interested",
+    "trial_or_offer",
+    "customer"
+  ];
+
+  const currentIndex =
+    funnelStatuses.indexOf(
+      status
     );
-  });
+
+  document
+    .querySelectorAll(
+      ".followup-funnel-step"
+    )
+    .forEach(
+      (button, index) => {
+
+        button.classList.remove(
+          "completed",
+          "active"
+        );
+
+        const dot =
+          button.querySelector(
+            ".followup-funnel-dot"
+          );
+
+        if (dot) {
+          dot.textContent =
+            String(index + 1);
+        }
+
+        if (
+          status !==
+          "not_interested"
+        ) {
+
+          if (
+            index <
+            currentIndex
+          ) {
+
+            button.classList.add(
+              "completed"
+            );
+
+            if (dot) {
+              dot.textContent =
+                "✓";
+            }
+
+          }
+
+          if (
+            index ===
+            currentIndex
+          ) {
+
+            button.classList.add(
+              "active"
+            );
+
+          }
+
+        }
+
+      }
+    );
+
+  const notInterestedButton =
+    document.getElementById(
+      "followupNotInterestedButton"
+    );
+
+  if (
+    notInterestedButton
+  ) {
+
+    notInterestedButton
+      .classList
+      .toggle(
+        "active",
+        status ===
+        "not_interested"
+      );
+
+  }
+
+  const currentStatus =
+    document.getElementById(
+      "followupCurrentStatus"
+    );
+
+  if (
+    currentStatus
+  ) {
+
+    currentStatus
+      .classList
+      .toggle(
+        "closed",
+        status ===
+        "not_interested"
+      );
+
+    currentStatus.textContent =
+      status ===
+      "not_interested"
+        ? "Afgehandeld: geen interesse"
+        : `Huidige status: ${formatB2BFollowupStatus(status)}`;
+
+  }
 }
 
 function toggleB2BFollowupProduct(product) {
