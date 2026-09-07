@@ -1938,6 +1938,7 @@ async function loadAdminDashboard() {
           .select(`
             id,
             user_id,
+            klant,
             referentie,
             land,
             gemeente,
@@ -7017,6 +7018,40 @@ function getEventDeliveryProof(
 }
 
 
+function getEventCustomerData(
+  order
+) {
+
+  if (
+    !order?.klant
+  ) {
+    return {};
+  }
+
+  if (
+    typeof order.klant ===
+    "object"
+  ) {
+    return order.klant;
+  }
+
+  try {
+    return JSON.parse(
+      order.klant
+    );
+  }
+  catch (
+    error
+  ) {
+    return {
+      company:
+        String(order.klant)
+    };
+  }
+
+}
+
+
 function buildEventDeliveryProofCard(
   order
 ) {
@@ -7669,6 +7704,11 @@ async function saveEventDeliveryProof() {
       order.user_id
     );
 
+  const customer =
+    getEventCustomerData(
+      order
+    );
+
   const snapshot = {
     order_id:
       order.id,
@@ -7687,6 +7727,16 @@ async function saveEventDeliveryProof() {
       profile?.naam || "",
     vertegenwoordiger_email:
       profile?.email || "",
+    klant_bedrijfsnaam:
+      customer.company || "",
+    klant_naam:
+      customer.contact || "",
+    klant_telefoon:
+      customer.phone || "",
+    klant_email:
+      customer.email || "",
+    evenement_locatie:
+      customer.location || "",
     opmerking:
       order.opmerking || "",
     items:
@@ -7776,7 +7826,7 @@ async function saveEventDeliveryProof() {
 }
 
 
-function downloadEventDeliveryProofPdf(
+function downloadEventDeliveryProofPdfLegacy(
   orderId
 ) {
 
@@ -7818,6 +7868,17 @@ function downloadEventDeliveryProofPdf(
 
   const snapshot =
     proof.snapshot || {};
+
+  const order =
+    adminOrders.find(
+      item =>
+        item.id === orderId
+    );
+
+  const customer =
+    getEventCustomerData(
+      order
+    );
 
   let y = 18;
 
@@ -8019,6 +8080,389 @@ function downloadEventDeliveryProofPdf(
     `Bewijshash: ${proof.proof_hash || "-"}`,
     15,
     287
+  );
+
+  pdf.save(
+    `Achel_uitleenbewijs_${safeFilename(snapshot.evenement || orderId)}.pdf`
+  );
+
+}
+
+
+async function loadEventDeliveryLogoData() {
+
+  return new Promise(
+    resolve => {
+
+      const image =
+        new Image();
+
+      image.onload =
+        () => {
+
+          const canvas =
+            document.createElement(
+              "canvas"
+            );
+
+          canvas.width =
+            image.naturalWidth;
+
+          canvas.height =
+            image.naturalHeight;
+
+          canvas
+            .getContext("2d")
+            .drawImage(
+              image,
+              0,
+              0
+            );
+
+          resolve(
+            canvas.toDataURL("image/png")
+          );
+
+        };
+
+      image.onerror =
+        () => resolve(null);
+
+      image.src =
+        "./achel-logo.png";
+
+    }
+  );
+
+}
+
+
+async function downloadEventDeliveryProofPdf(
+  orderId
+) {
+
+  const proof =
+    getEventDeliveryProof(
+      orderId
+    );
+
+  if (
+    !proof
+  ) {
+    alert(
+      "Geen ondertekend uitleenbewijs gevonden."
+    );
+    return;
+  }
+
+  if (
+    !window.jspdf?.jsPDF
+  ) {
+    alert(
+      "PDF-module is niet geladen."
+    );
+    return;
+  }
+
+  const {
+    jsPDF
+  } = window.jspdf;
+
+  const pdf =
+    new jsPDF({
+      unit:
+        "mm",
+      format:
+        "a4"
+    });
+
+  const snapshot =
+    proof.snapshot || {};
+
+  const order =
+    adminOrders.find(
+      item =>
+        item.id === orderId
+    );
+
+  const customer =
+    getEventCustomerData(
+      order
+    );
+
+  const colors = {
+    ink: [42, 36, 32],
+    soft: [107, 95, 80],
+    gold: [169, 124, 61],
+    line: [229, 220, 199],
+    green: [47, 74, 60],
+    cream: [250, 246, 238]
+  };
+
+  const paintPage =
+    () => {
+      pdf.setFillColor(...colors.cream);
+      pdf.rect(0, 0, 210, 297, "F");
+    };
+
+  paintPage();
+
+  const logoData =
+    await loadEventDeliveryLogoData();
+
+  if (
+    logoData
+  ) {
+    pdf.addImage(
+      logoData,
+      "PNG",
+      20,
+      12,
+      24,
+      24,
+      undefined,
+      "FAST"
+    );
+  }
+
+  pdf.setTextColor(...colors.soft);
+  pdf.setFont("helvetica", "normal");
+  pdf.setFontSize(8);
+  pdf.text(
+    "Bewijs van ontvangst",
+    190,
+    20,
+    { align: "right" }
+  );
+
+  pdf.setTextColor(...colors.ink);
+  pdf.setFont("helvetica", "bold");
+  pdf.setFontSize(9);
+  pdf.text(
+    String(snapshot.aanvraag || "-"),
+    190,
+    25,
+    { align: "right" }
+  );
+
+  pdf.setDrawColor(...colors.gold);
+  pdf.setLineWidth(0.6);
+  pdf.line(20, 40, 190, 40);
+
+  pdf.setTextColor(...colors.ink);
+  pdf.setFont("times", "normal");
+  pdf.setFontSize(21);
+  pdf.text(
+    "Bewijs van ontvangst",
+    20,
+    54
+  );
+  pdf.text(
+    "evenement materialen",
+    20,
+    63
+  );
+
+  let y = 79;
+
+  const sectionTitle =
+    title => {
+      pdf.setTextColor(...colors.green);
+      pdf.setFont("times", "normal");
+      pdf.setFontSize(13);
+      pdf.text(title, 20, y);
+      y += 4;
+      pdf.setDrawColor(...colors.line);
+      pdf.setLineWidth(0.25);
+      pdf.line(20, y, 190, y);
+      y += 7;
+    };
+
+  const addLine =
+    (
+      label,
+      value
+    ) => {
+      pdf.setTextColor(...colors.soft);
+      pdf.setFont("helvetica", "normal");
+      pdf.setFontSize(9);
+      pdf.text(label, 20, y);
+      pdf.setTextColor(...colors.ink);
+      pdf.setFont("helvetica", "bold");
+      pdf.text(
+        String(value || "-"),
+        63,
+        y,
+        { maxWidth: 125 }
+      );
+      y += 6;
+    };
+
+  sectionTitle("Klantgegevens");
+  addLine("Bedrijfsnaam", snapshot.klant_bedrijfsnaam || customer.company);
+  addLine("Contactpersoon", snapshot.klant_naam || customer.contact);
+  addLine("Telefoonnummer", snapshot.klant_telefoon || customer.phone);
+  addLine("E-mailadres", snapshot.klant_email || customer.email);
+  addLine("Locatie evenement", snapshot.evenement_locatie || customer.location);
+
+  y += 5;
+  sectionTitle("Aanvraag");
+  addLine("Aanvraag", snapshot.aanvraag);
+  addLine("Evenement", snapshot.evenement);
+  addLine(
+    "Periode",
+    `${snapshot.periode_vanaf || ""} t/m ${snapshot.periode_tot || ""}`
+  );
+  addLine("Vertegenwoordiger", snapshot.vertegenwoordiger);
+  addLine("Ontvangen door", proof.signer_name);
+  addLine(
+    "Ondertekend op",
+    adminFormatDateTime(
+      proof.signed_at
+    )
+  );
+
+  y += 5;
+  sectionTitle("Geleverde artikelen");
+
+  pdf.setTextColor(...colors.soft);
+  pdf.setFont("helvetica", "normal");
+  pdf.setFontSize(8);
+  pdf.text("Aantal", 20, y);
+  pdf.text("Artikel", 38, y);
+  pdf.text(
+    "Levering",
+    190,
+    y,
+    { align: "right" }
+  );
+  y += 3;
+  pdf.line(20, y, 190, y);
+  y += 7;
+
+  (snapshot.items || [])
+    .forEach(
+      item => {
+
+        const itemLines =
+          pdf.splitTextToSize(
+            String(item.product_naam || ""),
+            105
+          );
+
+        const rowHeight =
+          Math.max(
+            8,
+            itemLines.length * 4.5 + 3
+          );
+
+        if (
+          y + rowHeight > 238
+        ) {
+          pdf.addPage();
+          paintPage();
+          y = 22;
+        }
+
+        pdf.setTextColor(...colors.ink);
+        pdf.setFont("helvetica", "normal");
+        pdf.setFontSize(9);
+        pdf.text(
+          String(Number(item.aantal || 0)),
+          20,
+          y
+        );
+        pdf.text(itemLines, 38, y);
+
+        pdf.setFillColor(231, 237, 231);
+        pdf.roundedRect(
+          164,
+          y - 4,
+          26,
+          6,
+          0.8,
+          0.8,
+          "F"
+        );
+        pdf.setTextColor(...colors.green);
+        pdf.setFont("helvetica", "bold");
+        pdf.setFontSize(7.5);
+        pdf.text(
+          String(item.staat || "Geleverd"),
+          177,
+          y,
+          { align: "center" }
+        );
+
+        y += rowHeight;
+        pdf.setDrawColor(...colors.line);
+        pdf.line(20, y - 3, 190, y - 3);
+
+      }
+    );
+
+  y += 5;
+
+  if (
+    y > 238
+  ) {
+    pdf.addPage();
+    paintPage();
+    y = 22;
+  }
+
+  sectionTitle("Handtekening ontvanger");
+
+  pdf.setFillColor(255, 255, 255);
+  pdf.setDrawColor(...colors.line);
+  pdf.roundedRect(
+    20,
+    y,
+    170,
+    32,
+    0.8,
+    0.8,
+    "FD"
+  );
+
+  if (
+    proof.signature_data
+  ) {
+    pdf.addImage(
+      proof.signature_data,
+      "PNG",
+      24,
+      y + 3,
+      66,
+      25,
+      undefined,
+      "FAST"
+    );
+  }
+
+  y += 38;
+  pdf.setTextColor(...colors.soft);
+  pdf.setFont("helvetica", "normal");
+  pdf.setFontSize(8);
+  pdf.text(
+    `Getekend door ${proof.signer_name || "-"} op ${adminFormatDateTime(proof.signed_at)}`,
+    20,
+    y
+  );
+
+  pdf.setDrawColor(...colors.line);
+  pdf.line(20, 278, 190, 278);
+  pdf.setTextColor(...colors.soft);
+  pdf.setFontSize(7);
+  pdf.text("Achelse Kluis", 20, 284);
+  pdf.text(
+    `Bewijshash: ${proof.proof_hash || "-"}`,
+    190,
+    284,
+    {
+      align: "right",
+      maxWidth: 110
+    }
   );
 
   pdf.save(
