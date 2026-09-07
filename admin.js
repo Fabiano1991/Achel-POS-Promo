@@ -8506,24 +8506,9 @@ function downloadEventDeliveryProofPdf(
   pdf.setFont("helvetica", "normal");
   pdf.setFontSize(8);
   pdf.text(
-    `Getekend door ${proof.signer_name || "-"} op ${adminFormatDateTime(proof.signed_at)}`,
+    `Ondertekend door ${proof.signer_name || "-"} op ${adminFormatDateTime(proof.signed_at)}`,
     20,
     y
-  );
-
-  pdf.setDrawColor(...colors.line);
-  pdf.line(20, 278, 190, 278);
-  pdf.setTextColor(...colors.soft);
-  pdf.setFontSize(7);
-  pdf.text("Achelse Kluis", 20, 284);
-  pdf.text(
-    `Bewijshash: ${proof.proof_hash || "-"}`,
-    190,
-    284,
-    {
-      align: "right",
-      maxWidth: 110
-    }
   );
 
   try {
