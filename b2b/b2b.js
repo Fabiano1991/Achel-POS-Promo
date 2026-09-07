@@ -2375,34 +2375,19 @@ function renderB2BFollowupOverview(registrations, followupMap) {
   let customer = 0;
 
   registrations.forEach(registration => {
-    const status =
-      followupMap[registration.id]?.status ||
-      "to_follow_up";
+    const status = followupMap[registration.id]?.status || "to_follow_up";
 
-    if (
-      registration.attendance_status ===
-      "present"
-    ) {
-      present += 1;
-    }
+    if (registration.attendance_status === "present") present += 1;
 
-    if (
-      status === "to_follow_up" ||
-      status === "contacted"
-    ) {
+    if (status === "to_follow_up" || status === "contacted") {
       todo += 1;
     }
 
-    if (
-      status === "interested" ||
-      status === "trial_or_offer"
-    ) {
+    if (status === "interested" || status === "trial_or_offer") {
       interested += 1;
     }
 
-    if (status === "customer") {
-      customer += 1;
-    }
+    if (status === "customer") customer += 1;
   });
 
   setCounter("followupPresentCount", present);
@@ -2419,64 +2404,35 @@ function renderB2BFollowupOverview(registrations, followupMap) {
     return;
   }
 
-  const terminalStatuses = [
-    "customer",
-    "not_interested"
-  ];
+  const terminalStatuses = ["customer", "not_interested"];
 
-  const sortedRegistrations =
-    [...registrations]
-      .sort(
-        (a, b) => {
-          const aStatus =
-            followupMap[a.id]?.status ||
-            "to_follow_up";
+  const activeRegistrations = registrations.filter(registration => {
+    const status = followupMap[registration.id]?.status || "to_follow_up";
+    return !terminalStatuses.includes(status);
+  });
 
-          const bStatus =
-            followupMap[b.id]?.status ||
-            "to_follow_up";
+  const handledRegistrations = registrations.filter(registration => {
+    const status = followupMap[registration.id]?.status || "to_follow_up";
+    return terminalStatuses.includes(status);
+  });
 
-          const aTerminal =
-            terminalStatuses.includes(
-              aStatus
-            );
+  function renderFollowupCards(rows) {
+    if (!rows.length) return "";
 
-          const bTerminal =
-            terminalStatuses.includes(
-              bStatus
-            );
-
-          return Number(aTerminal) -
-            Number(bTerminal);
-        }
-      );
-
-  container.innerHTML = sortedRegistrations
-    .map(registration => {
+    return rows.map(registration => {
       const followup = followupMap[registration.id] || null;
       const status = followup?.status || "to_follow_up";
       const day = registration.b2b_days || {};
-
       const meta = [];
 
-      if (registration.contact_name) {
-        meta.push(registration.contact_name);
-      }
-
-      if (day.title) {
-        meta.push(day.title);
-      }
-
-      if (day.event_date) {
-        meta.push(formatB2BDate(day.event_date));
-      }
+      if (registration.contact_name) meta.push(registration.contact_name);
+      if (day.title) meta.push(day.title);
+      if (day.event_date) meta.push(formatB2BDate(day.event_date));
 
       if (registration.number_of_guests) {
         meta.push(
           `${Number(registration.number_of_guests)} ${
-            Number(registration.number_of_guests) === 1
-              ? "persoon"
-              : "personen"
+            Number(registration.number_of_guests) === 1 ? "persoon" : "personen"
           }`
         );
       }
@@ -2491,7 +2447,6 @@ function renderB2BFollowupOverview(registrations, followupMap) {
         }">
 
           <div class="b2b-day-top">
-
             <div>
               <span class="menu-card-label ${
                 status === "not_interested"
@@ -2505,11 +2460,7 @@ function renderB2BFollowupOverview(registrations, followupMap) {
                     ? "Afgehandeld · Geen interesse"
                     : status === "customer"
                       ? "Afgehandeld · Klant geworden"
-                      : escapeB2BHtml(
-                          formatB2BFollowupStatus(
-                            status
-                          )
-                        )
+                      : escapeB2BHtml(formatB2BFollowupStatus(status))
                 }
               </span>
 
@@ -2533,22 +2484,17 @@ function renderB2BFollowupOverview(registrations, followupMap) {
                     : "Onbekend"
               }
             </span>
-
           </div>
 
           <div class="b2b-day-meta">
-            <span>
-              ${escapeB2BHtml(meta.join(" · "))}
-            </span>
+            <span>${escapeB2BHtml(meta.join(" · "))}</span>
           </div>
 
           ${
             followup?.next_action
               ? `
                 <div class="b2b-day-meta">
-                  <span>
-                    Volgende actie: ${escapeB2BHtml(followup.next_action)}
-                  </span>
+                  <span>Volgende actie: ${escapeB2BHtml(followup.next_action)}</span>
                 </div>
               `
               : ""
@@ -2558,9 +2504,7 @@ function renderB2BFollowupOverview(registrations, followupMap) {
             followup?.followup_date
               ? `
                 <div class="b2b-day-meta">
-                  <span>
-                    Opvolgen op: ${escapeB2BHtml(formatB2BDate(followup.followup_date))}
-                  </span>
+                  <span>Opvolgen op: ${escapeB2BHtml(formatB2BDate(followup.followup_date))}</span>
                 </div>
               `
               : ""
@@ -2579,11 +2523,42 @@ function renderB2BFollowupOverview(registrations, followupMap) {
               }
             </button>
           </div>
-
         </article>
       `;
-    })
-    .join("");
+    }).join("");
+  }
+
+  container.innerHTML = `
+    <section class="followup-overview-section">
+      <div class="followup-overview-heading">
+        <div>
+          <span class="menu-card-label">Actieve opvolging</span>
+          <strong>${activeRegistrations.length}</strong>
+        </div>
+      </div>
+
+      ${
+        activeRegistrations.length
+          ? renderFollowupCards(activeRegistrations)
+          : `<div class="status-message">Geen actieve commerciële opvolging.</div>`
+      }
+    </section>
+
+    <details class="followup-handled-section">
+      <summary>
+        <span>Afgehandeld</span>
+        <strong>${handledRegistrations.length}</strong>
+      </summary>
+
+      <div class="followup-handled-list">
+        ${
+          handledRegistrations.length
+            ? renderFollowupCards(handledRegistrations)
+            : `<div class="status-message">Nog geen afgehandelde klanten.</div>`
+        }
+      </div>
+    </details>
+  `;
 }
 
 function formatB2BFollowupStatus(status) {
@@ -4892,6 +4867,448 @@ document.addEventListener(
   "DOMContentLoaded",
   initB2BAdminPage
 );
+
+// =========================================================
+// B2B RESULTATEN PER PERIODE
+// =========================================================
+
+let b2bPeriodResultsData = null;
+
+function initB2BPeriodResults() {
+  const fromInput = document.getElementById("adminResultsFrom");
+  const toInput = document.getElementById("adminResultsTo");
+
+  if (!fromInput || !toInput) return;
+
+  const today = new Date();
+  const startOfYear = new Date(today.getFullYear(), 0, 1);
+
+  const toISODate = date =>
+    date.toISOString().slice(0, 10);
+
+  if (!fromInput.value) {
+    fromInput.value = toISODate(startOfYear);
+  }
+
+  if (!toInput.value) {
+    toInput.value = toISODate(today);
+  }
+}
+
+async function loadB2BPeriodResults() {
+  const container = document.getElementById("adminPeriodResults");
+  const exportButton = document.getElementById("adminResultsExportButton");
+
+  if (!container) return;
+
+  try {
+    const fromDate = document.getElementById("adminResultsFrom").value;
+    const toDate = document.getElementById("adminResultsTo").value;
+
+    if (!fromDate || !toDate) {
+      throw new Error("Kies een begin- en einddatum.");
+    }
+
+    if (fromDate > toDate) {
+      throw new Error("De begindatum kan niet na de einddatum liggen.");
+    }
+
+    container.innerHTML = `
+      <div class="status-message">
+        Resultaten laden...
+      </div>
+    `;
+
+    if (exportButton) exportButton.disabled = true;
+
+    const { data: days, error: daysError } =
+      await supabaseClient
+        .from("b2b_days")
+        .select(`
+          id,
+          title,
+          event_date,
+          location,
+          status
+        `)
+        .gte("event_date", fromDate)
+        .lte("event_date", toDate)
+        .neq("status", "cancelled")
+        .order("event_date", { ascending: true });
+
+    if (daysError) throw daysError;
+
+    const dayRows = days || [];
+
+    if (!dayRows.length) {
+      b2bPeriodResultsData = null;
+      container.innerHTML = `
+        <div class="status-message">
+          Geen B2B-dagen gevonden binnen deze periode.
+        </div>
+      `;
+      return;
+    }
+
+    const dayIds = dayRows.map(day => day.id);
+
+    const { data: registrations, error: registrationsError } =
+      await supabaseClient
+        .from("b2b_registrations")
+        .select(`
+          id,
+          b2b_day_id,
+          representative_id,
+          company_name,
+          contact_name,
+          email,
+          phone,
+          number_of_guests,
+          registration_status,
+          attendance_status
+        `)
+        .in("b2b_day_id", dayIds)
+        .neq("registration_status", "cancelled");
+
+    if (registrationsError) throw registrationsError;
+
+    const registrationRows = registrations || [];
+    const registrationIds = registrationRows.map(registration => registration.id);
+
+    let followups = [];
+
+    if (registrationIds.length) {
+      const { data, error } =
+        await supabaseClient
+          .from("b2b_followups")
+          .select(`
+            registration_id,
+            representative_id,
+            status,
+            interested_products,
+            commercial_note,
+            next_action,
+            followup_date
+          `)
+          .in("registration_id", registrationIds);
+
+      if (error) throw error;
+      followups = data || [];
+    }
+
+    const representativeIds = [
+      ...new Set(
+        registrationRows
+          .map(registration => registration.representative_id)
+          .filter(Boolean)
+      )
+    ];
+
+    let profiles = [];
+
+    if (representativeIds.length) {
+      const { data, error } =
+        await supabaseClient
+          .from("profiles")
+          .select("id, naam, email")
+          .in("id", representativeIds);
+
+      if (error) throw error;
+      profiles = data || [];
+    }
+
+    const dayMap = {};
+    dayRows.forEach(day => {
+      dayMap[day.id] = day;
+    });
+
+    const followupMap = {};
+    followups.forEach(followup => {
+      followupMap[followup.registration_id] = followup;
+    });
+
+    const profileMap = {};
+    profiles.forEach(profile => {
+      profileMap[profile.id] = profile;
+    });
+
+    const metrics =
+      calculateB2BPeriodMetrics(
+        dayRows,
+        registrationRows,
+        followupMap
+      );
+
+    b2bPeriodResultsData = {
+      fromDate,
+      toDate,
+      days: dayRows,
+      registrations: registrationRows,
+      followupMap,
+      profileMap,
+      dayMap,
+      metrics
+    };
+
+    renderB2BPeriodResults(metrics, fromDate, toDate);
+
+    if (exportButton) exportButton.disabled = false;
+
+  } catch (error) {
+    console.error("B2B PERIODE RESULTATEN FOUT:", error);
+
+    b2bPeriodResultsData = null;
+
+    if (exportButton) exportButton.disabled = true;
+
+    container.innerHTML = `
+      <div class="status-message">
+        ${escapeB2BHtml(
+          error?.message || "Resultaten konden niet worden geladen."
+        )}
+      </div>
+    `;
+  }
+}
+
+function calculateB2BPeriodMetrics(days, registrations, followupMap) {
+  const present =
+    registrations.filter(
+      registration => registration.attendance_status === "present"
+    ).length;
+
+  const absent =
+    registrations.filter(
+      registration => registration.attendance_status === "absent"
+    ).length;
+
+  const unknownAttendance =
+    registrations.length - present - absent;
+
+  const followedUp =
+    registrations.filter(registration => {
+      const status = followupMap[registration.id]?.status;
+      return status && status !== "to_follow_up";
+    }).length;
+
+  const opportunities =
+    registrations.filter(
+      registration =>
+        ["interested", "trial_or_offer"].includes(
+          followupMap[registration.id]?.status
+        )
+    ).length;
+
+  const customers =
+    registrations.filter(
+      registration =>
+        followupMap[registration.id]?.status === "customer"
+    ).length;
+
+  const noInterest =
+    registrations.filter(
+      registration =>
+        followupMap[registration.id]?.status === "not_interested"
+    ).length;
+
+  const open =
+    registrations.filter(
+      registration =>
+        !["customer", "not_interested"].includes(
+          followupMap[registration.id]?.status || "to_follow_up"
+        )
+    ).length;
+
+  const conversion =
+    present > 0
+      ? Math.round((customers / present) * 100)
+      : 0;
+
+  return {
+    days: days.length,
+    registrations: registrations.length,
+    persons:
+      registrations.reduce(
+        (total, registration) =>
+          total + Number(registration.number_of_guests || 0),
+        0
+      ),
+    present,
+    absent,
+    unknownAttendance,
+    followedUp,
+    opportunities,
+    customers,
+    noInterest,
+    open,
+    conversion
+  };
+}
+
+function renderB2BPeriodResults(metrics, fromDate, toDate) {
+  const container = document.getElementById("adminPeriodResults");
+  if (!container) return;
+
+  container.innerHTML = `
+    <div class="admin-period-label">
+      ${escapeB2BHtml(formatB2BDate(fromDate))}
+      –
+      ${escapeB2BHtml(formatB2BDate(toDate))}
+    </div>
+
+    <div class="admin-period-summary">
+      <div><span>B2B-dagen</span><strong>${metrics.days}</strong></div>
+      <div><span>Inschrijvingen</span><strong>${metrics.registrations}</strong></div>
+      <div><span>Aanwezig</span><strong>${metrics.present}</strong></div>
+      <div><span>Opgevolgd</span><strong>${metrics.followedUp}</strong></div>
+      <div><span>Open opportuniteit</span><strong>${metrics.opportunities}</strong></div>
+      <div class="is-success"><span>Nieuwe klant</span><strong>${metrics.customers}</strong></div>
+      <div class="is-danger"><span>Geen interesse</span><strong>${metrics.noInterest}</strong></div>
+      <div><span>Nog open</span><strong>${metrics.open}</strong></div>
+      <div class="is-conversion"><span>Conversie</span><strong>${metrics.conversion}%</strong></div>
+    </div>
+
+    <div class="admin-period-funnel">
+      <div><span>Aanwezig</span><strong>${metrics.present}</strong></div>
+      <span>→</span>
+      <div><span>Opportuniteit</span><strong>${metrics.opportunities}</strong></div>
+      <span>→</span>
+      <div><span>Nieuwe klant</span><strong>${metrics.customers}</strong></div>
+    </div>
+  `;
+}
+
+function exportB2BPeriodResults() {
+  try {
+    if (typeof XLSX === "undefined") {
+      throw new Error("Excel-module kon niet worden geladen.");
+    }
+
+    if (!b2bPeriodResultsData) {
+      throw new Error("Laad eerst de resultaten van een periode.");
+    }
+
+    const {
+      fromDate,
+      toDate,
+      registrations,
+      followupMap,
+      profileMap,
+      dayMap,
+      metrics
+    } = b2bPeriodResultsData;
+
+    const summaryRows = [
+      { "Kengetal": "B2B-dagen", "Resultaat": metrics.days },
+      { "Kengetal": "Inschrijvingen", "Resultaat": metrics.registrations },
+      { "Kengetal": "Aantal personen", "Resultaat": metrics.persons },
+      { "Kengetal": "Aanwezig", "Resultaat": metrics.present },
+      { "Kengetal": "Afwezig", "Resultaat": metrics.absent },
+      { "Kengetal": "Aanwezigheid niet geregistreerd", "Resultaat": metrics.unknownAttendance },
+      { "Kengetal": "Opgevolgd", "Resultaat": metrics.followedUp },
+      { "Kengetal": "Open opportuniteit", "Resultaat": metrics.opportunities },
+      { "Kengetal": "Nieuwe klant", "Resultaat": metrics.customers },
+      { "Kengetal": "Geen interesse", "Resultaat": metrics.noInterest },
+      { "Kengetal": "Nog open", "Resultaat": metrics.open },
+      { "Kengetal": "Conversie t.o.v. aanwezige zaken", "Resultaat": `${metrics.conversion}%` }
+    ];
+
+    const detailRows =
+      [...registrations]
+        .sort((a, b) => {
+          const dayA = dayMap[a.b2b_day_id]?.event_date || "";
+          const dayB = dayMap[b.b2b_day_id]?.event_date || "";
+
+          if (dayA !== dayB) {
+            return dayA.localeCompare(dayB);
+          }
+
+          return String(a.company_name || "")
+            .localeCompare(String(b.company_name || ""), "nl");
+        })
+        .map(registration => {
+          const day = dayMap[registration.b2b_day_id] || {};
+          const followup = followupMap[registration.id] || {};
+          const profile = profileMap[registration.representative_id] || {};
+          const status = followup.status || "to_follow_up";
+
+          const finalResult =
+            status === "customer"
+              ? "Klant geworden"
+              : status === "not_interested"
+                ? "Geen interesse"
+                : "Nog open";
+
+          return {
+            "B2B-dag": day.title || "",
+            "Datum": day.event_date || "",
+            "Locatie": day.location || "",
+            "Horecazaak / bedrijf": registration.company_name || "",
+            "Contactpersoon": registration.contact_name || "",
+            "E-mail": registration.email || "",
+            "Telefoon": registration.phone || "",
+            "Aantal personen": Number(registration.number_of_guests || 0),
+            "Vertegenwoordiger": profile.naam || profile.email || "",
+            "Aanwezigheid":
+              registration.attendance_status === "present"
+                ? "Aanwezig"
+                : registration.attendance_status === "absent"
+                  ? "Afwezig"
+                  : "Niet geregistreerd",
+            "Commerciële status": formatB2BFollowupStatus(status),
+            "Eindresultaat": finalResult,
+            "Interesse producten": followup.interested_products || "",
+            "Volgende actie": followup.next_action || "",
+            "Opvolgdatum": followup.followup_date || "",
+            "Commerciële notitie": followup.commercial_note || ""
+          };
+        });
+
+    const summarySheet = XLSX.utils.json_to_sheet(summaryRows);
+    summarySheet["!cols"] = [{ wch: 36 }, { wch: 18 }];
+
+    const detailSheet = XLSX.utils.json_to_sheet(detailRows);
+    detailSheet["!cols"] = [
+      { wch: 24 }, { wch: 13 }, { wch: 22 }, { wch: 28 },
+      { wch: 24 }, { wch: 30 }, { wch: 18 }, { wch: 16 },
+      { wch: 24 }, { wch: 18 }, { wch: 22 }, { wch: 20 },
+      { wch: 30 }, { wch: 30 }, { wch: 14 }, { wch: 42 }
+    ];
+
+    const workbook = XLSX.utils.book_new();
+
+    XLSX.utils.book_append_sheet(
+      workbook,
+      summarySheet,
+      "Samenvatting"
+    );
+
+    XLSX.utils.book_append_sheet(
+      workbook,
+      detailSheet,
+      "Detail"
+    );
+
+    XLSX.writeFile(
+      workbook,
+      `Achel_B2B_resultaten_${fromDate}_tot_${toDate}.xlsx`
+    );
+
+  } catch (error) {
+    console.error("B2B RESULTATEN EXPORT FOUT:", error);
+
+    window.alert(
+      error?.message ||
+      "De resultaten konden niet worden geëxporteerd."
+    );
+  }
+}
+
+document.addEventListener(
+  "DOMContentLoaded",
+  initB2BPeriodResults
+);
+
 
 // =========================================================
 // B2B QUOTA ADMIN
