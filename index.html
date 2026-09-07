@@ -6062,6 +6062,8 @@ async function startApp() {
 
   goHome();
 
+  await restorePullRefreshScreen();
+
 }
 
 
@@ -14117,8 +14119,152 @@ let pullRefreshActive =
 let pullRefreshRunning =
   false;
 
+let pullRefreshTouchStartedAt =
+  0;
+
 const PULL_REFRESH_THRESHOLD =
-  78;
+  92;
+
+const PULL_REFRESH_HOLD_MS =
+  450;
+
+const PULL_REFRESH_MOVE_TOLERANCE =
+  12;
+
+const PULL_REFRESH_SCREEN_KEY =
+  "achel-pull-refresh-screen";
+
+
+function getCurrentPullRefreshScreen() {
+
+  const screenIds = [
+    "homeScreen",
+    "orderScreen",
+    "summaryScreen",
+    "successScreen",
+    "ordersScreen",
+    "freeBeerScreen",
+    "freeBeerSuccessScreen",
+    "eventOrderScreen",
+    "eventSummaryScreen",
+    "adminScreen",
+    "adminDetailScreen",
+    "wholesaleScreen",
+    "wholesaleSummaryScreen"
+  ];
+
+  const visibleScreen =
+    screenIds.find(
+      id =>
+        !document
+          .getElementById(id)
+          ?.classList
+          .contains("hidden")
+    );
+
+  const safeScreen = {
+    summaryScreen:
+      "orderScreen",
+    successScreen:
+      "homeScreen",
+    freeBeerSuccessScreen:
+      "freeBeerScreen",
+    eventSummaryScreen:
+      "eventOrderScreen",
+    adminDetailScreen:
+      "adminScreen",
+    wholesaleSummaryScreen:
+      "wholesaleScreen"
+  }[visibleScreen];
+
+  return safeScreen || visibleScreen || "homeScreen";
+
+}
+
+
+function rememberPullRefreshScreen() {
+
+  sessionStorage.setItem(
+    PULL_REFRESH_SCREEN_KEY,
+    getCurrentPullRefreshScreen()
+  );
+
+}
+
+
+async function restorePullRefreshScreen() {
+
+  const screenId =
+    sessionStorage.getItem(
+      PULL_REFRESH_SCREEN_KEY
+    );
+
+  if (
+    !screenId
+  ) {
+    return;
+  }
+
+  sessionStorage.removeItem(
+    PULL_REFRESH_SCREEN_KEY
+  );
+
+  if (
+    screenId === "homeScreen"
+  ) {
+    goHome();
+    return;
+  }
+
+  if (
+    screenId === "orderScreen"
+  ) {
+    await newOrder();
+    return;
+  }
+
+  if (
+    screenId === "ordersScreen"
+  ) {
+    await openOrders();
+    return;
+  }
+
+  if (
+    screenId === "freeBeerScreen"
+  ) {
+    openFreeBeer();
+    return;
+  }
+
+  if (
+    screenId === "eventOrderScreen"
+  ) {
+    await openEventOrder();
+    return;
+  }
+
+  if (
+    screenId === "adminScreen" &&
+    typeof window.openAdminDashboard === "function"
+  ) {
+    await window.openAdminDashboard();
+    return;
+  }
+
+  if (
+    screenId === "wholesaleScreen" &&
+    typeof openWholesaleOrder === "function"
+  ) {
+    await openWholesaleOrder();
+    return;
+  }
+
+  showOnly(
+    screenId
+  );
+
+}
 
 
 function resetPullRefreshIndicator() {
@@ -14162,6 +14308,9 @@ function resetPullRefreshIndicator() {
   pullRefreshActive =
     false;
 
+  pullRefreshTouchStartedAt =
+    0;
+
 }
 
 
@@ -14199,6 +14348,8 @@ function startPullRefresh() {
     )
     .textContent =
       "Vernieuwen...";
+
+  rememberPullRefreshScreen();
 
   const reloadApp =
     () => {
@@ -14262,6 +14413,9 @@ document.addEventListener(
     pullRefreshStartX =
       event.touches[0].clientX;
 
+    pullRefreshTouchStartedAt =
+      Date.now();
+
     pullRefreshActive =
       true;
 
@@ -14295,6 +14449,29 @@ document.addEventListener(
         pullRefreshStartX
       );
 
+    const heldLongEnough =
+      Date.now() -
+      pullRefreshTouchStartedAt >=
+      PULL_REFRESH_HOLD_MS;
+
+    if (
+      !heldLongEnough
+    ) {
+
+      if (
+        Math.hypot(
+          distanceX,
+          distanceY
+        ) >
+        PULL_REFRESH_MOVE_TOLERANCE
+      ) {
+        resetPullRefreshIndicator();
+      }
+
+      return;
+
+    }
+
     if (
       distanceY <= 0 ||
       distanceX > distanceY
@@ -14307,7 +14484,7 @@ document.addEventListener(
 
     pullRefreshDistance =
       Math.min(
-        104,
+        120,
         distanceY * .5
       );
 
