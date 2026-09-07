@@ -8089,7 +8089,11 @@ function downloadEventDeliveryProofPdfLegacy(
 }
 
 
-async function loadEventDeliveryLogoData() {
+let eventDeliveryLogoDataCache =
+  null;
+
+
+function loadEventDeliveryLogoData() {
 
   return new Promise(
     resolve => {
@@ -8099,6 +8103,8 @@ async function loadEventDeliveryLogoData() {
 
       image.onload =
         () => {
+
+          try {
 
           const canvas =
             document.createElement(
@@ -8119,9 +8125,27 @@ async function loadEventDeliveryLogoData() {
               0
             );
 
+          eventDeliveryLogoDataCache =
+            canvas.toDataURL("image/png");
+
           resolve(
-            canvas.toDataURL("image/png")
+            eventDeliveryLogoDataCache
           );
+
+          }
+
+          catch (
+            error
+          ) {
+
+            console.warn(
+              "Achel-logo kon niet in de PDF worden voorbereid:",
+              error
+            );
+
+            resolve(null);
+
+          }
 
         };
 
@@ -8137,7 +8161,10 @@ async function loadEventDeliveryLogoData() {
 }
 
 
-async function downloadEventDeliveryProofPdf(
+loadEventDeliveryLogoData();
+
+
+function downloadEventDeliveryProofPdf(
   orderId
 ) {
 
@@ -8208,21 +8235,38 @@ async function downloadEventDeliveryProofPdf(
   paintPage();
 
   const logoData =
-    await loadEventDeliveryLogoData();
+    eventDeliveryLogoDataCache;
 
   if (
     logoData
   ) {
-    pdf.addImage(
-      logoData,
-      "PNG",
-      20,
-      12,
-      24,
-      24,
-      undefined,
-      "FAST"
-    );
+
+    try {
+
+      pdf.addImage(
+        logoData,
+        "PNG",
+        20,
+        12,
+        24,
+        24,
+        undefined,
+        "FAST"
+      );
+
+    }
+
+    catch (
+      error
+    ) {
+
+      console.warn(
+        "Achel-logo kon niet aan de PDF worden toegevoegd:",
+        error
+      );
+
+    }
+
   }
 
   pdf.setTextColor(...colors.soft);
@@ -8428,16 +8472,33 @@ async function downloadEventDeliveryProofPdf(
   if (
     proof.signature_data
   ) {
-    pdf.addImage(
-      proof.signature_data,
-      "PNG",
-      24,
-      y + 3,
-      66,
-      25,
-      undefined,
-      "FAST"
-    );
+
+    try {
+
+      pdf.addImage(
+        proof.signature_data,
+        "PNG",
+        24,
+        y + 3,
+        66,
+        25,
+        undefined,
+        "FAST"
+      );
+
+    }
+
+    catch (
+      error
+    ) {
+
+      console.warn(
+        "Handtekening kon niet aan de PDF worden toegevoegd:",
+        error
+      );
+
+    }
+
   }
 
   y += 38;
@@ -8465,9 +8526,28 @@ async function downloadEventDeliveryProofPdf(
     }
   );
 
-  pdf.save(
-    `Achel_uitleenbewijs_${safeFilename(snapshot.evenement || orderId)}.pdf`
-  );
+  try {
+
+    pdf.save(
+      `Achel_uitleenbewijs_${safeFilename(snapshot.evenement || orderId)}.pdf`
+    );
+
+  }
+
+  catch (
+    error
+  ) {
+
+    console.error(
+      "PDF-download mislukt:",
+      error
+    );
+
+    alert(
+      "De PDF kon niet worden gedownload. Sluit de app volledig en probeer opnieuw."
+    );
+
+  }
 
 }
 
