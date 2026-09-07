@@ -1,5 +1,5 @@
 const CACHE_NAME =
-  "achel-pos-v27";
+  "achel-pos-cache";
 
 
 const STATIC_FILES = [
@@ -16,7 +16,15 @@ const STATIC_FILES = [
 
   "./achel-kluis-home.jpg",
 
-  "./achel-logo.png"
+  "./achel-logo.png",
+
+  "./achel-header-logo.png",
+
+  "./achel-glas.png",
+
+  "./achel-icon-192.png",
+
+  "./achel-icon-512.png"
 
 ];
 
@@ -97,6 +105,10 @@ self.addEventListener(
 
 /* ============================================================
    FETCH
+   Snelle PWA-strategie:
+   - eigen appbestanden: cache-first
+   - netwerk werkt op achtergrond de cache bij
+   - externe CDN/API requests: normale netwerkrequest
 ============================================================ */
 
 self.addEventListener(
@@ -119,100 +131,18 @@ self.addEventListener(
       );
 
 
-    const isImportantFile =
-
-      event.request.mode ===
-      "navigate"
-
-      ||
-
-      requestUrl.pathname.endsWith(
-        ".js"
-      )
-
-      ||
-
-      requestUrl.pathname.endsWith(
-        ".html"
-      );
+    const isSameOrigin =
+      requestUrl.origin ===
+      self.location.origin;
 
 
+    /*
+      Supabase/CDN en andere externe requests
+      niet door onze app-cache laten vertragen.
+    */
     if (
-      isImportantFile
+      !isSameOrigin
     ) {
-
-      event.respondWith(
-
-        fetch(
-          event.request,
-          {
-            cache:
-              "no-store"
-          }
-        )
-          .then(
-            response => {
-
-              const copy =
-                response.clone();
-
-
-              caches
-                .open(
-                  CACHE_NAME
-                )
-                .then(
-                  cache =>
-                    cache.put(
-                      event.request,
-                      copy
-                    )
-                );
-
-
-              return response;
-
-            }
-          )
-          .catch(
-            async () => {
-
-              const cached =
-                await caches.match(
-                  event.request
-                );
-
-
-              if (
-                cached
-              ) {
-
-                return cached;
-
-              }
-
-
-              if (
-                event.request.mode ===
-                "navigate"
-              ) {
-
-                return caches.match(
-                  "./index.html"
-                );
-
-              }
-
-
-              throw new Error(
-                "Bestand niet beschikbaar."
-              );
-
-            }
-          )
-
-      );
-
 
       return;
 
@@ -221,38 +151,107 @@ self.addEventListener(
 
     event.respondWith(
 
-      fetch(
-        event.request
-      )
+      caches
+        .match(
+          event.request
+        )
         .then(
-          response => {
+          cachedResponse => {
 
-            const copy =
-              response.clone();
-
-
-            caches
-              .open(
-                CACHE_NAME
+            const networkUpdate =
+              fetch(
+                event.request
               )
-              .then(
-                cache =>
-                  cache.put(
-                    event.request,
-                    copy
-                  )
+                .then(
+                  response => {
+
+                    if (
+                      response &&
+                      response.ok
+                    ) {
+
+                      const copy =
+                        response.clone();
+
+
+                      caches
+                        .open(
+                          CACHE_NAME
+                        )
+                        .then(
+                          cache =>
+                            cache.put(
+                              event.request,
+                              copy
+                            )
+                        );
+
+                    }
+
+
+                    return response;
+
+                  }
+                )
+                .catch(
+                  () =>
+                    cachedResponse
+                );
+
+
+            /*
+              Staat het bestand al lokaal?
+              Toon het onmiddellijk.
+              De verse versie wordt ondertussen
+              op de achtergrond opgeslagen.
+            */
+            if (
+              cachedResponse
+            ) {
+
+              event.waitUntil(
+                networkUpdate
               );
 
 
-            return response;
+              return cachedResponse;
+
+            }
+
+
+            return networkUpdate
+              .then(
+                response => {
+
+                  if (
+                    response
+                  ) {
+
+                    return response;
+
+                  }
+
+
+                  if (
+                    event.request.mode ===
+                    "navigate"
+                  ) {
+
+                    return caches.match(
+                      "./index.html"
+                    );
+
+                  }
+
+
+                  throw new Error(
+                    "Bestand niet beschikbaar."
+                  );
+
+                }
+              );
 
           }
-        )
-        .catch(
-          () =>
-            caches.match(
-              event.request
-            )
         )
 
     );
