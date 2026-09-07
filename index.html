@@ -3974,6 +3974,71 @@ Gebruiker laden...
 </div>
 
 
+<h3>
+Klant- en leveringsgegevens
+</h3>
+
+
+<label for="eventCustomerCompany">
+Bedrijfsnaam
+</label>
+
+
+<input
+  id="eventCustomerCompany"
+  type="text"
+  placeholder="Naam van de zaak of organisatie"
+>
+
+
+<label for="eventCustomerContact">
+Contactpersoon
+</label>
+
+
+<input
+  id="eventCustomerContact"
+  type="text"
+  placeholder="Voor- en achternaam"
+>
+
+
+<label for="eventCustomerPhone">
+Telefoonnummer
+</label>
+
+
+<input
+  id="eventCustomerPhone"
+  type="tel"
+  placeholder="Bijv. 0470 12 34 56"
+>
+
+
+<label for="eventCustomerEmail">
+E-mailadres
+</label>
+
+
+<input
+  id="eventCustomerEmail"
+  type="email"
+  placeholder="naam@bedrijf.be"
+>
+
+
+<label for="eventCustomerLocation">
+Locatie evenement
+</label>
+
+
+<input
+  id="eventCustomerLocation"
+  type="text"
+  placeholder="Straat, nummer en gemeente"
+>
+
+
 <label for="eventName">
 Naam evenement
 </label>
@@ -4200,6 +4265,45 @@ Vertegenwoordiger
 <br>
 
 <span id="eventSummaryRep"></span>
+
+</p>
+
+
+<p>
+
+<strong>
+Klant
+</strong>
+
+<br>
+
+<span id="eventSummaryCustomer"></span>
+
+</p>
+
+
+<p>
+
+<strong>
+Contactgegevens
+</strong>
+
+<br>
+
+<span id="eventSummaryCustomerContact"></span>
+
+</p>
+
+
+<p>
+
+<strong>
+Locatie evenement
+</strong>
+
+<br>
+
+<span id="eventSummaryCustomerLocation"></span>
 
 </p>
 
@@ -10411,7 +10515,12 @@ function resetEventForm() {
     "eventName",
     "eventFrom",
     "eventUntil",
-    "eventNote"
+    "eventNote",
+    "eventCustomerCompany",
+    "eventCustomerContact",
+    "eventCustomerPhone",
+    "eventCustomerEmail",
+    "eventCustomerLocation"
   ]
     .forEach(
       id => {
@@ -10522,6 +10631,50 @@ function getStandaloneEventData() {
 
   return {
 
+    customer: {
+
+      company:
+        document
+          .getElementById(
+            "eventCustomerCompany"
+          )
+          .value
+          .trim(),
+
+      contact:
+        document
+          .getElementById(
+            "eventCustomerContact"
+          )
+          .value
+          .trim(),
+
+      phone:
+        document
+          .getElementById(
+            "eventCustomerPhone"
+          )
+          .value
+          .trim(),
+
+      email:
+        document
+          .getElementById(
+            "eventCustomerEmail"
+          )
+          .value
+          .trim(),
+
+      location:
+        document
+          .getElementById(
+            "eventCustomerLocation"
+          )
+          .value
+          .trim()
+
+    },
+
     name:
       document
         .getElementById(
@@ -10573,6 +10726,32 @@ function validateStandaloneEventData() {
 
   const event =
     getStandaloneEventData();
+
+
+  if (
+    event.deliveryMode ===
+    "enkel_levering"
+    &&
+    (
+      !event.customer.company
+      ||
+      !event.customer.contact
+      ||
+      !event.customer.phone
+      ||
+      !event.customer.email
+      ||
+      !event.customer.location
+    )
+  ) {
+
+    alert(
+      "Vul voor een levering alle klant- en leveringsgegevens in."
+    );
+
+    return false;
+
+  }
 
 
   if (
@@ -10690,6 +10869,39 @@ async function showEventSummary() {
     )
     .innerText =
       event.name;
+
+
+  document
+    .getElementById(
+      "eventSummaryCustomer"
+    )
+    .innerText =
+      event.customer.company ||
+      "Niet ingevuld";
+
+
+  document
+    .getElementById(
+      "eventSummaryCustomerContact"
+    )
+    .innerText =
+      [
+        event.customer.contact,
+        event.customer.phone,
+        event.customer.email
+      ]
+        .filter(Boolean)
+        .join(" · ") ||
+      "Niet ingevuld";
+
+
+  document
+    .getElementById(
+      "eventSummaryCustomerLocation"
+    )
+    .innerText =
+      event.customer.location ||
+      "Niet ingevuld";
 
 
   document
@@ -10840,7 +11052,9 @@ async function submitEventOrder() {
           currentUser.id,
 
         klant:
-          null,
+          JSON.stringify(
+            event.customer
+          ),
 
         referentie:
           event.name,
@@ -11079,6 +11293,21 @@ ${currentProfile?.naam || ""}
 
 E-mail:
 ${currentProfile?.email || currentUser?.email || ""}
+
+Klant:
+${event.customer.company || "Niet ingevuld"}
+
+Contactpersoon:
+${event.customer.contact || "Niet ingevuld"}
+
+Telefoon:
+${event.customer.phone || "Niet ingevuld"}
+
+E-mail klant:
+${event.customer.email || "Niet ingevuld"}
+
+Locatie evenement:
+${event.customer.location || "Niet ingevuld"}
 
 Evenement:
 ${event.name}
