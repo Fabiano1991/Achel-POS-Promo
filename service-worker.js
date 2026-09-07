@@ -52,7 +52,6 @@ self.addEventListener(
 
     );
 
-
     self.skipWaiting();
 
   }
@@ -76,13 +75,11 @@ self.addEventListener(
             Promise.all(
 
               names
-
                 .filter(
                   name =>
                     name !==
                     CACHE_NAME
                 )
-
                 .map(
                   name =>
                     caches.delete(
@@ -105,10 +102,13 @@ self.addEventListener(
 
 /* ============================================================
    FETCH
-   Snelle PWA-strategie:
-   - eigen appbestanden: cache-first
-   - netwerk werkt op achtergrond de cache bij
-   - externe CDN/API requests: normale netwerkrequest
+
+   HTML, JavaScript, CSS en JSON:
+   altijd eerst de nieuwste online versie ophalen.
+   Alleen bij geen internet wordt de cache gebruikt.
+
+   Afbeeldingen:
+   onmiddellijk uit cache voor een snelle app.
 ============================================================ */
 
 self.addEventListener(
@@ -119,35 +119,133 @@ self.addEventListener(
       event.request.method !==
       "GET"
     ) {
-
       return;
-
     }
-
 
     const requestUrl =
       new URL(
         event.request.url
       );
 
-
     const isSameOrigin =
       requestUrl.origin ===
       self.location.origin;
 
-
-    /*
-      Supabase/CDN en andere externe requests
-      niet door onze app-cache laten vertragen.
-    */
     if (
       !isSameOrigin
     ) {
+      return;
+    }
+
+    const pathname =
+      requestUrl.pathname
+        .toLowerCase();
+
+    const needsFreshVersion =
+      event.request.mode ===
+      "navigate"
+      ||
+      event.request.destination ===
+      "script"
+      ||
+      event.request.destination ===
+      "style"
+      ||
+      pathname.endsWith(
+        ".html"
+      )
+      ||
+      pathname.endsWith(
+        ".js"
+      )
+      ||
+      pathname.endsWith(
+        ".css"
+      )
+      ||
+      pathname.endsWith(
+        ".json"
+      );
+
+    if (
+      needsFreshVersion
+    ) {
+
+      event.respondWith(
+
+        fetch(
+          event.request,
+          {
+            cache:
+              "no-store"
+          }
+        )
+          .then(
+            response => {
+
+              if (
+                response &&
+                response.ok
+              ) {
+
+                const copy =
+                  response.clone();
+
+                event.waitUntil(
+                  caches
+                    .open(
+                      CACHE_NAME
+                    )
+                    .then(
+                      cache =>
+                        cache.put(
+                          event.request,
+                          copy
+                        )
+                    )
+                );
+
+              }
+
+              return response;
+
+            }
+          )
+          .catch(
+            async () => {
+
+              const cachedResponse =
+                await caches.match(
+                  event.request
+                );
+
+              if (
+                cachedResponse
+              ) {
+                return cachedResponse;
+              }
+
+              if (
+                event.request.mode ===
+                "navigate"
+              ) {
+                return caches.match(
+                  "./index.html"
+                );
+              }
+
+              throw new Error(
+                "Bestand niet beschikbaar."
+              );
+
+            }
+          )
+
+      );
 
       return;
 
     }
-
 
     event.respondWith(
 
@@ -158,7 +256,7 @@ self.addEventListener(
         .then(
           cachedResponse => {
 
-            const networkUpdate =
+            const networkRequest =
               fetch(
                 event.request
               )
@@ -173,83 +271,29 @@ self.addEventListener(
                       const copy =
                         response.clone();
 
-
-                      caches
-                        .open(
-                          CACHE_NAME
-                        )
-                        .then(
-                          cache =>
-                            cache.put(
-                              event.request,
-                              copy
-                            )
-                        );
+                      event.waitUntil(
+                        caches
+                          .open(
+                            CACHE_NAME
+                          )
+                          .then(
+                            cache =>
+                              cache.put(
+                                event.request,
+                                copy
+                              )
+                          )
+                      );
 
                     }
 
-
                     return response;
 
                   }
-                )
-                .catch(
-                  () =>
-                    cachedResponse
                 );
 
-
-            /*
-              Staat het bestand al lokaal?
-              Toon het onmiddellijk.
-              De verse versie wordt ondertussen
-              op de achtergrond opgeslagen.
-            */
-            if (
-              cachedResponse
-            ) {
-
-              event.waitUntil(
-                networkUpdate
-              );
-
-
-              return cachedResponse;
-
-            }
-
-
-            return networkUpdate
-              .then(
-                response => {
-
-                  if (
-                    response
-                  ) {
-
-                    return response;
-
-                  }
-
-
-                  if (
-                    event.request.mode ===
-                    "navigate"
-                  ) {
-
-                    return caches.match(
-                      "./index.html"
-                    );
-
-                  }
-
-
-                  throw new Error(
-                    "Bestand niet beschikbaar."
-                  );
-
-                }
-              );
+            return cachedResponse ||
+              networkRequest;
 
           }
         )
@@ -269,51 +313,38 @@ self.addEventListener(
   event => {
 
     let payload = {
-
       title:
         "Achel POS",
-
       body:
         "Je hebt een nieuwe melding.",
-
       target_url:
         "./"
-
     };
-
 
     if (
       event.data
     ) {
 
       try {
-
         payload =
           event.data.json();
-
       }
-
       catch (
         error
       ) {
-
         payload.body =
           event.data.text();
-
       }
 
     }
-
 
     const title =
       payload.title ||
       "Achel POS";
 
-
     const options = {
 
       body:
-
         payload.body ||
         "",
 
@@ -324,31 +355,21 @@ self.addEventListener(
         "./achel-logo.png",
 
       data: {
-
         target_url:
-
           payload.target_url ||
           "./",
-
         order_id:
-
           payload.order_id ||
           null,
-
         notification_type:
-
           payload.notification_type ||
           null
-
       },
 
       tag:
-
         payload.notification_type &&
         payload.order_id
-
           ? `${payload.notification_type}-${payload.order_id}`
-
           : undefined,
 
       renotify:
@@ -356,15 +377,12 @@ self.addEventListener(
 
     };
 
-
     event.waitUntil(
-
       self.registration
         .showNotification(
           title,
           options
         )
-
     );
 
   }
@@ -381,17 +399,12 @@ self.addEventListener(
 
     event.notification.close();
 
-
     const targetUrl =
-
       event.notification
         .data
         ?.target_url
-
       ||
-
       "./";
-
 
     event.waitUntil(
 
@@ -419,22 +432,18 @@ self.addEventListener(
                   targetUrl
                 );
 
-
                 return client.focus();
 
               }
 
             }
 
-
             if (
               clients.openWindow
             ) {
-
               return clients.openWindow(
                 targetUrl
               );
-
             }
 
           }
