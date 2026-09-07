@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#0d110d">
+  <title>Achel | Beurzen</title>
+
+  <link rel="stylesheet" href="./beurzen.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+
+<body>
+
+<header class="app-header">
+  <button class="back-button" type="button" onclick="window.location.href='../index.html'">
+    ←
+  </button>
+
+  <div class="header-title">
+    <img src="../achel-header-logo.png" alt="Achel" class="header-logo">
+  </div>
+
+  <div class="header-spacer"></div>
+</header>
+
+<main class="beurs-shell">
+
+  <section class="hero-card">
+    <div>
+      <span class="eyebrow">Achelse Kluis</span>
+      <h1>Beurzen</h1>
+      <p id="welcomeText">Beurscontacten en bestellingen registreren.</p>
+    </div>
+    <div class="hero-badge">B2B</div>
+  </section>
+
+  <section class="stats-grid">
+    <button class="stat-card" type="button" data-view-target="contactsView">
+      <span>Mijn contacten</span>
+      <strong id="contactsCount">0</strong>
+    </button>
+
+    <button class="stat-card" type="button" data-view-target="ordersView">
+      <span>Mijn bestellingen</span>
+      <strong id="ordersCount">0</strong>
+    </button>
+
+    <button class="stat-card" type="button" data-view-target="followupsView">
+      <span>Open opvolging</span>
+      <strong id="followupsCount">0</strong>
+    </button>
+  </section>
+
+  <section class="action-grid">
+    <button class="action-card primary-action" type="button" data-view-target="contactFormView">
+      <span class="action-kicker">Nieuw</span>
+      <strong>Beurscontact</strong>
+      <small>Registreer prospect of bestaande klant</small>
+    </button>
+
+    <button class="action-card" type="button" data-view-target="orderFormView">
+      <span class="action-kicker">Nieuw</span>
+      <strong>Bestelling</strong>
+      <small>Bestelling rechtstreeks op de beurs</small>
+    </button>
+  </section>
+
+  <section id="homeView" class="view-section">
+    <div class="section-card">
+      <div class="section-heading">
+        <div>
+          <span class="eyebrow">Overzicht</span>
+          <h2>Snelle registratie</h2>
+        </div>
+      </div>
+
+      <p class="muted">
+        Contacten en bestellingen worden automatisch gekoppeld aan de ingelogde gebruiker
+        en kunnen toegewezen worden aan een andere vertegenwoordiger.
+      </p>
+    </div>
+  </section>
+
+  <!-- CONTACTFORMULIER -->
+  <section id="contactFormView" class="view-section hidden">
+    <button class="top-back" type="button" data-view-target="homeView">← Terug</button>
+
+    <div class="section-card">
+      <div class="section-heading">
+        <div>
+          <span class="eyebrow">Beurzen</span>
+          <h2>Nieuw beurscontact</h2>
+        </div>
+      </div>
+
+      <form id="contactForm" novalidate>
+        <div class="form-grid">
+
+          <div class="field full">
+            <label for="contactFairName">Beurs</label>
+            <input id="contactFairName" name="fair_name" type="text" placeholder="Bijv. Horeca Expo 2026" required>
+          </div>
+
+          <div class="field full">
+            <label for="contactRepresentative">Vertegenwoordiger</label>
+            <select id="contactRepresentative" name="representative_id" required>
+              <option value="">Vertegenwoordigers laden...</option>
+            </select>
+            <small>Standaard staat de ingelogde vertegenwoordiger geselecteerd.</small>
+          </div>
+
+          <div class="field full">
+            <label for="contactBusiness">Horecazaak</label>
+            <input id="contactBusiness" name="business_name" type="text" required>
+          </div>
+
+          <div class="field full">
+            <label>Type klant</label>
+            <div class="segmented">
+              <label>
+                <input type="radio" name="customer_type" value="existing" required>
+                <span>Bestaande klant</span>
+              </label>
+              <label>
+                <input type="radio" name="customer_type" value="new">
+                <span>Nieuwe klant</span>
+              </label>
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="contactPerson">Contactpersoon</label>
+            <input id="contactPerson" name="contact_person" type="text">
+          </div>
+
+          <div class="field">
+            <label for="contactPhone">Telefoonnummer</label>
+            <input id="contactPhone" name="phone" type="tel">
+          </div>
+
+          <div class="field full">
+            <label for="contactAddress">Adres</label>
+            <input id="contactAddress" name="address" type="text">
+          </div>
+
+          <div class="field">
+            <label for="contactCity">Gemeente</label>
+            <input id="contactCity" name="city" type="text">
+          </div>
+
+          <div class="field">
+            <label for="contactEmail">E-mail</label>
+            <input id="contactEmail" name="email" type="email">
+          </div>
+
+          <div class="field full">
+            <label for="contactSupplier">Leverancier / bierhandelaar</label>
+            <input id="contactSupplier" name="supplier" type="text">
+          </div>
+
+          <div class="field full">
+            <label>Interesse in</label>
+            <div id="interestList" class="interest-list"></div>
+          </div>
+
+          <div class="field full">
+            <label for="contactReason">Reden / commerciële notitie</label>
+            <textarea id="contactReason" name="reason" rows="4" placeholder="Bijv. zoekt alternatief voor huidige tripel op vat..."></textarea>
+          </div>
+
+          <div class="field full">
+            <label for="contactFollowup">Opvolgstatus</label>
+            <select id="contactFollowup" name="followup_status">
+              <option value="to_contact">Te contacteren</option>
+              <option value="contacted">Contact gehad</option>
+              <option value="tasting">Proefafspraak</option>
+              <option value="customer">Klant geworden</option>
+              <option value="no_interest">Geen interesse</option>
+            </select>
+          </div>
+
+        </div>
+
+        <button id="saveContactButton" class="submit-button" type="submit">
+          Contact opslaan
+        </button>
+
+        <div id="contactMessage" class="form-message hidden"></div>
+      </form>
+    </div>
+  </section>
+
+  <!-- BESTELFORMULIER -->
+  <section id="orderFormView" class="view-section hidden">
+    <button class="top-back" type="button" data-view-target="homeView">← Terug</button>
+
+    <div class="section-card">
+      <div class="section-heading">
+        <div>
+          <span class="eyebrow">Beurzen</span>
+          <h2>Nieuwe bestelling</h2>
+        </div>
+      </div>
+
+      <form id="orderForm" novalidate>
+
+        <div class="form-grid">
+          <div class="field full">
+            <label for="orderFairName">Beurs</label>
+            <input id="orderFairName" name="fair_name" type="text" placeholder="Bijv. Horeca Expo 2026" required>
+          </div>
+
+          <div class="field full">
+            <label for="orderRepresentative">Vertegenwoordiger</label>
+            <select id="orderRepresentative" name="representative_id" required>
+              <option value="">Vertegenwoordigers laden...</option>
+            </select>
+          </div>
+
+          <div class="field full">
+            <label for="orderBusiness">Horecazaak / klant</label>
+            <input id="orderBusiness" name="business_name" type="text" required>
+          </div>
+
+          <div class="field">
+            <label for="orderContact">Contactpersoon</label>
+            <input id="orderContact" name="contact_person" type="text">
+          </div>
+
+          <div class="field">
+            <label for="orderSupplier">Leverancier / bierhandelaar</label>
+            <input id="orderSupplier" name="supplier" type="text">
+          </div>
+        </div>
+
+        <div class="product-groups">
+          <details class="product-group" open>
+            <summary>
+              <span>Vaten 20L</span>
+              <b id="count-vat20">0</b>
+            </summary>
+            <div id="products-vat20" class="product-list"></div>
+          </details>
+
+          <details class="product-group">
+            <summary>
+              <span>Kratten 24 × 33cl</span>
+              <b id="count-krat24">0</b>
+            </summary>
+            <div id="products-krat24" class="product-list"></div>
+          </details>
+
+          <details class="product-group">
+            <summary>
+              <span>Dozen 6 × 75cl</span>
+              <b id="count-doos75">0</b>
+            </summary>
+            <div id="products-doos75" class="product-list"></div>
+          </details>
+        </div>
+
+        <div class="field full order-note">
+          <label for="orderNote">Opmerking</label>
+          <textarea id="orderNote" name="note" rows="3"></textarea>
+        </div>
+
+        <div id="orderSummary" class="order-summary hidden"></div>
+
+        <button id="saveOrderButton" class="submit-button" type="submit">
+          Bestelling opslaan
+        </button>
+
+        <div id="orderMessage" class="form-message hidden"></div>
+      </form>
+    </div>
+  </section>
+
+  <!-- MIJN CONTACTEN -->
+  <section id="contactsView" class="view-section hidden">
+    <button class="top-back" type="button" data-view-target="homeView">← Terug</button>
+    <div class="section-card">
+      <div class="section-heading">
+        <div>
+          <span class="eyebrow">Beurzen</span>
+          <h2>Mijn contacten</h2>
+        </div>
+        <button class="small-button" type="button" id="exportContactsButton">CSV export</button>
+      </div>
+      <div id="contactsList" class="records-list"></div>
+    </div>
+  </section>
+
+  <!-- MIJN BESTELLINGEN -->
+  <section id="ordersView" class="view-section hidden">
+    <button class="top-back" type="button" data-view-target="homeView">← Terug</button>
+    <div class="section-card">
+      <div class="section-heading">
+        <div>
+          <span class="eyebrow">Beurzen</span>
+          <h2>Mijn bestellingen</h2>
+        </div>
+        <button class="small-button" type="button" id="exportOrdersButton">CSV export</button>
+      </div>
+      <div id="ordersList" class="records-list"></div>
+    </div>
+  </section>
+
+  <!-- OPVOLGING -->
+  <section id="followupsView" class="view-section hidden">
+    <button class="top-back" type="button" data-view-target="homeView">← Terug</button>
+    <div class="section-card">
+      <div class="section-heading">
+        <div>
+          <span class="eyebrow">Commercieel</span>
+          <h2>Open opvolging</h2>
+        </div>
+      </div>
+      <div id="followupsList" class="records-list"></div>
+    </div>
+  </section>
+
+</main>
+
+<script src="./beurzen.js"></script>
+</body>
+</html>
