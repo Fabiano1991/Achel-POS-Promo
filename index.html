@@ -11,9 +11,9 @@
 <title>Achel POS</title>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script defer src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
   
 <link rel="manifest" href="./manifest.json">
 
@@ -5978,11 +5978,12 @@ async function startApp() {
     );
 
 
-  await loadProducts();
-
-
-  resetFreeBeerForm();
-
+  /*
+    Belangrijk voor mobiele snelheid:
+    de homepagina wordt onmiddellijk getoond.
+    Producten en voorraad worden pas geladen wanneer
+    de gebruiker effectief een aanvraag opent.
+  */
 
   goHome();
 
@@ -9419,9 +9420,16 @@ function formatEventReadableDate(
    EVENT OPEN
 ================================ */
 
-function openEventOrder() {
+async function openEventOrder() {
 
   resetEventForm();
+
+
+  /*
+    Producten pas laden wanneer de evenementpagina
+    werkelijk wordt geopend.
+  */
+  await loadProducts();
 
 
   document
@@ -14031,35 +14039,15 @@ if (
 
         try {
 
-          const registration =
-
-            await navigator
-              .serviceWorker
-              .register(
-                "./service-worker.js",
-                {
-                  updateViaCache:
-                    "none"
-                }
-              );
-
-
-          await registration
-            .update();
-
-
-          setInterval(
-            () => {
-
-              registration
-                .update()
-                .catch(
-                  console.log
-                );
-
-            },
-            60000
-          );
+          await navigator
+            .serviceWorker
+            .register(
+              "./service-worker.js",
+              {
+                updateViaCache:
+                  "none"
+              }
+            );
 
         }
 
@@ -14131,9 +14119,9 @@ checkExistingSession();
 </script>
 
 
-<script src="./admin.js?v=32"></script>
+<script defer src="./admin.js"></script>
 
-<script src="./wholesale.js?v=32"></script>
+<script defer src="./wholesale.js"></script>
 
 
 </body>
