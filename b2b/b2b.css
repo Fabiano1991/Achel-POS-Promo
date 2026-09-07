@@ -1223,3 +1223,259 @@ button, input, textarea, select { font: inherit; }
     font-size: 8px;
   }
 }
+
+
+/* =========================================================
+   OPVOLGING - ACTIEF / AFGEHANDELD
+   ========================================================= */
+
+.followup-overview-section { margin-bottom: 24px; }
+
+.followup-overview-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 0 0 12px;
+}
+
+.followup-overview-heading > div {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.followup-overview-heading .menu-card-label { margin: 0; }
+
+.followup-overview-heading strong {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 28px;
+  height: 28px;
+  padding: 0 8px;
+  border: 1px solid rgba(201,138,66,.22);
+  border-radius: 999px;
+  background: rgba(201,138,66,.08);
+  color: var(--gold-light);
+  font-size: 12px;
+}
+
+.followup-handled-section {
+  margin-top: 22px;
+  border: 1px solid rgba(201,138,66,.18);
+  border-radius: 16px;
+  background: rgba(255,255,255,.018);
+  overflow: hidden;
+}
+
+.followup-handled-section > summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 15px 16px;
+  list-style: none;
+  cursor: pointer;
+  color: #cbbfb0;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.followup-handled-section > summary::-webkit-details-marker { display: none; }
+
+.followup-handled-section > summary strong {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 28px;
+  height: 28px;
+  padding: 0 8px;
+  border-radius: 999px;
+  background: rgba(255,255,255,.05);
+  color: var(--gold-light);
+  font-size: 11px;
+}
+
+.followup-handled-list { padding: 0 12px 12px; }
+
+/* =========================================================
+   ADMIN - RESULTATEN PER PERIODE
+   ========================================================= */
+
+.admin-results-section {
+  margin-top: 28px;
+  padding: 18px;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background:
+    radial-gradient(circle at 100% 0%, rgba(201,138,66,.08), transparent 36%),
+    var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.admin-results-heading .page-section-title { margin-bottom: 6px; }
+
+.admin-results-heading p:last-child {
+  margin: 0;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.admin-results-filter {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.admin-results-filter label {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--gold);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.admin-results-filter input {
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 11px;
+  border: 1px solid rgba(201,138,66,.22);
+  border-radius: 11px;
+  outline: none;
+  background: rgba(255,255,255,.04);
+  color: var(--cream);
+}
+
+.admin-results-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 9px;
+  margin-top: 12px;
+}
+
+.admin-results-actions .b2b-small-action,
+.admin-results-actions .admin-export-button {
+  width: 100%;
+}
+
+.admin-results-actions .admin-export-button:disabled {
+  opacity: .4;
+  cursor: not-allowed;
+}
+
+.admin-period-label {
+  margin: 16px 0 9px;
+  color: #c9beb0;
+  font-size: 10px;
+}
+
+.admin-period-summary {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 7px;
+}
+
+.admin-period-summary > div {
+  min-width: 0;
+  padding: 11px 9px;
+  border: 1px solid rgba(201,138,66,.16);
+  border-radius: 12px;
+  background: rgba(255,255,255,.025);
+}
+
+.admin-period-summary span {
+  display: block;
+  min-height: 25px;
+  color: var(--muted);
+  font-size: 9px;
+  line-height: 1.25;
+}
+
+.admin-period-summary strong {
+  display: block;
+  margin-top: 4px;
+  color: var(--gold-light);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 23px;
+  font-weight: 500;
+}
+
+.admin-period-summary .is-success {
+  border-color: rgba(91,170,116,.24);
+  background: rgba(91,170,116,.05);
+}
+
+.admin-period-summary .is-success strong { color: #9bd9ae; }
+
+.admin-period-summary .is-danger {
+  border-color: rgba(190,83,83,.24);
+  background: rgba(142,58,58,.07);
+}
+
+.admin-period-summary .is-danger strong { color: #eba3a3; }
+
+.admin-period-summary .is-conversion {
+  border-color: rgba(201,138,66,.30);
+  background: rgba(201,138,66,.07);
+}
+
+.admin-period-funnel {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr auto 1fr;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+  padding: 12px;
+  border: 1px solid rgba(201,138,66,.16);
+  border-radius: 13px;
+  background: rgba(201,138,66,.035);
+}
+
+.admin-period-funnel > span {
+  color: var(--gold);
+  font-size: 16px;
+}
+
+.admin-period-funnel > div {
+  min-width: 0;
+  text-align: center;
+}
+
+.admin-period-funnel > div span {
+  display: block;
+  min-height: 24px;
+  color: var(--muted);
+  font-size: 8px;
+  line-height: 1.2;
+}
+
+.admin-period-funnel > div strong {
+  display: block;
+  color: var(--cream);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 22px;
+  font-weight: 500;
+}
+
+@media (max-width: 560px) {
+  .admin-period-summary {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .admin-results-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-period-funnel {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-period-funnel > span {
+    transform: rotate(90deg);
+    text-align: center;
+  }
+}
