@@ -24,6 +24,8 @@ let adminWholesaleProofs = [];
 
 let adminEventDeliveryProofs = [];
 
+let adminEventReturnProofs = [];
+
 let adminFreeBeerRegistrations = [];
 
 let adminFreeBeerLoaded =
@@ -62,6 +64,9 @@ let adminReportsLoading =
   null;
 
 const adminEventDeliveryProofChecked =
+  new Set();
+
+const adminEventReturnProofChecked =
   new Set();
 
 
@@ -1102,6 +1107,8 @@ function createAdminScreen() {
 
   createEventDeliveryProofModal();
 
+  createEventReturnProofModal();
+
 }
 
 
@@ -1503,6 +1510,132 @@ function createEventDeliveryProofModal() {
 }
 
 
+/* ============================================================
+   EVENT RETOURBEWIJS MODAL
+============================================================ */
+
+function createEventReturnProofModal() {
+
+  if (
+    document.getElementById(
+      "eventReturnProofModal"
+    )
+  ) {
+    return;
+  }
+
+  const modal =
+    document.createElement(
+      "div"
+    );
+
+  modal.id =
+    "eventReturnProofModal";
+
+  modal.className =
+    "return-problem-overlay hidden";
+
+  modal.innerHTML = `
+
+    <div
+      class="event-delivery-modal"
+      onclick="event.stopPropagation()"
+    >
+
+      <div class="return-problem-modal-head">
+
+        <div>
+          <span>RETOURBEWIJS</span>
+          <h3 id="eventReturnModalTitle">Evenement</h3>
+          <small id="eventReturnModalPeriod"></small>
+        </div>
+
+        <button
+          type="button"
+          onclick="closeEventReturnProofModal()"
+        >
+          ×
+        </button>
+
+      </div>
+
+      <div
+        id="eventReturnItemsPreview"
+        class="event-delivery-items"
+      ></div>
+
+      <div class="info" style="margin-bottom:10px;">
+        Controleer de aantallen hierboven. Dit document gebruikt exact dezelfde gegevens als Retour verwerken.
+      </div>
+
+      <label for="eventReturnSignerName">
+        Naam klant / aanwezige contactpersoon
+      </label>
+
+      <input
+        id="eventReturnSignerName"
+        type="text"
+        placeholder="Naam klant / contactpersoon"
+      >
+
+      <label>
+        Handtekening
+      </label>
+
+      <div class="event-signature-box">
+        <canvas id="eventReturnSignatureCanvas"></canvas>
+      </div>
+
+      <button
+        type="button"
+        class="admin-secondary"
+        onclick="clearEventReturnSignature()"
+      >
+        Handtekening wissen
+      </button>
+
+      <div class="return-problem-actions">
+
+        <button
+          type="button"
+          class="return-problem-cancel"
+          onclick="closeEventReturnProofModal()"
+        >
+          Annuleren
+        </button>
+
+        <button
+          type="button"
+          class="return-problem-save"
+          onclick="saveEventReturnProof()"
+        >
+          Retour ondertekenen & afronden
+        </button>
+
+      </div>
+
+    </div>
+
+  `;
+
+  modal.addEventListener(
+    "click",
+    event => {
+      if (
+        event.target === modal
+      ) {
+        closeEventReturnProofModal();
+      }
+    }
+  );
+
+  document.body.appendChild(
+    modal
+  );
+
+}
+
+
 function createAdminDetailScreen() {
 
   if (
@@ -1628,7 +1761,12 @@ async function openAdminDashboard() {
     adminEventDeliveryProofs =
       [];
 
+    adminEventReturnProofs =
+      [];
+
     adminEventDeliveryProofChecked.clear();
+
+    adminEventReturnProofChecked.clear();
 
     adminFreeBeerLoaded =
       false;
@@ -2511,6 +2649,87 @@ async function loadAdminEventDeliveryProofForOrder(
 
 
   adminEventDeliveryProofChecked.add(
+    orderId
+  );
+
+}
+
+
+/* ============================================================
+   RETOURBEWIJS - ALLEEN VOOR DE GEOPENDE EVENTAANVRAAG
+============================================================ */
+
+async function loadAdminEventReturnProofForOrder(
+  orderId,
+  force = false
+) {
+
+  if (
+    !orderId
+  ) {
+    return;
+  }
+
+  if (
+    adminEventReturnProofChecked.has(
+      orderId
+    )
+    &&
+    !force
+  ) {
+    return;
+  }
+
+  const {
+    data,
+    error
+  } =
+    await supabaseClient
+      .from(
+        "event_return_proofs"
+      )
+      .select(`
+        order_id,
+        signer_name,
+        signed_at,
+        snapshot,
+        signature_data,
+        proof_hash,
+        created_at
+      `)
+      .eq(
+        "order_id",
+        orderId
+      )
+      .maybeSingle();
+
+  if (
+    error
+  ) {
+    console.warn(
+      "EVENT RETURN PROOF:",
+      error
+    );
+    return;
+  }
+
+  adminEventReturnProofs =
+    adminEventReturnProofs
+      .filter(
+        proof =>
+          proof.order_id !==
+          orderId
+      );
+
+  if (
+    data
+  ) {
+    adminEventReturnProofs.push(
+      data
+    );
+  }
+
+  adminEventReturnProofChecked.add(
     orderId
   );
 
@@ -6589,14 +6808,19 @@ async function openAdminOrder(
 
   if (
     order.event_naam
-    &&
-    order.event_delivery_mode ===
-    "enkel_levering"
   ) {
 
-    await loadAdminEventDeliveryProofForOrder(
-      order.id
-    );
+    await Promise.all([
+
+      loadAdminEventDeliveryProofForOrder(
+        order.id
+      ),
+
+      loadAdminEventReturnProofForOrder(
+        order.id
+      )
+
+    ]);
 
   }
 
@@ -7058,9 +7282,6 @@ function buildEventDeliveryProofCard(
 
   if (
     !order?.event_naam
-    ||
-    order.event_delivery_mode !==
-    "enkel_levering"
   ) {
     return "";
   }
@@ -7122,8 +7343,8 @@ function buildEventDeliveryProofCard(
       <h3>Uitleenbewijs</h3>
 
       <div class="info">
-        Deze aanvraag is ingesteld op enkel levering.
-        Laat de klant bij aflevering digitaal tekenen voor de ontvangen artikelen.
+        Dit uitleenbewijs blijft beschikbaar bij de evenementaanvraag.
+        Laat de klant bij levering digitaal tekenen voor de werkelijk ontvangen artikelen.
       </div>
 
       <button
@@ -8472,6 +8693,860 @@ async function downloadEventDeliveryProofPdf(
 }
 
 
+
+/* ============================================================
+   EVENT RETOURBEWIJS
+============================================================ */
+
+let activeEventReturnOrderId =
+  null;
+
+let eventReturnSignatureActive =
+  false;
+
+let eventReturnSignatureContext =
+  null;
+
+
+function getEventReturnProof(
+  orderId
+) {
+
+  return adminEventReturnProofs
+    .find(
+      proof =>
+        proof.order_id === orderId
+    ) ||
+    null;
+
+}
+
+
+function getCurrentReturnRowsFromScreen(
+  orderId
+) {
+
+  return getEventMaterialItems(
+    orderId
+  )
+    .map(
+      item => ({
+
+        product_naam:
+          item.product_naam,
+
+        uitgeleend:
+          Number(
+            item.aantal ||
+            0
+          ),
+
+        goed_terug:
+          getReturnScreenValue(
+            orderId,
+            item.product_naam,
+            "good"
+          ),
+
+        beschadigd:
+          getReturnScreenValue(
+            orderId,
+            item.product_naam,
+            "damaged"
+          ),
+
+        ontbreekt:
+          getReturnScreenValue(
+            orderId,
+            item.product_naam,
+            "missing"
+          ),
+
+        opmerking:
+          document
+            .getElementById(
+              returnDomId(
+                orderId,
+                item.product_naam,
+                "note"
+              )
+            )
+            ?.value
+            ?.trim()
+          ||
+          ""
+
+      })
+    );
+
+}
+
+
+function validateCurrentReturnRows(
+  orderId
+) {
+
+  const rows =
+    getCurrentReturnRowsFromScreen(
+      orderId
+    );
+
+  const incomplete =
+    rows.find(
+      row =>
+        Number(row.goed_terug || 0) +
+        Number(row.beschadigd || 0) +
+        Number(row.ontbreekt || 0) !==
+        Number(row.uitgeleend || 0)
+    );
+
+  if (
+    incomplete
+  ) {
+
+    const message =
+      document.getElementById(
+        "returnValidationMessage"
+      );
+
+    if (
+      message
+    ) {
+      message.textContent =
+        "Duid eerst elk artikel aan als goed terug of registreer een probleem.";
+      message.classList.remove(
+        "hidden"
+      );
+      message.scrollIntoView({
+        behavior:
+          "smooth",
+        block:
+          "center"
+      });
+    }
+
+    return null;
+
+  }
+
+  return rows;
+
+}
+
+
+function openEventReturnProofModal(
+  orderId
+) {
+
+  const order =
+    adminOrders.find(
+      item =>
+        item.id === orderId
+    );
+
+  if (
+    !order
+  ) {
+    return;
+  }
+
+  const rows =
+    validateCurrentReturnRows(
+      orderId
+    );
+
+  if (
+    !rows
+  ) {
+    return;
+  }
+
+  activeEventReturnOrderId =
+    orderId;
+
+  document
+    .getElementById(
+      "eventReturnModalTitle"
+    )
+    .textContent =
+      order.event_naam ||
+      "Evenement";
+
+  document
+    .getElementById(
+      "eventReturnModalPeriod"
+    )
+    .textContent =
+      `${order.event_vanaf || ""} t/m ${order.event_tot || ""}`;
+
+  document
+    .getElementById(
+      "eventReturnSignerName"
+    )
+    .value =
+      "";
+
+  document
+    .getElementById(
+      "eventReturnItemsPreview"
+    )
+    .innerHTML =
+      rows
+        .map(
+          row => `
+
+            <div class="event-delivery-item">
+
+              <div class="event-delivery-check-main">
+
+                <div>
+                  <strong>
+                    ${adminEscapeHtml(row.product_naam || "")}
+                  </strong>
+                  <small>
+                    Uitgeleend: ${row.uitgeleend}
+                  </small>
+                </div>
+
+                <span class="event-delivery-check-status">
+                  ${
+                    row.beschadigd > 0 ||
+                    row.ontbreekt > 0
+                      ? "Afwijking"
+                      : "In orde"
+                  }
+                </span>
+
+              </div>
+
+              <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;font-size:10px;">
+                <span>✓ ${row.goed_terug} goed terug</span>
+                ${row.beschadigd ? `<span>⚠ ${row.beschadigd} beschadigd</span>` : ""}
+                ${row.ontbreekt ? `<span>⚠ ${row.ontbreekt} ontbreekt</span>` : ""}
+              </div>
+
+              ${
+                row.opmerking
+                  ? `<small style="display:block;margin-top:6px;">Opmerking: ${adminEscapeHtml(row.opmerking)}</small>`
+                  : ""
+              }
+
+            </div>
+
+          `
+        )
+        .join("");
+
+  document
+    .getElementById(
+      "eventReturnProofModal"
+    )
+    .classList
+    .remove(
+      "hidden"
+    );
+
+  document.body.style.overflow =
+    "hidden";
+
+  requestAnimationFrame(
+    () => {
+      prepareEventReturnSignatureCanvas();
+    }
+  );
+
+}
+
+
+function closeEventReturnProofModal() {
+
+  document
+    .getElementById(
+      "eventReturnProofModal"
+    )
+    ?.classList
+    .add(
+      "hidden"
+    );
+
+  document.body.style.overflow =
+    "";
+
+  activeEventReturnOrderId =
+    null;
+
+}
+
+
+function prepareEventReturnSignatureCanvas() {
+
+  const canvas =
+    document.getElementById(
+      "eventReturnSignatureCanvas"
+    );
+
+  if (
+    !canvas
+  ) {
+    return;
+  }
+
+  const ratio =
+    Math.max(
+      1,
+      window.devicePixelRatio || 1
+    );
+
+  const width =
+    canvas.clientWidth || 300;
+
+  const height =
+    150;
+
+  canvas.width =
+    width * ratio;
+
+  canvas.height =
+    height * ratio;
+
+  canvas.style.height =
+    `${height}px`;
+
+  const context =
+    canvas.getContext(
+      "2d"
+    );
+
+  context.setTransform(
+    ratio,
+    0,
+    0,
+    ratio,
+    0,
+    0
+  );
+
+  context.lineWidth = 2;
+  context.lineCap = "round";
+  context.strokeStyle = "#182019";
+
+  eventReturnSignatureContext =
+    context;
+
+  eventReturnSignatureActive =
+    false;
+
+  let drawing =
+    false;
+
+  const point =
+    event => {
+      const rect =
+        canvas.getBoundingClientRect();
+
+      return {
+        x:
+          event.clientX -
+          rect.left,
+        y:
+          event.clientY -
+          rect.top
+      };
+    };
+
+  canvas.onpointerdown =
+    event => {
+      event.preventDefault();
+      drawing = true;
+
+      const p =
+        point(
+          event
+        );
+
+      context.beginPath();
+      context.moveTo(
+        p.x,
+        p.y
+      );
+
+      canvas.setPointerCapture?.(
+        event.pointerId
+      );
+    };
+
+  canvas.onpointermove =
+    event => {
+      if (
+        !drawing
+      ) {
+        return;
+      }
+
+      event.preventDefault();
+
+      const p =
+        point(
+          event
+        );
+
+      context.lineTo(
+        p.x,
+        p.y
+      );
+
+      context.stroke();
+
+      eventReturnSignatureActive =
+        true;
+    };
+
+  canvas.onpointerup =
+    () => {
+      drawing = false;
+    };
+
+  canvas.onpointercancel =
+    () => {
+      drawing = false;
+    };
+
+}
+
+
+function clearEventReturnSignature() {
+
+  const canvas =
+    document.getElementById(
+      "eventReturnSignatureCanvas"
+    );
+
+  if (
+    !canvas ||
+    !eventReturnSignatureContext
+  ) {
+    return;
+  }
+
+  eventReturnSignatureContext.clearRect(
+    0,
+    0,
+    canvas.width,
+    canvas.height
+  );
+
+  eventReturnSignatureActive =
+    false;
+
+}
+
+
+async function saveEventReturnProof() {
+
+  const orderId =
+    activeEventReturnOrderId;
+
+  if (
+    !orderId
+  ) {
+    return;
+  }
+
+  const signerName =
+    document
+      .getElementById(
+        "eventReturnSignerName"
+      )
+      .value
+      .trim();
+
+  if (
+    !signerName
+  ) {
+    alert(
+      "Vul de naam van de klant of contactpersoon in."
+    );
+    return;
+  }
+
+  if (
+    !eventReturnSignatureActive
+  ) {
+    alert(
+      "Laat de klant eerst tekenen."
+    );
+    return;
+  }
+
+  const canvas =
+    document.getElementById(
+      "eventReturnSignatureCanvas"
+    );
+
+  const signatureData =
+    canvas.toDataURL(
+      "image/png"
+    );
+
+  const button =
+    document.querySelector(
+      "#eventReturnProofModal .return-problem-save"
+    );
+
+  if (
+    button
+  ) {
+    button.disabled = true;
+    button.textContent =
+      "Retour afronden…";
+  }
+
+  try {
+
+    const saved =
+      await finalizeEventReturnRegistration(
+        orderId,
+        {
+          signerName,
+          signatureData
+        }
+      );
+
+    if (
+      saved !== true
+    ) {
+      if (
+        button
+      ) {
+        button.disabled = false;
+        button.textContent =
+          "Retour ondertekenen & afronden";
+      }
+    }
+
+  }
+  catch (
+    error
+  ) {
+
+    console.error(
+      "RETOURBEWIJS OPSLAAN:",
+      error
+    );
+
+    alert(
+      "Retourbewijs kon niet worden opgeslagen.\n\n" +
+      adminReadableError(
+        error
+      )
+    );
+
+    if (
+      button
+    ) {
+      button.disabled = false;
+      button.textContent =
+        "Retour ondertekenen & afronden";
+    }
+
+  }
+
+}
+
+
+async function downloadEventReturnProofPdf(
+  orderId
+) {
+
+  const proof =
+    getEventReturnProof(
+      orderId
+    );
+
+  if (
+    !proof
+  ) {
+    alert(
+      "Geen ondertekend retourbewijs gevonden."
+    );
+    return;
+  }
+
+  if (
+    !window.jspdf?.jsPDF
+  ) {
+    alert(
+      "PDF-module is niet geladen."
+    );
+    return;
+  }
+
+  const {
+    jsPDF
+  } =
+    window.jspdf;
+
+  const pdf =
+    new jsPDF({
+      unit:
+        "mm",
+      format:
+        "a4"
+    });
+
+  const snapshot =
+    proof.snapshot || {};
+
+  const colors = {
+    dark:
+      [24, 32, 25],
+    gold:
+      [140, 105, 47],
+    text:
+      [42, 48, 43],
+    soft:
+      [112, 119, 113],
+    line:
+      [222, 217, 207]
+  };
+
+  let y = 18;
+
+  const logoData =
+    await loadEventDeliveryLogoData();
+
+  if (
+    logoData
+  ) {
+    pdf.addImage(
+      logoData,
+      "PNG",
+      18,
+      12,
+      36,
+      18,
+      undefined,
+      "FAST"
+    );
+  }
+
+  pdf.setTextColor(...colors.gold);
+  pdf.setFont("helvetica", "bold");
+  pdf.setFontSize(9);
+  pdf.text(
+    "ACHELSE KLUIS",
+    190,
+    17,
+    { align: "right" }
+  );
+
+  pdf.setTextColor(...colors.dark);
+  pdf.setFontSize(19);
+  pdf.text(
+    "Retourbewijs evenement",
+    190,
+    25,
+    { align: "right" }
+  );
+
+  y = 40;
+
+  const addLine =
+    (label, value) => {
+      pdf.setFont("helvetica", "bold");
+      pdf.setTextColor(...colors.soft);
+      pdf.setFontSize(8);
+      pdf.text(label.toUpperCase(), 20, y);
+
+      pdf.setFont("helvetica", "normal");
+      pdf.setTextColor(...colors.text);
+      pdf.setFontSize(10);
+      pdf.text(
+        String(value || "-"),
+        64,
+        y
+      );
+      y += 7;
+    };
+
+  addLine(
+    "Aanvraag",
+    snapshot.aanvraag
+  );
+  addLine(
+    "Evenement",
+    snapshot.evenement
+  );
+  addLine(
+    "Periode",
+    `${snapshot.periode_vanaf || ""} t/m ${snapshot.periode_tot || ""}`
+  );
+  addLine(
+    "Klant",
+    snapshot.klant_bedrijfsnaam ||
+    snapshot.klant_naam
+  );
+  addLine(
+    "Retour gecontroleerd door",
+    proof.signer_name
+  );
+  addLine(
+    "Ondertekend op",
+    adminFormatDateTime(
+      proof.signed_at
+    )
+  );
+
+  y += 3;
+  pdf.setDrawColor(...colors.line);
+  pdf.line(20, y, 190, y);
+  y += 8;
+
+  pdf.setFont("helvetica", "bold");
+  pdf.setTextColor(...colors.dark);
+  pdf.setFontSize(11);
+  pdf.text(
+    "Controle evenementmateriaal",
+    20,
+    y
+  );
+  y += 8;
+
+  (snapshot.items || [])
+    .forEach(
+      item => {
+
+        if (
+          y > 245
+        ) {
+          pdf.addPage();
+          y = 20;
+        }
+
+        pdf.setFont("helvetica", "bold");
+        pdf.setTextColor(...colors.text);
+        pdf.setFontSize(9);
+        pdf.text(
+          String(item.product_naam || ""),
+          20,
+          y
+        );
+
+        y += 5;
+        pdf.setFont("helvetica", "normal");
+        pdf.setTextColor(...colors.soft);
+        pdf.setFontSize(8);
+
+        const status =
+          `Uitgeleend ${Number(item.uitgeleend || 0)} · Goed ${Number(item.goed_terug || 0)} · Beschadigd ${Number(item.beschadigd || 0)} · Ontbreekt ${Number(item.ontbreekt || 0)}`;
+
+        pdf.text(
+          status,
+          20,
+          y
+        );
+        y += 5;
+
+        if (
+          item.opmerking
+        ) {
+          const noteLines =
+            pdf.splitTextToSize(
+              `Opmerking: ${item.opmerking}`,
+              165
+            );
+          pdf.text(
+            noteLines,
+            20,
+            y
+          );
+          y +=
+            noteLines.length * 4;
+        }
+
+        y += 4;
+
+      }
+    );
+
+  if (
+    y > 238
+  ) {
+    pdf.addPage();
+    y = 22;
+  }
+
+  pdf.setFont("helvetica", "bold");
+  pdf.setTextColor(...colors.dark);
+  pdf.setFontSize(11);
+  pdf.text(
+    "Handtekening klant / contactpersoon",
+    20,
+    y
+  );
+
+  y += 6;
+
+  pdf.setFillColor(255, 255, 255);
+  pdf.setDrawColor(...colors.line);
+  pdf.roundedRect(
+    20,
+    y,
+    170,
+    32,
+    0.8,
+    0.8,
+    "FD"
+  );
+
+  if (
+    proof.signature_data
+  ) {
+    pdf.addImage(
+      proof.signature_data,
+      "PNG",
+      24,
+      y + 3,
+      66,
+      25,
+      undefined,
+      "FAST"
+    );
+  }
+
+  y += 38;
+  pdf.setFont("helvetica", "normal");
+  pdf.setTextColor(...colors.soft);
+  pdf.setFontSize(8);
+  pdf.text(
+    `Getekend door ${proof.signer_name || "-"} op ${adminFormatDateTime(proof.signed_at)}`,
+    20,
+    y
+  );
+
+  pdf.setDrawColor(...colors.line);
+  pdf.line(20, 278, 190, 278);
+  pdf.setFontSize(7);
+  pdf.text("Achelse Kluis", 20, 284);
+  pdf.text(
+    `Bewijshash: ${proof.proof_hash || "-"}`,
+    190,
+    284,
+    {
+      align:
+        "right",
+      maxWidth:
+        110
+    }
+  );
+
+  pdf.save(
+    `Achel_retourbewijs_${safeFilename(snapshot.evenement || orderId)}.pdf`
+  );
+
+}
+
+
 /* ============================================================
    RETOUR
 ============================================================ */
@@ -8679,7 +9754,7 @@ function buildEventReturnEditor(
           class="return-simple-save"
           onclick="saveEventReturnRegistration('${order.id}')"
         >
-          Retour verwerken
+          Retourbewijs openen & ondertekenen
         </button>
 
       </div>
@@ -8786,6 +9861,9 @@ function buildArchivedReturnSummary(
       </div>
 
 
+      ${buildEventReturnProofArchiveBlock(order)}
+
+
       <button
         type="button"
         class="return-reopen-button"
@@ -8804,6 +9882,71 @@ function buildArchivedReturnSummary(
 /* ============================================================
    EENVOUDIG RETOURARTIKEL
 ============================================================ */
+
+function buildEventReturnProofArchiveBlock(
+  order
+) {
+
+  const proof =
+    getEventReturnProof(
+      order.id
+    );
+
+  if (
+    !proof
+  ) {
+    return `
+
+      <div class="info" style="margin-top:10px;">
+        Voor deze oudere retour is geen ondertekend retourbewijs opgeslagen.
+      </div>
+
+    `;
+  }
+
+  return `
+
+    <div class="card" style="margin-top:12px;">
+
+      <div class="admin-detail-top">
+
+        <div>
+          <small>RETOURBEWIJS</small>
+          <h3>Retour ondertekend</h3>
+        </div>
+
+        <span class="status status-klaar">
+          Ondertekend
+        </span>
+
+      </div>
+
+      ${detailRow(
+        "Gecontroleerd door",
+        proof.signer_name || ""
+      )}
+
+      ${detailRow(
+        "Ondertekend op",
+        adminFormatDateTime(
+          proof.signed_at
+        )
+      )}
+
+      <button
+        type="button"
+        class="admin-primary"
+        onclick="downloadEventReturnProofPdf('${order.id}')"
+      >
+        PDF retourbewijs downloaden
+      </button>
+
+    </div>
+
+  `;
+
+}
+
 
 function buildSimpleReturnItem(
   order,
@@ -10699,6 +11842,18 @@ async function saveEventReturnRegistration(
   orderId
 ) {
 
+  openEventReturnProofModal(
+    orderId
+  );
+
+}
+
+
+async function finalizeEventReturnRegistration(
+  orderId,
+  proofPayload
+) {
+
   try {
 
     const items =
@@ -10917,6 +12072,180 @@ async function saveEventReturnRegistration(
     }
 
 
+    if (
+      !proofPayload?.signerName ||
+      !proofPayload?.signatureData
+    ) {
+      throw new Error(
+        "Naam en handtekening ontbreken voor het retourbewijs."
+      );
+    }
+
+
+    const order =
+      adminOrders.find(
+        item =>
+          item.id === orderId
+      );
+
+
+    const profile =
+      getAdminProfile(
+        order?.user_id
+      );
+
+
+    const customer =
+      getEventCustomerData(
+        order
+      );
+
+
+    const proofItems =
+      items.map(
+        item => {
+
+          const saved =
+            (savedReturnRows || [])
+              .find(
+                row =>
+                  row.product_naam ===
+                  item.product_naam
+              );
+
+          return {
+            product_naam:
+              item.product_naam,
+            uitgeleend:
+              Number(item.aantal || 0),
+            goed_terug:
+              Number(saved?.goed_terug || 0),
+            beschadigd:
+              Number(saved?.beschadigd || 0),
+            ontbreekt:
+              Number(saved?.ontbreekt || 0),
+            opmerking:
+              saved?.opmerking || ""
+          };
+
+        }
+      );
+
+
+    const signedAt =
+      new Date().toISOString();
+
+
+    const snapshot = {
+      order_id:
+        orderId,
+      aanvraag:
+        createOrderReference(
+          orderId,
+          order?.created_at
+        ),
+      evenement:
+        order?.event_naam || "",
+      periode_vanaf:
+        order?.event_vanaf || "",
+      periode_tot:
+        order?.event_tot || "",
+      vertegenwoordiger:
+        profile?.naam || "",
+      vertegenwoordiger_email:
+        profile?.email || "",
+      klant_bedrijfsnaam:
+        customer.company || "",
+      klant_naam:
+        customer.contact || "",
+      klant_telefoon:
+        customer.phone || "",
+      klant_email:
+        customer.email || "",
+      evenement_locatie:
+        customer.location || "",
+      items:
+        proofItems
+    };
+
+
+    const proofHash =
+      await createEventDeliveryHash(
+        JSON.stringify({
+          snapshot,
+          signerName:
+            proofPayload.signerName,
+          signedAt,
+          signatureData:
+            proofPayload.signatureData
+        })
+      );
+
+
+    const {
+      data: returnProof,
+      error: returnProofError
+    } =
+      await supabaseClient
+        .from(
+          "event_return_proofs"
+        )
+        .upsert({
+          order_id:
+            orderId,
+          signer_name:
+            proofPayload.signerName,
+          signed_at:
+            signedAt,
+          snapshot:
+            snapshot,
+          signature_data:
+            proofPayload.signatureData,
+          proof_hash:
+            proofHash,
+          created_by:
+            currentUser?.id || null
+        }, {
+          onConflict:
+            "order_id"
+        })
+        .select(`
+          order_id,
+          signer_name,
+          signed_at,
+          snapshot,
+          signature_data,
+          proof_hash,
+          created_at
+        `)
+        .single();
+
+
+    if (
+      returnProofError
+    ) {
+      throw returnProofError;
+    }
+
+
+    adminEventReturnProofs =
+      adminEventReturnProofs
+        .filter(
+          proof =>
+            proof.order_id !== orderId
+        );
+
+
+    adminEventReturnProofs.push(
+      returnProof
+    );
+
+
+    adminEventReturnProofChecked.add(
+      orderId
+    );
+
+
     const {
       error: closeError
     } =
@@ -10949,6 +12278,9 @@ async function saveEventReturnRegistration(
     }
 
 
+    closeEventReturnProofModal();
+
+
     await loadAdminDashboard();
 
 
@@ -10964,6 +12296,9 @@ async function saveEventReturnRegistration(
     switchAdminTab(
       "material"
     );
+
+
+    return true;
 
   }
 
@@ -11002,6 +12337,35 @@ async function saveEventReturnRegistration(
 
   }
 
+
+  const modalButton =
+    document.querySelector(
+      "#eventReturnProofModal .return-problem-save"
+    );
+
+  if (
+    modalButton
+  ) {
+    modalButton.disabled = false;
+    modalButton.textContent =
+      "Retour ondertekenen & afronden";
+  }
+
+  const pageButton =
+    document.querySelector(
+      ".return-simple-save"
+    );
+
+  if (
+    pageButton
+  ) {
+    pageButton.disabled = false;
+    pageButton.textContent =
+      "Retourbewijs openen & ondertekenen";
+  }
+
+  return false;
+
 }
 
 
@@ -11011,7 +12375,7 @@ async function reopenEventReturn(
 
   if (
     !confirm(
-      "Retour heropenen? De registratie kan daarna opnieuw worden aangepast."
+      "Retour heropenen? Het bestaande ondertekende retourbewijs wordt verwijderd en de klant moet na de aanpassing opnieuw tekenen."
     )
   ) {
 
@@ -11054,6 +12418,41 @@ async function reopenEventReturn(
     return;
 
   }
+
+
+  const {
+    error: proofDeleteError
+  } =
+    await supabaseClient
+      .from(
+        "event_return_proofs"
+      )
+      .delete()
+      .eq(
+        "order_id",
+        orderId
+      );
+
+
+  if (
+    proofDeleteError
+  ) {
+    alert(
+      "Retour is heropend, maar het oude retourbewijs kon niet worden verwijderd.\n\n" +
+      adminReadableError(proofDeleteError)
+    );
+  }
+
+
+  adminEventReturnProofs =
+    adminEventReturnProofs.filter(
+      proof =>
+        proof.order_id !== orderId
+    );
+
+  adminEventReturnProofChecked.delete(
+    orderId
+  );
 
 
   await loadAdminDashboard();
