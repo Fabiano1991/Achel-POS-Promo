@@ -64,6 +64,52 @@
         <div id="adminCreateDayMessage" class="status-message" hidden></div>
       </section>
 
+      <section class="admin-results-section">
+        <div class="admin-results-heading">
+          <p class="welcome-label">Rapportage</p>
+          <h3 class="page-section-title">B2B resultaten</h3>
+          <p>Bekijk het resultaat over een gekozen periode en exporteer een Excel met samenvatting en detail.</p>
+        </div>
+
+        <div class="admin-results-filter">
+          <div>
+            <label for="adminResultsFrom">Van</label>
+            <input id="adminResultsFrom" type="date">
+          </div>
+
+          <div>
+            <label for="adminResultsTo">Tot</label>
+            <input id="adminResultsTo" type="date">
+          </div>
+        </div>
+
+        <div class="admin-results-actions">
+          <button
+            type="button"
+            class="b2b-small-action edit"
+            onclick="loadB2BPeriodResults()"
+          >
+            Resultaten laden
+          </button>
+
+          <button
+            id="adminResultsExportButton"
+            type="button"
+            class="admin-export-button"
+            onclick="exportB2BPeriodResults()"
+            disabled
+          >
+            Excel exporteren
+          </button>
+        </div>
+
+        <div id="adminPeriodResults">
+          <div class="status-message">
+            Kies een periode om de B2B-resultaten te bekijken.
+          </div>
+        </div>
+      </section>
+
       <section style="margin-top:28px;">
         <h3 class="page-section-title">Bestaande B2B-dagen</h3>
         <div id="adminB2BDaysList">
