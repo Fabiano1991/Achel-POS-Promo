@@ -3569,9 +3569,16 @@ Uitloggen
 </div>
 
 
+<!-- LOADING -->
+
+<section id="bootLoading" style="min-height:100vh;display:flex;align-items:center;justify-content:center;color:rgba(246,240,227,.6);font-size:13px;">
+Laden...
+</section>
+
+
 <!-- LOGIN -->
 
-<section id="loginScreen">
+<section id="loginScreen" class="hidden">
 
 <div class="card login-card">
 
@@ -5923,6 +5930,16 @@ async function startApp() {
 
   document
     .getElementById(
+      "bootLoading"
+    )
+    .classList
+    .add(
+      "hidden"
+    );
+
+
+  document
+    .getElementById(
       "loginScreen"
     )
     .classList
@@ -6140,6 +6157,24 @@ async function checkExistingSession() {
     !data.session?.user
   ) {
 
+    document
+      .getElementById(
+        "bootLoading"
+      )
+      .classList
+      .add(
+        "hidden"
+      );
+
+    document
+      .getElementById(
+        "loginScreen"
+      )
+      .classList
+      .remove(
+        "hidden"
+      );
+
     return;
 
   }
@@ -6154,6 +6189,27 @@ async function checkExistingSession() {
   ) {
 
     await startApp();
+
+  }
+  else {
+
+    document
+      .getElementById(
+        "bootLoading"
+      )
+      .classList
+      .add(
+        "hidden"
+      );
+
+    document
+      .getElementById(
+        "loginScreen"
+      )
+      .classList
+      .remove(
+        "hidden"
+      );
 
   }
 
