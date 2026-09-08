@@ -22,6 +22,12 @@ let myContacts = [];
 let myOrders = [];
 let currentView = "homeView";
 
+const ADMIN_ROLES = ["commercieel_directeur", "boekhoudster"];
+let isAdminUser = false;
+let adminContacts = [];
+let adminOrders = [];
+let adminRepFilterValue = "all";
+
 // =========================================================
 // OFFICIËLE ARTIKELLIJST
 // ID en artikelnummer blijven altijd gekoppeld aan elk artikel.
@@ -109,6 +115,17 @@ async function initBeurzen() {
 
     setWelcome();
     fillRepresentativeSelects();
+
+    isAdminUser = ADMIN_ROLES.includes(currentProfile?.rol);
+
+    if (isAdminUser) {
+      document
+        .getElementById("adminActionCard")
+        ?.classList.remove("hidden");
+
+      fillAdminRepFilter();
+      bindAdminControls();
+    }
 
     await refreshAllData();
   }
@@ -1020,6 +1037,11 @@ async function refreshAllData() {
   renderContacts();
   renderOrders();
   renderFollowups();
+
+  if (isAdminUser) {
+    await loadAdminData();
+    renderAdminPanels();
+  }
 }
 
 async function loadMyContacts() {
@@ -1108,14 +1130,18 @@ function updateCounters() {
 // =========================================================
 
 function renderContacts() {
+  renderContactRecords("contactsList", myContacts);
+}
+
+function renderContactRecords(containerId, contacts) {
   const container =
     document.getElementById(
-      "contactsList"
+      containerId
     );
 
   if (!container) return;
 
-  if (!myContacts.length) {
+  if (!contacts.length) {
     container.innerHTML =
       emptyState(
         "Nog geen beurscontacten."
@@ -1124,7 +1150,7 @@ function renderContacts() {
   }
 
   container.innerHTML =
-    myContacts
+    contacts
       .map(contact => `
         <details class="record-card">
           <summary>
@@ -1134,6 +1160,8 @@ function renderContacts() {
               </strong>
               <small>
                 ${escapeHtml(contact.fair_name || "Geen beurs")}
+                ·
+                ${escapeHtml(contact.representative_name || "")}
                 ·
                 ${formatDate(contact.created_at)}
               </small>
@@ -1164,14 +1192,18 @@ function renderContacts() {
 // =========================================================
 
 function renderOrders() {
+  renderOrderRecords("ordersList", myOrders);
+}
+
+function renderOrderRecords(containerId, orders) {
   const container =
     document.getElementById(
-      "ordersList"
+      containerId
     );
 
   if (!container) return;
 
-  if (!myOrders.length) {
+  if (!orders.length) {
     container.innerHTML =
       emptyState(
         "Nog geen beursbestellingen."
@@ -1180,7 +1212,7 @@ function renderOrders() {
   }
 
   container.innerHTML =
-    myOrders
+    orders
       .map(order => {
         const items =
           order.fair_order_items || [];
@@ -1202,6 +1234,8 @@ function renderOrders() {
                 </strong>
                 <small>
                   ${escapeHtml(order.fair_name || "Geen beurs")}
+                  ·
+                  ${escapeHtml(order.representative_name || "")}
                   ·
                   ${formatDate(order.created_at)}
                 </small>
@@ -1304,8 +1338,11 @@ function renderFollowups() {
 // CSV EXPORT CONTACTEN
 // =========================================================
 
-function exportContactsCsv() {
-  if (!myContacts.length) {
+function exportContactsCsv(
+  contacts = myContacts,
+  filename = `achel-beurscontacten-${todayString()}.csv`
+) {
+  if (!contacts.length) {
     alert(
       "Er zijn geen contacten om te exporteren."
     );
@@ -1331,7 +1368,7 @@ function exportContactsCsv() {
     ]
   ];
 
-  myContacts.forEach(contact => {
+  contacts.forEach(contact => {
     rows.push([
       formatDateForExport(
         contact.created_at
@@ -1360,7 +1397,7 @@ function exportContactsCsv() {
 
   downloadCsv(
     rows,
-    `achel-beurscontacten-${todayString()}.csv`
+    filename
   );
 }
 
@@ -1369,8 +1406,11 @@ function exportContactsCsv() {
 // Elke orderregel krijgt ID + artikelnummer.
 // =========================================================
 
-function exportOrdersCsv() {
-  if (!myOrders.length) {
+function exportOrdersCsv(
+  orders = myOrders,
+  filename = `achel-beursbestellingen-${todayString()}.csv`
+) {
+  if (!orders.length) {
     alert(
       "Er zijn geen bestellingen om te exporteren."
     );
@@ -1395,7 +1435,7 @@ function exportOrdersCsv() {
     ]
   ];
 
-  myOrders.forEach(order => {
+  orders.forEach(order => {
     (order.fair_order_items || [])
       .forEach(item => {
         rows.push([
@@ -1422,7 +1462,153 @@ function exportOrdersCsv() {
 
   downloadCsv(
     rows,
-    `achel-beursbestellingen-${todayString()}.csv`
+    filename
+  );
+}
+
+// =========================================================
+// BEHEER (commercieel directeur / boekhoudster)
+// Zelfde data-tabellen als hierboven, maar zonder filter op
+// representative_id: dit toont alle vertegenwoordigers.
+// De echte toegangsbeperking gebeurt via Supabase RLS.
+// =========================================================
+
+async function loadAdminData() {
+  const [contactsResult, ordersResult] =
+    await Promise.all([
+      supabaseClient
+        .from("fair_contacts")
+        .select("*")
+        .order("created_at", { ascending:false }),
+
+      supabaseClient
+        .from("fair_orders")
+        .select(`
+          *,
+          fair_order_items (
+            id,
+            product_id,
+            article_number,
+            barcode,
+            product_name,
+            display_name,
+            category,
+            quantity
+          )
+        `)
+        .order("created_at", { ascending:false })
+    ]);
+
+  if (contactsResult.error) throw contactsResult.error;
+  if (ordersResult.error) throw ordersResult.error;
+
+  adminContacts = contactsResult.data || [];
+  adminOrders = ordersResult.data || [];
+}
+
+function fillAdminRepFilter() {
+  const select =
+    document.getElementById("adminRepFilter");
+
+  if (!select) return;
+
+  select.innerHTML =
+    `<option value="all">Alle vertegenwoordigers</option>` +
+    representatives
+      .map(profile => `
+        <option value="${escapeHtml(profile.id)}">
+          ${escapeHtml(profile.naam || profile.email || "Onbekend")}
+        </option>
+      `)
+      .join("");
+}
+
+function bindAdminControls() {
+  document
+    .getElementById("adminRepFilter")
+    ?.addEventListener("change", event => {
+      adminRepFilterValue = event.target.value || "all";
+      renderAdminPanels();
+    });
+
+  document
+    .querySelectorAll("[data-admin-tab]")
+    .forEach(tabButton => {
+      tabButton.addEventListener("click", () => {
+        document
+          .querySelectorAll(".admin-tab")
+          .forEach(button =>
+            button.classList.remove("active")
+          );
+
+        document
+          .querySelectorAll(".admin-panel")
+          .forEach(panel =>
+            panel.classList.add("hidden")
+          );
+
+        tabButton.classList.add("active");
+
+        document
+          .getElementById(tabButton.dataset.adminTab)
+          ?.classList.remove("hidden");
+      });
+    });
+
+  document
+    .getElementById("exportAdminContactsButton")
+    ?.addEventListener("click", () =>
+      exportContactsCsv(
+        filteredAdminContacts(),
+        `achel-beurscontacten-alle-${todayString()}.csv`
+      )
+    );
+
+  document
+    .getElementById("exportAdminOrdersButton")
+    ?.addEventListener("click", () =>
+      exportOrdersCsv(
+        filteredAdminOrders(),
+        `achel-beursbestellingen-alle-${todayString()}.csv`
+      )
+    );
+}
+
+function filteredAdminContacts() {
+  if (adminRepFilterValue === "all") {
+    return adminContacts;
+  }
+
+  return adminContacts.filter(
+    contact => contact.representative_id === adminRepFilterValue
+  );
+}
+
+function filteredAdminOrders() {
+  if (adminRepFilterValue === "all") {
+    return adminOrders;
+  }
+
+  return adminOrders.filter(
+    order => order.representative_id === adminRepFilterValue
+  );
+}
+
+function renderAdminPanels() {
+  const contacts = filteredAdminContacts();
+  const orders = filteredAdminOrders();
+
+  renderContactRecords("adminContactsList", contacts);
+  renderOrderRecords("adminOrdersList", orders);
+
+  setText(
+    "adminContactsCount",
+    `${contacts.length} contact${contacts.length === 1 ? "" : "en"}`
+  );
+
+  setText(
+    "adminOrdersCount",
+    `${orders.length} bestelling${orders.length === 1 ? "" : "en"}`
   );
 }
 
