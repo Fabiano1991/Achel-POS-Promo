@@ -13,7 +13,7 @@
 <body>
 
 <header class="app-header">
-  <button class="back-button" type="button" onclick="window.location.href='../index.html'">
+  <button class="back-button" type="button" id="headerBackButton">
     ←
   </button>
 
@@ -207,11 +207,6 @@
 
         <div class="form-grid">
           <div class="field full">
-            <label for="orderFairName">Beurs</label>
-            <input id="orderFairName" name="fair_name" type="text" placeholder="Bijv. Horeca Expo 2026" required>
-          </div>
-
-          <div class="field full">
             <label for="orderRepresentative">Vertegenwoordiger</label>
             <select id="orderRepresentative" name="representative_id" required>
               <option value="">Vertegenwoordigers laden...</option>
@@ -223,14 +218,9 @@
             <input id="orderBusiness" name="business_name" type="text" required>
           </div>
 
-          <div class="field">
-            <label for="orderContact">Contactpersoon</label>
-            <input id="orderContact" name="contact_person" type="text">
-          </div>
-
-          <div class="field">
-            <label for="orderSupplier">Leverancier / bierhandelaar</label>
-            <input id="orderSupplier" name="supplier" type="text">
+          <div class="field full">
+            <label for="orderFairName">Beurs</label>
+            <input id="orderFairName" name="fair_name" type="text" placeholder="Bijv. Horeca Expo 2026" required>
           </div>
         </div>
 
@@ -260,16 +250,35 @@
           </details>
         </div>
 
-        <div class="field full order-note">
-          <label for="orderNote">Opmerking</label>
-          <textarea id="orderNote" name="note" rows="3"></textarea>
-        </div>
-
         <div id="orderSummary" class="order-summary hidden"></div>
 
-        <button id="saveOrderButton" class="submit-button" type="submit">
-          Bestelling opslaan
-        </button>
+        <details class="product-group optional-fields">
+          <summary>
+            <span>Meer details (optioneel)</span>
+          </summary>
+          <div class="product-list optional-fields-body">
+            <div class="field">
+              <label for="orderContact">Contactpersoon</label>
+              <input id="orderContact" name="contact_person" type="text">
+            </div>
+
+            <div class="field">
+              <label for="orderSupplier">Leverancier / bierhandelaar</label>
+              <input id="orderSupplier" name="supplier" type="text">
+            </div>
+
+            <div class="field order-note">
+              <label for="orderNote">Opmerking</label>
+              <textarea id="orderNote" name="note" rows="3"></textarea>
+            </div>
+          </div>
+        </details>
+
+        <div class="sticky-submit">
+          <button id="saveOrderButton" class="submit-button" type="submit">
+            Bestelling opslaan
+          </button>
+        </div>
 
         <div id="orderMessage" class="form-message hidden"></div>
       </form>
