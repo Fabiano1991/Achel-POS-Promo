@@ -42,14 +42,16 @@ button {
 }
 
 .app-header {
-  height:62px;
+  min-height:62px;
   position:sticky;
   top:0;
   z-index:20;
   display:grid;
   grid-template-columns:52px 1fr 52px;
   align-items:center;
-  padding:0 12px;
+  padding:env(safe-area-inset-top) 12px 0;
+  padding-top:calc(env(safe-area-inset-top) + 10px);
+  padding-bottom:10px;
   background:rgba(13,17,13,.92);
   backdrop-filter:blur(16px);
   border-bottom:1px solid rgba(201,155,67,.12);
@@ -480,6 +482,39 @@ select option {
 
 .order-note {
   margin-top:14px;
+}
+
+.optional-fields {
+  margin-top:14px;
+}
+
+.optional-fields summary {
+  min-height:46px;
+  font-size:13px;
+  font-weight:800;
+  color:var(--muted);
+}
+
+.optional-fields summary::before {
+  content:"";
+}
+
+.optional-fields-body {
+  padding:12px 12px 4px;
+  display:grid;
+  gap:12px;
+}
+
+.sticky-submit {
+  position:sticky;
+  bottom:0;
+  margin:16px -18px -18px;
+  padding:12px 18px calc(12px + env(safe-area-inset-bottom));
+  background:linear-gradient(180deg, rgba(21,26,21,0) 0%, #151a15 28%);
+}
+
+.sticky-submit .submit-button {
+  margin-top:0;
 }
 
 .order-summary {
