@@ -193,6 +193,10 @@ button {
   box-shadow:0 8px 18px rgba(0,0,0,.16);
 }
 
+.action-card.admin-action {
+  grid-column:1 / -1;
+}
+
 .action-card.primary-action {
   background:
     radial-gradient(circle at 100% 0%,rgba(224,184,95,.14),transparent 40%),
@@ -584,6 +588,34 @@ select option {
 .records-list {
   display:grid;
   gap:9px;
+}
+
+.admin-tabs {
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:8px;
+  margin:14px 0 12px;
+}
+
+.admin-tab {
+  min-height:40px;
+  border:1px solid rgba(201,155,67,.22);
+  border-radius:10px;
+  background:rgba(255,255,255,.035);
+  color:var(--muted);
+  font-weight:800;
+  font-size:13px;
+  cursor:pointer;
+}
+
+.admin-tab.active {
+  color:var(--gold-bright);
+  background:rgba(201,155,67,.12);
+  border-color:rgba(224,184,95,.5);
+}
+
+.admin-panel .section-heading {
+  margin-bottom:10px;
 }
 
 .record-card {
