@@ -20,6 +20,7 @@ let currentProfile = null;
 let representatives = [];
 let myContacts = [];
 let myOrders = [];
+let currentView = "homeView";
 
 // =========================================================
 // OFFICIËLE ARTIKELLIJST
@@ -141,6 +142,13 @@ function bindNavigation() {
           )
       );
     });
+
+  document
+    .getElementById("headerBackButton")
+    ?.addEventListener(
+      "click",
+      handleHeaderBack
+    );
 }
 
 function openView(viewId) {
@@ -159,10 +167,21 @@ function openView(viewId) {
     target.classList.remove("hidden");
   }
 
+  currentView = viewId;
+
   window.scrollTo({
     top:0,
     behavior:"smooth"
   });
+}
+
+function handleHeaderBack() {
+  if (currentView === "homeView") {
+    window.location.href = "../index.html";
+    return;
+  }
+
+  openView("homeView");
 }
 
 // =========================================================
