@@ -22,7 +22,7 @@ let myContacts = [];
 let myOrders = [];
 let currentView = "homeView";
 
-const ADMIN_ROLES = ["admin", "verantwoordelijke", "commercieel_directeur", "boekhoudster"];
+const ADMIN_ROLES = ["commercieel_directeur", "boekhoudster"];
 let isAdminUser = false;
 let adminContacts = [];
 let adminOrders = [];
@@ -58,7 +58,21 @@ const BEURS_PRODUCTS = [
   { id:67, article_number:"000054", barcode:"", name:"Achel Gallant Grand Cru Special 6 x 75cl carton", display_name:"Achel Gallant Grand Cru Special 6 × 75cl", category:"doos75" },
   { id:8395, article_number:"000169", barcode:"", name:"Achel Quadrupel Dark 6 x 75cl carton", display_name:"Achel Quadrupel Dark 6 × 75cl", category:"doos75" },
   { id:8394, article_number:"000168", barcode:"", name:"Achel Quadrupel Gold 6 x 75cl carton", display_name:"Achel Quadrupel Gold 6 × 75cl", category:"doos75" },
-  { id:65, article_number:"000052", barcode:"", name:"Achel Superior Winter 6 x 75cl carton", display_name:"Achel Superior Winter 6 × 75cl", category:"doos75" }
+  { id:65, article_number:"000052", barcode:"", name:"Achel Superior Winter 6 x 75cl carton", display_name:"Achel Superior Winter 6 × 75cl", category:"doos75" },
+
+  { id:14340, article_number:"000243", barcode:"5425007659368", name:"Achel Tripel Clip 4 x 33cl", display_name:"Achel Tripel Clip 4 × 33cl", category:"clip4" },
+  { id:14339, article_number:"000242", barcode:"5425007659375", name:"Achel Dubbel Clip 4 x 33cl", display_name:"Achel Dubbel Clip 4 × 33cl", category:"clip4" },
+  { id:14342, article_number:"000245", barcode:"5425007659382", name:"Achel Singel Blond Clip 4 x 33cl", display_name:"Achel Singel Blond Clip 4 × 33cl", category:"clip4" },
+  { id:14341, article_number:"000244", barcode:"5425007659399", name:"Achel Rouge Légère Clip 4 x 33cl", display_name:"Achel Rouge Légère Clip 4 × 33cl", category:"clip4" },
+  { id:14343, article_number:"000246", barcode:"5425007659764", name:"Achel Quadrupel Dark Clip 4 x 33cl", display_name:"Achel Quadrupel Dark Clip 4 × 33cl", category:"clip4" },
+  { id:14344, article_number:"000247", barcode:"5425007659771", name:"Achel Quadrupel Gold Clip 4 x 33cl", display_name:"Achel Quadrupel Gold Clip 4 × 33cl", category:"clip4" },
+  { id:14346, article_number:"000249", barcode:"5425007659788", name:"Achel Witbier Clip 4 x 33cl", display_name:"Achel Witbier Clip 4 × 33cl", category:"clip4" },
+  { id:14345, article_number:"000248", barcode:"5425007659795", name:"Achel Gallant Grand Cru Special Clip 4 x 33cl", display_name:"Achel Gallant Grand Cru Special Clip 4 × 33cl", category:"clip4" },
+  { id:14349, article_number:"000252", barcode:"5425007659801", name:"Achel Quartet Clip 4 x 33cl (Tripel, Dubbel, Singel, Rouge)", display_name:"Achel Quartet Clip 4 × 33cl", category:"clip4" },
+  { id:14353, article_number:"000254", barcode:"5425007659818", name:"Achel Mix DT Clip 4 x 33cl (2x Tripel, 2x Dubbel)", display_name:"Achel Mix DT Clip 4 × 33cl", category:"clip4" },
+  { id:14352, article_number:"000253", barcode:"5425007659825", name:"Achel OerQuartet Clip 4 x 33cl (Tripel, Dubbel, Qua Dark, Qua Gold)", display_name:"Achel OerQuartet Clip 4 × 33cl", category:"clip4" },
+  { id:14347, article_number:"000250", barcode:"5425007659832", name:"Achel Winter Clip 4 x 33cl", display_name:"Achel Winter Clip 4 × 33cl", category:"clip4" },
+  { id:14348, article_number:"000251", barcode:"5425007659849", name:"Achel Mix Q Clip 4 x 33cl (Quadrupel Gold + Quadrupel Dark)", display_name:"Achel Mix Q Clip 4 × 33cl", category:"clip4" }
 ];
 
 const INTEREST_BEERS = [
@@ -391,6 +405,10 @@ function renderProducts() {
     doos75:
       document.getElementById(
         "products-doos75"
+      ),
+    clip4:
+      document.getElementById(
+        "products-clip4"
       )
   };
 
@@ -564,7 +582,8 @@ function updateOrderSummary() {
   const counts = {
     vat20:0,
     krat24:0,
-    doos75:0
+    doos75:0,
+    clip4:0
   };
 
   items.forEach(item => {
@@ -585,6 +604,11 @@ function updateOrderSummary() {
   setText(
     "count-doos75",
     counts.doos75
+  );
+
+  setText(
+    "count-clip4",
+    counts.clip4
   );
 
   const summary =
@@ -1620,7 +1644,8 @@ function categoryLabel(value) {
   const labels = {
     vat20:"Vat 20L",
     krat24:"Krat 24 x 33cl",
-    doos75:"Doos 6 x 75cl"
+    doos75:"Doos 6 x 75cl",
+    clip4:"Clip 4 x 33cl"
   };
 
   return labels[value] || value || "";
