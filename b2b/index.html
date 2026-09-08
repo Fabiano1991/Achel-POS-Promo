@@ -3,8 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#15110e">
+  <meta name="theme-color" content="#182019">
+  <meta name="color-scheme" content="dark">
   <title>Achel B2B</title>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
   <link rel="stylesheet" href="./b2b.css">
 </head>
 <body>
@@ -18,7 +20,7 @@
         </div>
       </div>
       <div class="b2b-header-brand" aria-hidden="true">
-        <img src="../achel-glas.png" alt="" class="b2b-header-glass">
+        <img src="../achel-glas.png" alt="" class="b2b-header-glass" width="44" height="57">
       </div>
     </header>
 
@@ -78,20 +80,6 @@
           <span class="b2b-nav-arrow">›</span>
         </a>
 
-        <a href="./mijn-inschrijvingen.html" class="b2b-nav-row">
-          <span class="b2b-nav-icon" aria-hidden="true">
-            <svg viewBox="0 0 24 24">
-              <circle cx="12" cy="8" r="4"></circle>
-              <path d="M4.5 21c.7-4.5 3.2-7 7.5-7s6.8 2.5 7.5 7"></path>
-            </svg>
-          </span>
-          <span class="b2b-nav-copy">
-            <strong>Mijn inschrijvingen</strong>
-            <small>Bekijk en wijzig bestaande inschrijvingen</small>
-          </span>
-          <span class="b2b-nav-arrow">›</span>
-        </a>
-
         <a href="./opvolging.html" class="b2b-nav-row">
           <span class="b2b-nav-icon" aria-hidden="true">
             <svg viewBox="0 0 24 24">
@@ -124,7 +112,7 @@
     </main>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="./b2b.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script defer src="./b2b.js"></script>
 </body>
 </html>
