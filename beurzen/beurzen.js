@@ -1147,6 +1147,19 @@ function updateCounters() {
         )
     ).length
   );
+
+  const hint =
+    document.getElementById(
+      "statsEmptyHint"
+    );
+
+  if (hint) {
+    hint.classList.toggle(
+      "hidden",
+      myContacts.length > 0 ||
+        myOrders.length > 0
+    );
+  }
 }
 
 // =========================================================
