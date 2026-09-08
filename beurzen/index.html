@@ -52,17 +52,19 @@
     </button>
   </section>
 
+  <div id="statsEmptyHint" class="quick-hint hidden">
+    Nog geen activiteit. Begin met een beurscontact of bestelling hieronder.
+  </div>
+
   <section class="action-grid">
     <button class="action-card primary-action" type="button" data-view-target="contactFormView">
-      <span class="action-kicker">Nieuw</span>
       <strong>Beurscontact</strong>
-      <small>Registreer prospect of bestaande klant</small>
+      <small>Prospect of klant registreren</small>
     </button>
 
     <button class="action-card" type="button" data-view-target="orderFormView">
-      <span class="action-kicker">Nieuw</span>
       <strong>Bestelling</strong>
-      <small>Bestelling rechtstreeks op de beurs</small>
+      <small>Rechtstreeks op de beurs</small>
     </button>
 
     <button class="action-card admin-action hidden" type="button" id="adminActionCard" data-view-target="adminView">
@@ -73,19 +75,10 @@
   </section>
 
   <section id="homeView" class="view-section">
-    <div class="section-card">
-      <div class="section-heading">
-        <div>
-          <span class="eyebrow">Overzicht</span>
-          <h2>Snelle registratie</h2>
-        </div>
-      </div>
-
-      <p class="muted">
-        Contacten en bestellingen worden automatisch gekoppeld aan de ingelogde gebruiker
-        en kunnen toegewezen worden aan een andere vertegenwoordiger.
-      </p>
-    </div>
+    <p class="footnote">
+      Contacten en bestellingen worden automatisch gekoppeld aan de ingelogde gebruiker
+      en kunnen toegewezen worden aan een andere vertegenwoordiger.
+    </p>
   </section>
 
   <!-- CONTACTFORMULIER -->
