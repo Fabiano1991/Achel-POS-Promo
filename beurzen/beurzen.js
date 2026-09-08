@@ -688,7 +688,7 @@ function bindForms() {
     )
     ?.addEventListener(
       "click",
-      exportContactsCsv
+      () => exportContactsCsv()
     );
 
   document
@@ -697,7 +697,7 @@ function bindForms() {
     )
     ?.addEventListener(
       "click",
-      exportOrdersCsv
+      () => exportOrdersCsv()
     );
 }
 
