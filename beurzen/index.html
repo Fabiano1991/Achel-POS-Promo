@@ -64,6 +64,12 @@
       <strong>Bestelling</strong>
       <small>Bestelling rechtstreeks op de beurs</small>
     </button>
+
+    <button class="action-card admin-action hidden" type="button" id="adminActionCard" data-view-target="adminView">
+      <span class="action-kicker">Beheer</span>
+      <strong>Alle beurzen-data</strong>
+      <small>Klanten en bestellingen van alle vertegenwoordigers</small>
+    </button>
   </section>
 
   <section id="homeView" class="view-section">
@@ -326,6 +332,47 @@
         </div>
       </div>
       <div id="followupsList" class="records-list"></div>
+    </div>
+  </section>
+
+  <!-- BEHEER (enkel commercieel directeur / boekhoudster) -->
+  <section id="adminView" class="view-section hidden">
+    <button class="top-back" type="button" data-view-target="homeView">← Terug</button>
+    <div class="section-card">
+      <div class="section-heading">
+        <div>
+          <span class="eyebrow">Beheer</span>
+          <h2>Alle beurzen-data</h2>
+        </div>
+      </div>
+
+      <div class="field full">
+        <label for="adminRepFilter">Vertegenwoordiger</label>
+        <select id="adminRepFilter">
+          <option value="all">Alle vertegenwoordigers</option>
+        </select>
+      </div>
+
+      <div class="admin-tabs">
+        <button class="admin-tab active" type="button" data-admin-tab="adminContactsPanel">Contacten</button>
+        <button class="admin-tab" type="button" data-admin-tab="adminOrdersPanel">Bestellingen</button>
+      </div>
+
+      <div id="adminContactsPanel" class="admin-panel">
+        <div class="section-heading">
+          <span class="muted" id="adminContactsCount"></span>
+          <button class="small-button" type="button" id="exportAdminContactsButton">CSV export</button>
+        </div>
+        <div id="adminContactsList" class="records-list"></div>
+      </div>
+
+      <div id="adminOrdersPanel" class="admin-panel hidden">
+        <div class="section-heading">
+          <span class="muted" id="adminOrdersCount"></span>
+          <button class="small-button" type="button" id="exportAdminOrdersButton">CSV export</button>
+        </div>
+        <div id="adminOrdersList" class="records-list"></div>
+      </div>
     </div>
   </section>
 
