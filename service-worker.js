@@ -1,104 +1,66 @@
-const CACHE_NAME =
-  "achel-pos-cache";
+// Verhoog deze versie bij elke release waarin gecachete bestanden wijzigen
+// (bv. na het vervangen van een afbeelding), anders houden geïnstalleerde
+// PWA's de oude versie vast.
+const CACHE_VERSION = "v2";
+const CACHE_NAME = `achel-pos-cache-${CACHE_VERSION}`;
 
-
-const STATIC_FILES = [
-
+// Kleine, essentiële bestanden: moeten allemaal succesvol gecachet worden
+// voordat de installatie als geslaagd geldt. Houd deze lijst klein en licht -
+// als één bestand hier faalt, faalt de hele installatie.
+const CORE_FILES = [
   "./",
-
   "./index.html",
-
   "./manifest.json",
-
   "./admin.js",
-
   "./wholesale.js",
-
-  "./achel-kluis-home.jpg",
-
-  "./achel-logo.png",
-
-  "./achel-header-logo.png",
-
-  "./achel-glas.png",
-
   "./achel-icon-192.png",
-
   "./achel-icon-512.png"
-
 ];
 
+// Grote media: apart en niet-blokkerend cachen (best effort), zodat een
+// trage of mislukte download van één groot bestand de rest niet blokkeert.
+const OPTIONAL_FILES = [
+  "./achel-kluis-home.jpg",
+  "./achel-logo.png",
+  "./achel-header-logo.png",
+  "./achel-glas.png"
+];
 
 /* ============================================================
    INSTALL
 ============================================================ */
 
-self.addEventListener(
-  "install",
-  event => {
+self.addEventListener("install", (event) => {
+  event.waitUntil(
+    caches.open(CACHE_NAME).then(async (cache) => {
+      await cache.addAll(CORE_FILES);
+      await Promise.allSettled(
+        OPTIONAL_FILES.map((url) => cache.add(url))
+      );
+    })
+  );
 
-    event.waitUntil(
-
-      caches
-        .open(
-          CACHE_NAME
-        )
-        .then(
-          cache =>
-            cache.addAll(
-              STATIC_FILES
-            )
-        )
-
-    );
-
-    self.skipWaiting();
-
-  }
-);
-
+  self.skipWaiting();
+});
 
 /* ============================================================
    ACTIVATE
 ============================================================ */
 
-self.addEventListener(
-  "activate",
-  event => {
-
-    event.waitUntil(
-
-      caches
-        .keys()
-        .then(
-          names =>
-            Promise.all(
-
-              names
-                .filter(
-                  name =>
-                    name !==
-                    CACHE_NAME
-                )
-                .map(
-                  name =>
-                    caches.delete(
-                      name
-                    )
-                )
-
-            )
+self.addEventListener("activate", (event) => {
+  event.waitUntil(
+    caches
+      .keys()
+      .then((names) =>
+        Promise.all(
+          names
+            .filter((name) => name !== CACHE_NAME)
+            .map((name) => caches.delete(name))
         )
-        .then(
-          () =>
-            self.clients.claim()
-        )
-
-    );
-
-  }
-);
-
+      )
+      .then(() => self.clients.claim())
+  );
+});
 
 /* ============================================================
    FETCH
@@ -111,345 +73,147 @@ self.addEventListener(
    onmiddellijk uit cache voor een snelle app.
 ============================================================ */
 
-self.addEventListener(
-  "fetch",
-  event => {
+self.addEventListener("fetch", (event) => {
+  if (event.request.method !== "GET") {
+    return;
+  }
 
-    if (
-      event.request.method !==
-      "GET"
-    ) {
-      return;
-    }
+  const requestUrl = new URL(event.request.url);
+  const isSameOrigin = requestUrl.origin === self.location.origin;
 
-    const requestUrl =
-      new URL(
-        event.request.url
-      );
+  if (!isSameOrigin) {
+    return;
+  }
 
-    const isSameOrigin =
-      requestUrl.origin ===
-      self.location.origin;
+  const pathname = requestUrl.pathname.toLowerCase();
 
-    if (
-      !isSameOrigin
-    ) {
-      return;
-    }
+  const needsFreshVersion =
+    event.request.mode === "navigate" ||
+    event.request.destination === "script" ||
+    event.request.destination === "style" ||
+    pathname.endsWith(".html") ||
+    pathname.endsWith(".js") ||
+    pathname.endsWith(".css") ||
+    pathname.endsWith(".json");
 
-    const pathname =
-      requestUrl.pathname
-        .toLowerCase();
-
-    const needsFreshVersion =
-      event.request.mode ===
-      "navigate"
-      ||
-      event.request.destination ===
-      "script"
-      ||
-      event.request.destination ===
-      "style"
-      ||
-      pathname.endsWith(
-        ".html"
-      )
-      ||
-      pathname.endsWith(
-        ".js"
-      )
-      ||
-      pathname.endsWith(
-        ".css"
-      )
-      ||
-      pathname.endsWith(
-        ".json"
-      );
-
-    if (
-      needsFreshVersion
-    ) {
-
-      event.respondWith(
-
-        fetch(
-          event.request,
-          {
-            cache:
-              "no-store"
-          }
-        )
-          .then(
-            response => {
-
-              if (
-                response &&
-                response.ok
-              ) {
-
-                const copy =
-                  response.clone();
-
-                event.waitUntil(
-                  caches
-                    .open(
-                      CACHE_NAME
-                    )
-                    .then(
-                      cache =>
-                        cache.put(
-                          event.request,
-                          copy
-                        )
-                    )
-                );
-
-              }
-
-              return response;
-
-            }
-          )
-          .catch(
-            async () => {
-
-              const cachedResponse =
-                await caches.match(
-                  event.request
-                );
-
-              if (
-                cachedResponse
-              ) {
-                return cachedResponse;
-              }
-
-              if (
-                event.request.mode ===
-                "navigate"
-              ) {
-                return caches.match(
-                  "./index.html"
-                );
-              }
-
-              throw new Error(
-                "Bestand niet beschikbaar."
-              );
-
-            }
-          )
-
-      );
-
-      return;
-
-    }
-
+  if (needsFreshVersion) {
     event.respondWith(
+      fetch(event.request, { cache: "no-store" })
+        .then((response) => {
+          if (response && response.ok) {
+            const copy = response.clone();
 
-      caches
-        .match(
-          event.request
-        )
-        .then(
-          cachedResponse => {
-
-            const networkRequest =
-              fetch(
-                event.request
-              )
-                .then(
-                  response => {
-
-                    if (
-                      response &&
-                      response.ok
-                    ) {
-
-                      const copy =
-                        response.clone();
-
-                      event.waitUntil(
-                        caches
-                          .open(
-                            CACHE_NAME
-                          )
-                          .then(
-                            cache =>
-                              cache.put(
-                                event.request,
-                                copy
-                              )
-                          )
-                      );
-
-                    }
-
-                    return response;
-
-                  }
-                );
-
-            return cachedResponse ||
-              networkRequest;
-
+            event.waitUntil(
+              caches
+                .open(CACHE_NAME)
+                .then((cache) => cache.put(event.request, copy))
+            );
           }
-        )
 
+          return response;
+        })
+        .catch(async () => {
+          const cachedResponse = await caches.match(event.request);
+
+          if (cachedResponse) {
+            return cachedResponse;
+          }
+
+          if (event.request.mode === "navigate") {
+            return caches.match("./index.html");
+          }
+
+          throw new Error("Bestand niet beschikbaar.");
+        })
     );
 
+    return;
   }
-);
 
+  event.respondWith(
+    caches.match(event.request).then((cachedResponse) => {
+      const networkRequest = fetch(event.request).then((response) => {
+        if (response && response.ok) {
+          const copy = response.clone();
+
+          event.waitUntil(
+            caches
+              .open(CACHE_NAME)
+              .then((cache) => cache.put(event.request, copy))
+          );
+        }
+
+        return response;
+      });
+
+      return cachedResponse || networkRequest;
+    })
+  );
+});
 
 /* ============================================================
    PUSH BERICHT ONTVANGEN
 ============================================================ */
 
-self.addEventListener(
-  "push",
-  event => {
+self.addEventListener("push", (event) => {
+  let payload = {
+    title: "Achel POS",
+    body: "Je hebt een nieuwe melding.",
+    target_url: "./"
+  };
 
-    let payload = {
-      title:
-        "Achel POS",
-      body:
-        "Je hebt een nieuwe melding.",
-      target_url:
-        "./"
-    };
-
-    if (
-      event.data
-    ) {
-
-      try {
-        payload =
-          event.data.json();
-      }
-      catch (
-        error
-      ) {
-        payload.body =
-          event.data.text();
-      }
-
+  if (event.data) {
+    try {
+      payload = event.data.json();
+    } catch (error) {
+      payload.body = event.data.text();
     }
-
-    const title =
-      payload.title ||
-      "Achel POS";
-
-    const options = {
-
-      body:
-        payload.body ||
-        "",
-
-      icon:
-        "./achel-logo.png",
-
-      badge:
-        "./achel-logo.png",
-
-      data: {
-        target_url:
-          payload.target_url ||
-          "./",
-        order_id:
-          payload.order_id ||
-          null,
-        notification_type:
-          payload.notification_type ||
-          null
-      },
-
-      tag:
-        payload.notification_type &&
-        payload.order_id
-          ? `${payload.notification_type}-${payload.order_id}`
-          : undefined,
-
-      renotify:
-        false
-
-    };
-
-    event.waitUntil(
-      self.registration
-        .showNotification(
-          title,
-          options
-        )
-    );
-
   }
-);
 
+  const title = payload.title || "Achel POS";
+
+  const options = {
+    body: payload.body || "",
+    icon: "./achel-icon-192.png",
+    badge: "./achel-icon-192.png",
+    data: {
+      target_url: payload.target_url || "./",
+      order_id: payload.order_id || null,
+      notification_type: payload.notification_type || null
+    },
+    tag:
+      payload.notification_type && payload.order_id
+        ? `${payload.notification_type}-${payload.order_id}`
+        : undefined,
+    renotify: false
+  };
+
+  event.waitUntil(self.registration.showNotification(title, options));
+});
 
 /* ============================================================
    KLIK OP MELDING
 ============================================================ */
 
-self.addEventListener(
-  "notificationclick",
-  event => {
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
 
-    event.notification.close();
+  const targetUrl = event.notification.data?.target_url || "./";
 
-    const targetUrl =
-      event.notification
-        .data
-        ?.target_url
-      ||
-      "./";
-
-    event.waitUntil(
-
-      clients
-        .matchAll({
-          type:
-            "window",
-          includeUncontrolled:
-            true
-        })
-        .then(
-          windowClients => {
-
-            for (
-              const client
-              of windowClients
-            ) {
-
-              if (
-                "focus"
-                in client
-              ) {
-
-                client.navigate?.(
-                  targetUrl
-                );
-
-                return client.focus();
-
-              }
-
-            }
-
-            if (
-              clients.openWindow
-            ) {
-              return clients.openWindow(
-                targetUrl
-              );
-            }
-
+  event.waitUntil(
+    clients
+      .matchAll({ type: "window", includeUncontrolled: true })
+      .then((windowClients) => {
+        for (const client of windowClients) {
+          if ("focus" in client) {
+            client.navigate?.(targetUrl);
+            return client.focus();
           }
-        )
+        }
 
-    );
-
-  }
-);
+        if (clients.openWindow) {
+          return clients.openWindow(targetUrl);
+        }
+      })
+  );
+});
