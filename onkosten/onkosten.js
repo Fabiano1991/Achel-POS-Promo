@@ -872,9 +872,7 @@ async function exportExpensesToExcel({
     ws.getCell("C5").value = naam;
     ws.getCell("C6").value = kantoor;
     ws.getCell("L4").value = periodeVan;
-    ws.getCell("L4").numFmt = "dd/mm/yyyy";
     ws.getCell("L5").value = periodeTot;
-    ws.getCell("L5").numFmt = "dd/mm/yyyy";
 
     const sorted =
       [...filtered].sort((a, b) =>
@@ -886,7 +884,6 @@ async function exportExpensesToExcel({
 
       ws.getCell(`B${row}`).value =
         new Date(expense.expense_date);
-      ws.getCell(`B${row}`).numFmt = "dd/mm/yyyy";
 
       ws.getCell(`C${row}`).value = expense.supplier || "";
       ws.getCell(`D${row}`).value = expense.description || "";
