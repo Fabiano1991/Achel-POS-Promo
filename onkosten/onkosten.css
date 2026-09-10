@@ -1,0 +1,59 @@
+.receipt-upload {
+  margin-bottom:16px;
+}
+
+.receipt-input {
+  position:absolute;
+  width:1px;
+  height:1px;
+  opacity:0;
+  overflow:hidden;
+}
+
+.receipt-upload-label {
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  min-height:52px;
+  padding:12px;
+  border:1px dashed rgba(201,155,67,.35);
+  border-radius:13px;
+  background:rgba(255,255,255,.03);
+  color:var(--gold-bright);
+  font-weight:800;
+  font-size:13px;
+  text-align:center;
+  cursor:pointer;
+}
+
+.receipt-preview {
+  display:block;
+  width:100%;
+  max-height:220px;
+  object-fit:contain;
+  margin-top:10px;
+  border-radius:13px;
+  border:1px solid var(--line);
+  background:rgba(0,0,0,.2);
+}
+
+.ocr-status {
+  margin-top:10px;
+  padding:9px 12px;
+  border-radius:10px;
+  font-size:12px;
+  line-height:1.5;
+  background:rgba(201,155,67,.08);
+  border:1px solid rgba(201,155,67,.20);
+  color:var(--muted);
+}
+
+.ocr-status.ocr-error {
+  background:rgba(165,73,73,.10);
+  border-color:rgba(233,160,160,.18);
+  color:var(--danger);
+}
+
+.ocr-status.ocr-success {
+  color:var(--success);
+}
