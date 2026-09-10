@@ -17,7 +17,7 @@ const supabaseClient =
 
 // Gratis OCR.space API-key: maak er zelf een aan (30 sec, geen creditcard)
 // via https://ocr.space/ocrapi/freekey en vul hem hieronder in.
-const OCR_SPACE_API_KEY = "PLAK_HIER_JE_GRATIS_OCR_SPACE_KEY";
+const OCR_SPACE_API_KEY = "K89223258088957";
 
 const CATEGORY_COLUMNS = {
   restaurant: "E",
