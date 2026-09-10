@@ -17,7 +17,7 @@ const supabaseClient =
 
 // Gratis OCR.space API-key: maak er zelf een aan (30 sec, geen creditcard)
 // via https://ocr.space/ocrapi/freekey en vul hem hieronder in.
-const OCR_SPACE_API_KEY = "K89223258088957";
+const OCR_SPACE_API_KEY = "PLAK_HIER_JE_GRATIS_OCR_SPACE_KEY";
 
 const CATEGORY_COLUMNS = {
   restaurant: "E",
@@ -825,20 +825,49 @@ async function exportExpensesToExcel({
   const periodeVan = new Date(fromValue);
   const periodeTot = new Date(toValue);
 
+  let templateBuffer;
+
   try {
     const response =
       await fetch("./onkosten-template.xlsx");
 
     if (!response.ok) {
-      throw new Error("Kon sjabloon niet laden.");
+      alert(
+        `Het sjabloon 'onkosten-template.xlsx' werd niet gevonden (fout ${response.status}). ` +
+        `Controleer of dat bestand in dezelfde map staat als index.html en onkosten.js.`
+      );
+      return;
     }
 
-    const templateBuffer = await response.arrayBuffer();
+    templateBuffer = await response.arrayBuffer();
 
+    if (!templateBuffer || templateBuffer.byteLength < 1000) {
+      alert(
+        "Het geladen sjabloon lijkt leeg of beschadigd. Controleer of " +
+        "onkosten-template.xlsx correct is geüpload (niet als tekstbestand)."
+      );
+      return;
+    }
+  }
+  catch (error) {
+    console.error("SJABLOON LAADFOUT:", error);
+    alert("Kon het sjabloon niet laden. Controleer je internetverbinding en probeer opnieuw.");
+    return;
+  }
+
+  try {
     const workbook = new ExcelJS.Workbook();
     await workbook.xlsx.load(templateBuffer);
 
     const ws = workbook.getWorksheet("Onkostendeclaratie");
+
+    if (!ws) {
+      alert(
+        "Het sjabloon werd geladen, maar het tabblad 'Onkostendeclaratie' werd niet " +
+        "gevonden. Is dit wel het juiste bestand?"
+      );
+      return;
+    }
 
     ws.getCell("C5").value = naam;
     ws.getCell("C6").value = kantoor;
