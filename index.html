@@ -4,16 +4,14 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#182019">
-<meta name="color-scheme" content="dark">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Achel POS">
-<meta name="robots" content="noindex, nofollow">
 
 <title>Achel POS</title>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script defer src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
   
@@ -22,7 +20,6 @@
 <style>
 
 :root {
-  color-scheme: dark;
   --bg:#f4f3ef;
   --surface:#ffffff;
   --surface-soft:#f8f7f3;
@@ -1955,7 +1952,6 @@ textarea {
    DONKERE APP ACHTERGROND
 ============================================================ */
 
-html,
 body {
   background:
     radial-gradient(
@@ -3508,6 +3504,14 @@ Beurzen
 </button>
 
 <button
+  class="menu-item"
+  type="button"
+  onclick="window.location.href='./onkosten/index.html'"
+>
+Onkosten
+</button>
+
+<button
   id="menuAdmin"
   class="menu-item hidden"
   type="button"
@@ -3586,9 +3590,9 @@ Laden...
 
 <div class="card login-card">
 
-<h2>
+<h1>
 Welkom bij Achel POS
-</h2>
+</h1>
 
 
 <p>
