@@ -17,7 +17,7 @@ const supabaseClient =
 
 // Gratis OCR.space API-key: maak er zelf een aan (30 sec, geen creditcard)
 // via https://ocr.space/ocrapi/freekey en vul hem hieronder in.
-const OCR_SPACE_API_KEY = "K89223258088957";
+const OCR_SPACE_API_KEY = "PLAK_HIER_JE_GRATIS_OCR_SPACE_KEY";
 
 const CATEGORY_COLUMNS = {
   restaurant: "E",
@@ -310,12 +310,14 @@ async function runReceiptOcr(file) {
   setOcrStatus("Bonnetje wordt gelezen...", "");
 
   try {
+    const compressedBlob = await compressImageForOcr(file);
+
     const formData = new FormData();
     formData.append("apikey", OCR_SPACE_API_KEY);
     formData.append("language", "dut");
     formData.append("OCREngine", "2");
     formData.append("scale", "true");
-    formData.append("file", file, file.name || "bonnetje.jpg");
+    formData.append("file", compressedBlob, "bonnetje.jpg");
 
     const response = await fetch(
       "https://api.ocr.space/parse/image",
@@ -364,6 +366,64 @@ async function runReceiptOcr(file) {
       "error"
     );
   }
+}
+
+function compressImageForOcr(file) {
+  const MAX_DIMENSION = 1600;
+  const MAX_BYTES = 950 * 1024; // veiligheidsmarge onder de 1MB-limiet
+
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const objectUrl = URL.createObjectURL(file);
+
+    img.onload = () => {
+      URL.revokeObjectURL(objectUrl);
+
+      let { width, height } = img;
+
+      if (width > MAX_DIMENSION || height > MAX_DIMENSION) {
+        const scale = MAX_DIMENSION / Math.max(width, height);
+        width = Math.round(width * scale);
+        height = Math.round(height * scale);
+      }
+
+      const canvas = document.createElement("canvas");
+      canvas.width = width;
+      canvas.height = height;
+
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(img, 0, 0, width, height);
+
+      const tryQuality = quality => {
+        canvas.toBlob(
+          blob => {
+            if (!blob) {
+              reject(new Error("Kon foto niet verwerken."));
+              return;
+            }
+
+            if (blob.size > MAX_BYTES && quality > 0.3) {
+              tryQuality(quality - 0.15);
+              return;
+            }
+
+            resolve(blob);
+          },
+          "image/jpeg",
+          quality
+        );
+      };
+
+      tryQuality(0.8);
+    };
+
+    img.onerror = () => {
+      URL.revokeObjectURL(objectUrl);
+      reject(new Error("Kon foto niet inladen."));
+    };
+
+    img.src = objectUrl;
+  });
 }
 
 function setOcrStatus(message, type) {
