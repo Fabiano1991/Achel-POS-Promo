@@ -72,7 +72,9 @@ const BEURS_PRODUCTS = [
   { id:14353, article_number:"000254", barcode:"5425007659818", name:"Achel Mix DT Clip 4 x 33cl (2x Tripel, 2x Dubbel)", display_name:"Achel Mix DT Clip 4 × 33cl", category:"clip4" },
   { id:14352, article_number:"000253", barcode:"5425007659825", name:"Achel OerQuartet Clip 4 x 33cl (Tripel, Dubbel, Qua Dark, Qua Gold)", display_name:"Achel OerQuartet Clip 4 × 33cl", category:"clip4" },
   { id:14347, article_number:"000250", barcode:"5425007659832", name:"Achel Winter Clip 4 x 33cl", display_name:"Achel Winter Clip 4 × 33cl", category:"clip4" },
-  { id:14348, article_number:"000251", barcode:"5425007659849", name:"Achel Mix Q Clip 4 x 33cl (Quadrupel Gold + Quadrupel Dark)", display_name:"Achel Mix Q Clip 4 × 33cl", category:"clip4" }
+  { id:14348, article_number:"000251", barcode:"5425007659849", name:"Achel Mix Q Clip 4 x 33cl (Quadrupel Gold + Quadrupel Dark)", display_name:"Achel Mix Q Clip 4 × 33cl", category:"clip4" },
+
+  { id:73, article_number:"000060", barcode:"", name:"Achel GVP 5 x (4 x 33cl + glas)", display_name:"Achel GVP 5 × (4 × 33cl + glas)", category:"gvp" }
 ];
 
 const INTEREST_BEERS = [
@@ -409,6 +411,10 @@ function renderProducts() {
     clip4:
       document.getElementById(
         "products-clip4"
+      ),
+    gvp:
+      document.getElementById(
+        "products-gvp"
       )
   };
 
@@ -583,7 +589,8 @@ function updateOrderSummary() {
     vat20:0,
     krat24:0,
     doos75:0,
-    clip4:0
+    clip4:0,
+    gvp:0
   };
 
   items.forEach(item => {
@@ -609,6 +616,11 @@ function updateOrderSummary() {
   setText(
     "count-clip4",
     counts.clip4
+  );
+
+  setText(
+    "count-gvp",
+    counts.gvp
   );
 
   const summary =
@@ -1658,7 +1670,8 @@ function categoryLabel(value) {
     vat20:"Vat 20L",
     krat24:"Krat 24 x 33cl",
     doos75:"Doos 6 x 75cl",
-    clip4:"Clip 4 x 33cl"
+    clip4:"Clip 4 x 33cl",
+    gvp:"GVP"
   };
 
   return labels[value] || value || "";
