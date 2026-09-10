@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#0d110d">
+  <title>Achel | Onkosten</title>
+
+  <link rel="stylesheet" href="../beurzen/beurzen.css">
+  <link rel="stylesheet" href="./onkosten.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
+</head>
+
+<body>
+
+<header class="app-header">
+  <button class="back-button" type="button" id="headerBackButton">
+    ←
+  </button>
+
+  <div class="header-title">
+    <img src="../achel-header-logo.png" alt="Achel" class="header-logo">
+  </div>
+
+  <div class="header-spacer"></div>
+</header>
+
+<main class="beurs-shell">
+
+  <section class="hero-card">
+    <div>
+      <span class="eyebrow">Achelse Kluis</span>
+      <h1>Onkosten</h1>
+      <p id="welcomeText">Onkosten registreren en exporteren.</p>
+    </div>
+    <div class="hero-badge">€</div>
+  </section>
+
+  <section class="stats-grid">
+    <button class="stat-card" type="button" data-view-target="expensesView">
+      <span>Deze maand</span>
+      <strong id="monthCount">0</strong>
+    </button>
+
+    <button class="stat-card" type="button" data-view-target="expensesView">
+      <span>Totaal bedrag</span>
+      <strong id="monthTotal">€0</strong>
+    </button>
+  </section>
+
+  <div id="expensesEmptyHint" class="quick-hint hidden">
+    Nog geen onkosten deze maand. Begin met een nieuwe onkost hieronder.
+  </div>
+
+  <section class="action-grid">
+    <button class="action-card primary-action" type="button" data-view-target="expenseFormView">
+      <strong>Nieuwe onkost</strong>
+      <small>Bonnetje scannen of invoeren</small>
+    </button>
+
+    <button class="action-card" type="button" data-view-target="expensesView">
+      <strong>Mijn onkosten</strong>
+      <small>Overzicht en export</small>
+    </button>
+
+    <button class="action-card admin-action hidden" type="button" id="adminActionCard" data-view-target="adminView">
+      <span class="action-kicker">Beheer</span>
+      <strong>Alle onkosten</strong>
+      <small>Van alle vertegenwoordigers</small>
+    </button>
+  </section>
+
+  <section id="homeView" class="view-section">
+    <p class="footnote">
+      Onkosten worden gekoppeld aan de ingelogde gebruiker en kunnen per maand geëxporteerd
+      worden naar de onkostennota-Excel.
+    </p>
+  </section>
+
+  <!-- NIEUWE ONKOST -->
+  <section id="expenseFormView" class="view-section hidden">
+    <button class="top-back" type="button" data-view-target="homeView">← Terug</button>
+
+    <div class="section-card">
+      <div class="section-heading">
+        <div>
+          <span class="eyebrow">Onkosten</span>
+          <h2>Nieuwe onkost</h2>
+        </div>
+      </div>
+
+      <div class="receipt-upload">
+        <label for="receiptInput" class="receipt-upload-label">
+          <span id="receiptUploadText">📷 Bonnetje toevoegen (camera of foto)</span>
+        </label>
+        <input id="receiptInput" type="file" accept="image/*" capture="environment" class="receipt-input">
+
+        <img id="receiptPreview" class="receipt-preview hidden" alt="Bonnetje voorbeeld">
+
+        <div id="ocrStatus" class="ocr-status hidden"></div>
+      </div>
+
+      <form id="expenseForm" novalidate>
+        <div class="form-grid">
+
+          <div class="field">
+            <label for="expenseRepresentative">Vertegenwoordiger</label>
+            <select id="expenseRepresentative" name="representative_id" required>
+              <option value="">Vertegenwoordigers laden...</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="expenseDate">Datum</label>
+            <input id="expenseDate" name="expense_date" type="date" required>
+          </div>
+
+          <div class="field full">
+            <label for="expenseSupplier">Leverancier / zaak</label>
+            <input id="expenseSupplier" name="supplier" type="text" placeholder="Bijv. Café De Kroon" required>
+          </div>
+
+          <div class="field full">
+            <label for="expenseDescription">Beschrijving</label>
+            <input id="expenseDescription" name="description" type="text" placeholder="Bijv. consumptie, tanken...">
+          </div>
+
+          <div class="field">
+            <label for="expenseCategory">Categorie</label>
+            <select id="expenseCategory" name="category" required>
+              <option value="restaurant">Restaurant</option>
+              <option value="hotel">Hotel</option>
+              <option value="vervoer">Vervoer</option>
+              <option value="brandstof">Brandstof</option>
+              <option value="parking">Parking</option>
+              <option value="maaltijd" selected>Maaltijd</option>
+              <option value="overige">Overige</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="expenseAmount">Bedrag (€)</label>
+            <input id="expenseAmount" name="amount" type="number" step="0.01" min="0" required>
+          </div>
+
+        </div>
+
+        <button id="saveExpenseButton" class="submit-button" type="submit">
+          Onkost opslaan
+        </button>
+
+        <div id="expenseMessage" class="form-message hidden"></div>
+      </form>
+    </div>
+  </section>
+
+  <!-- MIJN ONKOSTEN -->
+  <section id="expensesView" class="view-section hidden">
+    <button class="top-back" type="button" data-view-target="homeView">← Terug</button>
+    <div class="section-card">
+      <div class="section-heading">
+        <div>
+          <span class="eyebrow">Onkosten</span>
+          <h2>Mijn onkosten</h2>
+        </div>
+      </div>
+
+      <div class="form-grid">
+        <div class="field">
+          <label for="exportFrom">Van</label>
+          <input id="exportFrom" type="date">
+        </div>
+        <div class="field">
+          <label for="exportTo">T/m</label>
+          <input id="exportTo" type="date">
+        </div>
+        <div class="field full">
+          <label for="exportKantoor">Kantoor</label>
+          <input id="exportKantoor" type="text" placeholder="Bijv. GEEL">
+        </div>
+      </div>
+
+      <button class="small-button" type="button" id="exportExpensesButton">Excel export (huidige template)</button>
+
+      <div id="expensesList" class="records-list"></div>
+    </div>
+  </section>
+
+  <!-- BEHEER -->
+  <section id="adminView" class="view-section hidden">
+    <button class="top-back" type="button" data-view-target="homeView">← Terug</button>
+    <div class="section-card">
+      <div class="section-heading">
+        <div>
+          <span class="eyebrow">Beheer</span>
+          <h2>Alle onkosten</h2>
+        </div>
+      </div>
+
+      <div class="field full">
+        <label for="adminRepFilter">Vertegenwoordiger</label>
+        <select id="adminRepFilter">
+          <option value="all">Alle vertegenwoordigers</option>
+        </select>
+      </div>
+
+      <div class="form-grid">
+        <div class="field">
+          <label for="adminExportFrom">Van</label>
+          <input id="adminExportFrom" type="date">
+        </div>
+        <div class="field">
+          <label for="adminExportTo">T/m</label>
+          <input id="adminExportTo" type="date">
+        </div>
+        <div class="field full">
+          <label for="adminExportKantoor">Kantoor</label>
+          <input id="adminExportKantoor" type="text" placeholder="Bijv. GEEL">
+        </div>
+      </div>
+
+      <button class="small-button" type="button" id="exportAdminExpensesButton">Excel export (huidige template)</button>
+
+      <div id="adminExpensesList" class="records-list"></div>
+    </div>
+  </section>
+
+</main>
+
+<script src="./onkosten.js"></script>
+</body>
+</html>
