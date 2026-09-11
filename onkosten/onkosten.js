@@ -17,7 +17,7 @@ const supabaseClient =
 
 // Gratis OCR.space API-key: maak er zelf een aan (30 sec, geen creditcard)
 // via https://ocr.space/ocrapi/freekey en vul hem hieronder in.
-const OCR_SPACE_API_KEY = "K89223258088957";
+const OCR_SPACE_API_KEY = "PLAK_HIER_JE_GRATIS_OCR_SPACE_KEY";
 
 const CATEGORY_COLUMNS = {
   restaurant: "E",
@@ -39,13 +39,13 @@ const CATEGORY_LABELS = {
   overige: "Overige"
 };
 
-// Template-rijen (zie onkosten-template.xlsx)
+// Template-rijen (zie onkosten-template.xlsx — origineel, ongewijzigd bestand)
 const DATA_START_ROW = 9;
-const DATA_END_ROW = 48;      // 40 regels beschikbaar per export
-const SUM_ROW = 49;
-const SUBTOTAL_ROW = 50;
-const APPROVED_ROW = 51;
-const TOTAL_ROW = 52;
+const DATA_END_ROW = 27;      // 19 regels beschikbaar per export
+const SUM_ROW = 28;
+const SUBTOTAL_ROW = 29;
+const APPROVED_ROW = 30;
+const TOTAL_ROW = 31;
 
 const ADMIN_ROLES = ["admin", "verantwoordelijke", "commercieel_directeur", "boekhoudster"];
 
@@ -822,9 +822,6 @@ async function exportExpensesToExcel({
           ""
         );
 
-  const periodeVan = new Date(fromValue);
-  const periodeTot = new Date(toValue);
-
   let templateBuffer;
 
   try {
@@ -856,23 +853,24 @@ async function exportExpensesToExcel({
   }
 
   try {
-    const workbook = new ExcelJS.Workbook();
-    await workbook.xlsx.load(templateBuffer);
+    const zip = await JSZip.loadAsync(templateBuffer);
+    const sheetPath = "xl/worksheets/sheet1.xml";
+    const sheetFile = zip.file(sheetPath);
 
-    const ws = workbook.getWorksheet("Onkostendeclaratie");
-
-    if (!ws) {
+    if (!sheetFile) {
       alert(
-        "Het sjabloon werd geladen, maar het tabblad 'Onkostendeclaratie' werd niet " +
-        "gevonden. Is dit wel het juiste bestand?"
+        "Het sjabloon werd geladen, maar het werkblad werd niet gevonden. " +
+        "Is dit wel het juiste bestand?"
       );
       return;
     }
 
-    ws.getCell("C5").value = naam;
-    ws.getCell("C6").value = kantoor;
-    ws.getCell("L4").value = periodeVan;
-    ws.getCell("L5").value = periodeTot;
+    let xml = await sheetFile.async("string");
+
+    xml = setInlineStringCell(xml, "C5", naam);
+    xml = setInlineStringCell(xml, "C6", kantoor);
+    xml = setNumberCell(xml, "L4", toExcelSerial(fromValue));
+    xml = setNumberCell(xml, "L5", toExcelSerial(toValue));
 
     const sorted =
       [...filtered].sort((a, b) =>
@@ -881,31 +879,21 @@ async function exportExpensesToExcel({
 
     sorted.forEach((expense, index) => {
       const row = DATA_START_ROW + index;
+      const amount = Number(expense.amount) || 0;
+      const col = CATEGORY_COLUMNS[expense.category] || "K";
 
-      ws.getCell(`B${row}`).value =
-        new Date(expense.expense_date);
-
-      ws.getCell(`C${row}`).value = expense.supplier || "";
-      ws.getCell(`D${row}`).value = expense.description || "";
-
-      Object.values(CATEGORY_COLUMNS).forEach(col => {
-        ws.getCell(`${col}${row}`).value = null;
-      });
-
-      const col =
-        CATEGORY_COLUMNS[expense.category] || "K";
-
-      ws.getCell(`${col}${row}`).value =
-        Number(expense.amount) || 0;
-
-      ws.getCell(`L${row}`).value = {
-        formula: `SUM(E${row}:K${row})`
-      };
+      xml = setNumberCell(xml, `B${row}`, toExcelSerial(expense.expense_date));
+      xml = setInlineStringCell(xml, `C${row}`, expense.supplier || "");
+      xml = setInlineStringCell(xml, `D${row}`, expense.description || "");
+      xml = setNumberCell(xml, `${col}${row}`, amount);
+      xml = setFormulaCell(xml, `L${row}`, `SUM(E${row}:K${row})`, amount);
     });
 
-    const buffer = await workbook.xlsx.writeBuffer();
-    const blob = new Blob([buffer], {
-      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    zip.file(sheetPath, xml);
+
+    const blob = await zip.generateAsync({
+      type: "blob",
+      mimeType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     });
 
     const link = document.createElement("a");
@@ -919,6 +907,76 @@ async function exportExpensesToExcel({
     console.error("EXPORT FOUT:", error);
     alert("Export mislukt. Probeer opnieuw.");
   }
+}
+
+// ---- chirurgische celbewerking: past enkel de aangeduide cel aan, ----
+// ---- de rest van het bestand blijft volledig ongewijzigd ----
+
+function findCellTag(xml, ref) {
+  const start = xml.indexOf(`<c r="${ref}"`);
+  if (start === -1) {
+    throw new Error(`Cel ${ref} niet gevonden in sjabloon.`);
+  }
+
+  const selfClose = xml.indexOf("/>", start);
+  const openClose = xml.indexOf("</c>", start);
+  const tagOpenEnd = xml.indexOf(">", start);
+
+  let end;
+  if (tagOpenEnd !== -1 && xml[tagOpenEnd - 1] === "/") {
+    end = tagOpenEnd + 1; // zelfsluitend: <c .../>
+  }
+  else {
+    end = openClose + 4; // heeft inhoud: <c ...>...</c>
+  }
+
+  const fullTag = xml.slice(start, end);
+  const styleMatch = fullTag.match(/ s="(\d+)"/);
+  const style = styleMatch ? ` s="${styleMatch[1]}"` : "";
+
+  return { start, end, fullTag, style };
+}
+
+function setNumberCell(xml, ref, number) {
+  const { start, end, style } = findCellTag(xml, ref);
+  const newTag = `<c r="${ref}"${style}><v>${number}</v></c>`;
+  return xml.slice(0, start) + newTag + xml.slice(end);
+}
+
+function setFormulaCell(xml, ref, formula, cachedValue) {
+  const { start, end, style } = findCellTag(xml, ref);
+  const newTag =
+    `<c r="${ref}"${style}><f>${escapeXml(formula)}</f><v>${cachedValue}</v></c>`;
+  return xml.slice(0, start) + newTag + xml.slice(end);
+}
+
+function setInlineStringCell(xml, ref, text) {
+  const { start, end, style } = findCellTag(xml, ref);
+
+  if (!text) {
+    const newTag = `<c r="${ref}"${style}/>`;
+    return xml.slice(0, start) + newTag + xml.slice(end);
+  }
+
+  const newTag =
+    `<c r="${ref}"${style} t="inlineStr"><is><t xml:space="preserve">${escapeXml(text)}</t></is></c>`;
+  return xml.slice(0, start) + newTag + xml.slice(end);
+}
+
+function escapeXml(value) {
+  return String(value)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    // eslint-disable-next-line no-control-regex
+    .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F]/g, "");
+}
+
+function toExcelSerial(dateStr) {
+  const [y, m, d] = dateStr.split("-").map(Number);
+  const utcDate = Date.UTC(y, m - 1, d);
+  const epoch = Date.UTC(1899, 11, 30);
+  return Math.round((utcDate - epoch) / 86400000);
 }
 
 // =========================================================
