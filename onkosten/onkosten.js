@@ -880,13 +880,11 @@ async function exportExpensesToExcel({
     sorted.forEach((expense, index) => {
       const row = DATA_START_ROW + index;
       const amount = Number(expense.amount) || 0;
-      const col = CATEGORY_COLUMNS[expense.category] || "K";
 
       xml = setNumberCell(xml, `B${row}`, toExcelSerial(expense.expense_date));
       xml = setInlineStringCell(xml, `C${row}`, expense.supplier || "");
       xml = setInlineStringCell(xml, `D${row}`, expense.description || "");
-      xml = setNumberCell(xml, `${col}${row}`, amount);
-      xml = setFormulaCell(xml, `L${row}`, `SUM(E${row}:K${row})`, amount);
+      xml = setNumberCell(xml, `L${row}`, amount);
     });
 
     zip.file(sheetPath, xml);
