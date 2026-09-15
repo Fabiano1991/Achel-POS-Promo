@@ -5626,6 +5626,52 @@ const supabaseClient =
 
 
 /* ===============================
+   CENTRALE MAIL (via Outlook/Graph)
+   Vervangt de oude mailto-links.
+   Verstuurt de mail via de Supabase
+   Edge Function "send-order-mail",
+   namens het Achel-adres waarmee de
+   medewerker is ingelogd.
+================================ */
+
+async function verstuurCentraleMail({
+  fromAddress,
+  toAddress,
+  subject,
+  bodyText,
+}) {
+
+  const bodyHtml =
+    `<pre style="font-family: inherit; white-space: pre-wrap;">${
+      bodyText
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+    }</pre>`;
+
+  const { data, error } =
+    await supabaseClient.functions.invoke(
+      "send-order-mail",
+      {
+        body: {
+          fromAddress,
+          toAddress,
+          subject,
+          bodyHtml,
+        },
+      }
+    );
+
+  if (error) {
+    throw error;
+  }
+
+  return data;
+
+}
+
+
+/* ===============================
    QUOTES
 ================================ */
 
@@ -8476,7 +8522,7 @@ function createOrderReference(
    MAIL
 ================================ */
 
-function openCentralEmail(
+async function openCentralEmail(
   orderReference,
   products
 ) {
@@ -8571,28 +8617,27 @@ ${note || "Geen opmerkingen"}
 Deze aanvraag is centraal opgeslagen in Achel POS.`;
 
 
-  setTimeout(
-    () => {
+  try {
 
-      window.location.href =
+    await verstuurCentraleMail({
+      fromAddress: currentUser.email,
+      toAddress: CENTRAL_EMAIL,
+      subject,
+      bodyText: body,
+    });
 
-        `mailto:${CENTRAL_EMAIL}`
+  } catch (err) {
 
-        +
+    console.error(
+      "Versturen van aanvraag-mail mislukt:",
+      err
+    );
 
-        `?subject=${encodeURIComponent(
-          subject
-        )}`
+    alert(
+      "De aanvraag is opgeslagen, maar het automatisch versturen van de mail is mislukt. Contacteer IT indien dit blijft gebeuren."
+    );
 
-        +
-
-        `&body=${encodeURIComponent(
-          body
-        )}`;
-
-    },
-    350
-  );
+  }
 
 }
 
@@ -11392,7 +11437,7 @@ async function submitEventOrder() {
    EVENT MAIL
 ================================ */
 
-function openEventEmail(
+async function openEventEmail(
   orderReference,
   event,
   products
@@ -11489,28 +11534,27 @@ ${event.note || "Geen opmerkingen"}
 Deze evenementaanvraag is centraal opgeslagen in Achel POS.`;
 
 
-  setTimeout(
-    () => {
+  try {
 
-      window.location.href =
+    await verstuurCentraleMail({
+      fromAddress: currentUser.email,
+      toAddress: CENTRAL_EMAIL,
+      subject,
+      bodyText: body,
+    });
 
-        `mailto:${CENTRAL_EMAIL}`
+  } catch (err) {
 
-        +
+    console.error(
+      "Versturen van evenementaanvraag-mail mislukt:",
+      err
+    );
 
-        `?subject=${encodeURIComponent(
-          subject
-        )}`
+    alert(
+      "De aanvraag is opgeslagen, maar het automatisch versturen van de mail is mislukt. Contacteer IT indien dit blijft gebeuren."
+    );
 
-        +
-
-        `&body=${encodeURIComponent(
-          body
-        )}`;
-
-    },
-    350
-  );
+  }
 
 }
 
