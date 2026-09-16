@@ -3564,6 +3564,15 @@ Onkosten
 Beheer
 </button>
 
+<button
+  id="menuToegang"
+  class="menu-item hidden"
+  type="button"
+  onclick="window.location.href='./toegang/index.html'"
+>
+Toegang
+</button>
+
   <div
   style="
     margin-top:10px;
@@ -7026,6 +7035,18 @@ async function startApp() {
     .toggle(
       "hidden",
       !canManage
+    );
+
+
+  document
+    .getElementById(
+      "menuToegang"
+    )
+    ?.classList
+    .toggle(
+      "hidden",
+      currentProfile.rol !==
+      "admin"
     );
 
 
