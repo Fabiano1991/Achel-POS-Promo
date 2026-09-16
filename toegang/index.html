@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#182019">
+<title>Toegang · Achel POS</title>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+
+:root {
+  --achel-night:#0d110d;
+  --achel-deep:#121813;
+  --achel-forest:#182019;
+  --achel-forest-2:#202a22;
+  --achel-gold:#c99b43;
+  --achel-gold-bright:#e0b85f;
+  --achel-line:rgba(201,155,67,.32);
+  --achel-text:#f6f0e3;
+  --achel-muted:rgba(246,240,227,.62);
+  --achel-panel:linear-gradient(145deg,#20271f,#151a15);
+  --achel-shadow:0 12px 30px rgba(0,0,0,.26);
+  --border:#ddd9cf;
+  --red:#a74646;
+  --red-soft:#f8e9e9;
+  --green:#2f7449;
+  --green-soft:#e7f3eb;
+}
+
+* {
+  box-sizing:border-box;
+}
+
+html,
+body {
+  margin:0;
+  min-height:100%;
+  min-height:100dvh;
+  background:#0d110d;
+}
+
+body {
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;
+  background:
+    radial-gradient(circle at 50% 45%,#20271d 0%,#151a14 38%,#0d110d 100%);
+  color:var(--achel-text);
+  -webkit-tap-highlight-color:transparent;
+}
+
+button,
+input,
+select {
+  font:inherit;
+}
+
+button {
+  cursor:pointer;
+}
+
+.hidden {
+  display:none !important;
+}
+
+.wrap {
+  max-width:760px;
+  margin:0 auto;
+  padding:
+    calc(18px + env(safe-area-inset-top))
+    16px
+    36px;
+}
+
+.top-back {
+  display:inline-block;
+  border:1px solid var(--achel-line);
+  background:rgba(18,24,19,.94);
+  color:var(--achel-gold-bright);
+  font-weight:850;
+  padding:8px 12px;
+  margin:0 0 16px;
+  border-radius:11px;
+}
+
+h1 {
+  margin:0 0 6px;
+  font-size:24px;
+  color:#fff;
+}
+
+.subtitle {
+  margin:0 0 20px;
+  color:var(--achel-muted);
+  font-size:13px;
+  line-height:1.5;
+}
+
+.card {
+  background:
+    radial-gradient(circle at 100% 0%,rgba(201,155,67,.08),transparent 31%),
+    var(--achel-panel);
+  border:1px solid var(--achel-line);
+  border-radius:16px;
+  padding:14px;
+  margin-bottom:12px;
+  box-shadow:var(--achel-shadow);
+}
+
+.section-title {
+  margin:0 0 12px;
+  font-size:12px;
+  font-weight:900;
+  letter-spacing:.05em;
+  text-transform:uppercase;
+  color:var(--achel-gold);
+}
+
+.user-row {
+  border:1px solid var(--achel-line);
+  border-radius:13px;
+  padding:11px;
+  margin-bottom:8px;
+  background:rgba(255,255,255,.03);
+}
+
+.user-row strong {
+  display:block;
+  color:#fff;
+  font-size:14px;
+}
+
+.user-row small {
+  display:block;
+  margin-top:2px;
+  color:var(--achel-muted);
+  font-size:11px;
+  word-break:break-word;
+}
+
+.user-row-controls {
+  display:flex;
+  gap:8px;
+  margin-top:10px;
+  flex-wrap:wrap;
+}
+
+select {
+  flex:1;
+  min-width:160px;
+  min-height:40px;
+  border-radius:10px;
+  border:1px solid rgba(201,155,67,.24);
+  background:rgba(255,255,255,.055);
+  color:#fff;
+  padding:0 10px;
+}
+
+select option {
+  background:#182019;
+  color:#fff;
+}
+
+.btn {
+  min-height:40px;
+  padding:0 14px;
+  border-radius:10px;
+  border:0;
+  font-weight:800;
+  font-size:12px;
+}
+
+.btn-primary {
+  background:linear-gradient(180deg,#b98936,#8d6427);
+  color:#fff;
+}
+
+.btn-danger {
+  background:rgba(167,70,70,.18);
+  border:1px solid rgba(199,91,91,.3);
+  color:#e49b9b;
+}
+
+.badge {
+  display:inline-block;
+  margin-top:6px;
+  padding:2px 8px;
+  border-radius:999px;
+  font-size:10px;
+  font-weight:900;
+}
+
+.badge-pending {
+  background:rgba(201,155,67,.14);
+  border:1px solid rgba(201,155,67,.18);
+  color:var(--achel-gold-bright);
+}
+
+.badge-active {
+  background:var(--green-soft);
+  color:var(--green);
+}
+
+.badge-inactive {
+  background:var(--red-soft);
+  color:var(--red);
+}
+
+.empty {
+  text-align:center;
+  color:var(--achel-muted);
+  padding:20px 8px;
+  font-size:13px;
+}
+
+.status-msg {
+  margin-top:10px;
+  padding:10px 11px;
+  border-radius:11px;
+  font-size:12px;
+  line-height:1.4;
+}
+
+.status-msg.error {
+  background:rgba(142,58,58,.20);
+  border:1px solid rgba(190,83,83,.24);
+  color:#eba3a3;
+}
+
+.status-msg.ok {
+  background:rgba(62,126,82,.18);
+  border:1px solid rgba(91,170,116,.22);
+  color:#9bd9ae;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="wrap">
+
+<button class="top-back" type="button" onclick="window.location.href='../index.html'">
+← Terug naar Achel POS
+</button>
+
+<div id="accessDenied" class="card hidden">
+  <h1>Geen toegang</h1>
+  <p class="subtitle">Deze pagina is enkel beschikbaar voor beheerders met de rol "admin".</p>
+</div>
+
+<div id="mainContent" class="hidden">
+
+  <h1>Toegang</h1>
+  <p class="subtitle">Wachtende registraties goedkeuren en rollen toewijzen aan medewerkers.</p>
+
+  <div id="pendingSection" class="card">
+    <div class="section-title">Wacht op goedkeuring</div>
+    <div id="pendingList"></div>
+  </div>
+
+  <div class="card">
+    <div class="section-title">Alle gebruikers</div>
+    <div id="allUsersList"></div>
+  </div>
+
+</div>
+
+<div id="loadingMsg" class="empty">Laden...</div>
+
+</div>
+
+<script>
+
+const SUPABASE_URL =
+  "https://qosjfznmdnswwfnglxqt.supabase.co";
+
+const SUPABASE_KEY =
+  "sb_publishable_pyiiMmH2tpl-lL3e_edcow_4ztJX-Ul";
+
+const ROLES = [
+  { value: "admin", label: "Admin (interne beheerder)" },
+  { value: "boekhoudster", label: "Boekhoudster" },
+  { value: "vertegenwoordiger", label: "Vertegenwoordiger" },
+  { value: "commercieel_directeur", label: "Commercieel directeur" }
+];
+
+const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+function escapeHtml(value) {
+  return String(value ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
+function roleOptionsHtml(selectedRole) {
+  return (
+    `<option value="" ${!selectedRole ? "selected" : ""}>Geen rol (in afwachting)</option>`
+    +
+    ROLES.map(role =>
+      `<option value="${role.value}" ${selectedRole === role.value ? "selected" : ""}>${escapeHtml(role.label)}</option>`
+    ).join("")
+  );
+}
+
+async function loadUsers() {
+
+  const { data, error } = await supabaseClient
+    .from("profiles")
+    .select("id, naam, email, rol, actief")
+    .order("naam", { ascending: true });
+
+  if (error) {
+    document.getElementById("pendingList").innerHTML =
+      `<div class="status-msg error">Gebruikers konden niet worden geladen: ${escapeHtml(error.message)}</div>`;
+    return;
+  }
+
+  const users = data || [];
+
+  renderPending(users.filter(u => !u.rol));
+  renderAllUsers(users);
+
+}
+
+function renderPending(users) {
+
+  const container = document.getElementById("pendingList");
+
+  if (!users.length) {
+    container.innerHTML = `<div class="empty">Geen wachtende accounts.</div>`;
+    return;
+  }
+
+  container.innerHTML = users.map(user => `
+    <div class="user-row" data-user-id="${escapeHtml(user.id)}">
+      <strong>${escapeHtml(user.naam || "Naam onbekend")}</strong>
+      <small>${escapeHtml(user.email || "")}</small>
+      <span class="badge badge-pending">Wacht op goedkeuring</span>
+      <div class="user-row-controls">
+        <select class="role-select">
+          ${roleOptionsHtml(user.rol)}
+        </select>
+        <button class="btn btn-primary" type="button" onclick="approveUser('${escapeHtml(user.id)}', this)">Rol toekennen</button>
+        <button class="btn btn-danger" type="button" onclick="rejectUser('${escapeHtml(user.id)}', this)">Weigeren</button>
+      </div>
+      <div class="row-status"></div>
+    </div>
+  `).join("");
+
+}
+
+function renderAllUsers(users) {
+
+  const container = document.getElementById("allUsersList");
+
+  if (!users.length) {
+    container.innerHTML = `<div class="empty">Geen gebruikers gevonden.</div>`;
+    return;
+  }
+
+  container.innerHTML = users.map(user => `
+    <div class="user-row" data-user-id="${escapeHtml(user.id)}">
+      <strong>${escapeHtml(user.naam || "Naam onbekend")}</strong>
+      <small>${escapeHtml(user.email || "")}</small>
+      <span class="badge ${user.actief ? "badge-active" : "badge-inactive"}">${user.actief ? "Actief" : "Niet actief"}</span>
+      <div class="user-row-controls">
+        <select class="role-select">
+          ${roleOptionsHtml(user.rol)}
+        </select>
+        <button class="btn btn-primary" type="button" onclick="saveUserRole('${escapeHtml(user.id)}', this)">Opslaan</button>
+        <button class="btn btn-danger" type="button" onclick="toggleActive('${escapeHtml(user.id)}', ${user.actief ? "true" : "false"}, this)">
+          ${user.actief ? "Deactiveren" : "Activeren"}
+        </button>
+      </div>
+      <div class="row-status"></div>
+    </div>
+  `).join("");
+
+}
+
+function showRowStatus(button, text, isError) {
+  const row = button.closest(".user-row");
+  const el = row.querySelector(".row-status");
+  el.className = "status-msg " + (isError ? "error" : "ok");
+  el.textContent = text;
+}
+
+async function approveUser(userId, button) {
+
+  const row = button.closest(".user-row");
+  const role = row.querySelector(".role-select").value;
+
+  if (!role) {
+    showRowStatus(button, "Kies eerst een rol.", true);
+    return;
+  }
+
+  const { error } = await supabaseClient
+    .from("profiles")
+    .update({ rol: role })
+    .eq("id", userId);
+
+  if (error) {
+    showRowStatus(button, "Mislukt: " + error.message, true);
+    return;
+  }
+
+  showRowStatus(button, "Rol toegekend.", false);
+
+  await loadUsers();
+
+}
+
+async function rejectUser(userId, button) {
+
+  if (!confirm("Weet je zeker dat je dit account wil weigeren? Het account wordt gedeactiveerd.")) {
+    return;
+  }
+
+  const { error } = await supabaseClient
+    .from("profiles")
+    .update({ actief: false })
+    .eq("id", userId);
+
+  if (error) {
+    showRowStatus(button, "Mislukt: " + error.message, true);
+    return;
+  }
+
+  await loadUsers();
+
+}
+
+async function saveUserRole(userId, button) {
+
+  const row = button.closest(".user-row");
+  const role = row.querySelector(".role-select").value;
+
+  const { error } = await supabaseClient
+    .from("profiles")
+    .update({ rol: role || null })
+    .eq("id", userId);
+
+  if (error) {
+    showRowStatus(button, "Mislukt: " + error.message, true);
+    return;
+  }
+
+  showRowStatus(button, "Opgeslagen.", false);
+
+  await loadUsers();
+
+}
+
+async function toggleActive(userId, currentlyActive, button) {
+
+  const { error } = await supabaseClient
+    .from("profiles")
+    .update({ actief: !currentlyActive })
+    .eq("id", userId);
+
+  if (error) {
+    showRowStatus(button, "Mislukt: " + error.message, true);
+    return;
+  }
+
+  await loadUsers();
+
+}
+
+async function init() {
+
+  const { data: sessionData } = await supabaseClient.auth.getSession();
+
+  if (!sessionData.session?.user) {
+    window.location.href = "../index.html";
+    return;
+  }
+
+  const { data: profile, error } = await supabaseClient
+    .from("profiles")
+    .select("id, naam, email, rol, actief")
+    .eq("id", sessionData.session.user.id)
+    .single();
+
+  document.getElementById("loadingMsg").classList.add("hidden");
+
+  if (error || !profile || profile.rol !== "admin") {
+    document.getElementById("accessDenied").classList.remove("hidden");
+    return;
+  }
+
+  document.getElementById("mainContent").classList.remove("hidden");
+
+  await loadUsers();
+
+}
+
+init();
+
+</script>
+
+</body>
+</html>
