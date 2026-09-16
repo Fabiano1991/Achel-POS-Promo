@@ -13,6 +13,7 @@ const CORE_FILES = [
   "./manifest.json",
   "./admin.js",
   "./wholesale.js",
+  "./event-overzicht.js",
   "./achel-icon-192.png",
   "./achel-icon-512.png"
 ];
