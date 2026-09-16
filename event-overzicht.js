@@ -22,6 +22,24 @@ let eoProfiles = {};    // user_id -> naam
 let eoLoaded = false;
 let eoLoading = false;
 
+let eoExpandedIds = new Set(); // order_id's die uitgeklapt staan
+
+// Vaste kleur per aanvrager, zodat dezelfde persoon altijd dezelfde
+// kleur krijgt (gebaseerd op user_id, niet willekeurig per render).
+const EO_REQUESTER_COLORS = [
+  "#c9820c", "#0d8a7a", "#7c3aed", "#2c6cb0",
+  "#b6442f", "#4f7942", "#a13f7a", "#5a6b8c",
+];
+
+function eoColorForUser(userId) {
+  if (!userId) return "var(--muted, #717972)";
+  let hash = 0;
+  for (let i = 0; i < userId.length; i++) {
+    hash = (hash * 31 + userId.charCodeAt(i)) >>> 0;
+  }
+  return EO_REQUESTER_COLORS[hash % EO_REQUESTER_COLORS.length];
+}
+
 
 /* ---------- STYLES ---------- */
 
@@ -53,7 +71,7 @@ function eoInjectStyles() {
       display: flex;
       align-items: center;
       gap: 10px;
-      padding: 14px 16px calc(10px + env(safe-area-inset-top));
+      padding: calc(14px + env(safe-area-inset-top)) 16px 14px;
       background: var(--surface, #fff);
       border-bottom: 1px solid var(--border, #ddd9cf);
     }
@@ -159,6 +177,35 @@ function eoInjectStyles() {
       margin-top: 2px;
     }
 
+    .eo-legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 10px;
+    }
+
+    .eo-legend-item {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 11px;
+      color: var(--muted, #717972);
+    }
+
+    .eo-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      display: inline-block;
+    }
+
+    .eo-day-dots {
+      display: flex;
+      gap: 2px;
+      margin-top: 2px;
+    }
+
     .eo-list-title {
       margin: 18px 0 8px;
       font-size: 10px;
@@ -172,21 +219,67 @@ function eoInjectStyles() {
       background: var(--surface, #fff);
       border: 1px solid var(--border, #ddd9cf);
       border-radius: 14px;
-      padding: 12px 13px;
+      overflow: hidden;
       margin-bottom: 10px;
+    }
+
+    .eo-card-header {
+      width: 100%;
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 12px 13px;
+      background: transparent;
+      border: 0;
+      text-align: left;
+      cursor: pointer;
     }
 
     .eo-card-top {
       display: flex;
       align-items: flex-start;
-      justify-content: space-between;
       gap: 8px;
+      flex: 1;
+      min-width: 0;
+    }
+
+    .eo-card-name-wrap {
+      display: flex;
+      align-items: flex-start;
+      gap: 7px;
+    }
+
+    .eo-card-name-wrap .eo-dot {
+      margin-top: 5px;
     }
 
     .eo-card-name {
       font-size: 14px;
       font-weight: 800;
       color: var(--dark, #182019);
+    }
+
+    .eo-chevron {
+      flex-shrink: 0;
+      margin-top: 2px;
+      width: 12px;
+      height: 12px;
+      transition: transform .15s ease;
+      color: var(--muted, #717972);
+    }
+
+    .eo-card.expanded .eo-chevron {
+      transform: rotate(180deg);
+    }
+
+    .eo-card-body {
+      display: none;
+      padding: 0 13px 12px;
+    }
+
+    .eo-card.expanded .eo-card-body {
+      display: block;
     }
 
     .eo-card-dates {
@@ -285,6 +378,8 @@ function eoEnsureScreen() {
       </div>
 
       <div class="eo-days" id="eoDaysGrid"></div>
+
+      <div class="eo-legend" id="eoLegend"></div>
 
       <div class="eo-list-title">Events deze maand</div>
 
@@ -396,6 +491,21 @@ async function eoLoadData() {
 
   eoLoaded = true;
   eoLoading = false;
+
+}
+
+
+/* ---------- KAART UIT-/INKLAPPEN ---------- */
+
+function eoToggleCard(orderId) {
+
+  if (eoExpandedIds.has(orderId)) {
+    eoExpandedIds.delete(orderId);
+  } else {
+    eoExpandedIds.add(orderId);
+  }
+
+  eoRenderList(eoCurrentMonth.getFullYear(), eoCurrentMonth.getMonth());
 
 }
 
@@ -518,10 +628,24 @@ function eoRenderMonth() {
       .filter(Boolean)
       .join(" ");
 
+    const dayDotsHtml = dayEvents.length
+      ? `<div class="eo-day-dots">
+          ${dayEvents
+            .slice(0, 3)
+            .map(
+              ev =>
+                `<span class="eo-dot" style="width:4px;height:4px;background:${eoColorForUser(
+                  ev.user_id
+                )}"></span>`
+            )
+            .join("")}
+        </div>`
+      : "";
+
     html += `
       <div class="${classes}">
         <span>${day.getDate()}</span>
-        ${dayEvents.length ? '<span class="eo-day-dot"></span>' : ""}
+        ${dayDotsHtml}
       </div>
     `;
 
@@ -539,6 +663,7 @@ function eoRenderMonth() {
 function eoRenderList(year, month) {
 
   const list = document.getElementById("eoEventList");
+  const legend = document.getElementById("eoLegend");
 
   const monthEvents = eoEvents.filter(ev => {
     const start = eoParseDate(ev.event_vanaf);
@@ -549,6 +674,29 @@ function eoRenderList(year, month) {
     return start <= monthEnd && end >= monthStart;
   });
 
+  // Legende: één stip per unieke aanvrager die deze maand voorkomt.
+  if (legend) {
+
+    const seen = new Set();
+    const requesterEntries = [];
+
+    monthEvents.forEach(ev => {
+      const naam = eoProfiles[ev.user_id];
+      if (naam && !seen.has(ev.user_id)) {
+        seen.add(ev.user_id);
+        requesterEntries.push({ naam, kleur: eoColorForUser(ev.user_id) });
+      }
+    });
+
+    legend.innerHTML = requesterEntries
+      .map(
+        r =>
+          `<span class="eo-legend-item"><span class="eo-dot" style="background:${r.kleur}"></span>${r.naam}</span>`
+      )
+      .join("");
+
+  }
+
   if (!monthEvents.length) {
     list.innerHTML = `<div class="eo-empty">Geen events deze maand.</div>`;
     return;
@@ -558,6 +706,9 @@ function eoRenderList(year, month) {
     .map(ev => {
 
       const items = eoEventItems[ev.id] || [];
+      const requester = eoProfiles[ev.user_id];
+      const kleur = eoColorForUser(ev.user_id);
+      const expanded = eoExpandedIds.has(ev.id);
 
       const materialsHtml = items.length
         ? `<div class="eo-materials">
@@ -570,19 +721,25 @@ function eoRenderList(year, month) {
           </div>`
         : "";
 
-      const requester = eoProfiles[ev.user_id];
-
       return `
-        <div class="eo-card">
-          <div class="eo-card-top">
-            <div>
-              <div class="eo-card-name">${ev.event_naam || ""}</div>
-              <div class="eo-card-dates">${eoFormatDateRange(ev)}</div>
+        <div class="eo-card ${expanded ? "expanded" : ""}">
+          <button class="eo-card-header" onclick="eoToggleCard('${ev.id}')" aria-expanded="${expanded}">
+            <div class="eo-card-top">
+              <div class="eo-card-name-wrap">
+                <span class="eo-dot" style="background:${kleur}"></span>
+                <div>
+                  <div class="eo-card-name">${ev.event_naam || ""}</div>
+                  <div class="eo-card-dates">${eoFormatDateRange(ev)}</div>
+                </div>
+              </div>
             </div>
             <span class="eo-badge ${ev.status}">${eoStatusLabel(ev.status)}</span>
+            <svg class="eo-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+          </button>
+          <div class="eo-card-body">
+            ${materialsHtml}
+            ${requester ? `<div class="eo-requester">Aangevraagd door: <strong style="color:${kleur}">${requester}</strong></div>` : ""}
           </div>
-          ${materialsHtml}
-          ${requester ? `<div class="eo-requester">Aangevraagd door: ${requester}</div>` : ""}
         </div>
       `;
 
