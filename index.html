@@ -48,6 +48,8 @@ html,
 body {
   margin:0;
   min-height:100%;
+  min-height:100dvh;
+  background:#0d110d;
 }
 
 body {
@@ -1961,6 +1963,8 @@ body {
       #0d110d 100%
     );
 
+  min-height:100dvh;
+
   color:var(--text);
 }
 
@@ -2586,12 +2590,23 @@ body {
 
 /* Algemene schermbasis */
 #loginScreen,
+#pendingApprovalScreen,
 #appMain,
 #adminScreen,
 #adminDetailScreen,
 #wholesaleScreen,
 #wholesaleSummaryScreen {
   color:var(--achel-text);
+}
+
+#pendingApprovalScreen {
+  max-width:760px;
+  margin:0 auto;
+  padding:18px 16px 36px;
+}
+
+#pendingApprovalScreen .card {
+  margin-top:28px;
 }
 
 #appMain > section:not(#homeScreen),
@@ -2610,6 +2625,7 @@ body {
 /* Kaarten doorheen de hele app */
 #appMain > section:not(#homeScreen) .card,
 #loginScreen .card,
+#pendingApprovalScreen .card,
 .admin-block,
 .admin-panel,
 .admin-card,
@@ -2641,6 +2657,8 @@ body {
 #appMain > section:not(#homeScreen) h2,
 #appMain > section:not(#homeScreen) h3,
 #loginScreen h1,
+#pendingApprovalScreen h1,
+#pendingApprovalScreen h2,
 .admin-head strong,
 .admin-page-title strong,
 .admin-block-title strong,
@@ -2671,6 +2689,7 @@ body {
 /* Labels en gewone tekst */
 #appMain > section:not(#homeScreen) label,
 #loginScreen label,
+#pendingApprovalScreen label,
 .admin-panel label,
 .admin-block label,
 .wholesale-card label {
@@ -2679,6 +2698,7 @@ body {
 
 #appMain > section:not(#homeScreen) p,
 #loginScreen p,
+#pendingApprovalScreen p,
 .admin-panel p,
 .admin-block p,
 .wholesale-card p {
@@ -3590,15 +3610,19 @@ Laden...
 
 <div class="card login-card">
 
-<h1>
+<h1 id="loginTitle">
 Welkom bij Achel POS
 </h1>
 
 
-<p>
+<p id="loginSubtitle">
 Log in met je persoonlijke account om een aanvraag te plaatsen of je aanvragen te bekijken.
 </p>
 
+
+<!-- INLOGGEN -->
+
+<div id="loginModeLogin">
 
 <label for="loginEmail">
 E-mailadres
@@ -3636,10 +3660,202 @@ Inloggen
 </button>
 
 
+<button
+  class="secondary"
+  type="button"
+  onclick="switchLoginMode('reset')"
+>
+Wachtwoord vergeten?
+</button>
+
+
+<button
+  class="secondary"
+  type="button"
+  onclick="switchLoginMode('register')"
+>
+Nog geen account? Registreren
+</button>
+
+</div>
+
+
+<!-- REGISTREREN -->
+
+<div id="loginModeRegister" class="hidden">
+
+<label for="registerName">
+Naam
+</label>
+
+<input
+  id="registerName"
+  type="text"
+  placeholder="Voor- en achternaam"
+  autocomplete="name"
+>
+
+<label for="registerEmail">
+E-mailadres
+</label>
+
+<input
+  id="registerEmail"
+  type="email"
+  placeholder="naam@achelsekluis.be"
+  autocomplete="email"
+>
+
+<label for="registerPassword">
+Wachtwoord
+</label>
+
+<input
+  id="registerPassword"
+  type="password"
+  placeholder="Minstens 8 tekens"
+  autocomplete="new-password"
+>
+
+<label for="registerPasswordConfirm">
+Wachtwoord bevestigen
+</label>
+
+<input
+  id="registerPasswordConfirm"
+  type="password"
+  placeholder="Herhaal wachtwoord"
+  autocomplete="new-password"
+>
+
+<button
+  class="primary"
+  type="button"
+  onclick="registerUser()"
+  style="margin-top:16px;"
+>
+Account aanmaken
+</button>
+
+<button
+  class="secondary"
+  type="button"
+  onclick="switchLoginMode('login')"
+>
+Terug naar inloggen
+</button>
+
+</div>
+
+
+<!-- WACHTWOORD VERGETEN -->
+
+<div id="loginModeReset" class="hidden">
+
+<label for="resetEmail">
+E-mailadres
+</label>
+
+<input
+  id="resetEmail"
+  type="email"
+  placeholder="naam@achelsekluis.be"
+  autocomplete="email"
+>
+
+<button
+  class="primary"
+  type="button"
+  onclick="requestPasswordReset()"
+  style="margin-top:16px;"
+>
+Resetlink versturen
+</button>
+
+<button
+  class="secondary"
+  type="button"
+  onclick="switchLoginMode('login')"
+>
+Terug naar inloggen
+</button>
+
+</div>
+
+
+<!-- NIEUW WACHTWOORD (via resetlink) -->
+
+<div id="loginModeNewPassword" class="hidden">
+
+<label for="newPassword">
+Nieuw wachtwoord
+</label>
+
+<input
+  id="newPassword"
+  type="password"
+  placeholder="Minstens 8 tekens"
+  autocomplete="new-password"
+>
+
+<label for="newPasswordConfirm">
+Nieuw wachtwoord bevestigen
+</label>
+
+<input
+  id="newPasswordConfirm"
+  type="password"
+  placeholder="Herhaal wachtwoord"
+  autocomplete="new-password"
+>
+
+<button
+  class="primary"
+  type="button"
+  onclick="submitNewPassword()"
+  style="margin-top:16px;"
+>
+Wachtwoord opslaan
+</button>
+
+</div>
+
+
 <div
   id="loginMessage"
   class="info hidden"
 ></div>
+
+</div>
+
+</section>
+
+
+<!-- ACCOUNT WACHT OP GOEDKEURING -->
+
+<section id="pendingApprovalScreen" class="hidden">
+
+<div class="card success">
+
+<h2>
+Account wacht op goedkeuring
+</h2>
+
+<p>
+Je account is aangemaakt en je e-mailadres is bevestigd, maar een beheerder moet je nog een rol toekennen voor je de app kan gebruiken.
+</p>
+
+<p>
+Neem contact op met je beheerder als dit langer dan een dag duurt.
+</p>
+
+<button
+  class="secondary"
+  type="button"
+  onclick="logoutUser()"
+>
+Uitloggen
+</button>
 
 </div>
 
@@ -5626,6 +5842,79 @@ const supabaseClient =
 
 
 /* ===============================
+   WACHTWOORD RESET LISTENER
+   Wordt getriggerd wanneer iemand
+   op de resetlink uit zijn e-mail
+   klikt en zo op de app terechtkomt.
+================================ */
+
+let passwordRecoveryInProgress =
+  false;
+
+
+supabaseClient.auth.onAuthStateChange(
+  (event) => {
+
+    if (
+      event ===
+      "PASSWORD_RECOVERY"
+    ) {
+
+      passwordRecoveryInProgress =
+        true;
+
+
+      document
+        .getElementById(
+          "bootLoading"
+        )
+        ?.classList
+        .add(
+          "hidden"
+        );
+
+
+      document
+        .getElementById(
+          "appMain"
+        )
+        ?.classList
+        .add(
+          "hidden"
+        );
+
+
+      document
+        .getElementById(
+          "pendingApprovalScreen"
+        )
+        ?.classList
+        .add(
+          "hidden"
+        );
+
+
+      document
+        .getElementById(
+          "loginScreen"
+        )
+        ?.classList
+        .remove(
+          "hidden"
+        );
+
+
+      switchLoginMode(
+        "newPassword"
+      );
+
+    }
+
+  }
+);
+
+
+/* ===============================
    CENTRALE MAIL (via Outlook/Graph)
    Vervangt de oude mailto-links.
    Verstuurt de mail via de Supabase
@@ -5843,6 +6132,17 @@ async function loginUser() {
     await loadCurrentProfile()
   ) {
 
+    if (
+      !currentProfile.rol
+    ) {
+
+      showPendingApproval();
+
+      return;
+
+    }
+
+
     await startApp();
 
   }
@@ -5876,6 +6176,518 @@ function showLoginMessage(
 
   element.innerText =
     text;
+
+}
+
+
+/* ===============================
+   LOGIN MODUS WISSELEN
+================================ */
+
+const ALLOWED_REGISTER_DOMAIN =
+  "@achelsekluis.be";
+
+
+function switchLoginMode(
+  mode
+) {
+
+  const modes = {
+
+    login:
+      "loginModeLogin",
+
+    register:
+      "loginModeRegister",
+
+    reset:
+      "loginModeReset",
+
+    newPassword:
+      "loginModeNewPassword"
+
+  };
+
+
+  Object.values(
+    modes
+  )
+    .forEach(
+      id => {
+
+        document
+          .getElementById(
+            id
+          )
+          ?.classList
+          .add(
+            "hidden"
+          );
+
+      }
+    );
+
+
+  document
+    .getElementById(
+      modes[mode] ||
+      modes.login
+    )
+    ?.classList
+    .remove(
+      "hidden"
+    );
+
+
+  const titles = {
+
+    login:
+      "Welkom bij Achel POS",
+
+    register:
+      "Account aanmaken",
+
+    reset:
+      "Wachtwoord vergeten",
+
+    newPassword:
+      "Nieuw wachtwoord instellen"
+
+  };
+
+
+  const subtitles = {
+
+    login:
+      "Log in met je persoonlijke account om een aanvraag te plaatsen of je aanvragen te bekijken.",
+
+    register:
+      `Registreren kan met een ${ALLOWED_REGISTER_DOMAIN}-adres. Na registratie sturen we een bevestigingsmail.`,
+
+    reset:
+      "Vul je e-mailadres in. We sturen je een link om een nieuw wachtwoord in te stellen.",
+
+    newPassword:
+      "Kies een nieuw wachtwoord voor je account."
+
+  };
+
+
+  document
+    .getElementById(
+      "loginTitle"
+    )
+    .innerText =
+
+      titles[mode] ||
+      titles.login;
+
+
+  document
+    .getElementById(
+      "loginSubtitle"
+    )
+    .innerText =
+
+      subtitles[mode] ||
+      subtitles.login;
+
+
+  document
+    .getElementById(
+      "loginMessage"
+    )
+    .className =
+      "info hidden";
+
+}
+
+
+/* ===============================
+   REGISTREREN
+================================ */
+
+async function registerUser() {
+
+  const naam =
+    document
+      .getElementById(
+        "registerName"
+      )
+      .value
+      .trim();
+
+
+  const email =
+    document
+      .getElementById(
+        "registerEmail"
+      )
+      .value
+      .trim()
+      .toLowerCase();
+
+
+  const password =
+    document
+      .getElementById(
+        "registerPassword"
+      )
+      .value;
+
+
+  const passwordConfirm =
+    document
+      .getElementById(
+        "registerPasswordConfirm"
+      )
+      .value;
+
+
+  if (
+    !naam
+  ) {
+
+    showLoginMessage(
+      "Vul je naam in.",
+      true
+    );
+
+    return;
+
+  }
+
+
+  if (
+    !email.endsWith(
+      ALLOWED_REGISTER_DOMAIN
+    )
+  ) {
+
+    showLoginMessage(
+
+      `Registreren kan enkel met een ${ALLOWED_REGISTER_DOMAIN}-adres.`,
+
+      true
+
+    );
+
+    return;
+
+  }
+
+
+  if (
+    password.length <
+    8
+  ) {
+
+    showLoginMessage(
+      "Het wachtwoord moet minstens 8 tekens bevatten.",
+      true
+    );
+
+    return;
+
+  }
+
+
+  if (
+    password !==
+    passwordConfirm
+  ) {
+
+    showLoginMessage(
+      "De wachtwoorden komen niet overeen.",
+      true
+    );
+
+    return;
+
+  }
+
+
+  showLoginMessage(
+    "Account aanmaken...",
+    false
+  );
+
+
+  const {
+    error
+  } =
+    await supabaseClient
+      .auth
+      .signUp({
+
+        email:
+          email,
+
+        password:
+          password,
+
+        options: {
+
+          data: {
+
+            naam:
+              naam
+
+          }
+
+        }
+
+      });
+
+
+  if (
+    error
+  ) {
+
+    showLoginMessage(
+
+      "Registreren mislukt: "
+
+      +
+
+      (
+        error?.message ||
+        "Onbekende fout"
+      ),
+
+      true
+
+    );
+
+    return;
+
+  }
+
+
+  showLoginMessage(
+    "Account aangemaakt. Check je mailbox en bevestig je e-mailadres via de link, daarna kan je inloggen.",
+    false
+  );
+
+
+  switchLoginMode(
+    "login"
+  );
+
+}
+
+
+/* ===============================
+   WACHTWOORD VERGETEN
+================================ */
+
+async function requestPasswordReset() {
+
+  const email =
+    document
+      .getElementById(
+        "resetEmail"
+      )
+      .value
+      .trim()
+      .toLowerCase();
+
+
+  if (
+    !email
+  ) {
+
+    showLoginMessage(
+      "Vul je e-mailadres in.",
+      true
+    );
+
+    return;
+
+  }
+
+
+  showLoginMessage(
+    "Resetlink versturen...",
+    false
+  );
+
+
+  const {
+    error
+  } =
+    await supabaseClient
+      .auth
+      .resetPasswordForEmail(
+        email,
+        {
+
+          redirectTo:
+            window.location.origin +
+            window.location.pathname
+
+        }
+      );
+
+
+  if (
+    error
+  ) {
+
+    showLoginMessage(
+
+      "Resetlink versturen mislukt: "
+
+      +
+
+      (
+        error?.message ||
+        "Onbekende fout"
+      ),
+
+      true
+
+    );
+
+    return;
+
+  }
+
+
+  showLoginMessage(
+    "Als dit adres bestaat, is er een resetlink verstuurd. Check je mailbox.",
+    false
+  );
+
+}
+
+
+/* ===============================
+   NIEUW WACHTWOORD OPSLAAN
+================================ */
+
+async function submitNewPassword() {
+
+  const password =
+    document
+      .getElementById(
+        "newPassword"
+      )
+      .value;
+
+
+  const passwordConfirm =
+    document
+      .getElementById(
+        "newPasswordConfirm"
+      )
+      .value;
+
+
+  if (
+    password.length <
+    8
+  ) {
+
+    showLoginMessage(
+      "Het wachtwoord moet minstens 8 tekens bevatten.",
+      true
+    );
+
+    return;
+
+  }
+
+
+  if (
+    password !==
+    passwordConfirm
+  ) {
+
+    showLoginMessage(
+      "De wachtwoorden komen niet overeen.",
+      true
+    );
+
+    return;
+
+  }
+
+
+  showLoginMessage(
+    "Wachtwoord opslaan...",
+    false
+  );
+
+
+  const {
+    data,
+    error
+  } =
+    await supabaseClient
+      .auth
+      .updateUser({
+
+        password:
+          password
+
+      });
+
+
+  if (
+    error ||
+    !data?.user
+  ) {
+
+    showLoginMessage(
+
+      "Wachtwoord opslaan mislukt: "
+
+      +
+
+      (
+        error?.message ||
+        "Onbekende fout"
+      ),
+
+      true
+
+    );
+
+    return;
+
+  }
+
+
+  currentUser =
+    data.user;
+
+
+  const profileLoaded =
+    await loadCurrentProfile();
+
+
+  if (
+    !profileLoaded
+  ) {
+
+    return;
+
+  }
+
+
+  if (
+    !currentProfile.rol
+  ) {
+
+    showPendingApproval();
+
+    return;
+
+  }
+
+
+  await startApp();
 
 }
 
@@ -5972,6 +6784,64 @@ async function loadCurrentProfile() {
 
 
   return true;
+
+}
+
+
+/* ===============================
+   PENDING APPROVAL
+================================ */
+
+function showPendingApproval() {
+
+  document
+    .getElementById(
+      "bootLoading"
+    )
+    ?.classList
+    .add(
+      "hidden"
+    );
+
+
+  document
+    .getElementById(
+      "loginScreen"
+    )
+    ?.classList
+    .add(
+      "hidden"
+    );
+
+
+  document
+    .getElementById(
+      "appMain"
+    )
+    ?.classList
+    .add(
+      "hidden"
+    );
+
+
+  document
+    .getElementById(
+      "menuButton"
+    )
+    ?.classList
+    .add(
+      "hidden"
+    );
+
+
+  document
+    .getElementById(
+      "pendingApprovalScreen"
+    )
+    ?.classList
+    .remove(
+      "hidden"
+    );
 
 }
 
@@ -6197,6 +7067,15 @@ function getFirstName(
 
 async function checkExistingSession() {
 
+  if (
+    passwordRecoveryInProgress
+  ) {
+
+    return;
+
+  }
+
+
   const {
     data,
     error
@@ -6204,6 +7083,15 @@ async function checkExistingSession() {
     await supabaseClient
       .auth
       .getSession();
+
+
+  if (
+    passwordRecoveryInProgress
+  ) {
+
+    return;
+
+  }
 
 
   if (
@@ -6241,6 +7129,17 @@ async function checkExistingSession() {
   if (
     await loadCurrentProfile()
   ) {
+
+    if (
+      !currentProfile.rol
+    ) {
+
+      showPendingApproval();
+
+      return;
+
+    }
+
 
     await startApp();
 
@@ -6296,11 +7195,25 @@ async function logoutUser() {
   closeMenu();
 
 
+  passwordRecoveryInProgress =
+    false;
+
+
   document
     .getElementById(
       "appMain"
     )
     .classList
+    .add(
+      "hidden"
+    );
+
+
+  document
+    .getElementById(
+      "pendingApprovalScreen"
+    )
+    ?.classList
     .add(
       "hidden"
     );
@@ -6324,6 +7237,11 @@ async function logoutUser() {
     .remove(
       "hidden"
     );
+
+
+  switchLoginMode(
+    "login"
+  );
 
 
   document
