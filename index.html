@@ -683,6 +683,30 @@ textarea {
 }
 
 
+.login-secondary-actions {
+
+  display:grid;
+
+  grid-template-columns:1fr 1fr;
+
+  gap:8px;
+
+  margin-top:22px;
+}
+
+
+.login-secondary-btn {
+
+  min-height:40px;
+
+  font-size:12px;
+
+  padding:0 6px;
+
+  margin-top:0;
+}
+
+
 /* ===============================
    HOME
 ================================ */
@@ -3660,8 +3684,10 @@ Inloggen
 </button>
 
 
+<div class="login-secondary-actions">
+
 <button
-  class="secondary"
+  class="secondary login-secondary-btn"
   type="button"
   onclick="switchLoginMode('reset')"
 >
@@ -3670,12 +3696,14 @@ Wachtwoord vergeten?
 
 
 <button
-  class="secondary"
+  class="secondary login-secondary-btn"
   type="button"
   onclick="switchLoginMode('register')"
 >
-Nog geen account? Registreren
+Registreren
 </button>
+
+</div>
 
 </div>
 
