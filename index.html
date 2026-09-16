@@ -12365,6 +12365,34 @@ async function submitEventOrder() {
 
   }
 
+  try {
+  const { data: calData, error: calError } =
+    await supabaseClient.functions.invoke("send-order-mail", {
+      body: {
+        action: "createCalendarEvent",
+        subject: `Event: ${event.name}`,
+        bodyHtml:
+          `<p><b>Aangevraagd door:</b> ${currentProfile.naam}</p>` +
+          `<p><b>Materiaal:</b></p><ul>${products
+            .map(p => `<li>${p.qty}x ${p.naam}</li>`)
+            .join("")}</ul>` +
+          (event.note ? `<p><b>Opmerking:</b> ${event.note}</p>` : ""),
+        startDate: event.from,
+        endDate: event.until,
+      },
+    });
+
+  if (!calError && calData?.eventId) {
+    await supabaseClient
+      .from("orders")
+      .update({ outlook_event_id: calData.eventId })
+      .eq("id", order.id);
+  }
+} catch (calSyncError) {
+  console.error("Agenda-sync mislukt:", calSyncError);
+  // bewust geen alert: de aanvraag zelf is al geldig opgeslagen,
+  // enkel de agenda-koppeling is als extra stap mislukt
+}
 
   myOrdersLoaded.events =
     false;
