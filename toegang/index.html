@@ -119,20 +119,61 @@ h1 {
 .user-row {
   border:1px solid var(--achel-line);
   border-radius:13px;
-  padding:11px;
   margin-bottom:8px;
   background:rgba(255,255,255,.03);
+  overflow:hidden;
 }
 
-.user-row strong {
-  display:block;
+.user-row > summary {
+  list-style:none;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  min-height:52px;
+  padding:0 13px;
+  cursor:pointer;
+}
+
+.user-row > summary::-webkit-details-marker {
+  display:none;
+}
+
+.user-row-name {
+  display:flex;
+  align-items:baseline;
+  gap:8px;
+  min-width:0;
+}
+
+.user-row-name strong {
   color:#fff;
   font-size:14px;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
 }
 
-.user-row small {
+.user-row-arrow {
+  color:var(--achel-gold-bright);
+  font-size:13px;
+  flex-shrink:0;
+  transition:transform .15s ease;
+}
+
+.user-row[open] .user-row-arrow {
+  transform:rotate(180deg);
+}
+
+.user-row-body {
+  padding:0 13px 13px;
+  border-top:1px solid var(--achel-line);
+  padding-top:11px;
+}
+
+.user-row-email {
   display:block;
-  margin-top:2px;
+  margin-bottom:10px;
   color:var(--achel-muted);
   font-size:11px;
   word-break:break-word;
@@ -141,14 +182,14 @@ h1 {
 .user-row-controls {
   display:flex;
   gap:8px;
-  margin-top:10px;
   flex-wrap:wrap;
 }
 
 select {
-  flex:1;
-  min-width:160px;
+  display:block;
+  width:100%;
   min-height:40px;
+  margin-bottom:10px;
   border-radius:10px;
   border:1px solid rgba(201,155,67,.24);
   background:rgba(255,255,255,.055);
@@ -183,11 +224,11 @@ select option {
 
 .badge {
   display:inline-block;
-  margin-top:6px;
   padding:2px 8px;
   border-radius:999px;
   font-size:10px;
   font-weight:900;
+  flex-shrink:0;
 }
 
 .badge-pending {
@@ -336,19 +377,26 @@ function renderPending(users) {
   }
 
   container.innerHTML = users.map(user => `
-    <div class="user-row" data-user-id="${escapeHtml(user.id)}">
-      <strong>${escapeHtml(user.naam || "Naam onbekend")}</strong>
-      <small>${escapeHtml(user.email || "")}</small>
-      <span class="badge badge-pending">Wacht op goedkeuring</span>
-      <div class="user-row-controls">
+    <details class="user-row" data-user-id="${escapeHtml(user.id)}">
+      <summary>
+        <div class="user-row-name">
+          <strong>${escapeHtml(user.naam || "Naam onbekend")}</strong>
+        </div>
+        <span class="badge badge-pending">Wacht</span>
+        <span class="user-row-arrow">▾</span>
+      </summary>
+      <div class="user-row-body">
+        <small class="user-row-email">${escapeHtml(user.email || "")}</small>
         <select class="role-select">
           ${roleOptionsHtml(user.rol)}
         </select>
-        <button class="btn btn-primary" type="button" onclick="approveUser('${escapeHtml(user.id)}', this)">Rol toekennen</button>
-        <button class="btn btn-danger" type="button" onclick="rejectUser('${escapeHtml(user.id)}', this)">Weigeren</button>
+        <div class="user-row-controls">
+          <button class="btn btn-primary" type="button" onclick="approveUser('${escapeHtml(user.id)}', this)">Rol toekennen</button>
+          <button class="btn btn-danger" type="button" onclick="rejectUser('${escapeHtml(user.id)}', this)">Weigeren</button>
+        </div>
+        <div class="row-status"></div>
       </div>
-      <div class="row-status"></div>
-    </div>
+    </details>
   `).join("");
 
 }
@@ -363,21 +411,28 @@ function renderAllUsers(users) {
   }
 
   container.innerHTML = users.map(user => `
-    <div class="user-row" data-user-id="${escapeHtml(user.id)}">
-      <strong>${escapeHtml(user.naam || "Naam onbekend")}</strong>
-      <small>${escapeHtml(user.email || "")}</small>
-      <span class="badge ${user.actief ? "badge-active" : "badge-inactive"}">${user.actief ? "Actief" : "Niet actief"}</span>
-      <div class="user-row-controls">
+    <details class="user-row" data-user-id="${escapeHtml(user.id)}">
+      <summary>
+        <div class="user-row-name">
+          <strong>${escapeHtml(user.naam || "Naam onbekend")}</strong>
+        </div>
+        <span class="badge ${user.actief ? "badge-active" : "badge-inactive"}">${user.actief ? "Actief" : "Niet actief"}</span>
+        <span class="user-row-arrow">▾</span>
+      </summary>
+      <div class="user-row-body">
+        <small class="user-row-email">${escapeHtml(user.email || "")}</small>
         <select class="role-select">
           ${roleOptionsHtml(user.rol)}
         </select>
-        <button class="btn btn-primary" type="button" onclick="saveUserRole('${escapeHtml(user.id)}', this)">Opslaan</button>
-        <button class="btn btn-danger" type="button" onclick="toggleActive('${escapeHtml(user.id)}', ${user.actief ? "true" : "false"}, this)">
-          ${user.actief ? "Deactiveren" : "Activeren"}
-        </button>
+        <div class="user-row-controls">
+          <button class="btn btn-primary" type="button" onclick="saveUserRole('${escapeHtml(user.id)}', this)">Opslaan</button>
+          <button class="btn btn-danger" type="button" onclick="toggleActive('${escapeHtml(user.id)}', ${user.actief ? "true" : "false"}, this)">
+            ${user.actief ? "Deactiveren" : "Activeren"}
+          </button>
+        </div>
+        <div class="row-status"></div>
       </div>
-      <div class="row-status"></div>
-    </div>
+    </details>
   `).join("");
 
 }
