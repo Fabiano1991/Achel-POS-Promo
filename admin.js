@@ -1951,6 +1951,7 @@ async function loadAdminDashboard() {
             event_delivery_mode,
             event_returned_at,
             event_returned_by,
+            outlook_event_id,
             opened_at,
             completed_at,
             collected_at,
@@ -11607,7 +11608,18 @@ async function updateSelectedAdminOrderStatus(
 
   selectedAdminOrder =
     data;
-
+if (status === "geannuleerd" && data.event_naam && data.outlook_event_id) {
+  try {
+    await supabaseClient.functions.invoke("send-order-mail", {
+      body: {
+        action: "deleteCalendarEvent",
+        eventId: data.outlook_event_id,
+      },
+    });
+  } catch (calDeleteError) {
+    console.error("Agenda-item verwijderen mislukt:", calDeleteError);
+  }
+}
 
   renderAdminDetail(
     data
