@@ -3,6 +3,11 @@
 <head>
   <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><meta name="theme-color" content="#17130f">
   <title>Achel B2B - Nieuwe inschrijving</title><link rel="stylesheet" href="./b2b.css">
+  <style>
+    .phone-field-group { display: flex; gap: 8px; align-items: stretch; }
+    .phone-field-group .phone-country-select { flex: 0 0 auto; width: auto; }
+    .phone-field-group input { flex: 1 1 auto; min-width: 0; }
+  </style>
 </head>
 <body>
   <div class="b2b-app">
@@ -12,9 +17,22 @@
       <section id="registrationQuotaCard" class="quota-block"><div class="quota-head"><span>Jouw beschikbare plaatsen</span><strong id="registrationQuotaText">—</strong></div><div class="quota-progress"><span id="registrationQuotaProgress" style="width:0%"></span></div></section>
       <section class="b2b-form-card">
         <label for="companyName">Bedrijfsnaam / horecazaak</label><input id="companyName" type="text" placeholder="Bijv. Café De Markt" autocomplete="organization">
-        <label for="contactName">Contactpersoon</label><input id="contactName" type="text" placeholder="Voornaam en naam" autocomplete="name">
-        <label for="customerEmail">E-mailadres</label><input id="customerEmail" type="email" placeholder="naam@bedrijf.be" autocomplete="email">
-        <label for="customerPhone">Telefoon</label><input id="customerPhone" type="tel" placeholder="+32 ..." autocomplete="tel">
+
+        <label for="contactFirstName">Voornaam contactpersoon</label><input id="contactFirstName" type="text" placeholder="Voornaam" autocomplete="given-name" required>
+
+        <label for="contactLastName">Achternaam contactpersoon</label><input id="contactLastName" type="text" placeholder="Achternaam" autocomplete="family-name" required>
+
+        <label for="customerEmail">E-mailadres</label><input id="customerEmail" type="email" placeholder="naam@bedrijf.be" autocomplete="email" required pattern="[^\s@]+@[^\s@]+\.(com|be|nl)">
+
+        <label for="customerPhoneNumber">Telefoon</label>
+        <div class="phone-field-group">
+          <select id="customerPhoneCountry" class="phone-country-select" aria-label="Landcode">
+            <option value="+32">🇧🇪 +32</option>
+            <option value="+31">🇳🇱 +31</option>
+          </select>
+          <input id="customerPhoneNumber" type="tel" placeholder="470 12 34 56" autocomplete="tel-national" required inputmode="numeric">
+        </div>
+
         <label for="guestCount">Aantal personen</label><div class="guest-selector"><button type="button" onclick="changeGuestCount(-1)">−</button><strong id="guestCountDisplay">1</strong><button type="button" onclick="changeGuestCount(1)">+</button></div><input id="guestCount" type="hidden" value="1">
         <label for="registrationNotes">Opmerking</label><textarea id="registrationNotes" placeholder="Optioneel"></textarea>
         <button id="registrationSubmitButton" class="b2b-submit" type="button" onclick="submitB2BRegistration()">Klant inschrijven</button>
