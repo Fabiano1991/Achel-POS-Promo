@@ -667,6 +667,68 @@ function escapeB2BHtml(value) {
 }
 
 // =========================================================
+// VALIDATIE HELPERS (nieuw)
+// Voornaam/achternaam verplicht, e-mail moet eindigen op
+// .com / .be / .nl, telefoon = landcode-dropdown + cijfers.
+// =========================================================
+
+const B2B_VALID_EMAIL_PATTERN =
+  /^[^\s@]+@[^\s@]+\.(com|be|nl)$/i;
+
+function isValidB2BEmail(value) {
+  return B2B_VALID_EMAIL_PATTERN.test(String(value || "").trim());
+}
+
+// Telefoonnummer (zonder landcode) moet 8 of 9 cijfers bevatten.
+function isValidB2BPhoneNumber(value) {
+  const digitsOnly = String(value || "").replace(/\D/g, "");
+  return digitsOnly.length >= 8 && digitsOnly.length <= 9;
+}
+
+// Zet landcode + los ingevoerd nummer om naar één opgeslagen waarde,
+// bijvoorbeeld "+32" + "470123456" => "+32 470123456".
+function composeB2BPhone(countryCode, numberValue) {
+  const digitsOnly = String(numberValue || "").replace(/\D/g, "");
+  if (!digitsOnly) return "";
+  return `${countryCode} ${digitsOnly}`;
+}
+
+// Haalt landcode en cijfers terug uit een opgeslagen telefoonwaarde,
+// zodat het wijzig-scherm de dropdown en het inputveld correct kan
+// vooraf invullen ook voor oudere inschrijvingen.
+function splitB2BPhone(value) {
+  const raw = String(value || "").trim();
+
+  if (raw.startsWith("+32")) {
+    return { countryCode: "+32", number: raw.slice(3).replace(/\D/g, "") };
+  }
+
+  if (raw.startsWith("+31")) {
+    return { countryCode: "+31", number: raw.slice(3).replace(/\D/g, "") };
+  }
+
+  // Geen herkenbare landcode (bv. oude inschrijving): alle cijfers
+  // in het nummerveld zetten, +32 als standaard landcode tonen.
+  return { countryCode: "+32", number: raw.replace(/\D/g, "") };
+}
+
+// Splitst een bestaande "Contactpersoon"-waarde in voornaam/achternaam
+// voor inschrijvingen die van vóór deze aanpassing dateren.
+function splitB2BContactName(value) {
+  const trimmed = String(value || "").trim();
+
+  if (!trimmed) {
+    return { firstName: "", lastName: "" };
+  }
+
+  const parts = trimmed.split(/\s+/);
+  const firstName = parts.shift() || "";
+  const lastName = parts.join(" ");
+
+  return { firstName, lastName };
+}
+
+// =========================================================
 // NIEUWE B2B INSCHRIJVING
 // =========================================================
 
@@ -834,14 +896,31 @@ async function submitB2BRegistration() {
     }
 
     const companyName = document.getElementById("companyName").value.trim();
-    const contactName = document.getElementById("contactName").value.trim();
+    const firstName = document.getElementById("contactFirstName").value.trim();
+    const lastName = document.getElementById("contactLastName").value.trim();
     const email = document.getElementById("customerEmail").value.trim();
-    const phone = document.getElementById("customerPhone").value.trim();
+    const phoneCountryCode = document.getElementById("customerPhoneCountry").value;
+    const phoneNumberRaw = document.getElementById("customerPhoneNumber").value.trim();
     const notes = document.getElementById("registrationNotes").value.trim();
     const numberOfGuests = Number(document.getElementById("guestCount").value || 0);
 
     if (!companyName) {
       showRegistrationStatus("Vul de bedrijfsnaam of horecazaak in.", true);
+      return;
+    }
+
+    if (!firstName || !lastName) {
+      showRegistrationStatus("Vul zowel voornaam als achternaam van de contactpersoon in.", true);
+      return;
+    }
+
+    if (!email || !isValidB2BEmail(email)) {
+      showRegistrationStatus("Vul een geldig e-mailadres in (eindigend op .com, .be of .nl).", true);
+      return;
+    }
+
+    if (!phoneNumberRaw || !isValidB2BPhoneNumber(phoneNumberRaw)) {
+      showRegistrationStatus("Vul een geldig telefoonnummer in (8 of 9 cijfers, na de landcode).", true);
       return;
     }
 
@@ -857,6 +936,9 @@ async function submitB2BRegistration() {
       button.textContent = "Inschrijving opslaan...";
     }
 
+    const contactName = `${firstName} ${lastName}`.trim();
+    const phone = composeB2BPhone(phoneCountryCode, phoneNumberRaw);
+
     const {
       data: newRegistration,
       error
@@ -866,9 +948,11 @@ async function submitB2BRegistration() {
         b2b_day_id: activeB2BDay.id,
         representative_id: session.user.id,
         company_name: companyName,
-        contact_name: contactName || null,
-        email: email || null,
-        phone: phone || null,
+        first_name: firstName,
+        last_name: lastName,
+        contact_name: contactName,
+        email: email,
+        phone: phone,
         number_of_guests: numberOfGuests,
         notes: notes || null,
         registration_status: "registered",
@@ -880,11 +964,10 @@ async function submitB2BRegistration() {
     if (error) throw error;
 
 
-    // Bevestigingsmail alleen proberen wanneer
-    // er een e-mailadres werd ingevuld.
+    // Bevestigingsmail versturen (e-mail is nu altijd verplicht ingevuld).
     let confirmationMailSent = false;
 
-    if (email && newRegistration?.id) {
+    if (newRegistration?.id) {
       try {
         const {
           data: mailResult,
@@ -916,13 +999,7 @@ async function submitB2BRegistration() {
     }
 
 
-    if (!email) {
-      showRegistrationStatus(
-        "✓ Klant succesvol ingeschreven. Geen bevestigingsmail verzonden omdat geen e-mailadres werd ingevuld.",
-        false
-      );
-
-    } else if (confirmationMailSent) {
+    if (confirmationMailSent) {
       showRegistrationStatus(
         "✓ Klant succesvol ingeschreven en bevestigingsmail verzonden.",
         false
@@ -936,9 +1013,11 @@ async function submitB2BRegistration() {
     }
 
     document.getElementById("companyName").value = "";
-    document.getElementById("contactName").value = "";
+    document.getElementById("contactFirstName").value = "";
+    document.getElementById("contactLastName").value = "";
     document.getElementById("customerEmail").value = "";
-    document.getElementById("customerPhone").value = "";
+    document.getElementById("customerPhoneCountry").value = "+32";
+    document.getElementById("customerPhoneNumber").value = "";
     document.getElementById("registrationNotes").value = "";
     document.getElementById("guestCount").value = "1";
 
@@ -1088,6 +1167,8 @@ async function loadEditRegistration(
         representative_id,
         company_name,
         contact_name,
+        first_name,
+        last_name,
         email,
         phone,
         number_of_guests,
@@ -1313,13 +1394,30 @@ function renderEditRegistration() {
       "";
 
 
+  // Voornaam/achternaam: gebruik de aparte kolommen als die er zijn,
+  // anders (oudere inschrijving) splitsen we de bestaande contactnaam.
+  const hasSplitName =
+    editRegistration.first_name ||
+    editRegistration.last_name;
+
+  const fallbackName =
+    hasSplitName
+      ? { firstName: editRegistration.first_name || "", lastName: editRegistration.last_name || "" }
+      : splitB2BContactName(editRegistration.contact_name);
+
   document
     .getElementById(
-      "editContactName"
+      "editContactFirstName"
     )
     .value =
-      editRegistration.contact_name ||
-      "";
+      fallbackName.firstName;
+
+  document
+    .getElementById(
+      "editContactLastName"
+    )
+    .value =
+      fallbackName.lastName;
 
 
   document
@@ -1331,13 +1429,22 @@ function renderEditRegistration() {
       "";
 
 
+  const phoneParts =
+    splitB2BPhone(editRegistration.phone);
+
   document
     .getElementById(
-      "editCustomerPhone"
+      "editCustomerPhoneCountry"
     )
     .value =
-      editRegistration.phone ||
-      "";
+      phoneParts.countryCode;
+
+  document
+    .getElementById(
+      "editCustomerPhoneNumber"
+    )
+    .value =
+      phoneParts.number;
 
 
   document
@@ -1571,10 +1678,19 @@ async function saveB2BRegistrationChanges() {
         .trim();
 
 
-    const contactName =
+    const firstName =
       document
         .getElementById(
-          "editContactName"
+          "editContactFirstName"
+        )
+        .value
+        .trim();
+
+
+    const lastName =
+      document
+        .getElementById(
+          "editContactLastName"
         )
         .value
         .trim();
@@ -1589,10 +1705,18 @@ async function saveB2BRegistrationChanges() {
         .trim();
 
 
-    const phone =
+    const phoneCountryCode =
       document
         .getElementById(
-          "editCustomerPhone"
+          "editCustomerPhoneCountry"
+        )
+        .value;
+
+
+    const phoneNumberRaw =
+      document
+        .getElementById(
+          "editCustomerPhoneNumber"
         )
         .value
         .trim();
@@ -1622,6 +1746,42 @@ async function saveB2BRegistrationChanges() {
 
       showEditRegistrationStatus(
         "Vul de bedrijfsnaam in.",
+        true
+      );
+
+      return;
+
+    }
+
+
+    if (!firstName || !lastName) {
+
+      showEditRegistrationStatus(
+        "Vul zowel voornaam als achternaam van de contactpersoon in.",
+        true
+      );
+
+      return;
+
+    }
+
+
+    if (!email || !isValidB2BEmail(email)) {
+
+      showEditRegistrationStatus(
+        "Vul een geldig e-mailadres in (eindigend op .com, .be of .nl).",
+        true
+      );
+
+      return;
+
+    }
+
+
+    if (!phoneNumberRaw || !isValidB2BPhoneNumber(phoneNumberRaw)) {
+
+      showEditRegistrationStatus(
+        "Vul een geldig telefoonnummer in (8 of 9 cijfers, na de landcode).",
         true
       );
 
@@ -1661,6 +1821,17 @@ async function saveB2BRegistrationChanges() {
       "Wijzigingen opslaan...";
 
 
+    const contactName =
+      `${firstName} ${lastName}`.trim();
+
+
+    const phone =
+      composeB2BPhone(
+        phoneCountryCode,
+        phoneNumberRaw
+      );
+
+
     const {
       error
     } =
@@ -1671,14 +1842,20 @@ async function saveB2BRegistrationChanges() {
           company_name:
             companyName,
 
+          first_name:
+            firstName,
+
+          last_name:
+            lastName,
+
           contact_name:
-            contactName || null,
+            contactName,
 
           email:
-            email || null,
+            email,
 
           phone:
-            phone || null,
+            phone,
 
           number_of_guests:
             guests,
