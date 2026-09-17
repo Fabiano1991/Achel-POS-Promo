@@ -13,6 +13,12 @@
   <title>Achel B2B - Inschrijving wijzigen</title>
 
   <link rel="stylesheet" href="./b2b.css">
+
+  <style>
+    .phone-field-group { display: flex; gap: 8px; align-items: stretch; }
+    .phone-field-group .phone-country-select { flex: 0 0 auto; width: auto; }
+    .phone-field-group input { flex: 1 1 auto; min-width: 0; }
+  </style>
 </head>
 
 <body>
@@ -95,13 +101,27 @@
         >
 
 
-        <label for="editContactName">
-          Contactpersoon
+        <label for="editContactFirstName">
+          Voornaam contactpersoon
         </label>
 
         <input
-          id="editContactName"
+          id="editContactFirstName"
           type="text"
+          autocomplete="given-name"
+          required
+        >
+
+
+        <label for="editContactLastName">
+          Achternaam contactpersoon
+        </label>
+
+        <input
+          id="editContactLastName"
+          type="text"
+          autocomplete="family-name"
+          required
         >
 
 
@@ -112,17 +132,28 @@
         <input
           id="editCustomerEmail"
           type="email"
+          required
+          pattern="[^\s@]+@[^\s@]+\.(com|be|nl)"
         >
 
 
-        <label for="editCustomerPhone">
+        <label for="editCustomerPhoneNumber">
           Telefoon
         </label>
 
-        <input
-          id="editCustomerPhone"
-          type="tel"
-        >
+        <div class="phone-field-group">
+          <select id="editCustomerPhoneCountry" class="phone-country-select" aria-label="Landcode">
+            <option value="+32">🇧🇪 +32</option>
+            <option value="+31">🇳🇱 +31</option>
+          </select>
+          <input
+            id="editCustomerPhoneNumber"
+            type="tel"
+            autocomplete="tel-national"
+            required
+            inputmode="numeric"
+          >
+        </div>
 
 
         <label>
