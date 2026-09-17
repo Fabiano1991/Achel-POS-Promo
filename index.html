@@ -3426,6 +3426,21 @@ body {
   }
 }
 
+.phone-field-group {
+  display: flex;
+  gap: 8px;
+  align-items: stretch;
+}
+
+.phone-field-group .phone-country-select {
+  flex: 0 0 auto;
+  width: auto;
+}
+
+.phone-field-group input {
+  flex: 1 1 auto;
+  min-width: 0;
+}
 
 </style>
 </head>
@@ -4346,31 +4361,57 @@ Bedrijfsnaam
   id="eventCustomerCompany"
   type="text"
   placeholder="Naam van de zaak of organisatie"
+  autocomplete="organization"
+  required
 >
 
 
-<label for="eventCustomerContact">
-Contactpersoon
+<label for="eventCustomerFirstName">
+Voornaam contactpersoon
 </label>
 
 
 <input
-  id="eventCustomerContact"
+  id="eventCustomerFirstName"
   type="text"
-  placeholder="Voor- en achternaam"
+  placeholder="Voornaam"
+  autocomplete="given-name"
+  required
 >
 
 
-<label for="eventCustomerPhone">
+<label for="eventCustomerLastName">
+Achternaam contactpersoon
+</label>
+
+
+<input
+  id="eventCustomerLastName"
+  type="text"
+  placeholder="Achternaam"
+  autocomplete="family-name"
+  required
+>
+
+
+<label for="eventCustomerPhoneNumber">
 Telefoonnummer
 </label>
 
-
-<input
-  id="eventCustomerPhone"
-  type="tel"
-  placeholder="Bijv. 0470 12 34 56"
->
+<div class="phone-field-group">
+  <select id="eventCustomerPhoneCountry" class="phone-country-select" aria-label="Landcode">
+    <option value="+32">🇧🇪 +32</option>
+    <option value="+31">🇳🇱 +31</option>
+  </select>
+  <input
+    id="eventCustomerPhoneNumber"
+    type="tel"
+    placeholder="470 12 34 56"
+    autocomplete="tel-national"
+    inputmode="numeric"
+    required
+  >
+</div>
 
 
 <label for="eventCustomerEmail">
@@ -4382,6 +4423,9 @@ E-mailadres
   id="eventCustomerEmail"
   type="email"
   placeholder="naam@bedrijf.be"
+  autocomplete="email"
+  required
+  pattern="[^\s@]+@[^\s@]+\.(com|be|nl)"
 >
 
 
@@ -4394,6 +4438,7 @@ Locatie evenement
   id="eventCustomerLocation"
   type="text"
   placeholder="Straat, nummer en gemeente"
+  required
 >
 
 
@@ -11693,8 +11738,9 @@ function resetEventForm() {
     "eventUntil",
     "eventNote",
     "eventCustomerCompany",
-    "eventCustomerContact",
-    "eventCustomerPhone",
+    "eventCustomerFirstName",
+    "eventCustomerLastName",
+    "eventCustomerPhoneNumber",
     "eventCustomerEmail",
     "eventCustomerLocation"
   ]
@@ -11719,6 +11765,19 @@ function resetEventForm() {
 
       }
     );
+
+
+  const eventPhoneCountry =
+    document.getElementById(
+      "eventCustomerPhoneCountry"
+    );
+
+  if (
+    eventPhoneCountry
+  ) {
+    eventPhoneCountry.value =
+      "+32";
+  }
 
 
   Object.keys(
@@ -11800,10 +11859,70 @@ function resetEventForm() {
 
 
 /* ===============================
+   EVENT VALIDATIE HELPERS
+   Voornaam/achternaam verplicht, e-mail moet eindigen op
+   .com / .be / .nl, telefoon = landcode-dropdown + cijfers.
+================================ */
+
+const EVENT_VALID_EMAIL_PATTERN =
+  /^[^\s@]+@[^\s@]+\.(com|be|nl)$/i;
+
+function isValidEventEmail(value) {
+  return EVENT_VALID_EMAIL_PATTERN.test(String(value || "").trim());
+}
+
+// Telefoonnummer (zonder landcode) moet 8 of 9 cijfers bevatten.
+function isValidEventPhoneNumber(value) {
+  const digitsOnly = String(value || "").replace(/\D/g, "");
+  return digitsOnly.length >= 8 && digitsOnly.length <= 9;
+}
+
+// Zet landcode + los ingevoerd nummer om naar één opgeslagen waarde,
+// bijvoorbeeld "+32" + "470123456" => "+32 470123456".
+function composeEventPhone(countryCode, numberValue) {
+  const digitsOnly = String(numberValue || "").replace(/\D/g, "");
+  if (!digitsOnly) return "";
+  return `${countryCode} ${digitsOnly}`;
+}
+
+
+/* ===============================
    EVENT DATA
 ================================ */
 
 function getStandaloneEventData() {
+
+  const eventCustomerFirstNameValue =
+    document
+      .getElementById(
+        "eventCustomerFirstName"
+      )
+      .value
+      .trim();
+
+  const eventCustomerLastNameValue =
+    document
+      .getElementById(
+        "eventCustomerLastName"
+      )
+      .value
+      .trim();
+
+  const eventCustomerPhoneCountryValue =
+    document
+      .getElementById(
+        "eventCustomerPhoneCountry"
+      )
+      ?.value ||
+    "+32";
+
+  const eventCustomerPhoneNumberValue =
+    document
+      .getElementById(
+        "eventCustomerPhoneNumber"
+      )
+      .value
+      .trim();
 
   return {
 
@@ -11817,21 +11936,24 @@ function getStandaloneEventData() {
           .value
           .trim(),
 
+      firstName:
+        eventCustomerFirstNameValue,
+
+      lastName:
+        eventCustomerLastNameValue,
+
       contact:
-        document
-          .getElementById(
-            "eventCustomerContact"
-          )
-          .value
+        `${eventCustomerFirstNameValue} ${eventCustomerLastNameValue}`
           .trim(),
 
+      phoneNumberRaw:
+        eventCustomerPhoneNumberValue,
+
       phone:
-        document
-          .getElementById(
-            "eventCustomerPhone"
-          )
-          .value
-          .trim(),
+        composeEventPhone(
+          eventCustomerPhoneCountryValue,
+          eventCustomerPhoneNumberValue
+        ),
 
       email:
         document
@@ -11905,24 +12027,51 @@ function validateStandaloneEventData() {
 
 
   if (
-    event.deliveryMode ===
-    "enkel_levering"
-    &&
-    (
-      !event.customer.company
-      ||
-      !event.customer.contact
-      ||
-      !event.customer.phone
-      ||
-      !event.customer.email
-      ||
-      !event.customer.location
+    !event.customer.company
+    ||
+    !event.customer.firstName
+    ||
+    !event.customer.lastName
+    ||
+    !event.customer.phoneNumberRaw
+    ||
+    !event.customer.email
+    ||
+    !event.customer.location
+  ) {
+
+    alert(
+      "Vul alle klant- en leveringsgegevens in (bedrijfsnaam, voornaam, achternaam, telefoon, e-mail en locatie)."
+    );
+
+    return false;
+
+  }
+
+
+  if (
+    !isValidEventEmail(
+      event.customer.email
     )
   ) {
 
     alert(
-      "Vul voor een levering alle klant- en leveringsgegevens in."
+      "Vul een geldig e-mailadres in dat eindigt op .com, .be of .nl."
+    );
+
+    return false;
+
+  }
+
+
+  if (
+    !isValidEventPhoneNumber(
+      event.customer.phoneNumberRaw
+    )
+  ) {
+
+    alert(
+      "Vul een geldig telefoonnummer in (8 of 9 cijfers, zonder de landcode)."
     );
 
     return false;
