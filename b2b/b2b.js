@@ -667,6 +667,16 @@ function escapeB2BHtml(value) {
 }
 
 // =========================================================
+// MAXIMUM AANTAL PERSONEN PER INSCHRIJVING (per horecazaak)
+// Ongeacht hoeveel quotum een vertegenwoordiger nog over heeft,
+// mag één inschrijving (= 1 horecazaak) nooit meer dan dit
+// aantal personen bevatten.
+// =========================================================
+
+const B2B_MAX_GUESTS_PER_REGISTRATION = 6;
+
+
+// =========================================================
 // VALIDATIE HELPERS (nieuw)
 // Voornaam/achternaam verplicht, e-mail moet eindigen op
 // .com / .be / .nl, telefoon = landcode-dropdown + cijfers.
@@ -856,8 +866,13 @@ function changeGuestCount(amount) {
     return;
   }
 
+  const allowedMax = Math.min(
+    activeB2BRemaining,
+    B2B_MAX_GUESTS_PER_REGISTRATION
+  );
+
   let value = Number(input.value || 1) + Number(amount || 0);
-  value = Math.max(1, Math.min(activeB2BRemaining, value));
+  value = Math.max(1, Math.min(allowedMax, value));
   input.value = value;
   updateGuestSelector();
 }
@@ -867,9 +882,14 @@ function updateGuestSelector() {
   const display = document.getElementById("guestCountDisplay");
   if (!input || !display) return;
 
+  const allowedMax = Math.min(
+    activeB2BRemaining,
+    B2B_MAX_GUESTS_PER_REGISTRATION
+  );
+
   let value = Number(input.value || 1);
   if (activeB2BRemaining <= 0) value = 0;
-  else value = Math.max(1, Math.min(value, activeB2BRemaining));
+  else value = Math.max(1, Math.min(value, allowedMax));
 
   input.value = value;
   display.textContent = value;
@@ -928,6 +948,14 @@ async function submitB2BRegistration() {
 
     if (numberOfGuests <= 0 || numberOfGuests > activeB2BRemaining) {
       showRegistrationStatus("Het gekozen aantal gasten past niet binnen je beschikbare quota.", true);
+      return;
+    }
+
+    if (numberOfGuests > B2B_MAX_GUESTS_PER_REGISTRATION) {
+      showRegistrationStatus(
+        `Eén horecazaak kan met maximaal ${B2B_MAX_GUESTS_PER_REGISTRATION} personen worden ingeschreven.`,
+        true
+      );
       return;
     }
 
@@ -1546,6 +1574,13 @@ function changeEditGuestCount(
   }
 
 
+  const allowedMax =
+    Math.min(
+      editMaxGuests,
+      B2B_MAX_GUESTS_PER_REGISTRATION
+    );
+
+
   let value =
     Number(
       input.value || 1
@@ -1565,7 +1600,7 @@ function changeEditGuestCount(
 
   value =
     Math.min(
-      editMaxGuests,
+      allowedMax,
       value
     );
 
@@ -1603,6 +1638,13 @@ function updateEditGuestSelector() {
   }
 
 
+  const allowedMax =
+    Math.min(
+      editMaxGuests,
+      B2B_MAX_GUESTS_PER_REGISTRATION
+    );
+
+
   let value =
     Number(
       input.value || 1
@@ -1616,7 +1658,7 @@ function updateEditGuestSelector() {
     value =
       Math.min(
         value,
-        editMaxGuests
+        allowedMax
       );
 
   }
@@ -1805,6 +1847,21 @@ async function saveB2BRegistrationChanges() {
 
       showEditRegistrationStatus(
         "Dit aantal overschrijdt je beschikbare quota.",
+        true
+      );
+
+      return;
+
+    }
+
+
+    if (
+      guests >
+      B2B_MAX_GUESTS_PER_REGISTRATION
+    ) {
+
+      showEditRegistrationStatus(
+        `Eén horecazaak kan met maximaal ${B2B_MAX_GUESTS_PER_REGISTRATION} personen worden ingeschreven.`,
         true
       );
 
