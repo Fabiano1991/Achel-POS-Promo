@@ -5938,8 +5938,31 @@ const supabaseClient =
    klikt en zo op de app terechtkomt.
 ================================ */
 
+/*
+   We checken de link in de adresbalk
+   ZELF, meteen bij het laden van de
+   pagina (dus voor er iets met
+   Supabase gebeurt). Zo weten we
+   onmiddellijk of dit een reset-link
+   is, in plaats van te moeten wachten
+   tot Supabase dat via een gebeurtenis
+   laat weten — die twee liepen soms
+   niet synchroon, waardoor de app af
+   en toe toch al naar het homescherm
+   sprong vlak voor de melding
+   binnenkwam.
+*/
+
 let passwordRecoveryInProgress =
-  false;
+  window.location.hash.includes(
+    "type=recovery"
+  ) ||
+  new URLSearchParams(
+    window.location.search
+  ).get(
+    "type"
+  ) ===
+    "recovery";
 
 
 supabaseClient.auth.onAuthStateChange(
@@ -6978,6 +7001,23 @@ function showPendingApproval() {
 ================================ */
 
 async function startApp() {
+
+  /*
+     Extra veiligheid: als we ergens
+     nog in een wachtwoord-herstel
+     zitten, mag er nooit naar het
+     homescherm gesprongen worden,
+     ongeacht van waar startApp()
+     wordt aangeroepen.
+  */
+  if (
+    passwordRecoveryInProgress
+  ) {
+
+    return;
+
+  }
+
 
   document
     .getElementById(
@@ -15985,6 +16025,87 @@ window
 ================================ */
 
 checkExistingSession();
+
+
+/*
+   VANGNET: als we uit de link
+   opmaakten dat dit een reset-link
+   is, maar Supabase heeft na een
+   tijdje nog altijd niet gereageerd
+   (bv. omdat de link in een andere
+   browser geopend werd dan waarin
+   de reset werd aangevraagd), blijft
+   de gebruiker anders eindeloos naar
+   het laadscherm staren. Na 6
+   seconden tonen we dan alsnog het
+   inlogscherm, met uitleg.
+*/
+
+setTimeout(
+  () => {
+
+    if (
+      !passwordRecoveryInProgress
+    ) {
+
+      return;
+
+    }
+
+
+    const newPasswordModeVisible =
+      !document
+        .getElementById(
+          "loginModeNewPassword"
+        )
+        ?.classList
+        .contains(
+          "hidden"
+        );
+
+
+    if (
+      newPasswordModeVisible
+    ) {
+
+      return;
+
+    }
+
+
+    document
+      .getElementById(
+        "bootLoading"
+      )
+      ?.classList
+      .add(
+        "hidden"
+      );
+
+
+    document
+      .getElementById(
+        "loginScreen"
+      )
+      ?.classList
+      .remove(
+        "hidden"
+      );
+
+
+    switchLoginMode(
+      "login"
+    );
+
+
+    showLoginMessage(
+      "Deze resetlink kon niet verwerkt worden. Open de link in dezelfde browser waarin je 'wachtwoord vergeten' hebt aangevraagd, of vraag een nieuwe link aan.",
+      true
+    );
+
+  },
+  6000
+);
 
 </script>
 
