@@ -6749,35 +6749,72 @@ async function submitNewPassword() {
   }
 
 
+  /* ===============================
+     BELANGRIJK: NIET automatisch
+     inloggen na het instellen van
+     een nieuw wachtwoord.
+
+     De sessie die hier actief is,
+     komt van de resetlink (een
+     tijdelijke "herstel-sessie" van
+     Supabase). Als we die sessie
+     zomaar laten staan, blijft de
+     gebruiker (en iedereen die
+     dezelfde link ooit gebruikte)
+     voortaan altijd automatisch
+     ingelogd, ook bij een gewone
+     her-opening van de app zonder
+     wachtwoord in te geven.
+
+     Daarom loggen we hier expliciet
+     uit en sturen we de gebruiker
+     terug naar het inlogscherm, met
+     de vraag om in te loggen met het
+     nieuwe wachtwoord.
+  ================================ */
+
+  await supabaseClient
+    .auth
+    .signOut();
+
+
   currentUser =
-    data.user;
+    null;
 
 
-  const profileLoaded =
-    await loadCurrentProfile();
+  currentProfile =
+    null;
 
 
-  if (
-    !profileLoaded
-  ) {
-
-    return;
-
-  }
+  passwordRecoveryInProgress =
+    false;
 
 
-  if (
-    !currentProfile.rol
-  ) {
-
-    showPendingApproval();
-
-    return;
-
-  }
+  document
+    .getElementById(
+      "newPassword"
+    )
+    .value =
+      "";
 
 
-  await startApp();
+  document
+    .getElementById(
+      "newPasswordConfirm"
+    )
+    .value =
+      "";
+
+
+  switchLoginMode(
+    "login"
+  );
+
+
+  showLoginMessage(
+    "Wachtwoord gewijzigd. Log in met je nieuwe wachtwoord.",
+    false
+  );
 
 }
 
