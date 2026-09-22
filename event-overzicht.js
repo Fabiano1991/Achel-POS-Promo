@@ -26,13 +26,15 @@ let eoExpandedIds = new Set(); // order_id's die uitgeklapt staan
 
 // Vaste kleur per aanvrager, zodat dezelfde persoon altijd dezelfde
 // kleur krijgt (gebaseerd op user_id, niet willekeurig per render).
+// Lichtere tinten dan voorheen, zodat de stippen goed afsteken tegen
+// de donkere achtergrond van de app.
 const EO_REQUESTER_COLORS = [
-  "#c9820c", "#0d8a7a", "#7c3aed", "#2c6cb0",
-  "#b6442f", "#4f7942", "#a13f7a", "#5a6b8c",
+  "#e0b85f", "#4fd9c0", "#b794f6", "#6fa8dc",
+  "#f0917a", "#8fd48f", "#dd9ecb", "#9cb3d9",
 ];
 
 function eoColorForUser(userId) {
-  if (!userId) return "var(--muted, #717972)";
+  if (!userId) return "rgba(246,240,227,.62)";
   let hash = 0;
   for (let i = 0; i < userId.length; i++) {
     hash = (hash * 31 + userId.charCodeAt(i)) >>> 0;
@@ -57,7 +59,13 @@ function eoInjectStyles() {
       position: fixed;
       inset: 0;
       z-index: 260;
-      background: var(--bg, #f4f3ef);
+      background:
+        radial-gradient(
+          circle at 50% 45%,
+          #20271d 0%,
+          #151a14 38%,
+          #0d110d 100%
+        );
       display: flex;
       flex-direction: column;
       overflow: hidden;
@@ -72,23 +80,25 @@ function eoInjectStyles() {
       align-items: center;
       gap: 10px;
       padding: calc(14px + env(safe-area-inset-top)) 16px 14px;
-      background: var(--surface, #fff);
-      border-bottom: 1px solid var(--border, #ddd9cf);
+      background: rgba(24,32,25,.97);
+      backdrop-filter: blur(14px);
+      border-bottom: 1px solid rgba(201,155,67,.18);
     }
 
     .eo-header button.eo-back {
       width: 36px;
       height: 36px;
-      border: 1px solid var(--border, #ddd9cf);
+      border: 1px solid rgba(201,155,67,.38);
       border-radius: 10px;
-      background: white;
-      color: var(--dark, #182019);
+      background: rgba(18,24,19,.94);
+      color: var(--achel-gold-bright, #e0b85f);
       font-size: 18px;
+      box-shadow: 0 7px 18px rgba(0,0,0,.22);
     }
 
     .eo-header strong {
       font-size: 16px;
-      color: var(--dark, #182019);
+      color: #fff;
     }
 
     .eo-scroll {
@@ -106,7 +116,7 @@ function eoInjectStyles() {
 
     .eo-nav strong {
       text-align: center;
-      color: var(--dark, #182019);
+      color: #fff;
       font-size: 15px;
       text-transform: capitalize;
     }
@@ -114,10 +124,10 @@ function eoInjectStyles() {
     .eo-nav button {
       width: 36px;
       height: 36px;
-      border: 1px solid var(--border, #ddd9cf);
+      border: 1px solid rgba(201,155,67,.20);
       border-radius: 10px;
-      background: white;
-      color: var(--gold, #8c692f);
+      background: rgba(255,255,255,.055);
+      color: var(--achel-gold-bright, #e0b85f);
       font-size: 20px;
     }
 
@@ -132,7 +142,7 @@ function eoInjectStyles() {
       text-align: center;
       font-size: 8px;
       font-weight: 900;
-      color: var(--muted, #717972);
+      color: rgba(246,240,227,.42);
       text-transform: uppercase;
     }
 
@@ -150,7 +160,7 @@ function eoInjectStyles() {
       border: 0;
       border-radius: 9px;
       background: transparent;
-      color: var(--dark, #182019);
+      color: rgba(255,255,255,.82);
       font-size: 12px;
       font-weight: 700;
     }
@@ -160,12 +170,12 @@ function eoInjectStyles() {
     }
 
     .eo-day.today {
-      box-shadow: inset 0 0 0 1px var(--gold, #8c692f);
+      box-shadow: inset 0 0 0 1px var(--achel-gold, #c99b43);
     }
 
     .eo-day.has-event {
-      background: var(--gold-soft, #f1e8d7);
-      color: #694e20;
+      background: rgba(201,155,67,.20);
+      color: #f2d99f;
       font-weight: 900;
     }
 
@@ -173,7 +183,7 @@ function eoInjectStyles() {
       width: 4px;
       height: 4px;
       border-radius: 50%;
-      background: var(--gold, #8c692f);
+      background: var(--achel-gold, #c99b43);
       margin-top: 2px;
     }
 
@@ -189,7 +199,7 @@ function eoInjectStyles() {
       align-items: center;
       gap: 5px;
       font-size: 11px;
-      color: var(--muted, #717972);
+      color: rgba(246,240,227,.62);
     }
 
     .eo-dot {
@@ -212,15 +222,18 @@ function eoInjectStyles() {
       font-weight: 900;
       letter-spacing: .04em;
       text-transform: uppercase;
-      color: var(--muted, #717972);
+      color: var(--achel-gold, #c99b43);
     }
 
     .eo-card {
-      background: var(--surface, #fff);
-      border: 1px solid var(--border, #ddd9cf);
+      background:
+        radial-gradient(circle at 100% 0%, rgba(201,155,67,.08), transparent 31%),
+        linear-gradient(145deg,#20271f,#151a15);
+      border: 1px solid rgba(201,155,67,.32);
       border-radius: 14px;
       overflow: hidden;
       margin-bottom: 10px;
+      box-shadow: 0 12px 30px rgba(0,0,0,.26);
     }
 
     .eo-card-header {
@@ -257,7 +270,7 @@ function eoInjectStyles() {
     .eo-card-name {
       font-size: 14px;
       font-weight: 800;
-      color: var(--dark, #182019);
+      color: #fff;
     }
 
     .eo-chevron {
@@ -266,7 +279,7 @@ function eoInjectStyles() {
       width: 12px;
       height: 12px;
       transition: transform .15s ease;
-      color: var(--muted, #717972);
+      color: var(--achel-gold-bright, #e0b85f);
     }
 
     .eo-card.expanded .eo-chevron {
@@ -285,7 +298,7 @@ function eoInjectStyles() {
     .eo-card-dates {
       margin-top: 2px;
       font-size: 11px;
-      color: var(--muted, #717972);
+      color: rgba(246,240,227,.62);
     }
 
     .eo-badge {
@@ -296,20 +309,36 @@ function eoInjectStyles() {
       font-weight: 900;
       text-transform: uppercase;
       white-space: nowrap;
+      background: rgba(201,155,67,.14);
+      border: 1px solid rgba(201,155,67,.18);
+      color: var(--achel-gold-bright, #e0b85f);
     }
 
-    .eo-badge.nieuw        { background: var(--gold-soft, #f1e8d7); color: #694e20; }
-    .eo-badge.in_behandeling { background: #e6eef8; color: #2c4d76; }
-    .eo-badge.klaar         { background: var(--green-soft, #e7f3eb); color: var(--green, #2f7449); }
-    .eo-badge.afgehaald     { background: var(--green-soft, #e7f3eb); color: var(--green, #2f7449); }
-    .eo-badge.geannuleerd   { background: var(--red-soft, #f8e9e9); color: var(--red, #a74646); }
+    .eo-badge.in_behandeling {
+      background: rgba(58,99,158,.22);
+      border: 1px solid rgba(94,140,199,.28);
+      color: #a9c6ef;
+    }
+
+    .eo-badge.klaar,
+    .eo-badge.afgehaald {
+      background: rgba(75,152,98,.16);
+      border: 1px solid rgba(92,181,119,.22);
+      color: #91dbaa;
+    }
+
+    .eo-badge.geannuleerd {
+      background: rgba(167,70,70,.18);
+      border: 1px solid rgba(199,91,91,.22);
+      color: #e49b9b;
+    }
 
     .eo-materials {
       margin-top: 8px;
       padding-top: 8px;
-      border-top: 1px dashed var(--border, #ddd9cf);
+      border-top: 1px dashed rgba(201,155,67,.18);
       font-size: 12px;
-      color: var(--text, #202722);
+      color: rgba(246,240,227,.78);
     }
 
     .eo-materials div {
@@ -319,19 +348,19 @@ function eoInjectStyles() {
     }
 
     .eo-materials div span:first-child {
-      color: var(--muted, #717972);
+      color: rgba(246,240,227,.62);
     }
 
     .eo-requester {
       margin-top: 6px;
       font-size: 11px;
-      color: var(--muted, #717972);
+      color: rgba(246,240,227,.62);
     }
 
     .eo-empty {
       text-align: center;
       padding: 40px 10px;
-      color: var(--muted, #717972);
+      color: rgba(246,240,227,.46);
       font-size: 13px;
     }
 
