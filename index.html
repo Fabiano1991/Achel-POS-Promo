@@ -5956,13 +5956,58 @@ const supabaseClient =
 let passwordRecoveryInProgress =
   window.location.hash.includes(
     "type=recovery"
-  ) ||
+  );
+
+
+/*
+   NIEUW: token_hash in de adresbalk
+   (via ?token_hash=...&type=recovery).
+
+   Dit komt van de aangepaste
+   Reset Password-mailtemplate in
+   Supabase. In plaats van de reset
+   meteen te verwerken zodra de link
+   ook maar geopend wordt (wat
+   Outlook's "Safe Links" op de
+   achtergrond per ongeluk deed,
+   waardoor de link al "verbruikt"
+   was tegen de tijd dat de
+   gebruiker er zelf op klikte),
+   wisselen we deze code nu pas in
+   via verifyOtp() hieronder — dus
+   pas op het moment dat deze
+   JavaScript hier echt draait in de
+   browser van de gebruiker zelf.
+*/
+
+const recoveryUrlParams =
   new URLSearchParams(
     window.location.search
-  ).get(
+  );
+
+
+const recoveryTokenHash =
+  recoveryUrlParams.get(
+    "token_hash"
+  );
+
+
+const recoveryType =
+  recoveryUrlParams.get(
     "type"
-  ) ===
-    "recovery";
+  );
+
+
+if (
+  recoveryTokenHash &&
+  recoveryType ===
+  "recovery"
+) {
+
+  passwordRecoveryInProgress =
+    true;
+
+}
 
 
 supabaseClient.auth.onAuthStateChange(
@@ -6025,6 +6070,122 @@ supabaseClient.auth.onAuthStateChange(
 
   }
 );
+
+
+/* ===============================
+   RESETLINK BEVESTIGEN (token_hash)
+
+   Wisselt de eenmalige code uit de
+   mail in voor een echte
+   herstel-sessie. Dit gebeurt pas
+   hier, in de browser van de
+   gebruiker, niet wanneer Outlook
+   de link vooraf al opende — dat
+   voorkomt de "je bent al ingelogd"
+   fout na het klikken op de link.
+================================ */
+
+async function confirmPasswordRecoveryLink() {
+
+  document
+    .getElementById(
+      "bootLoading"
+    )
+    ?.classList
+    .add(
+      "hidden"
+    );
+
+
+  document
+    .getElementById(
+      "appMain"
+    )
+    ?.classList
+    .add(
+      "hidden"
+    );
+
+
+  document
+    .getElementById(
+      "pendingApprovalScreen"
+    )
+    ?.classList
+    .add(
+      "hidden"
+    );
+
+
+  document
+    .getElementById(
+      "loginScreen"
+    )
+    ?.classList
+    .remove(
+      "hidden"
+    );
+
+
+  const {
+    error
+  } =
+    await supabaseClient
+      .auth
+      .verifyOtp({
+
+        token_hash:
+          recoveryTokenHash,
+
+        type:
+          "recovery"
+
+      });
+
+
+  if (
+    error
+  ) {
+
+    passwordRecoveryInProgress =
+      false;
+
+
+    switchLoginMode(
+      "reset"
+    );
+
+
+    showLoginMessage(
+
+      "Deze resetlink is niet meer geldig. Dit kan gebeuren als de link al eerder werd geopend (bijvoorbeeld automatisch door Outlook). Vraag een nieuwe link aan via 'Wachtwoord vergeten?'.",
+
+      true
+
+    );
+
+
+    return;
+
+  }
+
+
+  switchLoginMode(
+    "newPassword"
+  );
+
+}
+
+
+if (
+  recoveryTokenHash &&
+  recoveryType ===
+  "recovery"
+) {
+
+  confirmPasswordRecoveryLink();
+
+}
 
 
 /* ===============================
