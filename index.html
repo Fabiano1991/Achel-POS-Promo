@@ -1059,6 +1059,46 @@ textarea {
 }
 
 
+/* ===============================
+   POS GROEP (bv. Tapruiter/Tafeltentje/
+   Poster) MET "KIES BIER"-DROPDOWN
+================================ */
+
+.pos-group {
+
+  border:
+    1px solid
+    var(--border);
+
+  background:
+    var(--surface-soft);
+
+  border-radius:13px;
+
+  padding:11px;
+
+  margin-bottom:7px;
+}
+
+
+.pos-group label {
+
+  margin-top:0;
+}
+
+
+.pos-group select {
+
+  margin-bottom:10px;
+}
+
+
+.pos-group .product {
+
+  margin-bottom:0;
+}
+
+
 .product-name {
 
   font-weight:780;
@@ -4201,6 +4241,18 @@ POS
 </div>
 
 
+<div id="posSubcategoryRow" class="hidden" style="margin-bottom:12px;">
+
+<label for="posSubcategorySelect">Categorie</label>
+
+<select
+  id="posSubcategorySelect"
+  onchange="setPosSubcategory(this.value)"
+></select>
+
+</div>
+
+
 <div id="productsList">
 
 <div class="empty">
@@ -6287,6 +6339,39 @@ let selectedCategory =
   "bier";
 
 
+/* ===============================
+   POS SUBCATEGORIEËN (dropdowns)
+================================ */
+
+// Welke subcategorie is momenteel gekozen in de POS-tab.
+let selectedPosSubcategory =
+  null;
+
+// Per groep (bv. "Tapruiter", "Tafeltentje", "Poster") welk
+// bier momenteel gekozen is in de tweede dropdown.
+const posGroupSelection =
+  {};
+
+// Vaste volgorde en labels voor de subcategorie-dropdown.
+const POS_SUBCATEGORY_ORDER = [
+  "tapmateriaal",
+  "tafelmateriaal",
+  "posters",
+  "glaswerk",
+  "kleding_gadgets",
+  "wandborden",
+];
+
+const POS_SUBCATEGORY_LABELS = {
+  tapmateriaal: "Tapmateriaal",
+  tafelmateriaal: "Tafelmateriaal",
+  posters: "Posters",
+  glaswerk: "Glaswerk",
+  kleding_gadgets: "Kleding & gadgets",
+  wandborden: "Wandborden",
+};
+
+
 const quantities =
   {};
 
@@ -7778,7 +7863,7 @@ async function loadProducts() {
       )
 
       .select(
-        "id, naam, categorie, eenheid, sort_order, voorraad, minimum_voorraad, voorraad_beheren, tijdelijk_onbeschikbaar, inhoud_per_eenheid"
+        "id, naam, categorie, eenheid, sort_order, voorraad, minimum_voorraad, voorraad_beheren, tijdelijk_onbeschikbaar, inhoud_per_eenheid, subcategorie, groep_naam, bier_variant"
       )
 
       .eq(
@@ -8106,6 +8191,128 @@ function setCategory(
     );
 
 
+  document
+    .getElementById(
+      "posSubcategoryRow"
+    )
+    ?.classList
+    .toggle(
+      "hidden",
+      category !== "pos"
+    );
+
+
+  if (
+    category === "pos"
+  ) {
+
+    ensurePosSubcategoryOptions();
+
+  }
+
+
+  renderProducts();
+
+}
+
+
+/* ===============================
+   POS SUBCATEGORIE-DROPDOWN
+================================ */
+
+// Vult de dropdown met enkel de subcategorieën die ook echt
+// artikelen bevatten, in de vaste volgorde hierboven.
+function ensurePosSubcategoryOptions() {
+
+  const select =
+    document.getElementById(
+      "posSubcategorySelect"
+    );
+
+  if (
+    !select
+  ) {
+
+    return;
+
+  }
+
+
+  const present =
+    new Set(
+      allProducts
+        .filter(
+          p =>
+            p.categorie === "pos" &&
+            p.subcategorie
+        )
+        .map(
+          p => p.subcategorie
+        )
+    );
+
+
+  const orderedPresent =
+    POS_SUBCATEGORY_ORDER.filter(
+      key => present.has(key)
+    );
+
+
+  select.innerHTML =
+    orderedPresent
+      .map(
+        key =>
+          `<option value="${key}">${escapeHtml(
+            POS_SUBCATEGORY_LABELS[key] || key
+          )}</option>`
+      )
+      .join("");
+
+
+  if (
+    !orderedPresent.includes(
+      selectedPosSubcategory
+    )
+  ) {
+
+    selectedPosSubcategory =
+      orderedPresent[0] ||
+      null;
+
+  }
+
+
+  select.value =
+    selectedPosSubcategory ||
+    "";
+
+}
+
+
+function setPosSubcategory(
+  value
+) {
+
+  selectedPosSubcategory =
+    value;
+
+
+  renderProducts();
+
+}
+
+
+// Onthoudt, per groep (bv. "Tapruiter"), welk bier gekozen is
+// in de tweede dropdown, en herbouwt dan de lijst.
+function setPosGroupVariant(
+  groepNaam,
+  variant
+) {
+
+  posGroupSelection[groepNaam] =
+    variant;
+
+
   renderProducts();
 
 }
@@ -8114,6 +8321,249 @@ function setCategory(
 /* ===============================
    NORMAL PRODUCTS
 ================================ */
+
+// Bouwt de HTML voor één enkel product (naam, voorraadtekst,
+// +/- knoppen). Losgemaakt uit renderProducts() zodat we hem
+// zowel voor gewone artikelen als voor het gekozen bier binnen
+// een groep (Tapruiter/Tafeltentje/Poster) kunnen hergebruiken.
+function renderProductCard(
+  product
+) {
+
+  const stockData =
+    posAvailableStock[
+      String(
+        product.id
+      )
+    ];
+
+
+  const unavailable =
+
+    product.tijdelijk_onbeschikbaar ===
+    true
+
+    ||
+
+    stockData
+      ?.tijdelijk_onbeschikbaar ===
+      true;
+
+
+  const managesStock =
+
+    product.categorie ===
+    "pos"
+
+    &&
+
+    product.voorraad_beheren ===
+    true;
+
+
+  const available =
+
+    managesStock
+
+      ? getPosAvailableQuantity(
+          product
+        )
+
+      : null;
+
+
+  const currentQty =
+    quantities[
+      product.id
+    ] ||
+    0;
+
+
+  const unit =
+    product.eenheid ||
+    "";
+
+
+  const stockText =
+
+    managesStock
+
+    &&
+
+    !unavailable
+
+      ? `${available} ${unit || "stuks"} beschikbaar`
+
+      : "";
+
+
+  const packageText =
+
+    product.inhoud_per_eenheid
+
+    &&
+
+    !unavailable
+
+      ? `${product.inhoud_per_eenheid} glazen per ${unit || "eenheid"}`
+
+      : "";
+
+
+  const plusDisabled =
+
+    unavailable
+
+    ||
+
+    (
+      managesStock
+
+      &&
+
+      currentQty >=
+      available
+    );
+
+
+  return `
+
+    <div
+      class="product ${
+        unavailable
+          ? "product-unavailable"
+          : ""
+      }"
+    >
+
+      <div class="product-name">
+
+        ${escapeHtml(
+          product.naam
+        )}
+
+
+        ${
+          product.eenheid
+
+          &&
+
+          !unavailable
+
+            ? `
+
+                <span class="product-unit">
+
+                  Eenheid:
+
+                  ${escapeHtml(
+                    product.eenheid
+                  )}
+
+                </span>
+
+              `
+
+            : ""
+        }
+
+
+        ${
+          stockText
+
+            ? `
+
+                <span class="product-stock">
+
+                  ${escapeHtml(
+                    stockText
+                  )}
+
+                </span>
+
+              `
+
+            : ""
+        }
+
+
+        ${
+          packageText
+
+            ? `
+
+                <span class="product-unit">
+
+                  ${escapeHtml(
+                    packageText
+                  )}
+
+                </span>
+
+              `
+
+            : ""
+        }
+
+
+        ${
+          unavailable
+
+            ? `
+
+                <span class="product-unavailable-label">
+
+                  Tijdelijk onbeschikbaar
+
+                </span>
+
+              `
+
+            : ""
+        }
+
+      </div>
+
+
+      <div class="qty">
+
+        <button
+          type="button"
+          onclick="changeQty('${product.id}', -1)"
+          ${
+            unavailable ||
+            currentQty <= 0
+              ? "disabled"
+              : ""
+          }
+        >
+          −
+        </button>
+
+
+        <span
+          id="qty-${product.id}"
+        >
+          ${currentQty}
+        </span>
+
+
+        <button
+          type="button"
+          onclick="changeQty('${product.id}', 1)"
+          ${plusDisabled ? "disabled" : ""}
+        >
+          +
+        </button>
+
+      </div>
+
+    </div>
+
+  `;
+
+}
+
 
 function renderProducts() {
 
@@ -8124,13 +8574,32 @@ function renderProducts() {
       );
 
 
-  const products =
+  let products =
     allProducts
       .filter(
         product =>
           product.categorie ===
           selectedCategory
       );
+
+
+  // In de POS-tab tonen we enkel de artikelen van de gekozen
+  // subcategorie (Tapmateriaal, Glaswerk, ...) in plaats van
+  // alle 40+ artikelen in één lange lijst.
+  if (
+    selectedCategory ===
+    "pos"
+  ) {
+
+    products =
+      products
+        .filter(
+          product =>
+            product.subcategorie ===
+            selectedPosSubcategory
+        );
+
+  }
 
 
   if (
@@ -8153,248 +8622,123 @@ function renderProducts() {
   }
 
 
-  container.innerHTML =
-
-    products
-      .map(
-        product => {
-
-          const stockData =
-            posAvailableStock[
-              String(
-                product.id
-              )
-            ];
-
-
-          const unavailable =
-
-            product.tijdelijk_onbeschikbaar ===
-            true
-
-            ||
-
-            stockData
-              ?.tijdelijk_onbeschikbaar ===
-              true;
-
-
-          const managesStock =
-
-            product.categorie ===
-            "pos"
-
-            &&
-
-            product.voorraad_beheren ===
-            true;
-
-
-          const available =
-
-            managesStock
-
-              ? getPosAvailableQuantity(
-                  product
-                )
-
-              : null;
-
-
-          const currentQty =
-            quantities[
-              product.id
-            ] ||
-            0;
-
-
-          const unit =
-            product.eenheid ||
-            "";
-
-
-          const stockText =
-
-            managesStock
-
-            &&
-
-            !unavailable
-
-              ? `${available} ${unit || "stuks"} beschikbaar`
-
-              : "";
-
-
-          const packageText =
-
-            product.inhoud_per_eenheid
-
-            &&
-
-            !unavailable
-
-              ? `${product.inhoud_per_eenheid} glazen per ${unit || "eenheid"}`
-
-              : "";
-
-
-          const plusDisabled =
-
-            unavailable
-
-            ||
-
-            (
-              managesStock
-
-              &&
-
-              currentQty >=
-              available
-            );
-
-
-          return `
-
-            <div
-              class="product ${
-                unavailable
-                  ? "product-unavailable"
-                  : ""
-              }"
-            >
-
-              <div class="product-name">
-
-                ${escapeHtml(
-                  product.naam
-                )}
-
-
-                ${
-                  product.eenheid
-
-                  &&
-
-                  !unavailable
-
-                    ? `
-
-                        <span class="product-unit">
-
-                          Eenheid:
-
-                          ${escapeHtml(
-                            product.eenheid
-                          )}
-
-                        </span>
-
-                      `
-
-                    : ""
-                }
-
-
-                ${
-                  stockText
-
-                    ? `
-
-                        <span class="product-stock">
-
-                          ${escapeHtml(
-                            stockText
-                          )}
-
-                        </span>
-
-                      `
-
-                    : ""
-                }
-
-
-                ${
-                  packageText
-
-                    ? `
-
-                        <span class="product-unit">
-
-                          ${escapeHtml(
-                            packageText
-                          )}
-
-                        </span>
-
-                      `
-
-                    : ""
-                }
-
-
-                ${
-                  unavailable
-
-                    ? `
-
-                        <span class="product-unavailable-label">
-
-                          Tijdelijk onbeschikbaar
-
-                        </span>
-
-                      `
-
-                    : ""
-                }
-
-              </div>
-
-
-              <div class="qty">
-
-                <button
-                  type="button"
-                  onclick="changeQty('${product.id}', -1)"
-                  ${
-                    unavailable ||
-                    currentQty <= 0
-                      ? "disabled"
-                      : ""
-                  }
-                >
-                  −
-                </button>
-
-
-                <span
-                  id="qty-${product.id}"
-                >
-                  ${currentQty}
-                </span>
-
-
-                <button
-                  type="button"
-                  onclick="changeQty('${product.id}', 1)"
-                  ${plusDisabled ? "disabled" : ""}
-                >
-                  +
-                </button>
-
-              </div>
-
-            </div>
-
-          `;
-
-        }
+  // Artikelen zonder groep (bv. Taphendel abdij, Biervilten,
+  // T-shirt, ...) tonen we gewoon meteen als kaart.
+  const directProducts =
+    products.filter(
+      product =>
+        !product.groep_naam
+    );
+
+
+  // Artikelen mét groep (Tapruiter/Tafeltentje/Poster per bier)
+  // groeperen we samen achter één "kies bier"-dropdown.
+  const groupedProducts =
+    products.filter(
+      product =>
+        product.groep_naam
+    );
+
+
+  const groupNames =
+    [
+      ...new Set(
+        groupedProducts.map(
+          product =>
+            product.groep_naam
+        )
       )
+    ];
 
+
+  let html =
+    directProducts
+      .map(
+        renderProductCard
+      )
       .join("");
+
+
+  groupNames.forEach(
+    groepNaam => {
+
+      const variants =
+        groupedProducts.filter(
+          product =>
+            product.groep_naam ===
+            groepNaam
+        );
+
+
+      if (
+        !posGroupSelection[
+          groepNaam
+        ]
+      ) {
+
+        posGroupSelection[
+          groepNaam
+        ] =
+          variants[0]
+            ?.bier_variant ||
+          "";
+
+      }
+
+
+      const selectedVariant =
+        variants.find(
+          product =>
+            product.bier_variant ===
+            posGroupSelection[
+              groepNaam
+            ]
+        ) ||
+        variants[0];
+
+
+      html += `
+
+        <div class="pos-group">
+
+          <label>${escapeHtml(groepNaam)} — kies bier</label>
+
+          <select
+            onchange="setPosGroupVariant('${groepNaam}', this.value)"
+          >
+
+            ${
+              variants
+                .map(
+                  v =>
+                    `<option value="${escapeHtml(v.bier_variant)}" ${
+                      v.bier_variant ===
+                      posGroupSelection[groepNaam]
+                        ? "selected"
+                        : ""
+                    }>${escapeHtml(v.bier_variant)}</option>`
+                )
+                .join("")
+            }
+
+          </select>
+
+          ${
+            selectedVariant
+              ? renderProductCard(selectedVariant)
+              : ""
+          }
+
+        </div>
+
+      `;
+
+    }
+  );
+
+
+  container.innerHTML =
+    html;
 
 }
 
