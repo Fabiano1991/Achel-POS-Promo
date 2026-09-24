@@ -3466,7 +3466,6 @@ async function downloadWholesaleProofPdf(
       proof.snapshot ||
       {};
 
-
     const products =
       Array.isArray(
         snapshot.products
@@ -3476,748 +3475,328 @@ async function downloadWholesaleProofPdf(
 
         : [];
 
+    const colors = {
+      ink: [42, 36, 32],
+      soft: [107, 95, 80],
+      gold: [169, 124, 61],
+      line: [229, 220, 199],
+      green: [47, 74, 60],
+      cream: [250, 246, 238]
+    };
 
-    const margin =
-      16;
+    const margin = 20;
+    const pageWidth = 210;
+    const pageBottom = 265;
+    const contentWidth = pageWidth - margin * 2;
 
-
-    const pageWidth =
-      210;
-
-
-    const contentWidth =
-      pageWidth -
-      margin * 2;
-
-
-    let y =
-      18;
-
+    let y = 18;
 
 /* ============================================================
    PDF HELPERS
 ============================================================ */
 
-    function ensureSpace(
-      needed
-    ) {
-
-      if (
-        y +
-        needed >
-        280
-      ) {
-
-        documentPdf.addPage();
-
-        y =
-          18;
-
-      }
-
+    function paintPage() {
+      documentPdf.setFillColor(...colors.cream);
+      documentPdf.rect(0, 0, 210, 297, "F");
     }
 
+    function ensureSpace(needed) {
+      if (y + needed > pageBottom) {
+        documentPdf.addPage();
+        paintPage();
+        y = 22;
+      }
+    }
 
-    function line(
-      label,
-      value
-    ) {
+    function sectionTitle(title) {
+      ensureSpace(16);
+      documentPdf.setTextColor(...colors.green);
+      documentPdf.setFont("times", "normal");
+      documentPdf.setFontSize(13);
+      documentPdf.text(title, margin, y);
+      y += 4;
+      documentPdf.setDrawColor(...colors.line);
+      documentPdf.setLineWidth(0.25);
+      documentPdf.line(margin, y, pageWidth - margin, y);
+      y += 7;
+    }
 
-      ensureSpace(
-        12
+    function line(label, value) {
+      ensureSpace(10);
+      documentPdf.setTextColor(...colors.soft);
+      documentPdf.setFont("helvetica", "normal");
+      documentPdf.setFontSize(9);
+      documentPdf.text(label, margin, y);
+
+      documentPdf.setTextColor(...colors.ink);
+      documentPdf.setFont("helvetica", "bold");
+      const text = documentPdf.splitTextToSize(
+        String(value || "-"),
+        118
       );
+      documentPdf.text(text, margin + 56, y);
 
+      y += Math.max(6, text.length * 5);
+    }
 
-      documentPdf
-        .setFont(
-          "helvetica",
-          "bold"
+/* ============================================================
+   ACHTERGROND + HEADER (zelfde stijl als het uitleenbewijs)
+============================================================ */
+
+    paintPage();
+
+    const logoData =
+      (typeof eventDeliveryLogoDataCache !== "undefined")
+        ? eventDeliveryLogoDataCache
+        : null;
+
+    if (logoData) {
+      try {
+        documentPdf.addImage(
+          logoData,
+          "PNG",
+          20,
+          12,
+          24,
+          24,
+          undefined,
+          "FAST"
         );
+      }
+      catch (error) {
+        console.warn("Achel-logo kon niet aan de PDF worden toegevoegd:", error);
+      }
+    }
 
+    documentPdf.setTextColor(...colors.soft);
+    documentPdf.setFont("helvetica", "normal");
+    documentPdf.setFontSize(8);
+    documentPdf.text(
+      "Bestelbevestiging",
+      190,
+      20,
+      { align: "right" }
+    );
 
-      documentPdf
-        .setFontSize(
-          9
-        );
+    documentPdf.setTextColor(...colors.ink);
+    documentPdf.setFont("helvetica", "bold");
+    documentPdf.setFontSize(9);
+    documentPdf.text(
+      createWholesaleReference(orderId),
+      190,
+      25,
+      { align: "right" }
+    );
 
+    documentPdf.setDrawColor(...colors.gold);
+    documentPdf.setLineWidth(0.6);
+    documentPdf.line(20, 40, 190, 40);
 
+    documentPdf.setTextColor(...colors.ink);
+    documentPdf.setFont("times", "normal");
+    documentPdf.setFontSize(21);
+    documentPdf.text("Bestelbevestiging", 20, 54);
+    documentPdf.text("groothandelbestelling", 20, 63);
+
+    y = 79;
+
+/* ============================================================
+   BESTELGEGEVENS
+============================================================ */
+
+    sectionTitle("Bestelgegevens");
+
+    line("Bestelnummer", createWholesaleReference(orderId));
+    line("Referentie / klant", snapshot.reference);
+    line("Drankenhandel", snapshot.dealer);
+    line("Vertegenwoordiger", snapshot.representative?.name);
+    line("E-mail", snapshot.representative?.email);
+    line("Ondertekend door", proof.signer_name);
+    line(
+      "Datum / tijd",
+      new Date(proof.signed_at).toLocaleString("nl-BE")
+    );
+
+/* ============================================================
+   BESTELLING
+============================================================ */
+
+    y += 5;
+    sectionTitle("Bestelling");
+
+    products.forEach(product => {
+
+      ensureSpace(22);
+
+      documentPdf.setTextColor(...colors.ink);
+      documentPdf.setFont("helvetica", "bold");
+      documentPdf.setFontSize(10);
       documentPdf.text(
-        label,
+        String(product.name || ""),
         margin,
         y
       );
+      y += 5;
 
-
-      documentPdf
-        .setFont(
-          "helvetica",
-          "normal"
-        );
-
-
-      const text =
-        documentPdf.splitTextToSize(
-
-          String(
-            value ||
-            "-"
-          ),
-
-          118
-
-        );
-
-
+      documentPdf.setTextColor(...colors.soft);
+      documentPdf.setFont("helvetica", "normal");
+      documentPdf.setFontSize(9);
       documentPdf.text(
-        text,
-        76,
+        `Betaald/aantal: ${product.paid}`,
+        margin + 3,
         y
       );
+      y += 5;
 
+      if (product.discount && product.discount !== "geen") {
 
-      y +=
-        Math.max(
-          7,
-          text.length *
-          5
+        documentPdf.text(
+          `Actie: ${product.discount}`,
+          margin + 3,
+          y
         );
-
-    }
-
-
-/* ============================================================
-   PDF HEADER
-============================================================ */
-
-    documentPdf
-      .setFont(
-        "helvetica",
-        "bold"
-      );
-
-
-    documentPdf
-      .setFontSize(
-        20
-      );
-
-
-    documentPdf.text(
-      "ACHEL",
-      margin,
-      y
-    );
-
-
-    documentPdf
-      .setFontSize(
-        9
-      );
-
-
-    documentPdf
-      .setFont(
-        "helvetica",
-        "normal"
-      );
-
-
-    documentPdf.text(
-      "Achel POS - Ondertekende bestelbevestiging",
-      margin,
-      y +
-      6
-    );
-
-
-    documentPdf
-      .setDrawColor(
-        140,
-        105,
-        47
-      );
-
-
-    documentPdf
-      .setLineWidth(
-        0.7
-      );
-
-
-    documentPdf.line(
-      margin,
-      y +
-      10,
-      pageWidth -
-      margin,
-      y +
-      10
-    );
-
-
-    y +=
-      20;
-
-
-/* ============================================================
-   ORDER INFO
-============================================================ */
-
-    documentPdf
-      .setFont(
-        "helvetica",
-        "bold"
-      );
-
-
-    documentPdf
-      .setFontSize(
-        14
-      );
-
-
-    documentPdf.text(
-      "Bestelbevestiging",
-      margin,
-      y
-    );
-
-
-    y +=
-      10;
-
-
-    line(
-      "Bestelnummer",
-      createWholesaleReference(
-        orderId
-      )
-    );
-
-
-    line(
-      "Referentie / klant",
-      snapshot.reference
-    );
-
-
-    line(
-      "Drankenhandel",
-      snapshot.dealer
-    );
-
-
-    line(
-      "Vertegenwoordiger",
-      snapshot.representative?.name
-    );
-
-
-    line(
-      "E-mail",
-      snapshot.representative?.email
-    );
-
-
-    line(
-      "Ondertekend door",
-      proof.signer_name
-    );
-
-
-    line(
-
-      "Datum / tijd",
-
-      new Date(
-        proof.signed_at
-      )
-        .toLocaleString(
-          "nl-BE"
-        )
-
-    );
-
-
-/* ============================================================
-   PRODUCTEN
-============================================================ */
-
-    y +=
-      4;
-
-
-    ensureSpace(
-      18
-    );
-
-
-    documentPdf
-      .setFont(
-        "helvetica",
-        "bold"
-      );
-
-
-    documentPdf
-      .setFontSize(
-        13
-      );
-
-
-    documentPdf.text(
-      "Bestelling",
-      margin,
-      y
-    );
-
-
-    y +=
-      8;
-
-
-    products
-      .forEach(
-        product => {
-
-          ensureSpace(
-            24
-          );
-
-
-          documentPdf
-            .setFont(
-              "helvetica",
-              "bold"
-            );
-
-
-          documentPdf
-            .setFontSize(
-              10
-            );
-
-
-          documentPdf.text(
-
-            String(
-              product.name ||
-              ""
-            ),
-
-            margin,
-
-            y
-
-          );
-
-
-          y +=
-            5;
-
-
-          documentPdf
-            .setFont(
-              "helvetica",
-              "normal"
-            );
-
-
-          documentPdf
-            .setFontSize(
-              9
-            );
-
-
-          documentPdf.text(
-
-            `Betaald/aantal: ${product.paid}`,
-
-            margin +
-            3,
-
-            y
-
-          );
-
-
-          y +=
-            5;
-
-
-          if (
-            product.discount &&
-            product.discount !==
-            "geen"
-          ) {
-
-            documentPdf.text(
-
-              `Actie: ${product.discount}`,
-
-              margin +
-              3,
-
-              y
-
-            );
-
-
-            y +=
-              5;
-
-
-            documentPdf.text(
-
-              `Gratis: ${product.free} | Totaal te leveren: ${product.total}`,
-
-              margin +
-              3,
-
-              y
-
-            );
-
-
-            y +=
-              5;
-
-          }
-
-
-          y +=
-            3;
-
-        }
-      );
-
+        y += 5;
+
+        documentPdf.text(
+          `Gratis: ${product.free} | Totaal te leveren: ${product.total}`,
+          margin + 3,
+          y
+        );
+        y += 5;
+
+      }
+
+      y += 2;
+      documentPdf.setDrawColor(...colors.line);
+      documentPdf.line(margin, y, pageWidth - margin, y);
+      y += 5;
+
+    });
 
 /* ============================================================
    OPMERKING
 ============================================================ */
 
-    if (
-      snapshot.note
-    ) {
+    if (snapshot.note) {
 
-      ensureSpace(
-        25
+      y += 2;
+      sectionTitle("Opmerking");
+
+      documentPdf.setTextColor(...colors.ink);
+      documentPdf.setFont("helvetica", "normal");
+      documentPdf.setFontSize(9);
+      const noteLines = documentPdf.splitTextToSize(
+        snapshot.note,
+        contentWidth
       );
-
-
-      documentPdf
-        .setFont(
-          "helvetica",
-          "bold"
-        );
-
-
-      documentPdf.text(
-        "Opmerking",
-        margin,
-        y
-      );
-
-
-      y +=
-        6;
-
-
-      documentPdf
-        .setFont(
-          "helvetica",
-          "normal"
-        );
-
-
-      const noteLines =
-        documentPdf.splitTextToSize(
-
-          snapshot.note,
-
-          contentWidth
-
-        );
-
-
-      documentPdf.text(
-        noteLines,
-        margin,
-        y
-      );
-
-
-      y +=
-        noteLines.length *
-        5 +
-        5;
+      ensureSpace(noteLines.length * 5 + 5);
+      documentPdf.text(noteLines, margin, y);
+      y += noteLines.length * 5 + 5;
 
     }
-
 
 /* ============================================================
    COMMERCIELE TEGEMOETKOMING
 ============================================================ */
 
-    ensureSpace(
-      24
+    y += 2;
+    sectionTitle("Commerciële tegemoetkoming");
+
+    documentPdf.setTextColor(...colors.ink);
+    documentPdf.setFont("helvetica", "normal");
+    documentPdf.setFontSize(9);
+    const termLines = documentPdf.splitTextToSize(
+      snapshot.commercial_terms?.free_keg_text
+        || "Gratis vat(en) zijn commerciële tegemoetkoming. Enkel leeggoed factureren voor de gratis vaten.",
+      contentWidth
     );
-
-
-    documentPdf
-      .setFont(
-        "helvetica",
-        "bold"
-      );
-
-
-    documentPdf
-      .setFontSize(
-        9
-      );
-
-
-    documentPdf.text(
-      "Commerciële tegemoetkoming",
-      margin,
-      y
-    );
-
-
-    y +=
-      5;
-
-
-    documentPdf
-      .setFont(
-        "helvetica",
-        "normal"
-      );
-
-
-    const termLines =
-      documentPdf.splitTextToSize(
-
-        snapshot
-          .commercial_terms
-          ?.free_keg_text
-
-        ||
-
-        "Gratis vat(en) zijn commerciële tegemoetkoming. Enkel leeggoed factureren voor de gratis vaten.",
-
-        contentWidth
-
-      );
-
-
-    documentPdf.text(
-      termLines,
-      margin,
-      y
-    );
-
-
-    y +=
-      termLines.length *
-      5 +
-      7;
-
+    ensureSpace(termLines.length * 5 + 7);
+    documentPdf.text(termLines, margin, y);
+    y += termLines.length * 5 + 7;
 
 /* ============================================================
    HANDTEKENING
 ============================================================ */
 
-    ensureSpace(
-      55
-    );
+    ensureSpace(48);
+    sectionTitle("Handtekening klant");
 
-
-    documentPdf
-      .setFont(
-        "helvetica",
-        "bold"
-      );
-
-
-    documentPdf
-      .setFontSize(
-        12
-      );
-
-
-    documentPdf.text(
-      "Klantgoedkeuring",
-      margin,
-      y
-    );
-
-
-    y +=
-      7;
-
-
-    documentPdf
-      .setDrawColor(
-        190,
-        190,
-        190
-      );
-
-
-    documentPdf.rect(
+    documentPdf.setFillColor(255, 255, 255);
+    documentPdf.setDrawColor(...colors.line);
+    documentPdf.roundedRect(
       margin,
       y,
-      90,
-      35
+      170,
+      32,
+      0.8,
+      0.8,
+      "FD"
     );
 
+    if (proof.signature_data) {
 
-    try {
+      try {
 
-      documentPdf.addImage(
+        documentPdf.addImage(
+          proof.signature_data,
+          "PNG",
+          margin + 3,
+          y + 3,
+          66,
+          26,
+          undefined,
+          "FAST"
+        );
 
-        proof.signature_data,
+      }
 
-        "PNG",
-
-        margin +
-        3,
-
-        y +
-        3,
-
-        84,
-
-        29
-
-      );
+      catch (error) {
+        console.warn("Handtekening kon niet in PDF worden geplaatst:", error);
+      }
 
     }
 
-    catch (
-      error
-    ) {
-
-      console.warn(
-        "Handtekening kon niet in PDF worden geplaatst:",
-        error
-      );
-
-    }
-
-
-    documentPdf
-      .setFont(
-        "helvetica",
-        "normal"
-      );
-
-
-    documentPdf
-      .setFontSize(
-        9
-      );
-
-
+    documentPdf.setTextColor(...colors.soft);
+    documentPdf.setFont("helvetica", "normal");
+    documentPdf.setFontSize(9);
     documentPdf.text(
-
-      `Ondertekend door: ${proof.signer_name}`,
-
-      112,
-
-      y +
-      8
-
+      `Ondertekend door: ${proof.signer_name || "-"}`,
+      margin + 96,
+      y + 12
+    );
+    documentPdf.text(
+      new Date(proof.signed_at).toLocaleString("nl-BE"),
+      margin + 96,
+      y + 19
     );
 
-
-    documentPdf.text(
-
-      new Date(
-        proof.signed_at
-      )
-        .toLocaleString(
-          "nl-BE"
-        ),
-
-      112,
-
-      y +
-      15
-
-    );
-
-
-    y +=
-      45;
-
+    y += 40;
 
 /* ============================================================
    HASH
 ============================================================ */
 
-    ensureSpace(
-      18
+    ensureSpace(14);
+    documentPdf.setFontSize(7);
+    documentPdf.setTextColor(...colors.soft);
+    const hashLines = documentPdf.splitTextToSize(
+      `Controlehash SHA-256: ${proof.proof_hash}`,
+      contentWidth
     );
-
-
-    documentPdf
-      .setFontSize(
-        7
-      );
-
-
-    documentPdf
-      .setTextColor(
-        110,
-        110,
-        110
-      );
-
-
-    const hashLines =
-      documentPdf.splitTextToSize(
-
-        `Controlehash SHA-256: ${proof.proof_hash}`,
-
-        contentWidth
-
-      );
-
-
-    documentPdf.text(
-      hashLines,
-      margin,
-      y
-    );
-
-
-    y +=
-      hashLines.length *
-      4;
-
+    documentPdf.text(hashLines, margin, y);
+    y += hashLines.length * 4;
 
 /* ============================================================
    FOOTER
 ============================================================ */
 
-    documentPdf
-      .setFontSize(
-        7
-      );
-
-
+    documentPdf.setFontSize(7);
+    documentPdf.setTextColor(...colors.soft);
     documentPdf.text(
-
       "Dit document werd gegenereerd uit het onveranderbare bestelbewijs in Achel POS.",
-
       margin,
-
       289
-
     );
-
 
 /* ============================================================
    SAVE
