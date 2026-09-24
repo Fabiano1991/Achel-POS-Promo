@@ -3629,7 +3629,408 @@ function renderAdminHectoliterWidget() {
 
     </div>
 
+
+    <button
+      type="button"
+      class="admin-hl-export"
+      onclick="exportAdminHectoliterExcel()"
+    >
+      ⬇ Excel-lijst downloaden
+    </button>
+
   `;
+
+}
+
+
+function exportAdminHectoliterExcel() {
+
+  if (
+    typeof XLSX ===
+    "undefined"
+  ) {
+
+    alert(
+      "Excel-module niet geladen."
+    );
+
+    return;
+
+  }
+
+
+  const cancelledStatuses =
+    ["geannuleerd"];
+
+
+  const detailRows =
+    [];
+
+
+  adminOrders
+    .filter(
+      order =>
+        !cancelledStatuses.includes(
+          order.status
+        )
+    )
+    .forEach(
+      order => {
+
+        const items =
+          adminItems
+            .filter(
+              item =>
+                item.order_id ===
+                order.id
+            );
+
+
+        items
+          .forEach(
+            item => {
+
+              const liters =
+                Number(item.aantal || 0) *
+                getProductLiters(
+                  item.product_naam
+                );
+
+
+              if (
+                liters <=
+                0
+              ) {
+
+                return;
+
+              }
+
+
+              detailRows.push({
+
+                "Categorie":
+                  order.event_naam
+
+                    ? "Evenement"
+
+                    : "Bestelling (POS/bier)",
+
+                "Referentie":
+                  order.event_naam ||
+                  createOrderReference(
+                    order.id,
+                    order.created_at
+                  ),
+
+                "Vertegenwoordiger":
+                  getAdminProfile(
+                    order.user_id
+                  )?.naam ||
+                  "",
+
+                "Datum":
+                  formatExcelDate(
+                    order.created_at
+                  ),
+
+                "Product":
+                  item.product_naam,
+
+                "Aantal":
+                  Number(
+                    item.aantal ||
+                    0
+                  ),
+
+                "Hectoliter":
+                  Number(
+                    (liters / 100).toFixed(3)
+                  )
+
+              });
+
+            }
+          );
+
+      }
+    );
+
+
+  adminWholesaleOrders
+    .filter(
+      order =>
+        !cancelledStatuses.includes(
+          order.status
+        )
+    )
+    .forEach(
+      order => {
+
+        const items =
+          adminWholesaleItems
+            .filter(
+              item =>
+                item.wholesale_order_id ===
+                order.id
+            );
+
+
+        items
+          .forEach(
+            item => {
+
+              const aantal =
+                Number(
+
+                  item.totaal_aantal ??
+                  item.betaald_aantal ??
+                  0
+
+                );
+
+
+              const liters =
+                aantal *
+                getProductLiters(
+                  item.product_naam
+                );
+
+
+              if (
+                liters <=
+                0
+              ) {
+
+                return;
+
+              }
+
+
+              detailRows.push({
+
+                "Categorie":
+                  "Groothandel",
+
+                "Referentie":
+                  `${order.referentie || ""} (${order.drankenhandel || ""})`,
+
+                "Vertegenwoordiger":
+                  getAdminProfile(
+                    order.user_id
+                  )?.naam ||
+                  "",
+
+                "Datum":
+                  formatExcelDate(
+                    order.created_at
+                  ),
+
+                "Product":
+                  item.product_naam,
+
+                "Aantal":
+                  aantal,
+
+                "Hectoliter":
+                  Number(
+                    (liters / 100).toFixed(3)
+                  )
+
+              });
+
+            }
+          );
+
+      }
+    );
+
+
+  adminFreeBeerRegistrations
+    .forEach(
+      registration => {
+
+        const liters =
+          Number(registration.aantal || 0) *
+          parseInhoudLiters(
+            registration.inhoud
+          );
+
+
+        if (
+          liters <=
+          0
+        ) {
+
+          return;
+
+        }
+
+
+        detailRows.push({
+
+          "Categorie":
+            "Gratis bier",
+
+          "Referentie":
+            registration.horecaklant ||
+            registration.drankenhandel ||
+            "",
+
+          "Vertegenwoordiger":
+            getAdminProfile(
+              registration.user_id
+            )?.naam ||
+            "",
+
+          "Datum":
+            formatExcelDate(
+              registration.datum ||
+              registration.created_at
+            ),
+
+          "Product":
+            registration.sku,
+
+          "Aantal":
+            Number(
+              registration.aantal ||
+              0
+            ),
+
+          "Hectoliter":
+            Number(
+              (liters / 100).toFixed(3)
+            )
+
+        });
+
+      }
+    );
+
+
+  if (
+    !detailRows.length
+  ) {
+
+    alert(
+      "Geen volume om te exporteren."
+    );
+
+    return;
+
+  }
+
+
+  const totalsByCategory =
+    {};
+
+
+  detailRows
+    .forEach(
+      row => {
+
+        totalsByCategory[row.Categorie] =
+          (
+            totalsByCategory[row.Categorie] ||
+            0
+          ) +
+          row.Hectoliter;
+
+      }
+    );
+
+
+  const summaryRows =
+    Object
+      .entries(
+        totalsByCategory
+      )
+      .map(
+        ([
+          categorie,
+          hectoliter
+        ]) => ({
+
+          "Categorie":
+            categorie,
+
+          "Hectoliter":
+            Number(
+              hectoliter.toFixed(2)
+            )
+
+        })
+      );
+
+
+  summaryRows.push({
+
+    "Categorie":
+      "TOTAAL",
+
+    "Hectoliter":
+      Number(
+
+        detailRows
+          .reduce(
+            (
+              sum,
+              row
+            ) =>
+              sum +
+              row.Hectoliter,
+            0
+          )
+          .toFixed(2)
+
+      )
+
+  });
+
+
+  const workbook =
+    XLSX.utils
+      .book_new();
+
+
+  XLSX.utils
+    .book_append_sheet(
+
+      workbook,
+
+      XLSX.utils
+        .json_to_sheet(
+          summaryRows
+        ),
+
+      "Samenvatting"
+
+    );
+
+
+  XLSX.utils
+    .book_append_sheet(
+
+      workbook,
+
+      XLSX.utils
+        .json_to_sheet(
+          detailRows
+        ),
+
+      "Detail"
+
+    );
+
+
+  XLSX.writeFile(
+
+    workbook,
+
+    `Achel_hectoliter_overzicht_${new Date().toISOString().slice(0, 10)}.xlsx`
+
+  );
 
 }
 
@@ -17001,6 +17402,33 @@ function injectAdminStyles() {
       white-space:nowrap;
 
       color:white;
+
+    }
+
+
+    .admin-hl-export {
+
+      width:100%;
+
+      margin-top:8px;
+
+      padding:9px;
+
+      border:
+        1px solid
+        rgba(201,155,67,.22);
+
+      border-radius:10px;
+
+      background:
+        rgba(255,255,255,.04);
+
+      color:
+        #e0b85f;
+
+      font-size:11px;
+
+      font-weight:800;
 
     }
 
