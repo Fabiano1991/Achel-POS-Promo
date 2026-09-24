@@ -799,14 +799,10 @@ async function exportExpensesToExcel({
     return;
   }
 
-  if (filtered.length > (DATA_END_ROW - DATA_START_ROW + 1)) {
-    alert(
-      `Er zijn ${filtered.length} onkosten in deze periode, meer dan het sjabloon ` +
-      `aankan (${DATA_END_ROW - DATA_START_ROW + 1}). Kies een kortere periode of ` +
-      `neem contact op om het sjabloon uit te breiden.`
-    );
-    return;
-  }
+  // Als er meer onkosten zijn dan er rijen in het sjabloon passen, worden
+  // hieronder automatisch extra rijen toegevoegd (in dezelfde opmaak) —
+  // het sjabloonbestand zelf blijft ongewijzigd, dit gebeurt enkel in het
+  // geëxporteerde bestand.
 
   // Naam: bij de eigen export altijd het profiel van de ingelogde gebruiker,
   // ongeacht welke vertegenwoordiger op individuele onkosten staat.
@@ -877,15 +873,52 @@ async function exportExpensesToExcel({
         (a.expense_date || "").localeCompare(b.expense_date || "")
       );
 
+    // Past het sjabloon aan (extra rijen, in dezelfde stijl) als er meer
+    // onkosten zijn dan de standaard 19 rijen. Bij minder of gelijk aan
+    // 19 gebeurt er niets en blijft alles zoals in het origineel sjabloon.
+    const expansion = expandTemplateIfNeeded(xml, sorted.length);
+    xml = expansion.xml;
+    const dataEndRow = expansion.dataEndRow;
+    const subtotalRow = expansion.subtotalRow;
+    const approvedRow = expansion.approvedRow;
+    const totalRow = expansion.totalRow;
+
+    let totalAmount = 0;
+
     sorted.forEach((expense, index) => {
       const row = DATA_START_ROW + index;
       const amount = Number(expense.amount) || 0;
+      totalAmount += amount;
 
       xml = setNumberCell(xml, `B${row}`, toExcelSerial(expense.expense_date));
       xml = setInlineStringCell(xml, `C${row}`, expense.supplier || "");
       xml = setInlineStringCell(xml, `D${row}`, expense.description || "");
       xml = setNumberCell(xml, `L${row}`, amount);
     });
+
+    // Het sjabloon heeft in de "Subtotaal"-rij al een som-formule staan
+    // (SUM(L9:L...)) en in de "Totaal"-rij de formule (Subtotaal-Voorschot).
+    // Enkel de vooraf opgeslagen berekende waarde (<v>) in het sjabloon
+    // staat nog op 0, en die wordt niet altijd automatisch herberekend bij
+    // het openen — daardoor bleef het totaal onderaan leeg/0 staan. We
+    // laten de formules exact zoals ze in het sjabloon staan (of, bij extra
+    // rijen, met de meegeschoven rij-range), en vullen enkel de berekende
+    // waarde meteen correct in.
+    xml = setFormulaCell(
+      xml,
+      `L${subtotalRow}`,
+      `SUM(L${DATA_START_ROW}:L${dataEndRow})`,
+      totalAmount
+    );
+
+    // "Voorschot" wordt niet door de export ingevuld en staat dus op 0 bij
+    // het genereren, dus Totaal = Subtotaal - 0 = Subtotaal.
+    xml = setFormulaCell(
+      xml,
+      `L${totalRow}`,
+      `(L${subtotalRow}-L${approvedRow})`,
+      totalAmount
+    );
 
     zip.file(sheetPath, xml);
 
@@ -905,6 +938,170 @@ async function exportExpensesToExcel({
     console.error("EXPORT FOUT:", error);
     alert("Export mislukt. Probeer opnieuw.");
   }
+}
+
+// ---- automatisch extra rijen toevoegen als er meer onkosten zijn dan ----
+// ---- het sjabloon aan vaste rijen (9 t/m 27) heeft ----------------------
+//
+// Het sjabloon zelf (onkosten-template.xlsx) wordt hierbij NOOIT aangepast:
+// dit gebeurt enkel op de XML in het geheugen tijdens het exporteren. De
+// stijl van rij 13 (geschaduwd) en rij 14 (effen) wordt gebruikt als basis
+// voor de afwisseling van nieuwe rijen; de laatste rij krijgt de dikkere
+// "afsluit"-opmaak die rij 27 van origine had.
+
+const ROW_STYLE_SHADED = {
+  A: 29, B: 52, C: 19, D: 61, E: 53, F: 35, G: 35,
+  H: 35, I: 35, J: 35, K: 35, L: 36, M: 5
+};
+
+const ROW_STYLE_PLAIN = {
+  A: 29, B: 54, C: 20, D: 55, E: 67, F: 37, G: 37,
+  H: 37, I: 37, J: 37, K: 37, L: 36, M: 5
+};
+
+const ROW_STYLE_CLOSING = {
+  A: 29, B: 65, C: 22, D: 63, E: 39, F: 39, G: 39,
+  H: 39, I: 39, J: 39, K: 39, L: 40, M: 5
+};
+
+const ROW_COLUMNS = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M"];
+
+function getRowXml(xml, rowNum) {
+  const openTag = `<row r="${rowNum}"`;
+  const start = xml.indexOf(openTag);
+
+  if (start === -1) {
+    throw new Error(`Rij ${rowNum} niet gevonden in sjabloon.`);
+  }
+
+  const end = xml.indexOf("</row>", start) + "</row>".length;
+
+  return { start, end, xml: xml.slice(start, end) };
+}
+
+function replaceRowXmlInPlace(xml, rowNum, newRowXml) {
+  const { start, end } = getRowXml(xml, rowNum);
+  return xml.slice(0, start) + newRowXml + xml.slice(end);
+}
+
+function shiftRowXml(rowXml, oldRowNum, newRowNum) {
+  let shifted = rowXml.replace(
+    new RegExp(`<row r="${oldRowNum}"`),
+    `<row r="${newRowNum}"`
+  );
+
+  shifted = shifted.replace(
+    new RegExp(`r="([A-Z]+)${oldRowNum}"`, "g"),
+    (match, col) => `r="${col}${newRowNum}"`
+  );
+
+  return shifted;
+}
+
+function buildEmptyDataRow(rowNum, styles) {
+  const cells = ROW_COLUMNS
+    .map(col => `<c r="${col}${rowNum}" s="${styles[col]}"/>`)
+    .join("");
+
+  return (
+    `<row r="${rowNum}" spans="1:13" ht="17.100000000000001" ` +
+    `customHeight="1" x14ac:dyDescent="0.25">${cells}</row>`
+  );
+}
+
+function expandTemplateIfNeeded(xml, neededRows) {
+  const capacity = DATA_END_ROW - DATA_START_ROW + 1;
+  const extra = neededRows - capacity;
+
+  if (extra <= 0) {
+    return {
+      xml,
+      dataEndRow: DATA_END_ROW,
+      subtotalRow: SUBTOTAL_ROW,
+      approvedRow: APPROVED_ROW,
+      totalRow: TOTAL_ROW
+    };
+  }
+
+  // 1) De "voettekst"-rijen bewaren (categorie-sommen, subtotaal,
+  //    voorschot, totaal) — deze schuiven straks samen met de nieuwe
+  //    rijen mee naar onder.
+  const footerRowNums = [SUM_ROW, SUBTOTAL_ROW, APPROVED_ROW, TOTAL_ROW];
+  const footerRows = footerRowNums.map(rowNum => getRowXml(xml, rowNum));
+
+  // 2) Dat volledige stuk (rij 28 t/m 31) uit de XML knippen — dit wordt
+  //    verderop helemaal opnieuw samengesteld met de juiste rijnummers.
+  const cutStart = footerRows[0].start;
+  const cutEnd = footerRows[footerRows.length - 1].end;
+  let head = xml.slice(0, cutStart);
+  const tail = xml.slice(cutEnd);
+
+  // 3) Rij 27 had tot nu toe de dikkere "afsluit"-rand omdat het de
+  //    laatste rij was. Nu er meer rijen bijkomen, wordt rij 27 een
+  //    gewone (geschaduwde) rij zoals de rest van het afwisselende
+  //    patroon.
+  const row27Xml = buildEmptyDataRow(DATA_END_ROW, ROW_STYLE_SHADED);
+  head = replaceRowXmlInPlace(head, DATA_END_ROW, row27Xml);
+
+  // 4) Nieuwe rijen toevoegen na rij 27, in hetzelfde afwisselende
+  //    geschaduwd/effen-patroon. De echt laatste nieuwe rij krijgt de
+  //    "afsluit"-opmaak.
+  const newDataEndRow = DATA_END_ROW + extra;
+  let newRowsXml = "";
+
+  for (let rowNum = DATA_END_ROW + 1; rowNum <= newDataEndRow; rowNum++) {
+    if (rowNum === newDataEndRow) {
+      newRowsXml += buildEmptyDataRow(rowNum, ROW_STYLE_CLOSING);
+    }
+    else {
+      const isShaded = (rowNum - DATA_START_ROW) % 2 === 0;
+      newRowsXml += buildEmptyDataRow(rowNum, isShaded ? ROW_STYLE_SHADED : ROW_STYLE_PLAIN);
+    }
+  }
+
+  // 5) De voettekst-rijen opnieuw opbouwen met de opgeschoven rijnummers,
+  //    met behoud van hun labels ("Subtotaal", "GOEDGEKEURD:", "Totaal", ...)
+  //    en opmaak.
+  const newSumRow = SUM_ROW + extra;
+  const newSubtotalRow = SUBTOTAL_ROW + extra;
+  const newApprovedRow = APPROVED_ROW + extra;
+  const newTotalRow = TOTAL_ROW + extra;
+
+  const shiftedFooterXml =
+    shiftRowXml(footerRows[0].xml, SUM_ROW, newSumRow) +
+    shiftRowXml(footerRows[1].xml, SUBTOTAL_ROW, newSubtotalRow) +
+    shiftRowXml(footerRows[2].xml, APPROVED_ROW, newApprovedRow) +
+    shiftRowXml(footerRows[3].xml, TOTAL_ROW, newTotalRow);
+
+  let newXml = head + newRowsXml + shiftedFooterXml + tail;
+
+  // 6) De dimension-referentie (bv. A1:M31) bijwerken naar de nieuwe
+  //    laatste rij.
+  newXml = newXml.replace(
+    /<dimension ref="A1:M\d+"\/>/,
+    `<dimension ref="A1:M${newTotalRow}"/>`
+  );
+
+  // 7) De categorie-som-formules (op de opgeschoven "SUM_ROW") verwezen
+  //    nog naar de oude rij-27-grens; die bijwerken naar de nieuwe
+  //    laatste datarij. (Deze kolommen worden niet door de export
+  //    ingevuld, dus de berekende waarde blijft 0.)
+  ["E", "F", "G", "H", "I", "K"].forEach(col => {
+    newXml = setFormulaCell(
+      newXml,
+      `${col}${newSumRow}`,
+      `SUM(${col}${DATA_START_ROW}:${col}${newDataEndRow})`,
+      0
+    );
+  });
+
+  return {
+    xml: newXml,
+    dataEndRow: newDataEndRow,
+    subtotalRow: newSubtotalRow,
+    approvedRow: newApprovedRow,
+    totalRow: newTotalRow
+  };
 }
 
 // ---- chirurgische celbewerking: past enkel de aangeduide cel aan, ----
