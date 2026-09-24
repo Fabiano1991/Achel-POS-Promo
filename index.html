@@ -1060,42 +1060,164 @@ textarea {
 
 
 /* ===============================
-   POS GROEP (bv. Tapruiter/Tafeltentje/
-   Poster) MET "KIES BIER"-DROPDOWN
+   POS KLIK-DOOR-NAVIGATIE
+   (categorieën → artikelen → bieren)
 ================================ */
 
-.pos-group {
+/* Grid met categorieknoppen (stap 1). */
+.pos-cat-grid {
+
+  display:grid;
+
+  grid-template-columns:
+    1fr 1fr;
+
+  gap:9px;
+}
+
+
+.pos-cat-tile {
+
+  min-height:64px;
 
   border:
     1px solid
     var(--border);
 
+  border-radius:13px;
+
+  background:white;
+
+  color:var(--dark);
+
+  font-size:13px;
+
+  font-weight:800;
+
+  padding:10px;
+
+  text-align:center;
+
+  box-shadow:
+    var(--shadow);
+}
+
+
+.pos-cat-tile:active {
+
   background:
     var(--surface-soft);
+}
+
+
+/* Terugknop bovenaan stap 2 en stap 3. */
+.pos-back-btn {
+
+  display:inline-block;
+
+  width:auto;
+
+  min-height:38px;
+
+  border:
+    1px solid
+    var(--border);
+
+  border-radius:11px;
+
+  background:white;
+
+  color:var(--gold);
+
+  font-weight:850;
+
+  font-size:13px;
+
+  padding:
+    8px 13px;
+
+  margin-bottom:12px;
+}
+
+
+.pos-level-title {
+
+  margin:
+    0 0 10px;
+
+  font-size:11px;
+
+  font-weight:950;
+
+  letter-spacing:.04em;
+
+  text-transform:uppercase;
+
+  color:var(--gold);
+}
+
+
+/* Klikbare rij per groep (bv. "Tapruiters — 10 bieren") in
+   stap 2, die naar stap 3 leidt. */
+.pos-group-row {
+
+  width:100%;
+
+  display:flex;
+
+  align-items:center;
+
+  justify-content:
+    space-between;
+
+  gap:10px;
+
+  border:
+    1px solid
+    var(--border);
+
+  background:white;
 
   border-radius:13px;
 
-  padding:11px;
+  padding:
+    13px 14px;
 
   margin-bottom:7px;
+
+  text-align:left;
+
+  color:var(--dark);
+
+  font-weight:800;
+
+  font-size:14px;
 }
 
 
-.pos-group label {
+.pos-group-row small {
 
-  margin-top:0;
+  display:block;
+
+  margin-top:2px;
+
+  color:var(--muted);
+
+  font-size:11px;
+
+  font-weight:600;
 }
 
 
-.pos-group select {
+.pos-group-arrow {
 
-  margin-bottom:10px;
-}
+  flex-shrink:0;
 
+  color:var(--gold);
 
-.pos-group .product {
+  font-size:20px;
 
-  margin-bottom:0;
+  font-weight:900;
 }
 
 
@@ -4241,18 +4363,6 @@ POS
 </div>
 
 
-<div id="posSubcategoryRow" class="hidden" style="margin-bottom:12px;">
-
-<label for="posSubcategorySelect">Categorie</label>
-
-<select
-  id="posSubcategorySelect"
-  onchange="setPosSubcategory(this.value)"
-></select>
-
-</div>
-
-
 <div id="productsList">
 
 <div class="empty">
@@ -6340,19 +6450,27 @@ let selectedCategory =
 
 
 /* ===============================
-   POS SUBCATEGORIEËN (dropdowns)
+   POS: KLIK-DOOR-NAVIGATIE
+   (categorieën → artikelen → bieren)
 ================================ */
 
-// Welke subcategorie is momenteel gekozen in de POS-tab.
+// Op welk "niveau" de POS-tab momenteel staat:
+//   "categories" = enkel de categorieknoppen (Tapmateriaal, ...)
+//   "items"      = artikelen binnen de gekozen categorie
+//   "group"      = alle bieren binnen een gekozen groep
+//                  (bv. alle Tapruiters), elk met eigen aantal
+let posNavLevel =
+  "categories";
+
+// Welke categorie is gekozen (bv. "tapmateriaal").
 let selectedPosSubcategory =
   null;
 
-// Per groep (bv. "Tapruiter", "Tafeltentje", "Poster") welk
-// bier momenteel gekozen is in de tweede dropdown.
-const posGroupSelection =
-  {};
+// Welke groep is gekozen binnen die categorie (bv. "Tapruiter").
+let selectedPosGroup =
+  null;
 
-// Vaste volgorde en labels voor de subcategorie-dropdown.
+// Vaste volgorde en labels voor de categorieknoppen.
 const POS_SUBCATEGORY_ORDER = [
   "tapmateriaal",
   "tafelmateriaal",
@@ -8191,24 +8309,16 @@ function setCategory(
     );
 
 
-  document
-    .getElementById(
-      "posSubcategoryRow"
-    )
-    ?.classList
-    .toggle(
-      "hidden",
-      category !== "pos"
-    );
+  // Bij het wisselen tussen BIER en POS beginnen we telkens
+  // opnieuw bij het overzicht van categorieën.
+  posNavLevel =
+    "categories";
 
+  selectedPosSubcategory =
+    null;
 
-  if (
-    category === "pos"
-  ) {
-
-    ensurePosSubcategoryOptions();
-
-  }
+  selectedPosGroup =
+    null;
 
 
   renderProducts();
@@ -8217,26 +8327,86 @@ function setCategory(
 
 
 /* ===============================
-   POS SUBCATEGORIE-DROPDOWN
+   POS: KLIK-DOOR-NAVIGATIE
 ================================ */
 
-// Vult de dropdown met enkel de subcategorieën die ook echt
-// artikelen bevatten, in de vaste volgorde hierboven.
-function ensurePosSubcategoryOptions() {
+// Stap 1 → 2: gebruiker klikt op een categorie
+// (bv. "Tapmateriaal").
+function openPosSubcategory(
+  key
+) {
 
-  const select =
-    document.getElementById(
-      "posSubcategorySelect"
-    );
+  selectedPosSubcategory =
+    key;
 
-  if (
-    !select
-  ) {
+  selectedPosGroup =
+    null;
 
-    return;
+  posNavLevel =
+    "items";
 
-  }
 
+  renderProducts();
+
+}
+
+
+// Stap 2 → 1: terug naar het overzicht van categorieën.
+function backToPosCategories() {
+
+  selectedPosSubcategory =
+    null;
+
+  selectedPosGroup =
+    null;
+
+  posNavLevel =
+    "categories";
+
+
+  renderProducts();
+
+}
+
+
+// Stap 2 → 3: gebruiker klikt op een groep (bv. "Tapruiter")
+// en krijgt daarna alle bieren van die groep tegelijk te zien.
+function openPosGroup(
+  groepNaam
+) {
+
+  selectedPosGroup =
+    groepNaam;
+
+  posNavLevel =
+    "group";
+
+
+  renderProducts();
+
+}
+
+
+// Stap 3 → 2: terug naar de artikelen van de categorie.
+function backToPosItems() {
+
+  selectedPosGroup =
+    null;
+
+  posNavLevel =
+    "items";
+
+
+  renderProducts();
+
+}
+
+
+// Bouwt het scherm met enkel de categorieknoppen
+// (Tapmateriaal, Tafelmateriaal, Posters, ...).
+function renderPosCategoryLevel(
+  container
+) {
 
   const present =
     new Set(
@@ -8258,62 +8428,241 @@ function ensurePosSubcategoryOptions() {
     );
 
 
-  select.innerHTML =
-    orderedPresent
+  if (
+    !orderedPresent.length
+  ) {
+
+    container.innerHTML = `
+
+      <div class="empty">
+        Nog geen artikelen in deze categorie.
+      </div>
+
+    `;
+
+
+    return;
+
+  }
+
+
+  container.innerHTML = `
+
+    <div class="pos-cat-grid">
+
+      ${
+        orderedPresent
+          .map(
+            key =>
+              `
+                <button
+                  type="button"
+                  class="pos-cat-tile"
+                  onclick="openPosSubcategory('${key}')"
+                >
+                  ${escapeHtml(
+                    POS_SUBCATEGORY_LABELS[key] ||
+                    key
+                  )}
+                </button>
+              `
+          )
+          .join("")
+      }
+
+    </div>
+
+  `;
+
+}
+
+
+// Bouwt het scherm met de artikelen binnen één categorie:
+// losse artikelen meteen zichtbaar, en per groep (Tapruiter,
+// Tafeltentje, Poster) één knop die naar stap 3 leidt.
+function renderPosItemsLevel(
+  container
+) {
+
+  const products =
+    allProducts
+      .filter(
+        product =>
+          product.categorie === "pos" &&
+          product.subcategorie === selectedPosSubcategory
+      );
+
+
+  const directProducts =
+    products.filter(
+      product => !product.groep_naam
+    );
+
+
+  const groupedProducts =
+    products.filter(
+      product => product.groep_naam
+    );
+
+
+  const groupNames =
+    [
+      ...new Set(
+        groupedProducts.map(
+          product => product.groep_naam
+        )
+      )
+    ];
+
+
+  let html = `
+
+    <button
+      type="button"
+      class="pos-back-btn"
+      onclick="backToPosCategories()"
+    >
+      &#8592; Categorieën
+    </button>
+
+    <div class="pos-level-title">
+      ${escapeHtml(
+        POS_SUBCATEGORY_LABELS[selectedPosSubcategory] ||
+        ""
+      )}
+    </div>
+
+  `;
+
+
+  html +=
+    directProducts
       .map(
-        key =>
-          `<option value="${key}">${escapeHtml(
-            POS_SUBCATEGORY_LABELS[key] || key
-          )}</option>`
+        renderProductCard
+      )
+      .join("");
+
+
+  groupNames.forEach(
+    groepNaam => {
+
+      const count =
+        groupedProducts.filter(
+          product =>
+            product.groep_naam === groepNaam
+        ).length;
+
+
+      html += `
+
+        <button
+          type="button"
+          class="pos-group-row"
+          onclick="openPosGroup('${groepNaam}')"
+        >
+
+          <span>
+
+            ${escapeHtml(groepNaam)}s
+
+            <small>${count} bieren</small>
+
+          </span>
+
+          <span class="pos-group-arrow">&#8250;</span>
+
+        </button>
+
+      `;
+
+    }
+  );
+
+
+  if (
+    !directProducts.length &&
+    !groupNames.length
+  ) {
+
+    html += `
+
+      <div class="empty">
+        Nog geen artikelen in deze categorie.
+      </div>
+
+    `;
+
+  }
+
+
+  container.innerHTML =
+    html;
+
+}
+
+
+// Bouwt het scherm met alle bieren van één groep tegelijk
+// (bv. alle 10 Tapruiters), elk met een eigen +/- teller,
+// zodat je in één keer van meerdere bieren een aantal kiest.
+function renderPosGroupLevel(
+  container
+) {
+
+  const variants =
+    allProducts
+      .filter(
+        product =>
+          product.categorie === "pos" &&
+          product.subcategorie === selectedPosSubcategory &&
+          product.groep_naam === selectedPosGroup
+      );
+
+
+  let html = `
+
+    <button
+      type="button"
+      class="pos-back-btn"
+      onclick="backToPosItems()"
+    >
+      &#8592; ${escapeHtml(
+        POS_SUBCATEGORY_LABELS[selectedPosSubcategory] ||
+        ""
+      )}
+    </button>
+
+    <div class="pos-level-title">
+      ${escapeHtml(selectedPosGroup)}s
+    </div>
+
+  `;
+
+
+  html +=
+    variants
+      .map(
+        renderProductCard
       )
       .join("");
 
 
   if (
-    !orderedPresent.includes(
-      selectedPosSubcategory
-    )
+    !variants.length
   ) {
 
-    selectedPosSubcategory =
-      orderedPresent[0] ||
-      null;
+    html += `
+
+      <div class="empty">
+        Geen artikelen gevonden.
+      </div>
+
+    `;
 
   }
 
 
-  select.value =
-    selectedPosSubcategory ||
-    "";
-
-}
-
-
-function setPosSubcategory(
-  value
-) {
-
-  selectedPosSubcategory =
-    value;
-
-
-  renderProducts();
-
-}
-
-
-// Onthoudt, per groep (bv. "Tapruiter"), welk bier gekozen is
-// in de tweede dropdown, en herbouwt dan de lijst.
-function setPosGroupVariant(
-  groepNaam,
-  variant
-) {
-
-  posGroupSelection[groepNaam] =
-    variant;
-
-
-  renderProducts();
+  container.innerHTML =
+    html;
 
 }
 
@@ -8574,47 +8923,45 @@ function renderProducts() {
       );
 
 
-  let products =
-    allProducts
-      .filter(
-        product =>
-          product.categorie ===
-          selectedCategory
-      );
-
-
-  // In de POS-tab tonen we enkel de artikelen van de gekozen
-  // subcategorie (Tapmateriaal, Glaswerk, ...) in plaats van
-  // alle 40+ artikelen in één lange lijst.
+  // BIER blijft gewoon één lange lijst, zoals voorheen.
   if (
-    selectedCategory ===
+    selectedCategory !==
     "pos"
   ) {
 
-    products =
-      products
+    const products =
+      allProducts
         .filter(
           product =>
-            product.subcategorie ===
-            selectedPosSubcategory
+            product.categorie ===
+            selectedCategory
         );
 
-  }
+
+    if (
+      !products.length
+    ) {
+
+      container.innerHTML = `
+
+        <div class="empty">
+          Nog geen artikelen in deze categorie.
+        </div>
+
+      `;
 
 
-  if (
-    !products.length
-  ) {
+      return;
 
-    container.innerHTML = `
+    }
 
-      <div class="empty">
 
-        Nog geen artikelen in deze categorie.
-
-      </div>
-
-    `;
+    container.innerHTML =
+      products
+        .map(
+          renderProductCard
+        )
+        .join("");
 
 
     return;
@@ -8622,123 +8969,38 @@ function renderProducts() {
   }
 
 
-  // Artikelen zonder groep (bv. Taphendel abdij, Biervilten,
-  // T-shirt, ...) tonen we gewoon meteen als kaart.
-  const directProducts =
-    products.filter(
-      product =>
-        !product.groep_naam
+  // POS: klik-door-navigatie in drie stappen.
+  if (
+    posNavLevel ===
+    "items"
+  ) {
+
+    renderPosItemsLevel(
+      container
     );
 
+    return;
 
-  // Artikelen mét groep (Tapruiter/Tafeltentje/Poster per bier)
-  // groeperen we samen achter één "kies bier"-dropdown.
-  const groupedProducts =
-    products.filter(
-      product =>
-        product.groep_naam
+  }
+
+
+  if (
+    posNavLevel ===
+    "group"
+  ) {
+
+    renderPosGroupLevel(
+      container
     );
 
+    return;
 
-  const groupNames =
-    [
-      ...new Set(
-        groupedProducts.map(
-          product =>
-            product.groep_naam
-        )
-      )
-    ];
+  }
 
 
-  let html =
-    directProducts
-      .map(
-        renderProductCard
-      )
-      .join("");
-
-
-  groupNames.forEach(
-    groepNaam => {
-
-      const variants =
-        groupedProducts.filter(
-          product =>
-            product.groep_naam ===
-            groepNaam
-        );
-
-
-      if (
-        !posGroupSelection[
-          groepNaam
-        ]
-      ) {
-
-        posGroupSelection[
-          groepNaam
-        ] =
-          variants[0]
-            ?.bier_variant ||
-          "";
-
-      }
-
-
-      const selectedVariant =
-        variants.find(
-          product =>
-            product.bier_variant ===
-            posGroupSelection[
-              groepNaam
-            ]
-        ) ||
-        variants[0];
-
-
-      html += `
-
-        <div class="pos-group">
-
-          <label>${escapeHtml(groepNaam)} — kies bier</label>
-
-          <select
-            onchange="setPosGroupVariant('${groepNaam}', this.value)"
-          >
-
-            ${
-              variants
-                .map(
-                  v =>
-                    `<option value="${escapeHtml(v.bier_variant)}" ${
-                      v.bier_variant ===
-                      posGroupSelection[groepNaam]
-                        ? "selected"
-                        : ""
-                    }>${escapeHtml(v.bier_variant)}</option>`
-                )
-                .join("")
-            }
-
-          </select>
-
-          ${
-            selectedVariant
-              ? renderProductCard(selectedVariant)
-              : ""
-          }
-
-        </div>
-
-      `;
-
-    }
+  renderPosCategoryLevel(
+    container
   );
-
-
-  container.innerHTML =
-    html;
 
 }
 
