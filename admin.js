@@ -318,6 +318,25 @@ function createAdminScreen() {
         <div class="admin-block-title">
 
           <span>
+            VOLUME
+          </span>
+
+          <strong>
+            Hectoliter totaal
+          </strong>
+
+        </div>
+
+        <div id="adminHectoliterWidget"></div>
+
+      </div>
+
+
+      <div class="admin-block">
+
+        <div class="admin-block-title">
+
+          <span>
             AANVRAGEN
           </span>
 
@@ -2993,6 +3012,8 @@ function renderAdminStatistics() {
 
   renderAdminAttentionPanel();
 
+  renderAdminHectoliterWidget();
+
 }
 
 
@@ -3091,6 +3112,413 @@ function setAdminStatusAndOpen(
 /* ===============================
    ATTENTION
 ================================ */
+
+/* ===============================
+   VOLUME (HECTOLITER)
+   Zet de hoeveelheid per product
+   ("20 L", "24 x 33cl", ...) om
+   naar liter, op basis van de
+   naam/inhoud-notatie die overal
+   in de app wordt gebruikt.
+================================ */
+
+let adminHectoliterChart =
+  null;
+
+
+function parseInhoudLiters(
+  inhoud
+) {
+
+  if (
+    !inhoud
+  ) {
+
+    return 0;
+
+  }
+
+
+  const text =
+    String(inhoud)
+      .toLowerCase()
+      .replace(",", ".");
+
+
+  const packMatch =
+    text.match(
+      /(\d+(?:\.\d+)?)\s*x\s*(\d+(?:\.\d+)?)\s*cl/
+    );
+
+
+  if (
+    packMatch
+  ) {
+
+    return (
+      Number(packMatch[1]) *
+      Number(packMatch[2]) /
+      100
+    );
+
+  }
+
+
+  const kegMatch =
+    text.match(
+      /(\d+(?:\.\d+)?)\s*l(?:iter)?\b/
+    );
+
+
+  if (
+    kegMatch
+  ) {
+
+    return Number(
+      kegMatch[1]
+    );
+
+  }
+
+
+  return 0;
+
+}
+
+
+function getProductLiters(
+  productNaam
+) {
+
+  const direct =
+    parseInhoudLiters(
+      productNaam
+    );
+
+
+  if (
+    direct >
+    0
+  ) {
+
+    return direct;
+
+  }
+
+
+  const catalogMatch =
+    (
+      typeof FREE_BEER_PRODUCTS !==
+      "undefined"
+
+        ? FREE_BEER_PRODUCTS
+
+        : []
+    )
+      .find(
+        item =>
+          item.sku ===
+          productNaam
+      );
+
+
+  if (
+    catalogMatch
+  ) {
+
+    return parseInhoudLiters(
+      catalogMatch.inhoud
+    );
+
+  }
+
+
+  return 0;
+
+}
+
+
+function calculateAdminHectoliters() {
+
+  const cancelledStatuses =
+    ["geannuleerd"];
+
+
+  const orderIdsCounted =
+    new Set(
+
+      adminOrders
+        .filter(
+          order =>
+            !cancelledStatuses.includes(
+              order.status
+            )
+        )
+        .map(
+          order =>
+            order.id
+        )
+
+    );
+
+
+  const orderLiters =
+    adminItems
+      .filter(
+        item =>
+          orderIdsCounted.has(
+            item.order_id
+          )
+      )
+      .reduce(
+        (
+          sum,
+          item
+        ) =>
+
+          sum +
+
+          Number(item.aantal || 0) *
+          getProductLiters(
+            item.product_naam
+          ),
+
+        0
+      );
+
+
+  const freeBeerLiters =
+    adminFreeBeerRegistrations
+      .reduce(
+        (
+          sum,
+          registration
+        ) =>
+
+          sum +
+
+          Number(registration.aantal || 0) *
+          parseInhoudLiters(
+            registration.inhoud
+          ),
+
+        0
+      );
+
+
+  return {
+
+    ordersHl:
+      orderLiters /
+      100,
+
+    freeBeerHl:
+      freeBeerLiters /
+      100,
+
+    totalHl:
+      (orderLiters + freeBeerLiters) /
+      100
+
+  };
+
+}
+
+
+function renderAdminHectoliterWidget() {
+
+  const container =
+    document
+      .getElementById(
+        "adminHectoliterWidget"
+      );
+
+
+  if (
+    !container
+  ) {
+
+    return;
+
+  }
+
+
+  if (
+    !adminFreeBeerLoaded
+  ) {
+
+    loadAdminFreeBeerData()
+      .then(
+        renderAdminHectoliterWidget
+      );
+
+    return;
+
+  }
+
+
+  const {
+    ordersHl,
+    freeBeerHl,
+    totalHl
+  } =
+    calculateAdminHectoliters();
+
+
+  const formatHl =
+    value =>
+      value.toLocaleString(
+        "nl-BE",
+        {
+          minimumFractionDigits:
+            1,
+          maximumFractionDigits:
+            1
+        }
+      );
+
+
+  container.innerHTML = `
+
+    <div class="admin-hl-widget">
+
+      <canvas
+        id="adminHectoliterChart"
+        width="120"
+        height="120"
+      ></canvas>
+
+      <div class="admin-hl-total">
+        <strong>${formatHl(totalHl)}</strong>
+        <span>hectoliter totaal</span>
+      </div>
+
+      <div class="admin-hl-legend">
+
+        <div>
+          <i class="green"></i>
+          <span>Bestellingen</span>
+          <b>${formatHl(ordersHl)} hL</b>
+        </div>
+
+        <div>
+          <i class="gold"></i>
+          <span>Gratis bier</span>
+          <b>${formatHl(freeBeerHl)} hL</b>
+        </div>
+
+      </div>
+
+    </div>
+
+  `;
+
+
+  const canvas =
+    document
+      .getElementById(
+        "adminHectoliterChart"
+      );
+
+
+  if (
+    !canvas
+
+    ||
+
+    typeof Chart ===
+    "undefined"
+  ) {
+
+    return;
+
+  }
+
+
+  if (
+    adminHectoliterChart
+  ) {
+
+    adminHectoliterChart.destroy();
+
+  }
+
+
+  const hasData =
+    ordersHl +
+    freeBeerHl >
+    0;
+
+
+  adminHectoliterChart =
+    new Chart(
+      canvas,
+      {
+
+        type:
+          "doughnut",
+
+        data: {
+
+          labels: [
+            "Bestellingen",
+            "Gratis bier"
+          ],
+
+          datasets: [
+
+            {
+
+              data:
+                hasData
+
+                  ? [ordersHl, freeBeerHl]
+
+                  : [1, 0],
+
+              backgroundColor: [
+                "#71b67a",
+                "#d4ab4f"
+              ],
+
+              borderWidth:
+                0
+
+            }
+
+          ]
+
+        },
+
+        options: {
+
+          responsive:
+            false,
+
+          cutout:
+            "72%",
+
+          plugins: {
+
+            legend: {
+              display:
+                false
+            },
+
+            tooltip: {
+              enabled:
+                hasData
+            }
+
+          }
+
+        }
+
+      }
+    );
+
+}
+
 
 function renderAdminAttentionPanel() {
 
@@ -16288,6 +16716,153 @@ function injectAdminStyles() {
 
     .admin-row.grey {
       --row:#aaaaaa;
+    }
+
+
+    .admin-hl-widget {
+
+      display:grid;
+
+      grid-template-columns:
+        120px 1fr;
+
+      align-items:center;
+
+      gap:14px;
+
+      padding:10px 4px;
+
+    }
+
+
+    .admin-hl-widget canvas {
+
+      grid-row:
+        1 / 3;
+
+    }
+
+
+    .admin-hl-total {
+
+      display:flex;
+
+      flex-direction:column;
+
+    }
+
+
+    .admin-hl-total strong {
+
+      font-size:
+        26px;
+
+      color:white;
+
+      line-height:1.1;
+
+    }
+
+
+    .admin-hl-total span {
+
+      margin-top:
+        3px;
+
+      font-size:
+        11px;
+
+      font-weight:800;
+
+      color:
+        #9aa39b;
+
+      text-transform:
+        uppercase;
+
+    }
+
+
+    .admin-hl-legend {
+
+      display:flex;
+
+      flex-direction:column;
+
+      gap:6px;
+
+      margin-top:
+        8px;
+
+    }
+
+
+    .admin-hl-legend div {
+
+      display:flex;
+
+      align-items:center;
+
+      gap:7px;
+
+      font-size:
+        11px;
+
+      color:
+        #cfd6cf;
+
+    }
+
+
+    .admin-hl-legend i {
+
+      width:9px;
+
+      height:9px;
+
+      min-width:9px;
+
+      border-radius:
+        50%;
+
+      display:inline-block;
+
+    }
+
+
+    .admin-hl-legend i.green {
+      background:
+        #71b67a;
+    }
+
+
+    .admin-hl-legend i.gold {
+      background:
+        #d4ab4f;
+    }
+
+
+    .admin-hl-legend b {
+
+      margin-left:
+        auto;
+
+      color:white;
+
+    }
+
+
+    @media(
+      max-width:420px
+    ) {
+
+      .admin-hl-widget {
+
+        grid-template-columns:
+          90px 1fr;
+
+      }
+
     }
 
 
