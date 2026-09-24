@@ -1062,51 +1062,99 @@ textarea {
 /* ===============================
    POS KLIK-DOOR-NAVIGATIE
    (categorieën → artikelen → bieren)
+   Zelfde "map"-stijl als bij Gratis bier: donkere rijen
+   onder elkaar, met een gouden telbadge rechts.
 ================================ */
 
-/* Grid met categorieknoppen (stap 1). */
+/* Lijst met categorieknoppen (stap 1) — onder elkaar, geen grid. */
 .pos-cat-grid {
 
-  display:grid;
+  display:flex;
 
-  grid-template-columns:
-    1fr 1fr;
+  flex-direction:column;
 
-  gap:9px;
+  gap:8px;
 }
 
 
 .pos-cat-tile {
 
-  min-height:64px;
+  width:100%;
+
+  min-height:58px;
+
+  display:flex;
+
+  align-items:center;
+
+  justify-content:
+    space-between;
+
+  gap:10px;
 
   border:
     1px solid
-    var(--border);
+    var(--achel-line);
 
-  border-radius:13px;
+  border-radius:14px;
 
-  background:white;
-
-  color:var(--dark);
-
-  font-size:13px;
-
-  font-weight:800;
-
-  padding:10px;
-
-  text-align:center;
+  background:
+    radial-gradient(
+      circle at 100% 0%,
+      rgba(201,155,67,.08),
+      transparent 32%
+    ),
+    var(--achel-panel);
 
   box-shadow:
-    var(--shadow);
+    var(--achel-shadow);
+
+  color:#fff;
+
+  font-size:14px;
+
+  font-weight:900;
+
+  padding:
+    11px 14px;
+
+  text-align:left;
 }
 
 
 .pos-cat-tile:active {
 
   background:
-    var(--surface-soft);
+    rgba(201,155,67,.10);
+}
+
+
+.pos-cat-tile-count {
+
+  flex-shrink:0;
+
+  min-width:28px;
+
+  padding:
+    4px 8px;
+
+  border-radius:999px;
+
+  background:
+    rgba(201,155,67,.13);
+
+  border:
+    1px solid
+    rgba(201,155,67,.16);
+
+  color:
+    var(--achel-gold-bright);
+
+  text-align:center;
+
+  font-size:12px;
+
+  font-weight:900;
 }
 
 
@@ -1121,13 +1169,15 @@ textarea {
 
   border:
     1px solid
-    var(--border);
+    var(--achel-line);
 
   border-radius:11px;
 
-  background:white;
+  background:
+    rgba(18,24,19,.94);
 
-  color:var(--gold);
+  color:
+    var(--achel-gold-bright);
 
   font-weight:850;
 
@@ -1153,7 +1203,8 @@ textarea {
 
   text-transform:uppercase;
 
-  color:var(--gold);
+  color:
+    var(--achel-gold-bright);
 }
 
 
@@ -1174,11 +1225,17 @@ textarea {
 
   border:
     1px solid
-    var(--border);
+    var(--achel-line);
 
-  background:white;
+  background:
+    radial-gradient(
+      circle at 100% 0%,
+      rgba(201,155,67,.08),
+      transparent 32%
+    ),
+    var(--achel-panel);
 
-  border-radius:13px;
+  border-radius:14px;
 
   padding:
     13px 14px;
@@ -1187,7 +1244,7 @@ textarea {
 
   text-align:left;
 
-  color:var(--dark);
+  color:#fff;
 
   font-weight:800;
 
@@ -1201,7 +1258,8 @@ textarea {
 
   margin-top:2px;
 
-  color:var(--muted);
+  color:
+    var(--achel-muted);
 
   font-size:11px;
 
@@ -1213,7 +1271,8 @@ textarea {
 
   flex-shrink:0;
 
-  color:var(--gold);
+  color:
+    var(--achel-gold-bright);
 
   font-size:20px;
 
@@ -8496,10 +8555,22 @@ function renderPosCategoryLevel(
                   class="pos-cat-tile"
                   onclick="openPosSubcategory('${key}')"
                 >
-                  ${escapeHtml(
-                    getPosSubcategoryLabels()[key] ||
-                    key
-                  )}
+                  <span>
+                    ${escapeHtml(
+                      getPosSubcategoryLabels()[key] ||
+                      key
+                    )}
+                  </span>
+
+                  <span class="pos-cat-tile-count">
+                    ${
+                      allProducts.filter(
+                        p =>
+                          p.categorie === selectedCategory &&
+                          p.subcategorie === key
+                      ).length
+                    }
+                  </span>
                 </button>
               `
           )
