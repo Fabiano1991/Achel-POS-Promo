@@ -6585,6 +6585,15 @@ function getPosSubcategoryLabels() {
 }
 
 
+// Voorkomt dat een aanvraag 2x verstuurd wordt wanneer iemand
+// snel dubbel klikt/tikt of de app even blijft "hangen".
+let orderSubmitting =
+  false;
+
+let eventOrderSubmitting =
+  false;
+
+
 const quantities =
   {};
 
@@ -10108,6 +10117,37 @@ function buildSummarySections(
 
 async function submitOrder() {
 
+  // Blokkeer meteen een tweede klik/tik (bv. bij een traag
+  // netwerk), zodat dezelfde aanvraag nooit dubbel verstuurd
+  // kan worden.
+  if (
+    orderSubmitting
+  ) {
+
+    return;
+
+  }
+
+  orderSubmitting =
+    true;
+
+
+  const earlyButton =
+    document
+      .getElementById(
+        "submitButton"
+      );
+
+  if (
+    earlyButton
+  ) {
+
+    earlyButton.disabled =
+      true;
+
+  }
+
+
   if (
     !currentUser ||
     !currentProfile
@@ -10117,10 +10157,24 @@ async function submitOrder() {
       "Je sessie is verlopen. Log opnieuw in."
     );
 
+    orderSubmitting =
+      false;
+
+    if (
+      earlyButton
+    ) {
+
+      earlyButton.disabled =
+        false;
+
+    }
+
     return;
 
   }
 
+
+  try {
 
   try {
 
@@ -10414,6 +10468,18 @@ async function submitOrder() {
     orderReference,
     products
   );
+
+  }
+
+  finally {
+
+    // Wat er ook gebeurt (gelukt, mislukt of een fout): de
+    // vergrendeling gaat altijd weer open, anders zou een
+    // volgende aanvraag nooit meer kunnen worden verstuurd.
+    orderSubmitting =
+      false;
+
+  }
 
 }
 
@@ -13200,6 +13266,36 @@ async function showEventSummary() {
 
 async function submitEventOrder() {
 
+  // Blokkeer meteen een tweede klik/tik, zodat dezelfde
+  // evenementaanvraag nooit dubbel verstuurd kan worden.
+  if (
+    eventOrderSubmitting
+  ) {
+
+    return;
+
+  }
+
+  eventOrderSubmitting =
+    true;
+
+
+  const earlyEventButton =
+    document
+      .getElementById(
+        "eventSubmitButton"
+      );
+
+  if (
+    earlyEventButton
+  ) {
+
+    earlyEventButton.disabled =
+      true;
+
+  }
+
+
   if (
     !currentUser ||
     !currentProfile
@@ -13208,6 +13304,18 @@ async function submitEventOrder() {
     alert(
       "Je sessie is verlopen. Log opnieuw in."
     );
+
+    eventOrderSubmitting =
+      false;
+
+    if (
+      earlyEventButton
+    ) {
+
+      earlyEventButton.disabled =
+        false;
+
+    }
 
     return;
 
@@ -13218,9 +13326,24 @@ async function submitEventOrder() {
     !validateStandaloneEventData()
   ) {
 
+    eventOrderSubmitting =
+      false;
+
+    if (
+      earlyEventButton
+    ) {
+
+      earlyEventButton.disabled =
+        false;
+
+    }
+
     return;
 
   }
+
+
+  try {
 
 
   const stillValid =
@@ -13460,32 +13583,6 @@ async function submitEventOrder() {
   myOrdersLoaded.events =
     false;
 
-try {
-  const { data: calData, error: calError } =
-    await supabaseClient.functions.invoke("send-order-mail", {
-      body: {
-        action: "createCalendarEvent",
-        subject: `Event: ${event.name}`,
-        bodyHtml:
-          `<p><b>Aangevraagd door:</b> ${currentProfile.naam}</p>` +
-          `<p><b>Materiaal:</b></p><ul>${products
-            .map(p => `<li>${p.qty}x ${p.naam}</li>`)
-            .join("")}</ul>` +
-          (event.note ? `<p><b>Opmerking:</b> ${event.note}</p>` : ""),
-        startDate: event.from,
-        endDate: event.until,
-      },
-    });
-
-  if (!calError && calData?.eventId) {
-    await supabaseClient
-      .from("orders")
-      .update({ outlook_event_id: calData.eventId })
-      .eq("id", order.id);
-  }
-} catch (calSyncError) {
-  console.error("Agenda-sync mislukt:", calSyncError);
-}
   const orderReference =
     createOrderReference(
       order.id,
@@ -13512,6 +13609,18 @@ try {
 
 
   resetEventForm();
+
+  }
+
+  finally {
+
+    // Wat er ook gebeurt: de vergrendeling gaat altijd weer
+    // open, anders zou een volgende evenementaanvraag nooit
+    // meer verstuurd kunnen worden.
+    eventOrderSubmitting =
+      false;
+
+  }
 
 }
 
