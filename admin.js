@@ -3994,30 +3994,51 @@ function exportAdminHectoliterExcel() {
       .book_new();
 
 
+  const summarySheet =
+    XLSX.utils
+      .json_to_sheet(
+        summaryRows
+      );
+
+  summarySheet["!cols"] = [
+    { wch: 24 },
+    { wch: 14 }
+  ];
+
   XLSX.utils
     .book_append_sheet(
 
       workbook,
 
-      XLSX.utils
-        .json_to_sheet(
-          summaryRows
-        ),
+      summarySheet,
 
       "Samenvatting"
 
     );
 
 
+  const detailSheet =
+    XLSX.utils
+      .json_to_sheet(
+        detailRows
+      );
+
+  detailSheet["!cols"] = [
+    { wch: 22 },
+    { wch: 30 },
+    { wch: 18 },
+    { wch: 20 },
+    { wch: 34 },
+    { wch: 8 },
+    { wch: 12 }
+  ];
+
   XLSX.utils
     .book_append_sheet(
 
       workbook,
 
-      XLSX.utils
-        .json_to_sheet(
-          detailRows
-        ),
+      detailSheet,
 
       "Detail"
 
