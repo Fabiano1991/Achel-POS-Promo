@@ -3190,9 +3190,13 @@ function createWholesaleReference(
 
 /* ============================================================
    E-MAIL
+   Verstuurt de mail via dezelfde centrale koppeling als
+   POS/promo- en evenementaanvragen (verstuurCentraleMail, uit
+   index.html), namens het Achel-adres waarmee de medewerker is
+   ingelogd. Vervangt de oude mailto-link.
 ============================================================ */
 
-function openWholesaleEmail(
+async function openWholesaleEmail(
   orderNumber,
   reference,
   dealer,
@@ -3314,32 +3318,39 @@ ${note || "Geen opmerkingen"}
 Deze bestelling werd vóór verzending door de klant ondertekend.`;
 
 
-  const mailto =
+  try {
 
-    `mailto:${WHOLESALE_EMAIL}`
+    await verstuurCentraleMail({
 
-    +
+      fromAddress:
+        currentUser.email,
 
-    `?subject=${encodeURIComponent(
-      subject
-    )}`
+      toAddress:
+        WHOLESALE_EMAIL,
 
-    +
+      subject,
 
-    `&body=${encodeURIComponent(
-      body
-    )}`;
+      bodyText:
+        body,
 
+    });
 
-  setTimeout(
-    () => {
+  }
 
-      window.location.href =
-        mailto;
+  catch (
+    err
+  ) {
 
-    },
-    250
-  );
+    console.error(
+      "Versturen van groothandelbestelling-mail mislukt:",
+      err
+    );
+
+    alert(
+      "De bestelling is ondertekend en opgeslagen, maar het automatisch versturen van de mail is mislukt. Contacteer IT indien dit blijft gebeuren."
+    );
+
+  }
 
 }
 
