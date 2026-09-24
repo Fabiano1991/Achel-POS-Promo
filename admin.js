@@ -2007,7 +2007,8 @@ async function loadAdminDashboard() {
             minimum_voorraad,
             voorraad_beheren,
             tijdelijk_onbeschikbaar,
-            inhoud_per_eenheid
+            inhoud_per_eenheid,
+            douane_code
           `)
           .order(
             "categorie",
@@ -13896,6 +13897,45 @@ function renderCentralEventArchive() {
 }
 
 
+/* ===============================
+   DOUANE-CODE OPZOEKEN
+   (voor Excel-exports van bestellingen)
+
+   order_items bewaart geen productcode, enkel de naam zoals
+   die was op het moment van bestellen. We zoeken de Douane-code
+   (= artikelnummer) daarom op via de productnaam, in de lijst
+   met producten die al geladen is (adminProducts). Voor oudere
+   bestellingen met een productnaam die intussen niet meer
+   bestaat, blijft dit veld gewoon leeg.
+================================ */
+
+function getDouaneCodeForProductNaam(
+  naam
+) {
+
+  if (
+    !naam
+  ) {
+
+    return "";
+
+  }
+
+
+  const product =
+    adminProducts.find(
+      p => p.naam === naam
+    );
+
+
+  return (
+    product?.douane_code ||
+    ""
+  );
+
+}
+
+
 function buildCentralOrderExcelRows(
   orders,
   type
@@ -13976,6 +14016,11 @@ function buildCentralOrderExcelRows(
                 "Product / materiaal":
                   item.product_naam ||
                   "",
+
+                "Douane-code":
+                  getDouaneCodeForProductNaam(
+                    item.product_naam
+                  ),
 
                 "Categorie":
                   item.categorie ||
@@ -15154,6 +15199,11 @@ function exportAdminReportExcel() {
 
           "Product / materiaal":
             row.product,
+
+          "Douane-code":
+            getDouaneCodeForProductNaam(
+              row.product
+            ),
 
           "Categorie":
             row.categorie,
