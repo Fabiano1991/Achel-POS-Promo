@@ -3122,10 +3122,6 @@ function setAdminStatusAndOpen(
    in de app wordt gebruikt.
 ================================ */
 
-let adminHectoliterChart =
-  null;
-
-
 function parseInhoudLiters(
   inhoud
 ) {
@@ -3244,7 +3240,7 @@ function calculateAdminHectoliters() {
     ["geannuleerd"];
 
 
-  const orderIdsCounted =
+  const posOrderIdsCounted =
     new Set(
 
       adminOrders
@@ -3252,6 +3248,34 @@ function calculateAdminHectoliters() {
           order =>
             !cancelledStatuses.includes(
               order.status
+            )
+
+            &&
+
+            !order.event_naam
+        )
+        .map(
+          order =>
+            order.id
+        )
+
+    );
+
+
+  const eventOrderIdsCounted =
+    new Set(
+
+      adminOrders
+        .filter(
+          order =>
+            !cancelledStatuses.includes(
+              order.status
+            )
+
+            &&
+
+            Boolean(
+              order.event_naam
             )
         )
         .map(
@@ -3266,7 +3290,7 @@ function calculateAdminHectoliters() {
     adminItems
       .filter(
         item =>
-          orderIdsCounted.has(
+          posOrderIdsCounted.has(
             item.order_id
           )
       )
@@ -3279,6 +3303,80 @@ function calculateAdminHectoliters() {
           sum +
 
           Number(item.aantal || 0) *
+          getProductLiters(
+            item.product_naam
+          ),
+
+        0
+      );
+
+
+  const eventLiters =
+    adminItems
+      .filter(
+        item =>
+          eventOrderIdsCounted.has(
+            item.order_id
+          )
+      )
+      .reduce(
+        (
+          sum,
+          item
+        ) =>
+
+          sum +
+
+          Number(item.aantal || 0) *
+          getProductLiters(
+            item.product_naam
+          ),
+
+        0
+      );
+
+
+  const wholesaleOrderIdsCounted =
+    new Set(
+
+      adminWholesaleOrders
+        .filter(
+          order =>
+            !cancelledStatuses.includes(
+              order.status
+            )
+        )
+        .map(
+          order =>
+            order.id
+        )
+
+    );
+
+
+  const wholesaleLiters =
+    adminWholesaleItems
+      .filter(
+        item =>
+          wholesaleOrderIdsCounted.has(
+            item.wholesale_order_id
+          )
+      )
+      .reduce(
+        (
+          sum,
+          item
+        ) =>
+
+          sum +
+
+          Number(
+
+            item.totaal_aantal ??
+            item.betaald_aantal ??
+            0
+
+          ) *
           getProductLiters(
             item.product_naam
           ),
@@ -3312,12 +3410,20 @@ function calculateAdminHectoliters() {
       orderLiters /
       100,
 
+    eventsHl:
+      eventLiters /
+      100,
+
+    wholesaleHl:
+      wholesaleLiters /
+      100,
+
     freeBeerHl:
       freeBeerLiters /
       100,
 
     totalHl:
-      (orderLiters + freeBeerLiters) /
+      (orderLiters + eventLiters + wholesaleLiters + freeBeerLiters) /
       100
 
   };
@@ -3345,9 +3451,27 @@ function renderAdminHectoliterWidget() {
 
   if (
     !adminFreeBeerLoaded
+
+    ||
+
+    !adminReportsLoaded
   ) {
 
-    loadAdminFreeBeerData()
+    Promise.all([
+
+      adminFreeBeerLoaded
+
+        ? Promise.resolve()
+
+        : loadAdminFreeBeerData(),
+
+      adminReportsLoaded
+
+        ? Promise.resolve()
+
+        : loadAdminReportsData()
+
+    ])
       .then(
         renderAdminHectoliterWidget
       );
@@ -3359,6 +3483,8 @@ function renderAdminHectoliterWidget() {
 
   const {
     ordersHl,
+    eventsHl,
+    wholesaleHl,
     freeBeerHl,
     totalHl
   } =
@@ -3378,144 +3504,132 @@ function renderAdminHectoliterWidget() {
       );
 
 
+  const segments = [
+
+    {
+      key:
+        "orders",
+      label:
+        "Bestellingen (POS/bier)",
+      value:
+        ordersHl,
+      color:
+        "#71b67a"
+    },
+
+    {
+      key:
+        "events",
+      label:
+        "Evenementen",
+      value:
+        eventsHl,
+      color:
+        "#e0a447"
+    },
+
+    {
+      key:
+        "wholesale",
+      label:
+        "Groothandel",
+      value:
+        wholesaleHl,
+      color:
+        "#719fc5"
+    },
+
+    {
+      key:
+        "freebeer",
+      label:
+        "Gratis bier",
+      value:
+        freeBeerHl,
+      color:
+        "#d4ab4f"
+    }
+
+  ];
+
+
+  const hasData =
+    totalHl >
+    0;
+
+
+  let cursor =
+    0;
+
+
+  const gradientStops =
+    hasData
+
+      ? segments
+          .map(
+            segment => {
+
+              const start =
+                cursor /
+                totalHl *
+                360;
+
+              cursor +=
+                segment.value;
+
+              const end =
+                cursor /
+                totalHl *
+                360;
+
+              return (
+                `${segment.color} ${start}deg ${end}deg`
+              );
+
+            }
+          )
+          .join(", ")
+
+      : "rgba(255,255,255,.08) 0deg 360deg";
+
+
   container.innerHTML = `
 
     <div class="admin-hl-widget">
 
-      <canvas
-        id="adminHectoliterChart"
-        width="120"
-        height="120"
-      ></canvas>
-
-      <div class="admin-hl-total">
-        <strong>${formatHl(totalHl)}</strong>
-        <span>hectoliter totaal</span>
+      <div class="admin-hl-ring">
+        <div class="admin-hl-ring-fill" style="background:conic-gradient(${gradientStops});"></div>
+        <div class="admin-hl-ring-hole">
+          <strong>${formatHl(totalHl)}</strong>
+          <span>HL TOTAAL</span>
+        </div>
       </div>
 
       <div class="admin-hl-legend">
 
-        <div>
-          <i class="green"></i>
-          <span>Bestellingen</span>
-          <b>${formatHl(ordersHl)} hL</b>
-        </div>
+        ${
+          segments
 
-        <div>
-          <i class="gold"></i>
-          <span>Gratis bier</span>
-          <b>${formatHl(freeBeerHl)} hL</b>
-        </div>
+            .map(
+              segment => `
+
+                <div>
+                  <i style="background:${segment.color};"></i>
+                  <span>${segment.label}</span>
+                  <b>${formatHl(segment.value)} hL</b>
+                </div>
+
+              `
+            )
+
+            .join("")
+        }
 
       </div>
 
     </div>
 
   `;
-
-
-  const canvas =
-    document
-      .getElementById(
-        "adminHectoliterChart"
-      );
-
-
-  if (
-    !canvas
-
-    ||
-
-    typeof Chart ===
-    "undefined"
-  ) {
-
-    return;
-
-  }
-
-
-  if (
-    adminHectoliterChart
-  ) {
-
-    adminHectoliterChart.destroy();
-
-  }
-
-
-  const hasData =
-    ordersHl +
-    freeBeerHl >
-    0;
-
-
-  adminHectoliterChart =
-    new Chart(
-      canvas,
-      {
-
-        type:
-          "doughnut",
-
-        data: {
-
-          labels: [
-            "Bestellingen",
-            "Gratis bier"
-          ],
-
-          datasets: [
-
-            {
-
-              data:
-                hasData
-
-                  ? [ordersHl, freeBeerHl]
-
-                  : [1, 0],
-
-              backgroundColor: [
-                "#71b67a",
-                "#d4ab4f"
-              ],
-
-              borderWidth:
-                0
-
-            }
-
-          ]
-
-        },
-
-        options: {
-
-          responsive:
-            false,
-
-          cutout:
-            "72%",
-
-          plugins: {
-
-            legend: {
-              display:
-                false
-            },
-
-            tooltip: {
-              enabled:
-                hasData
-            }
-
-          }
-
-        }
-
-      }
-    );
 
 }
 
@@ -16721,78 +16835,115 @@ function injectAdminStyles() {
 
     .admin-hl-widget {
 
-      display:grid;
-
-      grid-template-columns:
-        120px 1fr;
+      display:flex;
 
       align-items:center;
 
-      gap:14px;
+      gap:16px;
 
-      padding:10px 4px;
+      padding:14px;
+
+      border:
+        1px solid
+        rgba(201,155,67,.24);
+
+      border-radius:14px;
+
+      background:
+        radial-gradient(circle at 100% 0%, rgba(201,155,67,.07), transparent 32%),
+        linear-gradient(145deg,#20271f,#151a15);
 
     }
 
 
-    .admin-hl-widget canvas {
+    .admin-hl-ring {
 
-      grid-row:
-        1 / 3;
+      position:relative;
+
+      width:92px;
+
+      height:92px;
+
+      min-width:92px;
 
     }
 
 
-    .admin-hl-total {
+    .admin-hl-ring-fill {
+
+      position:absolute;
+
+      inset:0;
+
+      border-radius:50%;
+
+    }
+
+
+    .admin-hl-ring-hole {
+
+      position:absolute;
+
+      inset:9px;
+
+      border-radius:50%;
+
+      background:#1c231b;
 
       display:flex;
 
       flex-direction:column;
 
+      align-items:center;
+
+      justify-content:center;
+
+      text-align:center;
+
     }
 
 
-    .admin-hl-total strong {
+    .admin-hl-ring-hole strong {
 
       font-size:
-        26px;
-
-      color:white;
+        17px;
 
       line-height:1.1;
 
+      color:white;
+
     }
 
 
-    .admin-hl-total span {
+    .admin-hl-ring-hole span {
 
       margin-top:
-        3px;
+        2px;
 
       font-size:
-        11px;
+        8px;
 
       font-weight:800;
 
-      color:
-        #9aa39b;
+      letter-spacing:.03em;
 
-      text-transform:
-        uppercase;
+      color:
+        rgba(246,240,227,.55);
 
     }
 
 
     .admin-hl-legend {
 
+      flex:1;
+
+      min-width:0;
+
       display:flex;
 
       flex-direction:column;
 
-      gap:6px;
-
-      margin-top:
-        8px;
+      gap:9px;
 
     }
 
@@ -16806,10 +16957,10 @@ function injectAdminStyles() {
       gap:7px;
 
       font-size:
-        11px;
+        11.5px;
 
       color:
-        #cfd6cf;
+        rgba(246,240,227,.75);
 
     }
 
@@ -16830,22 +16981,24 @@ function injectAdminStyles() {
     }
 
 
-    .admin-hl-legend i.green {
-      background:
-        #71b67a;
-    }
+    .admin-hl-legend span {
 
+      flex:1;
 
-    .admin-hl-legend i.gold {
-      background:
-        #d4ab4f;
+      min-width:0;
+
+      white-space:nowrap;
+
+      overflow:hidden;
+
+      text-overflow:ellipsis;
+
     }
 
 
     .admin-hl-legend b {
 
-      margin-left:
-        auto;
+      white-space:nowrap;
 
       color:white;
 
@@ -16853,13 +17006,31 @@ function injectAdminStyles() {
 
 
     @media(
-      max-width:420px
+      max-width:360px
     ) {
 
-      .admin-hl-widget {
+      .admin-hl-ring {
 
-        grid-template-columns:
-          90px 1fr;
+        width:76px;
+
+        height:76px;
+
+        min-width:76px;
+
+      }
+
+
+      .admin-hl-ring-hole {
+
+        inset:7px;
+
+      }
+
+
+      .admin-hl-ring-hole strong {
+
+        font-size:
+          14px;
 
       }
 
