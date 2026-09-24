@@ -6489,6 +6489,42 @@ const POS_SUBCATEGORY_LABELS = {
   wandborden: "Wandborden",
 };
 
+// Zelfde klik-door-systeem, maar dan voor BIER: eerst de
+// verpakkingen (24 x 33cl, 20 l, 6 x 75cl), dan pas de bieren.
+const BIER_SUBCATEGORY_ORDER = [
+  "24 x 33cl",
+  "20 l",
+  "6 x 75cl",
+];
+
+const BIER_SUBCATEGORY_LABELS = {
+  "24 x 33cl": "24 x 33cl",
+  "20 l": "20 l",
+  "6 x 75cl": "6 x 75cl",
+};
+
+// Geeft, afhankelijk van de gekozen tab (bier of pos), de juiste
+// volgorde en labels voor de categorieknoppen terug.
+function getPosSubcategoryOrder() {
+
+  return (
+    selectedCategory === "bier"
+      ? BIER_SUBCATEGORY_ORDER
+      : POS_SUBCATEGORY_ORDER
+  );
+
+}
+
+function getPosSubcategoryLabels() {
+
+  return (
+    selectedCategory === "bier"
+      ? BIER_SUBCATEGORY_LABELS
+      : POS_SUBCATEGORY_LABELS
+  );
+
+}
+
 
 const quantities =
   {};
@@ -7981,7 +8017,7 @@ async function loadProducts() {
       )
 
       .select(
-        "id, naam, categorie, eenheid, sort_order, voorraad, minimum_voorraad, voorraad_beheren, tijdelijk_onbeschikbaar, inhoud_per_eenheid, subcategorie, groep_naam, bier_variant"
+        "id, naam, categorie, eenheid, sort_order, voorraad, minimum_voorraad, voorraad_beheren, tijdelijk_onbeschikbaar, inhoud_per_eenheid, subcategorie, groep_naam, bier_variant, douane_code, intern_id"
       )
 
       .eq(
@@ -8413,7 +8449,7 @@ function renderPosCategoryLevel(
       allProducts
         .filter(
           p =>
-            p.categorie === "pos" &&
+            p.categorie === selectedCategory &&
             p.subcategorie
         )
         .map(
@@ -8423,7 +8459,7 @@ function renderPosCategoryLevel(
 
 
   const orderedPresent =
-    POS_SUBCATEGORY_ORDER.filter(
+    getPosSubcategoryOrder().filter(
       key => present.has(key)
     );
 
@@ -8461,7 +8497,7 @@ function renderPosCategoryLevel(
                   onclick="openPosSubcategory('${key}')"
                 >
                   ${escapeHtml(
-                    POS_SUBCATEGORY_LABELS[key] ||
+                    getPosSubcategoryLabels()[key] ||
                     key
                   )}
                 </button>
@@ -8488,7 +8524,7 @@ function renderPosItemsLevel(
     allProducts
       .filter(
         product =>
-          product.categorie === "pos" &&
+          product.categorie === selectedCategory &&
           product.subcategorie === selectedPosSubcategory
       );
 
@@ -8527,7 +8563,7 @@ function renderPosItemsLevel(
 
     <div class="pos-level-title">
       ${escapeHtml(
-        POS_SUBCATEGORY_LABELS[selectedPosSubcategory] ||
+        getPosSubcategoryLabels()[selectedPosSubcategory] ||
         ""
       )}
     </div>
@@ -8612,7 +8648,7 @@ function renderPosGroupLevel(
     allProducts
       .filter(
         product =>
-          product.categorie === "pos" &&
+          product.categorie === selectedCategory &&
           product.subcategorie === selectedPosSubcategory &&
           product.groep_naam === selectedPosGroup
       );
@@ -8626,7 +8662,7 @@ function renderPosGroupLevel(
       onclick="backToPosItems()"
     >
       &#8592; ${escapeHtml(
-        POS_SUBCATEGORY_LABELS[selectedPosSubcategory] ||
+        getPosSubcategoryLabels()[selectedPosSubcategory] ||
         ""
       )}
     </button>
@@ -8923,53 +8959,8 @@ function renderProducts() {
       );
 
 
-  // BIER blijft gewoon één lange lijst, zoals voorheen.
-  if (
-    selectedCategory !==
-    "pos"
-  ) {
-
-    const products =
-      allProducts
-        .filter(
-          product =>
-            product.categorie ===
-            selectedCategory
-        );
-
-
-    if (
-      !products.length
-    ) {
-
-      container.innerHTML = `
-
-        <div class="empty">
-          Nog geen artikelen in deze categorie.
-        </div>
-
-      `;
-
-
-      return;
-
-    }
-
-
-    container.innerHTML =
-      products
-        .map(
-          renderProductCard
-        )
-        .join("");
-
-
-    return;
-
-  }
-
-
-  // POS: klik-door-navigatie in drie stappen.
+  // BIER en POS gebruiken allebei dezelfde klik-door-navigatie:
+  // eerst categorieën/verpakkingen, dan de artikelen.
   if (
     posNavLevel ===
     "items"
