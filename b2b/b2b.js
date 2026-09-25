@@ -806,8 +806,7 @@ function readOvernightForm(prefix) {
       data: {
         stays_overnight: false,
         overnight_guests: null,
-        overnight_room_preference: null,
-        overnight_notes: null
+        overnight_room_preference: null
       }
     };
   }
@@ -816,7 +815,6 @@ function readOvernightForm(prefix) {
 
   const guests = Number(b2bOvernightEl(prefix, "overnightGuests")?.value || 0);
   const room = String(b2bOvernightEl(prefix, "overnightRoom")?.value || "").trim();
-  const notes = String(b2bOvernightEl(prefix, "overnightNotes")?.value || "").trim();
 
   if (guests < 1) {
     return { error: "Vul in met hoeveel personen de klant blijft overnachten." };
@@ -830,8 +828,7 @@ function readOvernightForm(prefix) {
     data: {
       stays_overnight: true,
       overnight_guests: guests,
-      overnight_room_preference: room || null,
-      overnight_notes: notes || null
+      overnight_room_preference: room || null
     }
   };
 }
@@ -848,9 +845,6 @@ function fillOvernightForm(prefix, registration) {
 
   b2bOvernightEl(prefix, "overnightRoom").value =
     registration?.overnight_room_preference || "";
-
-  b2bOvernightEl(prefix, "overnightNotes").value =
-    registration?.overnight_notes || "";
 
   toggleOvernightPanel(prefix);
 }
@@ -1353,7 +1347,6 @@ async function loadEditRegistration(
         stays_overnight,
         overnight_guests,
         overnight_room_preference,
-        overnight_notes,
         registration_status,
         b2b_days (
           id,
@@ -2249,7 +2242,6 @@ async function initB2BMyRegistrationsPage() {
           stays_overnight,
           overnight_guests,
           overnight_room_preference,
-          overnight_notes,
           registration_status,
           attendance_status,
           created_at,
@@ -2398,11 +2390,6 @@ function renderMyB2BRegistrations(registrations) {
                 <div class="b2b-registration-details">
                   <div>
                     <strong>🛏 ${escapeB2BHtml(formatOvernightLabel(registration))}</strong>
-                    ${
-                      registration.overnight_notes
-                        ? `<br>${escapeB2BHtml(registration.overnight_notes)}`
-                        : ""
-                    }
                   </div>
                 </div>
               `
@@ -4399,7 +4386,6 @@ async function toggleB2BAdminRegistrations(dayId) {
           stays_overnight,
           overnight_guests,
           overnight_room_preference,
-          overnight_notes,
           registration_status,
           attendance_status,
           created_at
@@ -5007,11 +4993,6 @@ function renderB2BAdminRegistrations(
                             )
                           )}
                         </strong>
-                        ${
-                          registration.overnight_notes
-                            ? `<small>${escapeB2BHtml(registration.overnight_notes)}</small>`
-                            : ""
-                        }
                       </div>
                     `
 
@@ -5250,10 +5231,6 @@ function exportB2BGuestList(dayId) {
                     "Geen voorkeur"
                   : "",
 
-              "Opmerking overnachting":
-                registration.overnight_notes ||
-                "",
-
               "Opmerking":
                 registration.notes ||
                 ""
@@ -5287,7 +5264,6 @@ function exportB2BGuestList(dayId) {
       { wch: 14 },
       { wch: 18 },
       { wch: 26 },
-      { wch: 32 },
       { wch: 36 }
     ];
 
