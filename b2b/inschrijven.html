@@ -7,6 +7,22 @@
     .phone-field-group { display: flex; gap: 8px; align-items: stretch; }
     .phone-field-group .phone-country-select { flex: 0 0 auto; width: auto; }
     .phone-field-group input { flex: 1 1 auto; min-width: 0; }
+
+    /* ===== Overnachting ===== */
+    .overnight-toggle { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 18px; padding: 14px 16px; border: 1px solid rgba(201,162,77,.28); border-radius: 14px; background: rgba(255,255,255,.03); cursor: pointer; }
+    .overnight-toggle-text { display: flex; flex-direction: column; gap: 2px; }
+    .overnight-toggle-text strong { font-size: 15px; }
+    .overnight-toggle-text small { opacity: .7; font-size: 12px; }
+    .overnight-switch { position: relative; flex: 0 0 auto; width: 50px; height: 28px; }
+    .overnight-switch input { position: absolute; opacity: 0; width: 0; height: 0; }
+    .overnight-slider { position: absolute; inset: 0; border-radius: 999px; background: rgba(255,255,255,.18); transition: background .2s; }
+    .overnight-slider::before { content: ""; position: absolute; top: 3px; left: 3px; width: 22px; height: 22px; border-radius: 50%; background: #fff; transition: transform .2s; }
+    .overnight-switch input:checked + .overnight-slider { background: #c9a24d; }
+    .overnight-switch input:checked + .overnight-slider::before { transform: translateX(22px); }
+    .overnight-switch input:focus-visible + .overnight-slider { outline: 2px solid #c9a24d; outline-offset: 2px; }
+    .overnight-panel { margin-top: 10px; padding: 4px 16px 16px; border: 1px solid rgba(201,162,77,.28); border-radius: 14px; background: rgba(201,162,77,.06); }
+    .overnight-panel[hidden] { display: none; }
+    .overnight-nights { margin-top: 12px; font-size: 14px; opacity: .85; }
   </style>
 </head>
 <body>
@@ -34,6 +50,43 @@
         </div>
 
         <label for="guestCount">Aantal personen</label><div class="guest-selector"><button type="button" onclick="changeGuestCount(-1)">−</button><strong id="guestCountDisplay">1</strong><button type="button" onclick="changeGuestCount(1)">+</button></div><input id="guestCount" type="hidden" value="1">
+        <!-- ===== OVERNACHTING ===== -->
+        <label class="overnight-toggle" for="overnightToggle">
+          <span class="overnight-toggle-text">
+            <strong>Blijven overnachten?</strong>
+            <small>Zet aan als (een deel van) de groep blijft slapen</small>
+          </span>
+          <span class="overnight-switch">
+            <input id="overnightToggle" type="checkbox" onchange="toggleOvernightPanel('')">
+            <span class="overnight-slider"></span>
+          </span>
+        </label>
+
+        <div id="overnightPanel" class="overnight-panel" hidden>
+          <p class="overnight-nights">Overnachting: <strong>1 nacht</strong></p>
+
+          <label>Aantal personen dat blijft slapen</label>
+          <div class="guest-selector">
+            <button type="button" onclick="changeOvernightGuests('', -1)">−</button>
+            <strong id="overnightGuestsDisplay">1</strong>
+            <button type="button" onclick="changeOvernightGuests('', 1)">+</button>
+          </div>
+          <input id="overnightGuests" type="hidden" value="1">
+
+          <label for="overnightRoom">Kamerwens</label>
+          <select id="overnightRoom">
+            <option value="">Geen voorkeur</option>
+            <option value="1-persoonskamer">1-persoonskamer</option>
+            <option value="2-persoonskamer">2-persoonskamer</option>
+            <option value="2-persoonskamer (aparte bedden)">2-persoonskamer (aparte bedden)</option>
+          </select>
+
+          <label for="overnightNotes">Opmerking overnachting</label>
+          <textarea id="overnightNotes" placeholder="Bijv. late aankomst (geen dieetwensen)"></textarea>
+
+          <!-- Plaats voor later: akkoord met reglement / contract -->
+        </div>
+
         <label for="registrationNotes">Opmerking</label><textarea id="registrationNotes" placeholder="Optioneel"></textarea>
         <button id="registrationSubmitButton" class="b2b-submit" type="button" onclick="submitB2BRegistration()">Klant inschrijven</button>
         <div id="registrationStatus" class="status-message" hidden></div>
