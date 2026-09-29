@@ -71,92 +71,112 @@ const adminEventDeliveryProofChecked =
 
 async function initAdminModule() {
 
+  /*
+     SNELHEID: deze functie draait bij het opstarten én bij elke
+     login-gebeurtenis (ook het automatisch vernieuwen van de sessie,
+     elk uur). Vroeger vroeg ze telkens opnieuw de gebruiker aan de
+     server en haalde ze het profiel een tweede keer op. Nu:
+     - scherm bestaat al? dan meteen stoppen;
+     - profiel is al geladen door de hoofdpagina? dat hergebruiken;
+     - anders pas zelf ophalen (sessie lokaal lezen, geen extra
+       serververzoek).
+     De echte beveiliging blijft in de database (RLS) liggen.
+  */
+
+  if (
+    document.getElementById(
+      "adminScreen"
+    )
+  ) {
+    return;
+  }
+
   try {
 
-    const {
-      data: userData,
-      error: userError
-    } =
-      await supabaseClient
-        .auth
-        .getUser();
-
-
-    if (
-      userError ||
-      !userData?.user
-    ) {
-
-      return;
-
-    }
-
-
-    const {
-      data: profile,
-      error: profileError
-    } =
-      await supabaseClient
-
-        .from(
-          "profiles"
-        )
-
-        .select(
-          "id, naam, email, rol, actief"
-        )
-
-        .eq(
-          "id",
-          userData.user.id
-        )
-
-        .single();
-
+    let profile =
+      (
+        typeof currentProfile !== "undefined" &&
+        currentProfile &&
+        currentProfile.id
+      )
+        ? currentProfile
+        : null;
 
     if (
-      profileError ||
       !profile
     ) {
 
-      console.error(
-        "ADMIN PROFIEL FOUT:",
-        profileError
-      );
+      const {
+        data: sessionData,
+        error: sessionError
+      } =
+        await supabaseClient
+          .auth
+          .getSession();
 
-      return;
+      const sessionUser =
+        sessionData?.session?.user;
+
+      if (
+        sessionError ||
+        !sessionUser
+      ) {
+        return;
+      }
+
+      const {
+        data: loadedProfile,
+        error: profileError
+      } =
+        await supabaseClient
+          .from(
+            "profiles"
+          )
+          .select(
+            "id, naam, email, rol, actief"
+          )
+          .eq(
+            "id",
+            sessionUser.id
+          )
+          .single();
+
+      if (
+        profileError ||
+        !loadedProfile
+      ) {
+        console.error(
+          "ADMIN PROFIEL FOUT:",
+          profileError
+        );
+        return;
+      }
+
+      profile =
+        loadedProfile;
 
     }
-
 
     if (
       profile.rol !==
       "admin"
-
       &&
-
       profile.rol !==
       "verantwoordelijke"
     ) {
-
       return;
-
     }
-
 
     createAdminScreen();
 
   }
-
   catch (
     error
   ) {
-
     console.error(
       "ADMIN INIT FOUT:",
       error
     );
-
   }
 
 }
@@ -3643,7 +3663,18 @@ function renderAdminHectoliterWidget() {
 }
 
 
-function exportAdminHectoliterExcel() {
+async function exportAdminHectoliterExcel() {
+
+  try {
+    await window.loadAchelLibrary("xlsx");
+  }
+  catch (libraryError) {
+    alert(
+      "De Excel-module kon niet geladen worden. Controleer je internetverbinding en probeer opnieuw."
+    );
+    return;
+  }
+
 
   if (
     typeof XLSX ===
@@ -8792,9 +8823,20 @@ async function saveEventDeliveryProof() {
 }
 
 
-function downloadEventDeliveryProofPdfLegacy(
+async function downloadEventDeliveryProofPdfLegacy(
   orderId
 ) {
+
+  try {
+    await window.loadAchelLibrary("jspdf");
+  }
+  catch (libraryError) {
+    alert(
+      "De PDF-module kon niet geladen worden. Controleer je internetverbinding en probeer opnieuw."
+    );
+    return;
+  }
+
 
   const proof =
     getEventDeliveryProof(
@@ -9130,9 +9172,20 @@ function loadEventDeliveryLogoData() {
 loadEventDeliveryLogoData();
 
 
-function downloadEventDeliveryProofPdf(
+async function downloadEventDeliveryProofPdf(
   orderId
 ) {
+
+  try {
+    await window.loadAchelLibrary("jspdf");
+  }
+  catch (libraryError) {
+    alert(
+      "De PDF-module kon niet geladen worden. Controleer je internetverbinding en probeer opnieuw."
+    );
+    return;
+  }
+
 
   const proof =
     getEventDeliveryProof(
@@ -13700,6 +13753,17 @@ function getAdminProductMasterForSku(
 
 async function exportAdminFreeBeerExcel() {
 
+  try {
+    await window.loadAchelLibrary("xlsx");
+  }
+  catch (libraryError) {
+    alert(
+      "De Excel-module kon niet geladen worden. Controleer je internetverbinding en probeer opnieuw."
+    );
+    return;
+  }
+
+
   if (
     typeof XLSX ===
     "undefined"
@@ -15032,11 +15096,22 @@ function exportCentralEventsExcel() {
 }
 
 
-function exportCentralOrdersExcel(
+async function exportCentralOrdersExcel(
   orders,
   type,
   filename
 ) {
+
+  try {
+    await window.loadAchelLibrary("xlsx");
+  }
+  catch (libraryError) {
+    alert(
+      "De Excel-module kon niet geladen worden. Controleer je internetverbinding en probeer opnieuw."
+    );
+    return;
+  }
+
 
   if (
     typeof XLSX ===
@@ -15101,6 +15176,17 @@ function exportCentralOrdersExcel(
 
 
 async function exportCentralWholesaleExcel() {
+
+  try {
+    await window.loadAchelLibrary("xlsx");
+  }
+  catch (libraryError) {
+    alert(
+      "De Excel-module kon niet geladen worden. Controleer je internetverbinding en probeer opnieuw."
+    );
+    return;
+  }
+
 
   if (
     typeof XLSX ===
@@ -15972,9 +16058,18 @@ function updateAdminReport() {
    REPORT CHART
 ================================ */
 
-function renderAdminReportChart(
+async function renderAdminReportChart(
   counts
 ) {
+
+  try {
+    await window.loadAchelLibrary("chart");
+  }
+  catch (libraryError) {
+    console.warn("Grafiekmodule kon niet geladen worden.", libraryError);
+    return;
+  }
+
 
   const canvas =
     document
@@ -16101,7 +16196,18 @@ function renderAdminReportChart(
    EXCEL ALLE RAPPORTEN
 ================================ */
 
-function exportAdminReportExcel() {
+async function exportAdminReportExcel() {
+
+  try {
+    await window.loadAchelLibrary("xlsx");
+  }
+  catch (libraryError) {
+    alert(
+      "De Excel-module kon niet geladen worden. Controleer je internetverbinding en probeer opnieuw."
+    );
+    return;
+  }
+
 
   if (
     typeof XLSX ===
@@ -16281,6 +16387,17 @@ function exportAdminReportExcel() {
 ================================ */
 
 async function exportWholesaleReportExcel() {
+
+  try {
+    await window.loadAchelLibrary("xlsx");
+  }
+  catch (libraryError) {
+    alert(
+      "De Excel-module kon niet geladen worden. Controleer je internetverbinding en probeer opnieuw."
+    );
+    return;
+  }
+
 
   if (
     typeof XLSX ===

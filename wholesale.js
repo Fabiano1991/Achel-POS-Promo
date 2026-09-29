@@ -3408,6 +3408,17 @@ async function downloadWholesaleProofPdf(
 ) {
 
   try {
+    await window.loadAchelLibrary("jspdf");
+  }
+  catch (libraryError) {
+    alert(
+      "De PDF-module kon niet geladen worden. Controleer je internetverbinding en probeer opnieuw."
+    );
+    return;
+  }
+
+
+  try {
 
     const proof =
       await getWholesaleProof(
