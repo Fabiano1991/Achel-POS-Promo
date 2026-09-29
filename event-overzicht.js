@@ -434,7 +434,17 @@ async function openEventOverzicht() {
     .classList
     .remove("hidden");
 
-  if (!eoLoaded && !eoLoading) {
+  /*
+    Bij elke opening opnieuw ophalen, zodat nieuwe aanvragen van
+    collega's (bv. Tom) meteen zichtbaar zijn, ook als de app al
+    uren openstaat. Eerder geladen events worden intussen al
+    getoond, zodat het scherm niet leeg blijft tijdens het laden.
+  */
+  if (eoLoaded) {
+    eoRenderMonth();
+  }
+
+  if (!eoLoading) {
     await eoLoadData();
   }
 
