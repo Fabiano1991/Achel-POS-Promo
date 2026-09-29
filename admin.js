@@ -37,6 +37,8 @@ let adminProductMasterLoaded =
 let adminProducts = [];
 
 let adminPosAvailableStock = {};
+// Eventmateriaal dat NU in het magazijn ligt (dus niet uitgeleend, beschadigd of ontbrekend)
+let adminEventWarehouseStock = {};
 
 let adminCatalogView =
   "pos";
@@ -1952,6 +1954,11 @@ async function loadAdminDashboard() {
 
   try {
 
+    // Eventmateriaal "nu in magazijn" tegelijk mee ophalen
+    const adminEventWarehousePromise =
+      refreshAdminEventWarehouseStock()
+        .catch(() => {});
+
     const [
       profilesResult,
       ordersResult,
@@ -2238,6 +2245,9 @@ async function loadAdminDashboard() {
       );
 
     }
+
+
+    await adminEventWarehousePromise;
 
 
     if (
@@ -5565,6 +5575,29 @@ function getAdminAvailableStock(
   }
 
 
+  if (
+    category ===
+    "evenement"
+  ) {
+
+    const warehouse =
+      adminEventWarehouseStock[
+        String(
+          product.id
+        )
+      ];
+
+    if (
+      warehouse
+    ) {
+
+      return warehouse.inMagazijn;
+
+    }
+
+  }
+
+
   return Math.max(
     0,
     Number(
@@ -5576,7 +5609,71 @@ function getAdminAvailableStock(
 }
 
 
+async function refreshAdminEventWarehouseStock() {
+
+  const {
+    data,
+    error
+  } =
+    await supabaseClient
+      .rpc(
+        "get_event_warehouse_stock"
+      );
+
+  if (
+    error
+  ) {
+    console.warn(
+      "EVENTMATERIAAL IN MAGAZIJN:",
+      error
+    );
+    return;
+  }
+
+  adminEventWarehouseStock =
+    {};
+
+  (
+    data ||
+    []
+  )
+    .forEach(
+      row => {
+        adminEventWarehouseStock[
+          String(
+            row.product_id
+          )
+        ] = {
+          inMagazijn:
+            Math.max(
+              0,
+              Number(
+                row.in_magazijn ||
+                0
+              )
+            ),
+          uitgeleend:
+            Math.max(
+              0,
+              Number(
+                row.uitgeleend ||
+                0
+              )
+            )
+        };
+      }
+    );
+
+}
+
+
 async function refreshAdminPosAvailableStock() {
+
+  // Eventmateriaal tegelijk ophalen (niet na elkaar)
+  const eventWarehousePromise =
+    refreshAdminEventWarehouseStock()
+      .catch(() => {});
+
 
   const {
     data,
@@ -5657,6 +5754,9 @@ async function refreshAdminPosAvailableStock() {
 
       }
     );
+
+
+  await eventWarehousePromise;
 
 }
 
@@ -5969,10 +6069,26 @@ function buildAdminProductManagementRow(
       : null;
 
 
+  /*
+     VOORRAADREGEL: het getal dat de beheerder ingeeft = wat NU
+     beschikbaar in het magazijn ligt. We tonen en bewerken dus
+     altijd dat getal (POS: min aanvragen sinds de invoer;
+     eventmateriaal: min wat uitgeleend, beschadigd of kwijt is).
+  */
   const shownStock =
-    category === "pos"
-      ? availableStock
-      : physicalStock;
+    availableStock;
+
+  const eventOutNow =
+    category === "evenement"
+      ? (
+          adminEventWarehouseStock[
+            String(
+              product.id
+            )
+          ]?.uitgeleend ||
+          0
+        )
+      : 0;
 
 
   const minimum =
@@ -6122,14 +6238,14 @@ function buildAdminProductManagementRow(
                   <div class="admin-stock-editor-label">
 
                     <span>
-                      Fysieke voorraad
+                      Beschikbaar in magazijn
                     </span>
 
                     ${
-                      category === "pos"
+                      eventOutNow > 0
                         ? `
                             <small>
-                              Beschikbaar: ${availableStock}
+                              + ${eventOutNow} nu uitgeleend (komt automatisch terug)
                             </small>
                           `
                         : ""
@@ -6153,8 +6269,8 @@ function buildAdminProductManagementRow(
                       type="text"
                       inputmode="numeric"
                       pattern="[0-9]*"
-                      value="${physicalStock}"
-                      aria-label="Nieuwe fysieke voorraad"
+                      value="${availableStock}"
+                      aria-label="Aantal nu beschikbaar in magazijn"
                       oninput="this.value=this.value.replace(/[^0-9]/g,'')"
                     >
 
@@ -6384,12 +6500,8 @@ function cancelAdminStockEditor(
   ) {
 
     input.value =
-      Math.max(
-        0,
-        Number(
-          product.voorraad ||
-          0
-        )
+      getAdminAvailableStock(
+        product
       );
 
   }
