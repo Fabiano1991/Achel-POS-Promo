@@ -320,10 +320,11 @@ const SUPABASE_KEY =
   "sb_publishable_pyiiMmH2tpl-lL3e_edcow_4ztJX-Ul";
 
 const ROLES = [
-  { value: "admin", label: "Admin (interne beheerder)" },
-  { value: "boekhoudster", label: "Boekhoudster" },
-  { value: "vertegenwoordiger", label: "Vertegenwoordiger" },
-  { value: "commercieel_directeur", label: "Commercieel directeur" }
+  { value: "admin", label: "Admin (volledige toegang)" },
+  { value: "commercieel_directeur", label: "Commercieel directeur" },
+  { value: "interne_beheerder", label: "Interne beheerder (voorraad & aanvragen)" },
+  { value: "boekhoudster", label: "Boekhoudster (rapporten & export)" },
+  { value: "vertegenwoordiger", label: "Vertegenwoordiger" }
 ];
 
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);

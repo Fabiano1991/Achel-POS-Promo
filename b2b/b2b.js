@@ -3786,7 +3786,7 @@ async function initB2BAdminPage() {
       (
         profile.rol === "admin"
         ||
-        profile.rol === "verantwoordelijke"
+        profile.rol === "commercieel_directeur"
       );
 
 
@@ -5995,7 +5995,7 @@ async function loadQuotaRepresentatives() {
           "admin"
           ||
           profile.rol ===
-          "verantwoordelijke"
+          "commercieel_directeur"
       );
 
 }
@@ -6571,7 +6571,7 @@ async function initEditAdminB2BDay() {
       (
         profile.rol === "admin"
         ||
-        profile.rol === "verantwoordelijke"
+        profile.rol === "commercieel_directeur"
       );
 
 
@@ -7165,7 +7165,7 @@ async function showB2BAdminCardIfAllowed() {
       (
         profile.rol === "admin"
         ||
-        profile.rol === "verantwoordelijke"
+        profile.rol === "commercieel_directeur"
       );
 
 

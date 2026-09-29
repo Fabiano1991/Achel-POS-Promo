@@ -71,6 +71,80 @@ const adminEventDeliveryProofChecked =
    INIT
 ================================ */
 
+/* ===============================
+   ROLLEN: WELKE TABBLADEN ZIET WIE
+   admin + commercieel directeur: alles
+   interne beheerder: aanvragen, materiaal, voorraad (geen rapporten/exports)
+   boekhoudster: enkel rapporten/exports (geen voorraad)
+================================ */
+
+const ADMIN_TAB_ACCESS = {
+  admin: ["overview", "requests", "material", "stock", "reports"],
+  commercieel_directeur: ["overview", "requests", "material", "stock", "reports"],
+  interne_beheerder: ["overview", "requests", "material", "stock"],
+  boekhoudster: ["reports"]
+};
+
+let adminCurrentRole =
+  null;
+
+
+function getAdminAllowedTabs() {
+
+  const role =
+    adminCurrentRole ||
+    (
+      typeof currentProfile !== "undefined" &&
+      currentProfile
+        ? currentProfile.rol
+        : null
+    );
+
+  return ADMIN_TAB_ACCESS[role] || [];
+
+}
+
+
+function applyAdminRoleVisibility() {
+
+  const allowed =
+    getAdminAllowedTabs();
+
+  [
+    "overview",
+    "requests",
+    "material",
+    "stock",
+    "reports"
+  ]
+    .forEach(
+      name => {
+        document
+          .getElementById(
+            `adminTab-${name}`
+          )
+          ?.classList
+          .toggle(
+            "hidden",
+            !allowed.includes(name)
+          );
+      }
+    );
+
+  // Enkel één tabblad (boekhoudster)? Dan de tabbalk verbergen.
+  document
+    .querySelector(
+      "#adminScreen .admin-tabs"
+    )
+    ?.classList
+    .toggle(
+      "hidden",
+      allowed.length <= 1
+    );
+
+}
+
+
 async function initAdminModule() {
 
   /*
@@ -90,6 +164,7 @@ async function initAdminModule() {
       "adminScreen"
     )
   ) {
+    applyAdminRoleVisibility();
     return;
   }
 
@@ -160,16 +235,19 @@ async function initAdminModule() {
     }
 
     if (
-      profile.rol !==
-      "admin"
-      &&
-      profile.rol !==
-      "verantwoordelijke"
+      !ADMIN_TAB_ACCESS[
+        profile.rol
+      ]
     ) {
       return;
     }
 
+    adminCurrentRole =
+      profile.rol;
+
     createAdminScreen();
+
+    applyAdminRoleVisibility();
 
   }
   catch (
@@ -1721,6 +1799,18 @@ async function openAdminDashboard() {
 async function switchAdminTab(
   tab
 ) {
+
+  const allowedTabs =
+    getAdminAllowedTabs();
+
+  if (
+    allowedTabs.length &&
+    !allowedTabs.includes(tab)
+  ) {
+    tab =
+      allowedTabs[0];
+  }
+
 
   [
     "overview",

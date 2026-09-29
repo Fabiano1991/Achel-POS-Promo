@@ -7817,14 +7817,14 @@ async function startApp() {
 
 
   const canManage =
-
-    currentProfile.rol ===
-    "admin"
-
-    ||
-
-    currentProfile.rol ===
-    "verantwoordelijke";
+    [
+      "admin",
+      "commercieel_directeur",
+      "interne_beheerder",
+      "boekhoudster"
+    ].includes(
+      currentProfile.rol
+    );
 
 
   document
