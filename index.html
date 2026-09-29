@@ -3379,6 +3379,85 @@ body {
   color:#dd8f8f;
 }
 
+/* Rood bolletje achter "Beheer" wanneer er iets te doen is */
+#menuAdmin {
+  position:relative;
+}
+
+#menuAdmin.has-alert::after {
+  content:"";
+  position:absolute;
+  right:14px;
+  top:50%;
+  width:10px;
+  height:10px;
+  margin-top:-5px;
+  border-radius:50%;
+  background:#e5484d;
+  box-shadow:0 0 0 3px rgba(229,72,77,.18);
+}
+
+/* Pushmeldingen: schuifknop zoals bij B2B (overnachting) */
+.menu-push-row {
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:14px 12px;
+  border-radius:12px;
+  font-weight:750;
+  color:rgba(255,255,255,.86);
+  cursor:pointer;
+}
+
+.menu-push-row input {
+  position:absolute;
+  opacity:0;
+  width:1px;
+  height:1px;
+  pointer-events:none;
+}
+
+.menu-push-switch {
+  position:relative;
+  flex:0 0 51px;
+  width:51px;
+  height:31px;
+  margin-left:auto;
+  border-radius:31px;
+  background:#39393d;
+  transition:background .25s ease;
+}
+
+.menu-push-switch::after {
+  content:"";
+  position:absolute;
+  top:2px;
+  left:2px;
+  width:27px;
+  height:27px;
+  border-radius:50%;
+  background:#fff;
+  box-shadow:0 2px 4px rgba(0,0,0,.3);
+  transition:transform .25s ease;
+}
+
+.menu-push-row input:checked + .menu-push-switch {
+  background:#34c759;
+}
+
+.menu-push-row input:checked + .menu-push-switch::after {
+  transform:translateX(20px);
+}
+
+.menu-push-row input:disabled + .menu-push-switch {
+  opacity:.4;
+}
+
+.menu-push-row input:focus-visible + .menu-push-switch {
+  outline:2px solid #34c759;
+  outline-offset:2px;
+}
+
 /* Admin generieke structuur */
 .admin-head {
   background:
@@ -3830,26 +3909,23 @@ Toegang
   </div>
 
 
-  <button
-    id="pushNotificationButton"
-    class="menu-item"
-    type="button"
-    onclick="enablePushNotifications()"
+  <label
+    class="menu-push-row"
+    for="pushNotificationToggle"
   >
-    Pushmeldingen inschakelen
-  </button>
+    <span>Pushmeldingen</span>
 
+    <input
+      id="pushNotificationToggle"
+      type="checkbox"
+      onchange="handlePushToggleChange(this)"
+    >
 
-  <div
-    id="pushNotificationStatus"
-    class="info"
-    style="
-      margin:4px 8px 8px;
-      font-size:9px;
-    "
-  >
-    Pushmeldingen zijn nog niet actief.
-  </div>
+    <span
+      class="menu-push-switch"
+      aria-hidden="true"
+    ></span>
+  </label>
 
 </div>
 
@@ -5868,11 +5944,6 @@ function urlBase64ToUint8Array(
 
     await updatePushNotificationUI();
 
-
-    alert(
-      "Pushmeldingen zijn ingeschakeld op dit toestel."
-    );
-
   }
 
   catch (
@@ -5950,11 +6021,6 @@ function urlBase64ToUint8Array(
 
     await updatePushNotificationUI();
 
-
-    alert(
-      "Pushmeldingen zijn uitgeschakeld op dit toestel."
-    );
-
   }
 
   catch (
@@ -5971,176 +6037,204 @@ function urlBase64ToUint8Array(
       "Pushmeldingen konden niet worden uitgeschakeld."
     );
 
+    await updatePushNotificationUI();
+
   }
 
 }
 
   async function updatePushNotificationUI() {
 
-  const button =
+  /*
+    Zet de schuifknop in het menu op de
+    echte toestand van dit toestel:
+    groen = pushmeldingen actief.
+    Wordt aangeroepen bij het opstarten,
+    bij het openen van het menu en na
+    elke wijziging, zodat een ingeschakelde
+    knop ook na herladen aan blijft staan.
+  */
+
+  const toggle =
     document.getElementById(
-      "pushNotificationButton"
+      "pushNotificationToggle"
     );
 
-
-  const status =
-    document.getElementById(
-      "pushNotificationStatus"
-    );
-
-
-  if (
-    !button ||
-    !status
-  ) {
-
+  if (!toggle) {
     return;
-
   }
 
-
   if (
-    !(
-      "Notification"
-      in window
-    )
+    !("Notification" in window) ||
+    !("serviceWorker" in navigator) ||
+    !("PushManager" in window)
   ) {
-
-    button.disabled =
-      true;
-
-
-    button.innerText =
-      "Niet ondersteund";
-
-
-    status.innerText =
-      "Dit toestel ondersteunt geen pushmeldingen.";
-
-
+    toggle.checked = false;
+    toggle.disabled = true;
     return;
-
   }
-
 
   const permission =
     Notification.permission;
 
-
   let subscription =
     null;
 
+  try {
 
-  if (
-    "serviceWorker"
-    in navigator
-  ) {
+    const registration =
+      await navigator
+        .serviceWorker
+        .ready;
 
-    try {
+    subscription =
+      await registration
+        .pushManager
+        .getSubscription();
 
-      const registration =
-        await navigator
-          .serviceWorker
-          .ready;
+  }
 
+  catch (error) {
 
-      subscription =
-        await registration
-          .pushManager
-          .getSubscription();
-
-    }
-
-    catch (
+    console.warn(
+      "Push status kon niet worden gecontroleerd:",
       error
-    ) {
+    );
 
-      console.warn(
-        "Push status kon niet worden gecontroleerd:",
-        error
-      );
+  }
 
+  toggle.checked =
+    permission === "granted" &&
+    Boolean(subscription);
+
+  /* Geblokkeerd in de instellingen van het toestel:
+     knop grijs en niet aan te passen. */
+  toggle.disabled =
+    permission === "denied";
+
+}
+
+
+let pushToggleBusy =
+  false;
+
+async function handlePushToggleChange(
+  toggle
+) {
+
+  if (pushToggleBusy) {
+    return;
+  }
+
+  pushToggleBusy = true;
+  toggle.disabled = true;
+
+  try {
+
+    if (toggle.checked) {
+      await enablePushNotifications();
+    } else {
+      await disablePushNotifications();
     }
 
   }
 
+  finally {
 
-  if (
-    permission ===
-    "granted"
-    &&
-    subscription
-  ) {
+    pushToggleBusy = false;
+    toggle.disabled = false;
 
-    button.disabled =
-      false;
-
-
-    button.innerText =
-      "Pushmeldingen uitschakelen";
-
-
-    button.onclick =
-      disablePushNotifications;
-
-
-    status.innerText =
-      "✓ Pushmeldingen actief op dit toestel";
-
-
-    status.className =
-      "info ok";
-
-
-    return;
+    /* Altijd terugzetten naar de echte toestand
+       (bv. als de gebruiker de toestemming weigerde). */
+    await updatePushNotificationUI();
 
   }
 
+}
+
+
+/* ===============================
+   ROOD BOLLETJE BIJ "BEHEER"
+   Toont een rood bolletje rechts naast
+   "Beheer" in het menu wanneer er iets
+   moet gebeuren: nieuwe aanvragen,
+   aanvragen in behandeling of POS-artikelen
+   met lage voorraad.
+================================ */
+
+async function updateAdminMenuBadge() {
+
+  const menuAdmin =
+    document.getElementById(
+      "menuAdmin"
+    );
 
   if (
-    permission ===
-    "denied"
+    !menuAdmin ||
+    menuAdmin.classList.contains("hidden") ||
+    !currentUser
   ) {
-
-    button.disabled =
-      true;
-
-
-    button.innerText =
-      "Pushmeldingen geblokkeerd";
-
-
-    status.innerText =
-      "Meldingen zijn geblokkeerd in de instellingen van dit toestel.";
-
-
-    status.className =
-      "info error";
-
-
     return;
+  }
+
+  try {
+
+    const [ordersResult, productsResult] =
+      await Promise.all([
+
+        supabaseClient
+          .from("orders")
+          .select("id", { count: "exact", head: true })
+          .in("status", ["nieuw", "in_behandeling"]),
+
+        supabaseClient
+          .from("products")
+          .select("categorie, voorraad, minimum_voorraad, voorraad_beheren, actief")
+          .eq("voorraad_beheren", true)
+          .not("minimum_voorraad", "is", null)
+
+      ]);
+
+    const openOrders =
+      ordersResult.error
+        ? 0
+        : (ordersResult.count || 0);
+
+    const lowStock =
+      productsResult.error
+        ? 0
+        : (productsResult.data || []).filter(
+            product =>
+              product.actief !== false &&
+              String(product.categorie || "").trim().toLowerCase() === "pos" &&
+              Number(product.voorraad || 0) <= Number(product.minimum_voorraad || 0)
+          ).length;
+
+    const hasAlert =
+      openOrders + lowStock > 0;
+
+    menuAdmin.classList.toggle(
+      "has-alert",
+      hasAlert
+    );
+
+    menuAdmin.setAttribute(
+      "aria-label",
+      hasAlert
+        ? "Beheer – er zijn meldingen"
+        : "Beheer"
+    );
 
   }
 
+  catch (error) {
 
-  button.disabled =
-    false;
+    console.warn(
+      "Beheer-melding kon niet worden gecontroleerd:",
+      error
+    );
 
-
-  button.innerText =
-    "Pushmeldingen inschakelen";
-
-
-  button.onclick =
-    enablePushNotifications;
-
-
-  status.innerText =
-    "Pushmeldingen zijn nog niet actief.";
-
-
-  status.className =
-    "info";
+  }
 
 }
 
@@ -7657,6 +7751,10 @@ async function startApp() {
 
   goHome();
 
+  updatePushNotificationUI();
+
+  updateAdminMenuBadge();
+
   await restorePullRefreshScreen();
 
 }
@@ -7914,6 +8012,10 @@ async function logoutUser() {
 ================================ */
 
 function openMenu() {
+
+  updatePushNotificationUI();
+
+  updateAdminMenuBadge();
 
   document
     .getElementById(
