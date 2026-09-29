@@ -22,7 +22,7 @@ let myContacts = [];
 let myOrders = [];
 let currentView = "homeView";
 
-const ADMIN_ROLES = ["admin", "verantwoordelijke", "commercieel_directeur", "boekhoudster"];
+const ADMIN_ROLES = ["admin", "commercieel_directeur", "boekhoudster"];
 let isAdminUser = false;
 let adminContacts = [];
 let adminOrders = [];
@@ -261,7 +261,7 @@ async function loadRepresentatives() {
         [
           "vertegenwoordiger",
           "admin",
-          "verantwoordelijke"
+          "commercieel_directeur"
         ].includes(profile.rol)
       );
 }

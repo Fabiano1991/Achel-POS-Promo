@@ -47,7 +47,7 @@ const SUBTOTAL_ROW = 29;
 const APPROVED_ROW = 30;
 const TOTAL_ROW = 31;
 
-const ADMIN_ROLES = ["admin", "verantwoordelijke", "commercieel_directeur", "boekhoudster"];
+const ADMIN_ROLES = ["admin", "commercieel_directeur", "boekhoudster"];
 
 let currentSession = null;
 let currentProfile = null;
@@ -224,7 +224,7 @@ async function loadRepresentatives() {
       [
         "vertegenwoordiger",
         "admin",
-        "verantwoordelijke"
+        "commercieel_directeur"
       ].includes(profile.rol)
     );
 }

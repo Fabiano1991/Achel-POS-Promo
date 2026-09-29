@@ -464,6 +464,37 @@ function closeEventOverzicht() {
 }
 
 
+/*
+  Namen van alle aanvragers ophalen, ook van collega's.
+  Gewone gebruikers mogen de profielen van anderen niet
+  rechtstreeks lezen, daarom via een aparte functie in de
+  database die enkel id + naam teruggeeft.
+  Bestaat die functie (nog) niet, dan vallen we terug op
+  de gewone profielen-tabel.
+*/
+async function eoLoadRequesterNames(userIds) {
+
+  const { data: rpcNames, error: rpcError } =
+    await supabaseClient.rpc(
+      "get_event_requester_names",
+      { user_ids: userIds }
+    );
+
+  if (!rpcError && rpcNames) {
+    return rpcNames;
+  }
+
+  const { data: tableNames, error: profilesError } =
+    await supabaseClient
+      .from("profiles")
+      .select("id, naam")
+      .in("id", userIds);
+
+  return profilesError ? [] : (tableNames || []);
+
+}
+
+
 /* ---------- DATA LADEN ---------- */
 
 async function eoLoadData() {
@@ -493,63 +524,39 @@ async function eoLoadData() {
   eoEventItems = {};
   eoProfiles = {};
 
-  if (orderIds.length) {
+  /*
+    SNELHEID: artikels en namen worden nu tegelijk opgehaald
+    in plaats van na elkaar (scheelt een volledige wachtronde).
+  */
 
-    const { data: items, error: itemsError } =
-      await supabaseClient
-        .from("order_items")
-        .select("order_id, product_naam, aantal")
-        .in("order_id", orderIds);
+  const itemsPromise =
+    orderIds.length
+      ? supabaseClient
+          .from("order_items")
+          .select("order_id, product_naam, aantal")
+          .in("order_id", orderIds)
+      : Promise.resolve({ data: [], error: null });
 
-    if (!itemsError && items) {
-      items.forEach(item => {
-        if (!eoEventItems[item.order_id]) {
-          eoEventItems[item.order_id] = [];
-        }
-        eoEventItems[item.order_id].push(item);
-      });
-    }
+  const namesPromise =
+    userIds.length
+      ? eoLoadRequesterNames(userIds)
+      : Promise.resolve([]);
 
-  }
+  const [itemsResult, profiles] =
+    await Promise.all([itemsPromise, namesPromise]);
 
-  if (userIds.length) {
-
-    /*
-      Namen van alle aanvragers ophalen, ook van collega's.
-      Gewone gebruikers mogen de profielen van anderen niet
-      rechtstreeks lezen, daarom via een aparte functie in de
-      database die enkel id + naam teruggeeft.
-      Bestaat die functie (nog) niet, dan vallen we terug op
-      de gewone profielen-tabel.
-    */
-
-    let profiles = null;
-
-    const { data: rpcNames, error: rpcError } =
-      await supabaseClient.rpc(
-        "get_event_requester_names",
-        { user_ids: userIds }
-      );
-
-    if (!rpcError && rpcNames) {
-      profiles = rpcNames;
-    } else {
-      const { data: tableNames, error: profilesError } =
-        await supabaseClient
-          .from("profiles")
-          .select("id, naam")
-          .in("id", userIds);
-
-      if (!profilesError) {
-        profiles = tableNames;
+  if (!itemsResult.error && itemsResult.data) {
+    itemsResult.data.forEach(item => {
+      if (!eoEventItems[item.order_id]) {
+        eoEventItems[item.order_id] = [];
       }
-    }
-
-    (profiles || []).forEach(p => {
-      eoProfiles[p.id] = p.naam;
+      eoEventItems[item.order_id].push(item);
     });
-
   }
+
+  (profiles || []).forEach(p => {
+    eoProfiles[p.id] = p.naam;
+  });
 
   eoLoaded = true;
   eoLoading = false;

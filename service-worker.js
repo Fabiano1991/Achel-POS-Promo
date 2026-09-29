@@ -1,7 +1,7 @@
 // Verhoog deze versie bij elke release waarin gecachete bestanden wijzigen
 // (bv. na het vervangen van een afbeelding), anders houden geïnstalleerde
 // PWA's de oude versie vast.
-const CACHE_VERSION = "v2";
+const CACHE_VERSION = "v3";
 const CACHE_NAME = `achel-pos-cache-${CACHE_VERSION}`;
 
 // Kleine, essentiële bestanden: moeten allemaal succesvol gecachet worden
@@ -99,7 +99,11 @@ self.addEventListener("fetch", (event) => {
 
   if (needsFreshVersion) {
     event.respondWith(
-      fetch(event.request, { cache: "no-store" })
+      // "no-cache" = altijd bij de server checken of er een nieuwere
+      // versie is, maar als het bestand niet gewijzigd is krijgen we een
+      // piepklein "niet gewijzigd"-antwoord i.p.v. alles opnieuw te
+      // downloaden ("no-store" downloadde bij elke start ~700 KB code).
+      fetch(event.request, { cache: "no-cache" })
         .then((response) => {
           if (response && response.ok) {
             const copy = response.clone();

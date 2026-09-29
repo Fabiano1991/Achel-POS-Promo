@@ -11,9 +11,62 @@
 <title>Achel POS</title>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script defer src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script defer src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
-<script defer src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+<script>
+/*
+   ZWARE HULPBIBLIOTHEKEN (Excel, PDF, grafieken) - samen ruim 1 MB.
+   Die worden niet meer bij het openen van de app geladen, maar pas
+   zodra het startscherm er staat (op de achtergrond) of op het moment
+   dat iemand effectief een Excel/PDF/grafiek nodig heeft.
+   Zo verschijnt de app merkbaar sneller, vooral op mobiel.
+*/
+window.loadAchelLibrary = (function () {
+  const sources = {
+    xlsx: "https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js",
+    jspdf: "https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js",
+    chart: "https://cdn.jsdelivr.net/npm/chart.js"
+  };
+  const loaded = {
+    xlsx: () => !!window.XLSX,
+    jspdf: () => !!(window.jspdf && window.jspdf.jsPDF),
+    chart: () => !!window.Chart
+  };
+  const pending = {};
+  return function (name) {
+    if (loaded[name]()) {
+      return Promise.resolve();
+    }
+    if (!pending[name]) {
+      pending[name] = new Promise((resolve, reject) => {
+        const script = document.createElement("script");
+        script.src = sources[name];
+        script.async = true;
+        script.onload = () => resolve();
+        script.onerror = () => {
+          delete pending[name];
+          script.remove();
+          reject(new Error("Kon " + name + " niet laden"));
+        };
+        document.head.appendChild(script);
+      });
+    }
+    return pending[name];
+  };
+})();
+
+window.addEventListener("load", () => {
+  const preload = () =>
+    ["xlsx", "jspdf", "chart"].forEach((name) =>
+      window.loadAchelLibrary(name).catch(() => {})
+    );
+  setTimeout(() => {
+    if ("requestIdleCallback" in window) {
+      requestIdleCallback(preload, { timeout: 4000 });
+    } else {
+      preload();
+    }
+  }, 2500);
+});
+</script>
   
 <link rel="manifest" href="./manifest.json">
 
@@ -7764,14 +7817,14 @@ async function startApp() {
 
 
   const canManage =
-
-    currentProfile.rol ===
-    "admin"
-
-    ||
-
-    currentProfile.rol ===
-    "verantwoordelijke";
+    [
+      "admin",
+      "commercieel_directeur",
+      "interne_beheerder",
+      "boekhoudster"
+    ].includes(
+      currentProfile.rol
+    );
 
 
   document

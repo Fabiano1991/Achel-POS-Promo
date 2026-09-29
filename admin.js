@@ -37,6 +37,8 @@ let adminProductMasterLoaded =
 let adminProducts = [];
 
 let adminPosAvailableStock = {};
+// Eventmateriaal dat NU in het magazijn ligt (dus niet uitgeleend, beschadigd of ontbrekend)
+let adminEventWarehouseStock = {};
 
 let adminCatalogView =
   "pos";
@@ -69,94 +71,192 @@ const adminEventDeliveryProofChecked =
    INIT
 ================================ */
 
+/* ===============================
+   ROLLEN: WELKE TABBLADEN ZIET WIE
+   admin + commercieel directeur: alles
+   interne beheerder: aanvragen, materiaal, voorraad (geen rapporten/exports)
+   boekhoudster: enkel rapporten/exports (geen voorraad)
+================================ */
+
+const ADMIN_TAB_ACCESS = {
+  admin: ["overview", "requests", "material", "stock", "reports"],
+  commercieel_directeur: ["overview", "requests", "material", "stock", "reports"],
+  interne_beheerder: ["overview", "requests", "material", "stock"],
+  boekhoudster: ["reports"]
+};
+
+let adminCurrentRole =
+  null;
+
+
+function getAdminAllowedTabs() {
+
+  const role =
+    adminCurrentRole ||
+    (
+      typeof currentProfile !== "undefined" &&
+      currentProfile
+        ? currentProfile.rol
+        : null
+    );
+
+  return ADMIN_TAB_ACCESS[role] || [];
+
+}
+
+
+function applyAdminRoleVisibility() {
+
+  const allowed =
+    getAdminAllowedTabs();
+
+  [
+    "overview",
+    "requests",
+    "material",
+    "stock",
+    "reports"
+  ]
+    .forEach(
+      name => {
+        document
+          .getElementById(
+            `adminTab-${name}`
+          )
+          ?.classList
+          .toggle(
+            "hidden",
+            !allowed.includes(name)
+          );
+      }
+    );
+
+  // Enkel één tabblad (boekhoudster)? Dan de tabbalk verbergen.
+  document
+    .querySelector(
+      "#adminScreen .admin-tabs"
+    )
+    ?.classList
+    .toggle(
+      "hidden",
+      allowed.length <= 1
+    );
+
+}
+
+
 async function initAdminModule() {
+
+  /*
+     SNELHEID: deze functie draait bij het opstarten én bij elke
+     login-gebeurtenis (ook het automatisch vernieuwen van de sessie,
+     elk uur). Vroeger vroeg ze telkens opnieuw de gebruiker aan de
+     server en haalde ze het profiel een tweede keer op. Nu:
+     - scherm bestaat al? dan meteen stoppen;
+     - profiel is al geladen door de hoofdpagina? dat hergebruiken;
+     - anders pas zelf ophalen (sessie lokaal lezen, geen extra
+       serververzoek).
+     De echte beveiliging blijft in de database (RLS) liggen.
+  */
+
+  if (
+    document.getElementById(
+      "adminScreen"
+    )
+  ) {
+    applyAdminRoleVisibility();
+    return;
+  }
 
   try {
 
-    const {
-      data: userData,
-      error: userError
-    } =
-      await supabaseClient
-        .auth
-        .getUser();
-
-
-    if (
-      userError ||
-      !userData?.user
-    ) {
-
-      return;
-
-    }
-
-
-    const {
-      data: profile,
-      error: profileError
-    } =
-      await supabaseClient
-
-        .from(
-          "profiles"
-        )
-
-        .select(
-          "id, naam, email, rol, actief"
-        )
-
-        .eq(
-          "id",
-          userData.user.id
-        )
-
-        .single();
-
+    let profile =
+      (
+        typeof currentProfile !== "undefined" &&
+        currentProfile &&
+        currentProfile.id
+      )
+        ? currentProfile
+        : null;
 
     if (
-      profileError ||
       !profile
     ) {
 
-      console.error(
-        "ADMIN PROFIEL FOUT:",
-        profileError
-      );
+      const {
+        data: sessionData,
+        error: sessionError
+      } =
+        await supabaseClient
+          .auth
+          .getSession();
 
-      return;
+      const sessionUser =
+        sessionData?.session?.user;
+
+      if (
+        sessionError ||
+        !sessionUser
+      ) {
+        return;
+      }
+
+      const {
+        data: loadedProfile,
+        error: profileError
+      } =
+        await supabaseClient
+          .from(
+            "profiles"
+          )
+          .select(
+            "id, naam, email, rol, actief"
+          )
+          .eq(
+            "id",
+            sessionUser.id
+          )
+          .single();
+
+      if (
+        profileError ||
+        !loadedProfile
+      ) {
+        console.error(
+          "ADMIN PROFIEL FOUT:",
+          profileError
+        );
+        return;
+      }
+
+      profile =
+        loadedProfile;
 
     }
-
 
     if (
-      profile.rol !==
-      "admin"
-
-      &&
-
-      profile.rol !==
-      "verantwoordelijke"
+      !ADMIN_TAB_ACCESS[
+        profile.rol
+      ]
     ) {
-
       return;
-
     }
 
+    adminCurrentRole =
+      profile.rol;
 
     createAdminScreen();
 
-  }
+    applyAdminRoleVisibility();
 
+  }
   catch (
     error
   ) {
-
     console.error(
       "ADMIN INIT FOUT:",
       error
     );
-
   }
 
 }
@@ -1700,6 +1800,18 @@ async function switchAdminTab(
   tab
 ) {
 
+  const allowedTabs =
+    getAdminAllowedTabs();
+
+  if (
+    allowedTabs.length &&
+    !allowedTabs.includes(tab)
+  ) {
+    tab =
+      allowedTabs[0];
+  }
+
+
   [
     "overview",
     "requests",
@@ -1931,6 +2043,11 @@ function closeAdminDashboard() {
 async function loadAdminDashboard() {
 
   try {
+
+    // Eventmateriaal "nu in magazijn" tegelijk mee ophalen
+    const adminEventWarehousePromise =
+      refreshAdminEventWarehouseStock()
+        .catch(() => {});
 
     const [
       profilesResult,
@@ -2218,6 +2335,9 @@ async function loadAdminDashboard() {
       );
 
     }
+
+
+    await adminEventWarehousePromise;
 
 
     if (
@@ -3643,7 +3763,18 @@ function renderAdminHectoliterWidget() {
 }
 
 
-function exportAdminHectoliterExcel() {
+async function exportAdminHectoliterExcel() {
+
+  try {
+    await window.loadAchelLibrary("xlsx");
+  }
+  catch (libraryError) {
+    alert(
+      "De Excel-module kon niet geladen worden. Controleer je internetverbinding en probeer opnieuw."
+    );
+    return;
+  }
+
 
   if (
     typeof XLSX ===
@@ -5534,6 +5665,29 @@ function getAdminAvailableStock(
   }
 
 
+  if (
+    category ===
+    "evenement"
+  ) {
+
+    const warehouse =
+      adminEventWarehouseStock[
+        String(
+          product.id
+        )
+      ];
+
+    if (
+      warehouse
+    ) {
+
+      return warehouse.inMagazijn;
+
+    }
+
+  }
+
+
   return Math.max(
     0,
     Number(
@@ -5545,7 +5699,71 @@ function getAdminAvailableStock(
 }
 
 
+async function refreshAdminEventWarehouseStock() {
+
+  const {
+    data,
+    error
+  } =
+    await supabaseClient
+      .rpc(
+        "get_event_warehouse_stock"
+      );
+
+  if (
+    error
+  ) {
+    console.warn(
+      "EVENTMATERIAAL IN MAGAZIJN:",
+      error
+    );
+    return;
+  }
+
+  adminEventWarehouseStock =
+    {};
+
+  (
+    data ||
+    []
+  )
+    .forEach(
+      row => {
+        adminEventWarehouseStock[
+          String(
+            row.product_id
+          )
+        ] = {
+          inMagazijn:
+            Math.max(
+              0,
+              Number(
+                row.in_magazijn ||
+                0
+              )
+            ),
+          uitgeleend:
+            Math.max(
+              0,
+              Number(
+                row.uitgeleend ||
+                0
+              )
+            )
+        };
+      }
+    );
+
+}
+
+
 async function refreshAdminPosAvailableStock() {
+
+  // Eventmateriaal tegelijk ophalen (niet na elkaar)
+  const eventWarehousePromise =
+    refreshAdminEventWarehouseStock()
+      .catch(() => {});
+
 
   const {
     data,
@@ -5626,6 +5844,9 @@ async function refreshAdminPosAvailableStock() {
 
       }
     );
+
+
+  await eventWarehousePromise;
 
 }
 
@@ -5938,10 +6159,26 @@ function buildAdminProductManagementRow(
       : null;
 
 
+  /*
+     VOORRAADREGEL: het getal dat de beheerder ingeeft = wat NU
+     beschikbaar in het magazijn ligt. We tonen en bewerken dus
+     altijd dat getal (POS: min aanvragen sinds de invoer;
+     eventmateriaal: min wat uitgeleend, beschadigd of kwijt is).
+  */
   const shownStock =
-    category === "pos"
-      ? availableStock
-      : physicalStock;
+    availableStock;
+
+  const eventOutNow =
+    category === "evenement"
+      ? (
+          adminEventWarehouseStock[
+            String(
+              product.id
+            )
+          ]?.uitgeleend ||
+          0
+        )
+      : 0;
 
 
   const minimum =
@@ -6091,14 +6328,14 @@ function buildAdminProductManagementRow(
                   <div class="admin-stock-editor-label">
 
                     <span>
-                      Fysieke voorraad
+                      Beschikbaar in magazijn
                     </span>
 
                     ${
-                      category === "pos"
+                      eventOutNow > 0
                         ? `
                             <small>
-                              Beschikbaar: ${availableStock}
+                              + ${eventOutNow} nu uitgeleend (komt automatisch terug)
                             </small>
                           `
                         : ""
@@ -6122,8 +6359,8 @@ function buildAdminProductManagementRow(
                       type="text"
                       inputmode="numeric"
                       pattern="[0-9]*"
-                      value="${physicalStock}"
-                      aria-label="Nieuwe fysieke voorraad"
+                      value="${availableStock}"
+                      aria-label="Aantal nu beschikbaar in magazijn"
                       oninput="this.value=this.value.replace(/[^0-9]/g,'')"
                     >
 
@@ -6353,12 +6590,8 @@ function cancelAdminStockEditor(
   ) {
 
     input.value =
-      Math.max(
-        0,
-        Number(
-          product.voorraad ||
-          0
-        )
+      getAdminAvailableStock(
+        product
       );
 
   }
@@ -8792,9 +9025,20 @@ async function saveEventDeliveryProof() {
 }
 
 
-function downloadEventDeliveryProofPdfLegacy(
+async function downloadEventDeliveryProofPdfLegacy(
   orderId
 ) {
+
+  try {
+    await window.loadAchelLibrary("jspdf");
+  }
+  catch (libraryError) {
+    alert(
+      "De PDF-module kon niet geladen worden. Controleer je internetverbinding en probeer opnieuw."
+    );
+    return;
+  }
+
 
   const proof =
     getEventDeliveryProof(
@@ -9130,9 +9374,20 @@ function loadEventDeliveryLogoData() {
 loadEventDeliveryLogoData();
 
 
-function downloadEventDeliveryProofPdf(
+async function downloadEventDeliveryProofPdf(
   orderId
 ) {
+
+  try {
+    await window.loadAchelLibrary("jspdf");
+  }
+  catch (libraryError) {
+    alert(
+      "De PDF-module kon niet geladen worden. Controleer je internetverbinding en probeer opnieuw."
+    );
+    return;
+  }
+
 
   const proof =
     getEventDeliveryProof(
@@ -13700,6 +13955,17 @@ function getAdminProductMasterForSku(
 
 async function exportAdminFreeBeerExcel() {
 
+  try {
+    await window.loadAchelLibrary("xlsx");
+  }
+  catch (libraryError) {
+    alert(
+      "De Excel-module kon niet geladen worden. Controleer je internetverbinding en probeer opnieuw."
+    );
+    return;
+  }
+
+
   if (
     typeof XLSX ===
     "undefined"
@@ -15032,11 +15298,22 @@ function exportCentralEventsExcel() {
 }
 
 
-function exportCentralOrdersExcel(
+async function exportCentralOrdersExcel(
   orders,
   type,
   filename
 ) {
+
+  try {
+    await window.loadAchelLibrary("xlsx");
+  }
+  catch (libraryError) {
+    alert(
+      "De Excel-module kon niet geladen worden. Controleer je internetverbinding en probeer opnieuw."
+    );
+    return;
+  }
+
 
   if (
     typeof XLSX ===
@@ -15101,6 +15378,17 @@ function exportCentralOrdersExcel(
 
 
 async function exportCentralWholesaleExcel() {
+
+  try {
+    await window.loadAchelLibrary("xlsx");
+  }
+  catch (libraryError) {
+    alert(
+      "De Excel-module kon niet geladen worden. Controleer je internetverbinding en probeer opnieuw."
+    );
+    return;
+  }
+
 
   if (
     typeof XLSX ===
@@ -15972,9 +16260,18 @@ function updateAdminReport() {
    REPORT CHART
 ================================ */
 
-function renderAdminReportChart(
+async function renderAdminReportChart(
   counts
 ) {
+
+  try {
+    await window.loadAchelLibrary("chart");
+  }
+  catch (libraryError) {
+    console.warn("Grafiekmodule kon niet geladen worden.", libraryError);
+    return;
+  }
+
 
   const canvas =
     document
@@ -16101,7 +16398,18 @@ function renderAdminReportChart(
    EXCEL ALLE RAPPORTEN
 ================================ */
 
-function exportAdminReportExcel() {
+async function exportAdminReportExcel() {
+
+  try {
+    await window.loadAchelLibrary("xlsx");
+  }
+  catch (libraryError) {
+    alert(
+      "De Excel-module kon niet geladen worden. Controleer je internetverbinding en probeer opnieuw."
+    );
+    return;
+  }
+
 
   if (
     typeof XLSX ===
@@ -16281,6 +16589,17 @@ function exportAdminReportExcel() {
 ================================ */
 
 async function exportWholesaleReportExcel() {
+
+  try {
+    await window.loadAchelLibrary("xlsx");
+  }
+  catch (libraryError) {
+    alert(
+      "De Excel-module kon niet geladen worden. Controleer je internetverbinding en probeer opnieuw."
+    );
+    return;
+  }
+
 
   if (
     typeof XLSX ===

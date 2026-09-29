@@ -1,0 +1,21 @@
+-- ============================================================
+-- VOORRAADREGEL (30-09-2026) - al toegepast op de database.
+-- Het getal dat de beheerder ingeeft = wat NU beschikbaar in het
+-- magazijn ligt.
+--  * POS: enkel aanvragen NA die invoer worden afgetrokken
+--    (geannuleerde niet).
+--  * Eventmateriaal: wat op het moment van invoer uitgeleend is,
+--    wordt intern bij het totaal geteld zodat het na terugkomst
+--    weer beschikbaar is. Reservaties blijven per datum.
+--    Beschadigd/ontbrekend telt enkel als het NA de invoer gemeld is.
+--  * Berekening telt aanvragen van IEDEREEN mee (voorheen zag een
+--    vertegenwoordiger enkel zijn eigen aanvragen afgetrokken).
+-- Nieuwe onderdelen:
+--   kolom   products.voorraad_ingesteld_op
+--   functie event_material_currently_out(product_id)
+--   trigger trigger_products_voorraad_ingesteld (products_voorraad_ingesteld)
+--   functie get_event_warehouse_stock()  (beheerscherm)
+--   aangepast: get_pos_available_stock(), get_event_available_stock()
+-- Bij de overgang kreeg elk POS-product als startpunt het aantal
+-- dat de app op dat moment als "beschikbaar" toonde.
+-- ============================================================
