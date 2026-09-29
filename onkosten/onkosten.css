@@ -2,15 +2,28 @@
   margin-bottom:16px;
 }
 
+.receipt-upload-buttons {
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+}
+
+/* Het bestandsveld ligt onzichtbaar over de hele knop,
+   zodat een tik er altijd rechtstreeks op terechtkomt. */
 .receipt-input {
   position:absolute;
-  width:1px;
-  height:1px;
+  inset:0;
+  width:100%;
+  height:100%;
   opacity:0;
-  overflow:hidden;
+  cursor:pointer;
+  font-size:0;
+  z-index:2;
 }
 
 .receipt-upload-label {
+  position:relative;
+  overflow:hidden;
   display:flex;
   align-items:center;
   justify-content:center;
@@ -24,6 +37,23 @@
   font-size:13px;
   text-align:center;
   cursor:pointer;
+}
+
+.receipt-upload-label:active {
+  background:rgba(201,155,67,.10);
+}
+
+.receipt-upload-status {
+  display:block;
+  margin-top:8px;
+  font-size:12px;
+  font-weight:700;
+  color:#71b67a;
+  text-align:center;
+}
+
+.receipt-upload-status:empty {
+  display:none;
 }
 
 .receipt-preview {

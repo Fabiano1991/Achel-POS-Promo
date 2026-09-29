@@ -6069,8 +6069,10 @@ function urlBase64ToUint8Array(
     !("serviceWorker" in navigator) ||
     !("PushManager" in window)
   ) {
+    /* Niet ondersteund in deze browser: knop blijft uit,
+       maar bij een tik leggen we uit wat er moet gebeuren. */
     toggle.checked = false;
-    toggle.disabled = true;
+    toggle.disabled = false;
     return;
   }
 
@@ -6107,10 +6109,45 @@ function urlBase64ToUint8Array(
     permission === "granted" &&
     Boolean(subscription);
 
-  /* Geblokkeerd in de instellingen van het toestel:
-     knop grijs en niet aan te passen. */
   toggle.disabled =
-    permission === "denied";
+    false;
+
+}
+
+
+/* Uitleg voor collega's wanneer pushmeldingen niet kunnen. */
+function getPushSetupHelp() {
+
+  const ua =
+    navigator.userAgent || "";
+
+  const isIos =
+    /iPhone|iPad|iPod/i.test(ua);
+
+  const isStandalone =
+    window.matchMedia?.("(display-mode: standalone)")?.matches ||
+    window.navigator.standalone === true;
+
+  const supported =
+    "Notification" in window &&
+    "serviceWorker" in navigator &&
+    "PushManager" in window;
+
+  if (supported && Notification.permission === "denied") {
+    return isIos
+      ? "Meldingen zijn geblokkeerd voor deze app.\n\nGa naar Instellingen → Meldingen → Achel POS en zet 'Sta meldingen toe' aan. Open daarna de app opnieuw."
+      : "Meldingen zijn geblokkeerd voor deze app.\n\nTik bovenaan in de browser op het slotje of de instellingen van de site → Meldingen → Toestaan. Open daarna de app opnieuw.";
+  }
+
+  if (isIos && !isStandalone) {
+    return "Op een iPhone werken pushmeldingen alleen als de app op het beginscherm staat.\n\n1. Open deze pagina in Safari.\n2. Tik op het deel-icoon (vierkant met pijl omhoog).\n3. Kies 'Zet op beginscherm'.\n4. Open de app via het nieuwe icoon en zet de schakelaar opnieuw aan.";
+  }
+
+  if (isIos) {
+    return "Deze iPhone ondersteunt geen pushmeldingen. Werk de iPhone bij naar de nieuwste iOS-versie (Instellingen → Algemeen → Software-update) en probeer opnieuw.";
+  }
+
+  return "Deze browser ondersteunt geen pushmeldingen.\n\nOpen de app in Google Chrome (niet in de standaardbrowser van het toestel), tik op de drie puntjes → 'Toevoegen aan startscherm' of 'App installeren', open de app via dat icoon en zet de schakelaar opnieuw aan.";
 
 }
 
@@ -6131,8 +6168,26 @@ async function handlePushToggleChange(
 
   try {
 
-    if (toggle.checked) {
+    const supported =
+      "Notification" in window &&
+      "serviceWorker" in navigator &&
+      "PushManager" in window;
+
+    if (
+      toggle.checked &&
+      (!supported || Notification.permission === "denied")
+    ) {
+      toggle.checked = false;
+      alert(getPushSetupHelp());
+    } else if (toggle.checked) {
       await enablePushNotifications();
+
+      if (
+        "Notification" in window &&
+        Notification.permission === "denied"
+      ) {
+        alert(getPushSetupHelp());
+      }
     } else {
       await disablePushNotifications();
     }

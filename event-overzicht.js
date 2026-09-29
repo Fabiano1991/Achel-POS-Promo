@@ -504,17 +504,40 @@ async function eoLoadData() {
 
   if (userIds.length) {
 
-    const { data: profiles, error: profilesError } =
-      await supabaseClient
-        .from("profiles")
-        .select("id, naam")
-        .in("id", userIds);
+    /*
+      Namen van alle aanvragers ophalen, ook van collega's.
+      Gewone gebruikers mogen de profielen van anderen niet
+      rechtstreeks lezen, daarom via een aparte functie in de
+      database die enkel id + naam teruggeeft.
+      Bestaat die functie (nog) niet, dan vallen we terug op
+      de gewone profielen-tabel.
+    */
 
-    if (!profilesError && profiles) {
-      profiles.forEach(p => {
-        eoProfiles[p.id] = p.naam;
-      });
+    let profiles = null;
+
+    const { data: rpcNames, error: rpcError } =
+      await supabaseClient.rpc(
+        "get_event_requester_names",
+        { user_ids: userIds }
+      );
+
+    if (!rpcError && rpcNames) {
+      profiles = rpcNames;
+    } else {
+      const { data: tableNames, error: profilesError } =
+        await supabaseClient
+          .from("profiles")
+          .select("id, naam")
+          .in("id", userIds);
+
+      if (!profilesError) {
+        profiles = tableNames;
+      }
     }
+
+    (profiles || []).forEach(p => {
+      eoProfiles[p.id] = p.naam;
+    });
 
   }
 

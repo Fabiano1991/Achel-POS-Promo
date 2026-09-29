@@ -276,23 +276,38 @@ function fillAdminRepFilter() {
 // =========================================================
 
 function bindReceiptUpload() {
-  const input = document.getElementById("receiptInput");
+  /*
+    Twee knoppen: "Foto maken" (opent camera) en "Uit galerij".
+    Het (onzichtbare) bestandsveld ligt bovenop elke knop, zodat
+    een tik altijd rechtstreeks het veld opent. Dat werkt ook in
+    browsers die een verborgen veld via een label niet openen
+    (bv. Xiaomi/MIUI-browser en sommige geïnstalleerde web-apps).
+  */
+  ["receiptCameraInput", "receiptInput"].forEach(id => {
+    const input = document.getElementById(id);
 
-  input?.addEventListener("change", async event => {
-    const file = event.target.files?.[0];
-    if (!file) return;
+    input?.addEventListener("change", async event => {
+      const file = event.target.files?.[0];
+      if (!file) return;
 
-    lastReceiptFile = file;
+      lastReceiptFile = file;
 
-    const preview =
-      document.getElementById("receiptPreview");
+      const preview =
+        document.getElementById("receiptPreview");
 
-    if (preview) {
-      preview.src = URL.createObjectURL(file);
-      preview.classList.remove("hidden");
-    }
+      if (preview) {
+        preview.src = URL.createObjectURL(file);
+        preview.classList.remove("hidden");
+      }
 
-    await runReceiptOcr(file);
+      const status = document.getElementById("receiptUploadText");
+      if (status) status.textContent = "✓ Bonnetje toegevoegd";
+
+      // Zelfde foto opnieuw kiezen moet ook werken.
+      event.target.value = "";
+
+      await runReceiptOcr(file);
+    });
   });
 }
 
@@ -591,6 +606,9 @@ async function handleExpenseSubmit(event) {
     const preview = document.getElementById("receiptPreview");
     preview?.classList.add("hidden");
     lastReceiptFile = null;
+
+    const uploadStatus = document.getElementById("receiptUploadText");
+    if (uploadStatus) uploadStatus.textContent = "";
 
     document.getElementById("ocrStatus")?.classList.add("hidden");
 

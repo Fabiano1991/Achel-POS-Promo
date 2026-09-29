@@ -91,10 +91,17 @@
       </div>
 
       <div class="receipt-upload">
-        <label for="receiptInput" class="receipt-upload-label">
-          <span id="receiptUploadText">📷 Bonnetje toevoegen (camera of foto)</span>
-        </label>
-        <input id="receiptInput" type="file" accept="image/*" capture="environment" class="receipt-input">
+        <div class="receipt-upload-buttons">
+          <div class="receipt-upload-label">
+            <span>📷 Foto maken</span>
+            <input id="receiptCameraInput" type="file" accept="image/*" capture="environment" class="receipt-input" aria-label="Foto maken van bonnetje">
+          </div>
+          <div class="receipt-upload-label">
+            <span>🖼️ Uit galerij</span>
+            <input id="receiptInput" type="file" accept="image/*" class="receipt-input" aria-label="Foto van bonnetje kiezen">
+          </div>
+        </div>
+        <span id="receiptUploadText" class="receipt-upload-status"></span>
 
         <img id="receiptPreview" class="receipt-preview hidden" alt="Bonnetje voorbeeld">
 
