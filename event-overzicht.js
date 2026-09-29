@@ -147,73 +147,182 @@ function eoInjectStyles() {
     }
 
     .eo-days {
-      gap: 2px;
+      gap: 4px 0;
       margin-top: 4px;
     }
 
     .eo-day {
-      aspect-ratio: 1 / 1;
+      position: relative;
+      height: 42px;
       display: flex;
-      flex-direction: column;
       align-items: center;
       justify-content: center;
       border: 0;
-      border-radius: 9px;
+      padding: 0;
       background: transparent;
       color: rgba(255,255,255,.82);
-      font-size: 12px;
+      font: inherit;
+      font-size: 13px;
       font-weight: 700;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .eo-day > span.eo-num {
+      position: relative;
+      z-index: 1;
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
     }
 
     .eo-day.other-month {
       opacity: .22;
     }
 
-    .eo-day.today {
-      box-shadow: inset 0 0 0 1px var(--achel-gold, #c99b43);
+    .eo-day.today > span.eo-num {
+      box-shadow: inset 0 0 0 1.5px var(--achel-gold, #c99b43);
+    }
+
+    /* Goudkleurige balk onder eventdagen; meerdaagse events lopen door */
+    .eo-day.has-event::before {
+      content: "";
+      position: absolute;
+      top: 5px;
+      bottom: 5px;
+      left: 2px;
+      right: 2px;
+      border-radius: 12px;
+      background: linear-gradient(180deg, rgba(224,184,95,.30), rgba(201,155,67,.18));
+      border: 1px solid rgba(224,184,95,.38);
+    }
+
+    .eo-day.range-start::before {
+      right: 0;
+      border-right: 0;
+      border-top-right-radius: 0;
+      border-bottom-right-radius: 0;
+    }
+
+    .eo-day.range-mid::before {
+      left: 0;
+      right: 0;
+      border-left: 0;
+      border-right: 0;
+      border-radius: 0;
+    }
+
+    .eo-day.range-end::before {
+      left: 0;
+      border-left: 0;
+      border-top-left-radius: 0;
+      border-bottom-left-radius: 0;
     }
 
     .eo-day.has-event {
-      background: rgba(201,155,67,.20);
-      color: #f2d99f;
+      color: #f6e3b4;
       font-weight: 900;
+      cursor: pointer;
     }
 
-    .eo-day-dot {
-      width: 4px;
-      height: 4px;
-      border-radius: 50%;
+    .eo-day-count {
+      position: absolute;
+      z-index: 2;
+      top: 1px;
+      right: 3px;
+      min-width: 15px;
+      height: 15px;
+      padding: 0 4px;
+      border-radius: 999px;
       background: var(--achel-gold, #c99b43);
-      margin-top: 2px;
+      color: #151a14;
+      font-size: 9px;
+      font-weight: 900;
+      line-height: 15px;
+      text-align: center;
     }
 
-    .eo-legend {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 12px;
-      margin-top: 10px;
-    }
-
-    .eo-legend-item {
+    /* Inklapbare lijst "Events deze maand" */
+    .eo-section-toggle {
+      width: 100%;
       display: flex;
       align-items: center;
-      gap: 5px;
+      justify-content: space-between;
+      gap: 10px;
+      margin: 18px 0 8px;
+      padding: 13px 14px;
+      border: 1px solid rgba(201,155,67,.32);
+      border-radius: 14px;
+      background: linear-gradient(145deg,#20271f,#151a15);
+      color: #fff;
+      font: inherit;
+      font-size: 14px;
+      font-weight: 850;
+      text-align: left;
+    }
+
+    .eo-section-toggle .eo-section-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .eo-section-count {
+      min-width: 26px;
+      padding: 3px 9px;
+      border-radius: 999px;
+      background: rgba(201,155,67,.16);
+      border: 1px solid rgba(201,155,67,.28);
+      color: var(--achel-gold-bright, #e0b85f);
+      font-size: 12px;
+      font-weight: 900;
+      text-align: center;
+    }
+
+    .eo-section-toggle .eo-chevron {
+      margin-top: 0;
+    }
+
+    .eo-section-toggle.open .eo-chevron {
+      transform: rotate(180deg);
+    }
+
+    #eoEventList.collapsed {
+      display: none;
+    }
+
+    .eo-avatar {
+      flex-shrink: 0;
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(201,155,67,.16);
+      border: 1px solid rgba(201,155,67,.34);
+      color: var(--achel-gold-bright, #e0b85f);
+      font-size: 11px;
+      font-weight: 900;
+      letter-spacing: .02em;
+    }
+
+    .eo-card-by {
+      margin-top: 2px;
       font-size: 11px;
       color: rgba(246,240,227,.62);
     }
 
-    .eo-dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      flex-shrink: 0;
-      display: inline-block;
+    .eo-card-by strong {
+      color: rgba(246,240,227,.9);
+      font-weight: 800;
     }
 
-    .eo-day-dots {
-      display: flex;
-      gap: 2px;
-      margin-top: 2px;
+    .eo-card.flash {
+      border-color: var(--achel-gold-bright, #e0b85f);
+      box-shadow: 0 0 0 2px rgba(224,184,95,.35), 0 12px 30px rgba(0,0,0,.26);
     }
 
     .eo-list-title {
@@ -263,8 +372,8 @@ function eoInjectStyles() {
       gap: 7px;
     }
 
-    .eo-card-name-wrap .eo-dot {
-      margin-top: 5px;
+    .eo-card-name-wrap {
+      min-width: 0;
     }
 
     .eo-card-name {
@@ -408,11 +517,15 @@ function eoEnsureScreen() {
 
       <div class="eo-days" id="eoDaysGrid"></div>
 
-      <div class="eo-legend" id="eoLegend"></div>
+      <button type="button" class="eo-section-toggle" id="eoSectionToggle" onclick="eoToggleSection()" aria-expanded="false">
+        <span>Events deze maand</span>
+        <span class="eo-section-right">
+          <span class="eo-section-count" id="eoSectionCount">0</span>
+          <svg class="eo-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+        </span>
+      </button>
 
-      <div class="eo-list-title">Events deze maand</div>
-
-      <div id="eoEventList"></div>
+      <div id="eoEventList" class="collapsed"></div>
 
     </div>
 
@@ -428,6 +541,8 @@ function eoEnsureScreen() {
 async function openEventOverzicht() {
 
   eoEnsureScreen();
+
+  eoSectionOpen = false;
 
   document
     .getElementById("eventOverzichtScreen")
@@ -645,6 +760,69 @@ function eoStatusLabel(status) {
 }
 
 
+/* ---------- KLEINE HULPFUNCTIES ---------- */
+
+let eoSectionOpen = false;
+
+function eoEsc(value) {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+function eoInitials(naam) {
+  const parts = String(naam || "").trim().split(/\s+/).filter(Boolean);
+  if (!parts.length) return "?";
+  const first = parts[0][0] || "";
+  const last = parts.length > 1 ? parts[parts.length - 1][0] : "";
+  return (first + last).toUpperCase();
+}
+
+function eoActiveEventsOn(day) {
+  return eoEvents.filter(
+    ev => ev.status !== "geannuleerd" && eoDateInEvent(day, ev)
+  );
+}
+
+function eoSetSectionOpen(open) {
+  eoSectionOpen = open;
+  document.getElementById("eoEventList")?.classList.toggle("collapsed", !open);
+  const toggle = document.getElementById("eoSectionToggle");
+  if (toggle) {
+    toggle.classList.toggle("open", open);
+    toggle.setAttribute("aria-expanded", String(open));
+  }
+}
+
+function eoToggleSection() {
+  eoSetSectionOpen(!eoSectionOpen);
+}
+
+// Tik op een dag: lijst openklappen en de events van die dag laten oplichten
+function eoOpenDay(isoDay) {
+  const day = eoParseDate(isoDay);
+  if (!day) return;
+  const ids = eoActiveEventsOn(day).map(ev => ev.id);
+  if (!ids.length) return;
+
+  eoSetSectionOpen(true);
+
+  let first = null;
+  ids.forEach(id => {
+    const card = document.querySelector(`.eo-card[data-id="${id}"]`);
+    if (!card) return;
+    if (!first) first = card;
+    card.classList.add("flash");
+    setTimeout(() => card.classList.remove("flash"), 1600);
+  });
+
+  first?.scrollIntoView({ behavior: "smooth", block: "center" });
+}
+
+
 /* ---------- RENDER: MAANDGRID ---------- */
 
 function eoRenderMonth() {
@@ -668,57 +846,52 @@ function eoRenderMonth() {
   const firstOfMonth = new Date(year, month, 1);
   // ma=0 ... zo=6
   const startOffset = (firstOfMonth.getDay() + 6) % 7;
-
   const gridStart = new Date(year, month, 1 - startOffset);
 
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
-  let html = "";
-
+  // Eerst per dag tellen, zodat we doorlopende balken kunnen tekenen
+  const days = [];
   for (let i = 0; i < 42; i++) {
-
     const day = new Date(gridStart);
     day.setDate(gridStart.getDate() + i);
+    days.push({ day, count: eoActiveEventsOn(day).length });
+  }
 
-    const isOtherMonth = day.getMonth() !== month;
-    const isToday = eoSameDay(day, today);
+  let html = "";
 
-    const dayEvents = eoEvents.filter(
-      ev => ev.status !== "geannuleerd" && eoDateInEvent(day, ev)
-    );
+  days.forEach(({ day, count }, i) => {
+
+    const col = i % 7;
+    const prevHas = col > 0 && days[i - 1].count > 0;
+    const nextHas = col < 6 && i < 41 && days[i + 1].count > 0;
+
+    let range = "";
+    if (count) {
+      if (prevHas && nextHas) range = "range-mid";
+      else if (prevHas) range = "range-end";
+      else if (nextHas) range = "range-start";
+    }
 
     const classes = [
       "eo-day",
-      isOtherMonth ? "other-month" : "",
-      isToday ? "today" : "",
-      dayEvents.length ? "has-event" : "",
-    ]
-      .filter(Boolean)
-      .join(" ");
+      day.getMonth() !== month ? "other-month" : "",
+      eoSameDay(day, today) ? "today" : "",
+      count ? "has-event" : "",
+      range,
+    ].filter(Boolean).join(" ");
 
-    const dayDotsHtml = dayEvents.length
-      ? `<div class="eo-day-dots">
-          ${dayEvents
-            .slice(0, 3)
-            .map(
-              ev =>
-                `<span class="eo-dot" style="width:4px;height:4px;background:${eoColorForUser(
-                  ev.user_id
-                )}"></span>`
-            )
-            .join("")}
-        </div>`
-      : "";
+    const iso = `${day.getFullYear()}-${String(day.getMonth() + 1).padStart(2, "0")}-${String(day.getDate()).padStart(2, "0")}`;
 
     html += `
-      <div class="${classes}">
-        <span>${day.getDate()}</span>
-        ${dayDotsHtml}
-      </div>
+      <button type="button" class="${classes}" ${count ? `onclick="eoOpenDay('${iso}')" aria-label="${count} event(s) op ${day.getDate()}"` : "tabindex=\"-1\""}>
+        <span class="eo-num">${day.getDate()}</span>
+        ${count > 1 ? `<span class="eo-day-count">${count}</span>` : ""}
+      </button>
     `;
 
-  }
+  });
 
   grid.innerHTML = html;
 
@@ -732,39 +905,25 @@ function eoRenderMonth() {
 function eoRenderList(year, month) {
 
   const list = document.getElementById("eoEventList");
-  const legend = document.getElementById("eoLegend");
+  const countEl = document.getElementById("eoSectionCount");
+
+  const monthStart = new Date(year, month, 1);
+  const monthEnd = new Date(year, month + 1, 0);
 
   const monthEvents = eoEvents.filter(ev => {
     const start = eoParseDate(ev.event_vanaf);
     const end = eoParseDate(ev.event_tot) || start;
     if (!start) return false;
-    const monthStart = new Date(year, month, 1);
-    const monthEnd = new Date(year, month + 1, 0);
     return start <= monthEnd && end >= monthStart;
   });
 
-  // Legende: één stip per unieke aanvrager die deze maand voorkomt.
-  if (legend) {
-
-    const seen = new Set();
-    const requesterEntries = [];
-
-    monthEvents.forEach(ev => {
-      const naam = eoProfiles[ev.user_id];
-      if (naam && !seen.has(ev.user_id)) {
-        seen.add(ev.user_id);
-        requesterEntries.push({ naam, kleur: eoColorForUser(ev.user_id) });
-      }
-    });
-
-    legend.innerHTML = requesterEntries
-      .map(
-        r =>
-          `<span class="eo-legend-item"><span class="eo-dot" style="background:${r.kleur}"></span>${r.naam}</span>`
-      )
-      .join("");
-
+  if (countEl) {
+    countEl.textContent = String(
+      monthEvents.filter(ev => ev.status !== "geannuleerd").length
+    );
   }
+
+  eoSetSectionOpen(eoSectionOpen);
 
   if (!monthEvents.length) {
     list.innerHTML = `<div class="eo-empty">Geen events deze maand.</div>`;
@@ -775,8 +934,7 @@ function eoRenderList(year, month) {
     .map(ev => {
 
       const items = eoEventItems[ev.id] || [];
-      const requester = eoProfiles[ev.user_id];
-      const kleur = eoColorForUser(ev.user_id);
+      const requester = eoProfiles[ev.user_id] || "Onbekend";
       const expanded = eoExpandedIds.has(ev.id);
 
       const materialsHtml = items.length
@@ -784,30 +942,31 @@ function eoRenderList(year, month) {
             ${items
               .map(
                 it =>
-                  `<div><span>${it.product_naam}</span><span>${it.aantal}x</span></div>`
+                  `<div><span>${eoEsc(it.product_naam)}</span><span>${Number(it.aantal) || 0}x</span></div>`
               )
               .join("")}
           </div>`
-        : "";
+        : `<div class="eo-materials"><div><span>Geen materiaal opgegeven</span></div></div>`;
 
       return `
-        <div class="eo-card ${expanded ? "expanded" : ""}">
-          <button class="eo-card-header" onclick="eoToggleCard('${ev.id}')" aria-expanded="${expanded}">
+        <div class="eo-card ${expanded ? "expanded" : ""}" data-id="${eoEsc(ev.id)}">
+          <button class="eo-card-header" onclick="eoToggleCard('${eoEsc(ev.id)}')" aria-expanded="${expanded}">
             <div class="eo-card-top">
+              <span class="eo-avatar" aria-hidden="true">${eoEsc(eoInitials(requester))}</span>
               <div class="eo-card-name-wrap">
-                <span class="eo-dot" style="background:${kleur}"></span>
                 <div>
-                  <div class="eo-card-name">${ev.event_naam || ""}</div>
-                  <div class="eo-card-dates">${eoFormatDateRange(ev)}</div>
+                  <div class="eo-card-name">${eoEsc(ev.event_naam)}</div>
+                  <div class="eo-card-dates">${eoEsc(eoFormatDateRange(ev))}</div>
+                  <div class="eo-card-by">door <strong>${eoEsc(requester)}</strong></div>
                 </div>
               </div>
             </div>
-            <span class="eo-badge ${ev.status}">${eoStatusLabel(ev.status)}</span>
+            <span class="eo-badge ${eoEsc(ev.status)}">${eoEsc(eoStatusLabel(ev.status))}</span>
             <svg class="eo-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
           </button>
           <div class="eo-card-body">
             ${materialsHtml}
-            ${requester ? `<div class="eo-requester">Aangevraagd door: <strong style="color:${kleur}">${requester}</strong></div>` : ""}
+            ${ev.opmerking ? `<div class="eo-requester">${eoEsc(ev.opmerking)}</div>` : ""}
           </div>
         </div>
       `;
