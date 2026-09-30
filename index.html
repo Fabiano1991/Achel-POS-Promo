@@ -7981,6 +7981,174 @@ async function startApp() {
 
   await restorePullRefreshScreen();
 
+  // Op de achtergrond alles klaarzetten voor gebruik zonder internet.
+  setTimeout(
+    voorbereidenOffline,
+    4000
+  );
+
+}
+
+
+/* ===============================
+   OFFLINE VOORBEREIDEN
+   Laadt kort na het opstarten (enkel met internet) op de
+   achtergrond de gegevens van de belangrijkste schermen, zodat
+   die ook zonder internet werken - ook schermen die je sinds de
+   laatste update nog niet geopend hebt. De modules B2B, beurzen
+   en onkosten worden onzichtbaar op de achtergrond geopend.
+================================ */
+
+let offlineVoorbereid =
+  false;
+
+function gebruikerStaatOpHome() {
+
+  const home =
+    document.getElementById(
+      "homeScreen"
+    );
+
+  return (
+    !home ||
+    !home.classList.contains(
+      "hidden"
+    )
+  );
+
+}
+
+async function voorbereidenOffline() {
+
+  if (
+    offlineVoorbereid ||
+    navigator.onLine === false ||
+    window.top !== window ||
+    !currentUser
+  ) {
+    return;
+  }
+
+  offlineVoorbereid =
+    true;
+
+  // Enkel stappen die niets wijzigen aan wat de gebruiker ziet.
+  const stappen = [
+    () => gebruikerStaatOpHome() && loadProducts(),
+    () => loadPosAvailableStock(),
+    () =>
+      gebruikerStaatOpHome() &&
+      typeof loadWholesaleProducts === "function" &&
+      loadWholesaleProducts(),
+    () => loadMyPosOrders(true),
+    () => loadMyEventOrders(true),
+    () => loadMyWholesaleOrders(true),
+    () => loadMyFreeBeerRegistrations(true),
+    () =>
+      gebruikerStaatOpHome() &&
+      document.getElementById("adminScreen") &&
+      typeof loadAdminDashboard === "function" &&
+      loadAdminDashboard()
+  ];
+
+  for (const stap of stappen) {
+
+    if (
+      navigator.onLine === false
+    ) {
+      return;
+    }
+
+    try {
+      await stap();
+    } catch (error) {
+      console.warn(
+        "Offline voorbereiden:",
+        error
+      );
+    }
+
+  }
+
+  // Bij het echt openen van "Aanvragen bekijken" opnieuw laden
+  // (online: nieuwste versie, offline: de bewaarde versie).
+  Object.keys(
+    myOrdersLoaded
+  ).forEach(
+    key => {
+      myOrdersLoaded[key] =
+        false;
+    }
+  );
+
+  // Andere modules onzichtbaar openen zodat hun gegevens bewaard worden.
+  const modules = [
+    "./beurzen/index.html",
+    "./onkosten/index.html",
+    "./b2b/dagen.html",
+    "./b2b/mijn-inschrijvingen.html",
+    "./b2b/opvolging.html"
+  ];
+
+  for (const module of modules) {
+
+    if (
+      navigator.onLine === false
+    ) {
+      return;
+    }
+
+    await new Promise(
+      resolve => {
+
+        const frame =
+          document.createElement(
+            "iframe"
+          );
+
+        frame.setAttribute(
+          "aria-hidden",
+          "true"
+        );
+
+        frame.tabIndex =
+          -1;
+
+        frame.style.cssText =
+          "position:absolute;width:1px;height:1px;left:-9999px;top:0;border:0;visibility:hidden;";
+
+        const klaar = () => {
+          frame.remove();
+          resolve();
+        };
+
+        // Na het laden nog even wachten tot de gegevens binnen zijn.
+        frame.addEventListener(
+          "load",
+          () => setTimeout(klaar, 6000)
+        );
+
+        // Nooit langer dan 20 seconden per module.
+        setTimeout(
+          klaar,
+          20000
+        );
+
+        frame.src =
+          module;
+
+        document.body.appendChild(
+          frame
+        );
+
+      }
+    );
+
+  }
+
+  // Alles wat al eerder bekeken werd ook meteen verversen.
+  window.__achelOffline?.refreshKnown?.();
+
 }
 
 
