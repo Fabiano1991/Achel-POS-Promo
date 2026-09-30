@@ -391,6 +391,22 @@
       cached = null;
     }
 
+    // Serverberekening (bv. voorraad voor andere data) nog nooit met
+    // deze gegevens opgevraagd: dan de meest recente versie gebruiken.
+    if (!cached && info.rpc) {
+      try {
+        const prefix = cacheKeyFor(userIdFromHeaders(headers), request.method, request.url, "");
+        const entries = (await cacheStore.all()).filter((e) => String(e.key).startsWith(prefix));
+        entries.sort((a, b) => (b.value.savedAt || 0) - (a.value.savedAt || 0));
+        if (entries.length) {
+          cached = entries[0].value;
+          cached.approximate = true;
+        }
+      } catch (error) {
+        /* niets */
+      }
+    }
+
     const offlineFallback = () => {
       if (cached) {
         markOfflineRead();
@@ -441,7 +457,17 @@
             headers: keep,
             body: text,
             savedAt: Date.now(),
-            table: info.name
+            table: info.name,
+            rpc: !!info.rpc,
+            // Nodig om deze gegevens later op de achtergrond te verversen.
+            req: {
+              method: request.method,
+              url: request.url,
+              body: request.method === "POST" ? body : null,
+              headers: Object.keys(headers)
+                .filter((name) => name !== "authorization")
+                .reduce((acc, name) => { acc[name] = headers[name]; return acc; }, {})
+            }
           });
         } catch (error) {
           console.warn("Offline: gegevens bewaren mislukt", error);
@@ -990,6 +1016,84 @@
   }
 
   /* ============================================================
+     BEWAARDE GEGEVENS VERVERSEN
+     Met internet worden alle eerder bekeken gegevens op de
+     achtergrond opnieuw opgehaald, zodat de offline versie zo
+     recent mogelijk is - ook van schermen die je vandaag niet opent.
+  ============================================================ */
+
+  let refreshingKnown = false;
+
+  async function refreshKnown() {
+    if (refreshingKnown || navigator.onLine === false) {
+      return;
+    }
+    refreshingKnown = true;
+    try {
+      const token = await currentAccessToken();
+      if (!token) {
+        return;
+      }
+      const userId = userIdFromHeaders({ authorization: `Bearer ${token}` });
+      const lastRun = await metaStore.get(`refreshKnown:${userId}`).catch(() => 0);
+      if (lastRun && Date.now() - lastRun < 10 * 60 * 1000) {
+        return;
+      }
+      await metaStore.put(`refreshKnown:${userId}`, Date.now());
+
+      const monthAgo = Date.now() - 30 * 24 * 60 * 60 * 1000;
+      const entries = (await cacheStore.all()).filter(
+        (e) =>
+          String(e.key).startsWith(`${userId}|`) &&
+          e.value.req &&
+          (e.value.savedAt || 0) > monthAgo &&
+          Date.now() - (e.value.savedAt || 0) > 2 * 60 * 1000
+      );
+
+      for (const entry of entries) {
+        if (navigator.onLine === false) {
+          break;
+        }
+        const req = entry.value.req;
+        try {
+          const response = await timeoutRace(
+            originalFetch(req.url, {
+              method: req.method,
+              headers: Object.assign({}, req.headers, { authorization: `Bearer ${token}` }),
+              body: req.body || undefined
+            }),
+            READ_TIMEOUT_MS
+          );
+          if (response.ok) {
+            const text = req.method === "HEAD" ? null : await response.text();
+            const keep = {};
+            ["content-type", "content-range", "preference-applied"].forEach((name) => {
+              const value = response.headers.get(name);
+              if (value) {
+                keep[name] = value;
+              }
+            });
+            await cacheStore.put(entry.key, Object.assign({}, entry.value, {
+              status: response.status,
+              headers: keep,
+              body: text,
+              savedAt: Date.now()
+            }));
+          }
+        } catch (error) {
+          if (isNetworkError(error)) {
+            break;
+          }
+        }
+      }
+    } catch (error) {
+      console.warn("Offline: verversen bewaarde gegevens mislukt", error);
+    } finally {
+      refreshingKnown = false;
+    }
+  }
+
+  /* ============================================================
      DE FETCH-WISSEL: alle verkeer naar Supabase loopt hierlangs
   ============================================================ */
 
@@ -1311,6 +1415,11 @@
     refreshStatus();
     setTimeout(syncNow, 1500);
     setTimeout(pruneCache, 5000);
+    // Schermen buiten de hoofdapp (B2B, beurzen, onkosten) verversen
+    // zelf de bewaarde gegevens; de hoofdapp doet dit na het voorladen.
+    if (window.top === window) {
+      setTimeout(refreshKnown, 20000);
+    }
   };
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", start);
@@ -1320,6 +1429,7 @@
 
   window.__achelOffline = {
     syncNow,
+    refreshKnown,
     openSheet,
     pendingCount,
     isOnline: () => isOnline && navigator.onLine !== false
