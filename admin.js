@@ -296,6 +296,8 @@ function createAdminScreen() {
 
   injectAdminStyles();
 
+  injectPicklistStyles();
+
   injectProfessionalReturnStyles();
 
 
@@ -549,6 +551,16 @@ function createAdminScreen() {
         </button>
       </div>
 
+
+      <button
+        type="button"
+        id="adminOpenPicklistBtn"
+        class="admin-picklist-btn"
+        onclick="printOpenAdminPicklists()"
+      >
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+        Picklijst openstaande aanvragen
+      </button>
 
       <div class="admin-searchbar">
 
@@ -7996,6 +8008,15 @@ function renderAdminDetail(
 
     </div>
 
+
+    <button
+      type="button"
+      class="admin-picklist-btn"
+      onclick="printAdminPicklist('${order.id}')"
+    >
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+      Picklijst afdrukken
+    </button>
 
     ${categoryCard(
       "BIER",
@@ -16934,7 +16955,14 @@ function adminStatusClass(
   }
 
 
-  return "";
+  if (
+    status ===
+    "in_behandeling"
+  ) {
+    return "status-behandeling";
+  }
+
+  return "status-nieuw";
 
 }
 
@@ -23386,6 +23414,293 @@ function injectProfessionalReturnStyles() {
 
 window.openAdminDashboard =
   openAdminDashboard;
+
+
+
+/* ============================================================
+   PICKLIJST AFDRUKKEN
+   Eén aanvraag (knop in het detailscherm) of alle openstaande
+   aanvragen van het huidige tabblad (knop bij Aanvragen).
+   Elke aanvraag komt op een eigen A4 met vakjes om af te vinken.
+============================================================ */
+
+function pickEsc(value) {
+  return adminEscapeHtml(
+    value === null || value === undefined ? "" : String(value)
+  );
+}
+
+function pickFormatDate(value) {
+  if (!value) return "";
+  const d = new Date(String(value).length <= 10 ? value + "T00:00:00" : value);
+  if (isNaN(d)) return String(value);
+  return d.toLocaleDateString("nl-BE", {
+    weekday: "short",
+    day: "numeric",
+    month: "long",
+    year: "numeric"
+  });
+}
+
+function pickCategoryLabel(category) {
+  const c = String(category || "").toLowerCase();
+  if (c === "bier") return "Bier";
+  if (c === "pos") return "POS / promo";
+  if (isEventMaterialCategory(c)) return "Evenementenmateriaal";
+  return "Overige";
+}
+
+function pickUnitFor(item) {
+  const product = adminProducts.find(
+    p => String(p.id) === String(item.product_id)
+  );
+  return product?.eenheid || "";
+}
+
+function buildPicklistPage(order) {
+
+  const profile = getAdminProfile(order.user_id);
+  const items = getAdminOrderItems(order.id)
+    .slice()
+    .sort((a, b) => String(a.product_naam || "").localeCompare(String(b.product_naam || ""), "nl"));
+
+  const reference =
+    typeof createOrderReference === "function"
+      ? createOrderReference(order.id, order.created_at)
+      : order.id;
+
+  const isEvent = !!order.event_naam;
+
+  const groups = {};
+  items.forEach(item => {
+    const label = pickCategoryLabel(item.categorie);
+    (groups[label] = groups[label] || []).push(item);
+  });
+
+  const groupOrder = ["Evenementenmateriaal", "POS / promo", "Bier", "Overige"];
+
+  const totalPieces = items.reduce((sum, it) => sum + (Number(it.aantal) || 0), 0);
+
+  const rowsHtml = groupOrder
+    .filter(label => groups[label])
+    .map(label => `
+      <tr class="pick-group"><td colspan="4">${pickEsc(label)}</td></tr>
+      ${groups[label].map(item => `
+        <tr>
+          <td class="pick-box"><span></span></td>
+          <td class="pick-name">${pickEsc(item.product_naam)}</td>
+          <td class="pick-qty">${Number(item.aantal) || 0}</td>
+          <td class="pick-unit">${pickEsc(pickUnitFor(item))}</td>
+        </tr>
+      `).join("")}
+    `).join("");
+
+  const info = [
+    ["Vertegenwoordiger", profile?.naam || ""],
+    isEvent
+      ? ["Materiaal", `${pickFormatDate(order.event_vanaf)}${order.event_tot && order.event_tot !== order.event_vanaf ? " t/m " + pickFormatDate(order.event_tot) : ""}`]
+      : ["Afhaaldatum", pickFormatDate(order.afhaaldatum)],
+    isEvent
+      ? ["Uitvoering", order.event_delivery_mode === "enkel_levering" ? "Enkel levering / uitleen" : "Achel aanwezig"]
+      : ["Land", order.land || ""],
+    ["Status", typeof formatStatus === "function" ? formatStatus(order.status) : (order.status || "")]
+  ].filter(row => row[1]);
+
+  return `
+    <section class="pick-page">
+      <header class="pick-head">
+        <div>
+          <div class="pick-kicker">Picklijst · ${pickEsc(reference)}</div>
+          <h1>${pickEsc(order.event_naam || order.referentie || "Aanvraag")}</h1>
+        </div>
+        <div class="pick-brand">Achel</div>
+      </header>
+
+      <table class="pick-info">
+        ${info.map(([k, v]) => `<tr><th>${pickEsc(k)}</th><td>${pickEsc(v)}</td></tr>`).join("")}
+      </table>
+
+      ${order.opmerking ? `<div class="pick-note"><strong>Opmerking:</strong> ${pickEsc(order.opmerking)}</div>` : ""}
+
+      <table class="pick-items">
+        <thead>
+          <tr>
+            <th class="pick-box">✓</th>
+            <th>Artikel</th>
+            <th class="pick-qty">Aantal</th>
+            <th class="pick-unit">Eenheid</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rowsHtml || `<tr><td colspan="4">Geen artikelen in deze aanvraag.</td></tr>`}
+        </tbody>
+        <tfoot>
+          <tr>
+            <td></td>
+            <td>Totaal ${items.length} artikel${items.length === 1 ? "" : "en"}</td>
+            <td class="pick-qty">${totalPieces}</td>
+            <td></td>
+          </tr>
+        </tfoot>
+      </table>
+
+      <div class="pick-sign">
+        <div><span>Klaargelegd door</span></div>
+        <div><span>Datum</span></div>
+        <div><span>Handtekening</span></div>
+      </div>
+
+      <div class="pick-foot">Afgedrukt op ${pickEsc(new Date().toLocaleString("nl-BE"))}</div>
+    </section>
+  `;
+}
+
+function injectPicklistStyles() {
+
+  if (document.getElementById("achelPicklistStyles")) return;
+
+  const style = document.createElement("style");
+  style.id = "achelPicklistStyles";
+  style.textContent = `
+    #achelPrintArea { display: none; }
+
+    .admin-picklist-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: 100%;
+      min-height: 46px;
+      margin: 0 0 12px;
+      border: 1px solid rgba(201,155,67,.45);
+      border-radius: 13px;
+      background: rgba(18,24,19,.94);
+      color: var(--achel-gold-bright, #e0b85f);
+      font: inherit;
+      font-size: 14px;
+      font-weight: 850;
+    }
+
+    .admin-picklist-btn svg { width: 18px; height: 18px; flex-shrink: 0; }
+
+    @media print {
+      @page { size: A4; margin: 14mm; }
+
+      html, body {
+        background: #fff !important;
+        min-height: 0 !important;
+      }
+
+      body.achel-printing > *:not(#achelPrintArea) { display: none !important; }
+
+      body.achel-printing #achelPrintArea {
+        display: block !important;
+        color: #111;
+        font-family: -apple-system, "Segoe UI", Arial, sans-serif;
+        font-size: 11pt;
+      }
+
+      .pick-page { page-break-after: always; break-after: page; }
+      .pick-page:last-child { page-break-after: auto; break-after: auto; }
+
+      .pick-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        border-bottom: 2px solid #111;
+        padding-bottom: 6pt;
+        margin-bottom: 10pt;
+      }
+      .pick-kicker { font-size: 9pt; letter-spacing: .06em; text-transform: uppercase; color: #555; }
+      .pick-head h1 { margin: 2pt 0 0; font-size: 20pt; color: #111; }
+      .pick-brand { font-family: Georgia, serif; font-size: 22pt; font-style: italic; color: #8a6a2c; }
+
+      .pick-info { border-collapse: collapse; margin-bottom: 10pt; }
+      .pick-info th { text-align: left; font-weight: 600; color: #555; padding: 2pt 14pt 2pt 0; font-size: 10pt; }
+      .pick-info td { padding: 2pt 0; font-weight: 700; }
+
+      .pick-note { border: 1px solid #bbb; border-radius: 4pt; padding: 6pt 8pt; margin-bottom: 10pt; font-size: 10pt; }
+
+      .pick-items { width: 100%; border-collapse: collapse; }
+      .pick-items th, .pick-items td { border-bottom: 1px solid #ccc; padding: 7pt 6pt; text-align: left; color: #111; }
+      .pick-items thead th { border-bottom: 2px solid #111; font-size: 9pt; text-transform: uppercase; letter-spacing: .04em; color: #333; }
+      .pick-items tr { page-break-inside: avoid; break-inside: avoid; }
+      .pick-group td { background: #f1ede4 !important; font-weight: 800; font-size: 9.5pt; text-transform: uppercase; letter-spacing: .04em; padding: 4pt 6pt; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      .pick-box { width: 26pt; text-align: center !important; }
+      .pick-box span { display: inline-block; width: 13pt; height: 13pt; border: 1.5pt solid #111; border-radius: 2pt; vertical-align: middle; }
+      .pick-name { font-weight: 600; }
+      .pick-qty { width: 55pt; text-align: right !important; font-weight: 800; font-size: 13pt; }
+      .pick-unit { width: 70pt; color: #555 !important; }
+      .pick-items tfoot td { border-bottom: 0; border-top: 2px solid #111; font-weight: 800; }
+
+      .pick-sign { display: grid; grid-template-columns: 2fr 1fr 2fr; gap: 14pt; margin-top: 26pt; }
+      .pick-sign div { border-top: 1px solid #111; padding-top: 3pt; font-size: 9pt; color: #555; }
+
+      .pick-foot { margin-top: 14pt; font-size: 8pt; color: #888; }
+    }
+  `;
+  document.head.appendChild(style);
+}
+
+function printPicklistForOrders(orders) {
+
+  if (!orders || !orders.length) {
+    alert("Er zijn geen openstaande aanvragen om af te drukken.");
+    return;
+  }
+
+  injectPicklistStyles();
+
+  let area = document.getElementById("achelPrintArea");
+  if (!area) {
+    area = document.createElement("div");
+    area.id = "achelPrintArea";
+    document.body.appendChild(area);
+  }
+
+  area.innerHTML = orders.map(buildPicklistPage).join("");
+
+  document.body.classList.add("achel-printing");
+
+  const cleanup = () => {
+    document.body.classList.remove("achel-printing");
+    window.removeEventListener("afterprint", cleanup);
+  };
+  window.addEventListener("afterprint", cleanup);
+
+  // De markering werkt enkel bij het afdrukken (niet op het scherm),
+  // dus ze mag blijven staan tot het afdrukvenster gesloten is.
+  setTimeout(() => {
+    window.print();
+  }, 150);
+}
+
+function printAdminPicklist(orderId) {
+  const order = adminOrders.find(o => String(o.id) === String(orderId));
+  if (!order) {
+    alert("Aanvraag niet gevonden.");
+    return;
+  }
+  printPicklistForOrders([order]);
+}
+
+function printOpenAdminPicklists() {
+
+  const wantEvents = adminRequestView === "events";
+
+  const dateOf = o =>
+    String((wantEvents ? o.event_vanaf : o.afhaaldatum) || o.created_at || "");
+
+  const open = adminOrders
+    .filter(o => ["nieuw", "in_behandeling"].includes(o.status))
+    .filter(o => (wantEvents ? !!o.event_naam : !o.event_naam))
+    .sort((a, b) => dateOf(a).localeCompare(dateOf(b)));
+
+  printPicklistForOrders(open);
+}
+
+window.printAdminPicklist = printAdminPicklist;
+window.printOpenAdminPicklists = printOpenAdminPicklists;
 
 
 /* ===============================
