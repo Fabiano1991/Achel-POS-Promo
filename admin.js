@@ -23502,19 +23502,20 @@ function buildPicklistPage(order) {
       : ["Afhaaldatum", pickFormatDate(order.afhaaldatum)],
     isEvent
       ? ["Uitvoering", order.event_delivery_mode === "enkel_levering" ? "Enkel levering / uitleen" : "Achel aanwezig"]
-      : ["Land", order.land || ""],
-    ["Status", typeof formatStatus === "function" ? formatStatus(order.status) : (order.status || "")]
+      : ["Land", order.land || ""]
   ].filter(row => row[1]);
 
   return `
     <section class="pick-page">
       <header class="pick-head">
-        <div>
-          <div class="pick-kicker">Picklijst · ${pickEsc(reference)}</div>
-          <h1>${pickEsc(order.event_naam || order.referentie || "Aanvraag")}</h1>
+        <img class="pick-logo" src="./achel-logo-print.png" alt="Achel">
+        <div class="pick-head-right">
+          <div class="pick-kicker">Picklijst</div>
+          <div class="pick-ref">${pickEsc(reference)}</div>
         </div>
-        <div class="pick-brand">Achel</div>
       </header>
+
+      <h1 class="pick-title">${pickEsc(order.event_naam || order.referentie || "Aanvraag")}</h1>
 
       <table class="pick-info">
         ${info.map(([k, v]) => `<tr><th>${pickEsc(k)}</th><td>${pickEsc(v)}</td></tr>`).join("")}
@@ -23611,9 +23612,11 @@ function injectPicklistStyles() {
         padding-bottom: 6pt;
         margin-bottom: 10pt;
       }
-      .pick-kicker { font-size: 9pt; letter-spacing: .06em; text-transform: uppercase; color: #555; }
-      .pick-head h1 { margin: 2pt 0 0; font-size: 20pt; color: #111; }
-      .pick-brand { font-family: Georgia, serif; font-size: 22pt; font-style: italic; color: #8a6a2c; }
+      .pick-logo { display: block; height: 17mm; width: auto; }
+      .pick-head-right { text-align: right; }
+      .pick-kicker { font-size: 13pt; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: #111; }
+      .pick-ref { margin-top: 2pt; font-size: 9pt; color: #555; letter-spacing: .04em; }
+      .pick-title { margin: 0 0 8pt; font-size: 20pt; color: #111; }
 
       .pick-info { border-collapse: collapse; margin-bottom: 10pt; }
       .pick-info th { text-align: left; font-weight: 600; color: #555; padding: 2pt 14pt 2pt 0; font-size: 10pt; }
@@ -23670,9 +23673,24 @@ function printPicklistForOrders(orders) {
 
   // De markering werkt enkel bij het afdrukken (niet op het scherm),
   // dus ze mag blijven staan tot het afdrukvenster gesloten is.
-  setTimeout(() => {
-    window.print();
-  }, 150);
+  const logos = Array.from(area.querySelectorAll("img"));
+  const ready = Promise.all(
+    logos.map(img =>
+      img.complete
+        ? Promise.resolve()
+        : new Promise(resolve => {
+            img.onload = resolve;
+            img.onerror = resolve;
+          })
+    )
+  );
+  const timeout = new Promise(resolve => setTimeout(resolve, 2500));
+
+  Promise.race([ready, timeout]).then(() => {
+    setTimeout(() => {
+      window.print();
+    }, 100);
+  });
 }
 
 function printAdminPicklist(orderId) {
