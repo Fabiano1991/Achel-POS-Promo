@@ -1,7 +1,7 @@
 // Verhoog deze versie bij elke release waarin gecachete bestanden wijzigen
 // (bv. na het vervangen van een afbeelding), anders houden geïnstalleerde
 // PWA's de oude versie vast.
-const CACHE_VERSION = "v3";
+const CACHE_VERSION = "v4";
 const CACHE_NAME = `achel-pos-cache-${CACHE_VERSION}`;
 
 // Kleine, essentiële bestanden: moeten allemaal succesvol gecachet worden
@@ -24,7 +24,8 @@ const OPTIONAL_FILES = [
   "./achel-kluis-home.jpg",
   "./achel-logo.png",
   "./achel-header-logo.png",
-  "./achel-glas.png"
+  "./achel-glas.png",
+  "./achel-logo-print.png"
 ];
 
 /* ============================================================
