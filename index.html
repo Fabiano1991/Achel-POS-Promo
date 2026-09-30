@@ -10,7 +10,7 @@
 
 <title>Achel POS</title>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="./offline.js"></script>
 <script>
 /*
    ZWARE HULPBIBLIOTHEKEN (Excel, PDF, grafieken) - samen ruim 1 MB.
@@ -13900,6 +13900,7 @@ async function submitEventOrder() {
     await supabaseClient.functions.invoke("send-order-mail", {
       body: {
         action: "createCalendarEvent",
+        orderId: order.id,
         subject: `Event: ${event.name}`,
         bodyHtml:
           `<p><b>Aangevraagd door:</b> ${currentProfile.naam}</p>` +
