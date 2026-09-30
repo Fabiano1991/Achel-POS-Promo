@@ -8036,6 +8036,25 @@ async function voorbereidenOffline() {
   const stappen = [
     () => gebruikerStaatOpHome() && loadProducts(),
     () => loadPosAvailableStock(),
+    () => {
+      // Beschikbaarheid eventmateriaal (volgende 2 weken) bewaren,
+      // zodat een eventaanvraag offline ook kan.
+      const vandaag =
+        new Date();
+      const tot =
+        new Date(
+          vandaag.getTime() + 14 * 86400000
+        );
+      const dag =
+        d => d.toISOString().slice(0, 10);
+      return supabaseClient.rpc(
+        "get_event_available_stock",
+        {
+          p_from: dag(vandaag),
+          p_until: dag(tot)
+        }
+      );
+    },
     () =>
       gebruikerStaatOpHome() &&
       typeof loadWholesaleProducts === "function" &&
@@ -10330,6 +10349,32 @@ async function refreshProductsForOrder() {
 }
 
 /* ===============================
+   ONLINE?
+   true = er is internet. Zonder internet werkt de app met de
+   laatst bewaarde gegevens (zie offline.js).
+================================ */
+
+function isAppOnline() {
+
+  if (
+    navigator.onLine === false
+  ) {
+    return false;
+  }
+
+  if (
+    window.__achelOffline &&
+    typeof window.__achelOffline.isOnline === "function"
+  ) {
+    return window.__achelOffline.isOnline();
+  }
+
+  return true;
+
+}
+
+
+/* ===============================
    NORMAL SUMMARY
 ================================ */
 
@@ -10360,12 +10405,16 @@ async function showSummary() {
     error
   ) {
 
-    alert(
-      "De actuele voorraad kon niet worden gecontroleerd. Probeer opnieuw."
-    );
-
-
-    return;
+    // Zonder internet: verder met de laatst bekende voorraad.
+    // De aanvraag wordt verstuurd zodra er weer verbinding is.
+    if (
+      isAppOnline()
+    ) {
+      alert(
+        "De actuele voorraad kon niet worden gecontroleerd. Probeer opnieuw."
+      );
+      return;
+    }
 
   }
 
@@ -10716,12 +10765,16 @@ async function submitOrder() {
     error
   ) {
 
-    alert(
-      "De actuele voorraad kon niet worden gecontroleerd. De aanvraag is niet verzonden."
-    );
-
-
-    return;
+    // Zonder internet: verder met de laatst bekende voorraad.
+    // De aanvraag wordt verstuurd zodra er weer verbinding is.
+    if (
+      isAppOnline()
+    ) {
+      alert(
+        "De actuele voorraad kon niet worden gecontroleerd. De aanvraag is niet verzonden."
+      );
+      return;
+    }
 
   }
 
@@ -12237,6 +12290,16 @@ async function loadEventAvailableStock() {
       "EVENT BESCHIKBAARHEID FOUT:",
       error
     );
+
+    // Zonder internet en nog geen bewaarde beschikbaarheid:
+    // verder met wat gekend is; de aanvraag wordt later verstuurd.
+    if (
+      !isAppOnline()
+    ) {
+      renderEventProducts();
+      return true;
+    }
+
 
 
     alert(
