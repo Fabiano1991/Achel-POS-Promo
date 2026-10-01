@@ -248,10 +248,10 @@ function openView(viewId) {
 
   currentView = viewId;
 
-  window.scrollTo({
-    top:0,
-    behavior:"smooth"
-  });
+  // Meteen naar boven (niet "smooth"): de kop verdwijnt tegelijk,
+  // en op iPhone bleef een vloeiende scroll dan halverwege hangen.
+  window.scrollTo(0, 0);
+  requestAnimationFrame(() => window.scrollTo(0, 0));
 }
 
 function handleHeaderBack() {
@@ -380,30 +380,31 @@ function renderInterestList() {
 
   if (!container) return;
 
+  // Compacte lijst: korte naam + 2 tikknopjes (Fles / Tap).
   container.innerHTML =
     INTEREST_BEERS
       .map((beer, index) => `
         <div class="interest-row">
-          <strong>
-            ${escapeHtml(beer)}
-          </strong>
+          <span class="interest-name">
+            ${escapeHtml(beer.replace(/^Achel /, ""))}
+          </span>
 
-          <label class="interest-choice">
+          <label class="interest-chip">
             <input
               type="checkbox"
               data-interest-index="${index}"
               data-format="bottle"
             >
-            Fles
+            <span>Fles</span>
           </label>
 
-          <label class="interest-choice">
+          <label class="interest-chip">
             <input
               type="checkbox"
               data-interest-index="${index}"
               data-format="tap"
             >
-            Tap
+            <span>Tap</span>
           </label>
         </div>
       `)
