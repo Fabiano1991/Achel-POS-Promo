@@ -39,11 +39,11 @@ let editingFairId = null;
 let editingPromos = [];
 
 const PROMO_CATEGORIES = [
-  { value:"vat20", label:"Vaten 20L" },
-  { value:"krat24", label:"Kratten 24 × 33cl" },
-  { value:"doos75", label:"Dozen 6 × 75cl" },
-  { value:"clip4", label:"Clips 4 × 33cl" },
-  { value:"gvp", label:"GVP" }
+  { value:"vat20", label:"Vaten 20L", short:"Vaten" },
+  { value:"krat24", label:"Kratten 24 × 33cl", short:"Kratten" },
+  { value:"doos75", label:"Dozen 6 × 75cl", short:"Dozen" },
+  { value:"clip4", label:"Clips 4 × 33cl", short:"Clips" },
+  { value:"gvp", label:"GVP", short:"GVP" }
 ];
 
 // =========================================================
@@ -162,6 +162,10 @@ async function initBeurzen() {
         .getElementById("fairSetupActionCard")
         ?.classList.remove("hidden");
 
+      document
+        .getElementById("adminLinks")
+        ?.classList.remove("hidden");
+
       bindFairAdmin();
       renderFairsList();
     }
@@ -169,6 +173,10 @@ async function initBeurzen() {
     if (isAdminUser) {
       document
         .getElementById("adminActionCard")
+        ?.classList.remove("hidden");
+
+      document
+        .getElementById("adminLinks")
         ?.classList.remove("hidden");
 
       fillAdminRepFilter();
@@ -231,6 +239,12 @@ function openView(viewId) {
   if (target) {
     target.classList.remove("hidden");
   }
+
+  // Grote kop (welkom, tellers, knoppen) enkel op het startscherm,
+  // zodat elk ander scherm meteen bovenaan begint.
+  document
+    .getElementById("homeHeader")
+    ?.classList.toggle("hidden", viewId !== "homeView");
 
   currentView = viewId;
 
@@ -2408,6 +2422,14 @@ function bindFairAdmin() {
       }
     });
 
+  document
+    .getElementById("fairSheet")
+    ?.addEventListener("click", event => {
+      if (event.target.id === "fairSheet") closeFairForm();
+    });
+
+  bindCalendar();
+
   // Wijzigingen in de actie-rijen bijhouden.
   const rows = document.getElementById("promoRows");
 
@@ -2441,9 +2463,8 @@ function openFairForm(fairId) {
 
   document.getElementById("fairName").value = fair?.name || "";
   document.getElementById("fairLocation").value = fair?.location || "";
-  document.getElementById("fairStart").value = fair?.start_date || "";
-  document.getElementById("fairEnd").value = fair?.end_date || "";
   document.getElementById("fairActive").checked = fair ? fair.active : true;
+  setFairPeriod(fair?.start_date || "", fair?.end_date || "");
 
   editingPromos =
     (fair?.promotions || []).map(promo => ({
@@ -2458,15 +2479,201 @@ function openFairForm(fairId) {
     .getElementById("deleteFairButton")
     ?.classList.toggle("hidden", !fair);
 
-  form.classList.remove("hidden");
-  document.getElementById("fairName")?.focus();
-  form.scrollIntoView({ behavior:"smooth", block:"start" });
+  openSheet("fairSheet");
 }
 
 function closeFairForm() {
   editingFairId = null;
   editingPromos = [];
-  document.getElementById("fairForm")?.classList.add("hidden");
+  closeSheet("fairSheet");
+}
+
+function openSheet(id) {
+  document.getElementById(id)?.classList.remove("hidden");
+  document.body.classList.add("sheet-open");
+}
+
+function closeSheet(id) {
+  document.getElementById(id)?.classList.add("hidden");
+
+  if (!document.querySelector(".sheet-overlay:not(.hidden)")) {
+    document.body.classList.remove("sheet-open");
+  }
+}
+
+function setFairPeriod(start, end) {
+  document.getElementById("fairStart").value = start || "";
+  document.getElementById("fairEnd").value = end || "";
+
+  setText("fairStartDisplay", start ? formatShortDate(start) : "Kies datum");
+  setText("fairEndDisplay", end ? formatShortDate(end) : "—");
+}
+
+function formatShortDate(iso) {
+  const [y, m, d] = String(iso).split("-").map(Number);
+  if (!y) return "";
+
+  return new Intl.DateTimeFormat("nl-BE", {
+    weekday:"short",
+    day:"numeric",
+    month:"short",
+    year:"numeric"
+  }).format(new Date(y, m - 1, d));
+}
+
+// ---------- Kalender: 1 kalender, 2 keer tikken ----------
+
+let calendarMonth = null;  // eerste dag van de getoonde maand
+let calendarFrom = "";     // "2026-11-15"
+let calendarUntil = "";
+
+function bindCalendar() {
+  document
+    .getElementById("fairPeriodButton")
+    ?.addEventListener("click", openCalendar);
+
+  document
+    .getElementById("calendarCloseButton")
+    ?.addEventListener("click", () => closeSheet("calendarSheet"));
+
+  document
+    .getElementById("calendarSheet")
+    ?.addEventListener("click", event => {
+      if (event.target.id === "calendarSheet") closeSheet("calendarSheet");
+    });
+
+  document
+    .getElementById("calendarPrev")
+    ?.addEventListener("click", () => changeCalendarMonth(-1));
+
+  document
+    .getElementById("calendarNext")
+    ?.addEventListener("click", () => changeCalendarMonth(1));
+
+  document
+    .getElementById("calendarReset")
+    ?.addEventListener("click", () => {
+      calendarFrom = "";
+      calendarUntil = "";
+      renderCalendar();
+    });
+
+  document
+    .getElementById("calendarConfirm")
+    ?.addEventListener("click", () => {
+      // Eén dag gekozen? Dan is de beurs één dag.
+      setFairPeriod(calendarFrom, calendarUntil || calendarFrom);
+      closeSheet("calendarSheet");
+    });
+
+  document
+    .getElementById("calendarDays")
+    ?.addEventListener("click", event => {
+      const day = event.target.closest("[data-day]");
+      if (day) selectCalendarDay(day.dataset.day);
+    });
+}
+
+function openCalendar() {
+  calendarFrom = document.getElementById("fairStart").value || "";
+  calendarUntil = document.getElementById("fairEnd").value || "";
+
+  const base = calendarFrom ? isoToDate(calendarFrom) : new Date();
+  calendarMonth = new Date(base.getFullYear(), base.getMonth(), 1);
+
+  renderCalendar();
+  openSheet("calendarSheet");
+}
+
+function changeCalendarMonth(step) {
+  calendarMonth =
+    new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() + step, 1);
+  renderCalendar();
+}
+
+function selectCalendarDay(iso) {
+  if (!calendarFrom || calendarUntil) {
+    // Eerste tik (of opnieuw beginnen): begindag.
+    calendarFrom = iso;
+    calendarUntil = "";
+  }
+  else if (iso < calendarFrom) {
+    // Dag vóór de begindag: wordt de nieuwe begindag.
+    calendarFrom = iso;
+  }
+  else {
+    // Tweede tik: einddag.
+    calendarUntil = iso;
+  }
+
+  renderCalendar();
+}
+
+function renderCalendar() {
+  const grid = document.getElementById("calendarDays");
+  if (!grid || !calendarMonth) return;
+
+  const year = calendarMonth.getFullYear();
+  const month = calendarMonth.getMonth();
+
+  setText(
+    "calendarMonth",
+    new Intl.DateTimeFormat("nl-BE", { month:"long", year:"numeric" })
+      .format(calendarMonth)
+  );
+
+  // Maandag als eerste dag van de week.
+  const offset = (new Date(year, month, 1).getDay() + 6) % 7;
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const today = dateToIso(new Date());
+  const end = calendarUntil || calendarFrom;
+
+  let html = "";
+
+  for (let i = 0; i < offset; i++) {
+    html += `<span></span>`;
+  }
+
+  for (let d = 1; d <= daysInMonth; d++) {
+    const iso = dateToIso(new Date(year, month, d));
+    const classes = ["calendar-day"];
+
+    if (iso === today) classes.push("today");
+    if (calendarFrom && iso > calendarFrom && iso < end) classes.push("in-range");
+    if (iso === calendarFrom || iso === calendarUntil) classes.push("range-end");
+
+    html += `<button type="button" class="${classes.join(" ")}" data-day="${iso}">${d}</button>`;
+  }
+
+  grid.innerHTML = html;
+
+  setText("calendarFrom", calendarFrom ? formatShortDate(calendarFrom) : "—");
+  setText("calendarUntil", calendarUntil ? formatShortDate(calendarUntil) : "—");
+
+  setText(
+    "calendarInstruction",
+    !calendarFrom
+      ? "Tik de eerste dag"
+      : !calendarUntil
+        ? "Tik de laatste dag"
+        : "Periode gekozen"
+  );
+
+  const confirm = document.getElementById("calendarConfirm");
+  if (confirm) confirm.disabled = !calendarFrom;
+}
+
+function isoToDate(iso) {
+  const [y, m, d] = String(iso).split("-").map(Number);
+  return new Date(y, m - 1, d);
+}
+
+function dateToIso(date) {
+  return [
+    date.getFullYear(),
+    String(date.getMonth() + 1).padStart(2, "0"),
+    String(date.getDate()).padStart(2, "0")
+  ].join("-");
 }
 
 function renderPromoRows() {
@@ -2475,60 +2682,52 @@ function renderPromoRows() {
 
   if (!editingPromos.length) {
     container.innerHTML =
-      `<div class="promo-empty">Nog geen beursacties. Voeg er hieronder één toe.</div>`;
+      `<div class="promo-empty">Nog geen acties.</div>`;
     return;
   }
 
   container.innerHTML =
     editingPromos
       .map(promo => {
+        const id = escapeHtml(promo.id);
+        const remove =
+          `<button type="button" class="promo-remove" data-remove-promo="${id}" aria-label="Actie verwijderen">×</button>`;
+
         if (promo.type === "text") {
           return `
-            <div class="promo-row" data-promo-id="${escapeHtml(promo.id)}">
-              <div class="promo-row-head">
-                <span>Andere actie</span>
-                <button type="button" class="promo-remove" data-remove-promo="${escapeHtml(promo.id)}" aria-label="Actie verwijderen">✕</button>
-              </div>
+            <div class="promo-row text" data-promo-id="${id}">
               <input type="text" data-promo-field="label" value="${escapeHtml(promo.label || "")}" placeholder="Bijv. gratis tapinstallatie vanaf 5 vaten">
-              <small class="promo-hint">Wordt getoond bij het bestellen, maar niet automatisch berekend.</small>
+              ${remove}
             </div>
           `;
         }
 
         return `
-          <div class="promo-row" data-promo-id="${escapeHtml(promo.id)}">
-            <div class="promo-row-head">
-              <span>Gratis-actie</span>
-              <button type="button" class="promo-remove" data-remove-promo="${escapeHtml(promo.id)}" aria-label="Actie verwijderen">✕</button>
-            </div>
-
-            <div class="promo-numbers">
-              <label>
-                <small>Besteld</small>
-                <input type="number" inputmode="numeric" min="1" step="1" data-promo-field="buy" value="${Number(promo.buy) || ""}">
-              </label>
+          <div class="promo-row" data-promo-id="${id}">
+            <div class="promo-line">
+              <input class="promo-num" type="number" inputmode="numeric" min="1" step="1" data-promo-field="buy" value="${Number(promo.buy) || ""}" aria-label="Aantal besteld">
               <b>+</b>
-              <label>
-                <small>Gratis</small>
-                <input type="number" inputmode="numeric" min="1" step="1" data-promo-field="free" value="${Number(promo.free) || ""}">
+              <input class="promo-num" type="number" inputmode="numeric" min="1" step="1" data-promo-field="free" value="${Number(promo.free) || ""}" aria-label="Aantal gratis">
+              <span class="promo-gratis">gratis</span>
+
+              <label class="promo-chip mixed">
+                <input type="checkbox" data-promo-field="mixed" ${isMixed(promo) ? "checked" : ""}>
+                <span>Gemengd</span>
               </label>
+
+              ${remove}
             </div>
 
             <div class="promo-cats">
               ${PROMO_CATEGORIES
                 .map(cat => `
-                  <label class="promo-cat">
+                  <label class="promo-chip">
                     <input type="checkbox" data-promo-cat="${cat.value}" ${(promo.categories || []).includes(cat.value) ? "checked" : ""}>
-                    <span>${escapeHtml(cat.label)}</span>
+                    <span>${escapeHtml(cat.short)}</span>
                   </label>
                 `)
                 .join("")}
             </div>
-
-            <label class="toggle-line promo-mixed">
-              <input type="checkbox" data-promo-field="mixed" ${isMixed(promo) ? "checked" : ""}>
-              <span>Bieren mogen gemengd worden (bv. 5 Tripel + 5 Dubbel telt als 10)</span>
-            </label>
 
             <small class="promo-hint" data-promo-preview>${escapeHtml(promoPreview(promo))}</small>
           </div>
@@ -2539,14 +2738,14 @@ function renderPromoRows() {
 
 function promoPreview(promo) {
   if (!promo.categories?.length) {
-    return "Vink aan op welke producten deze actie geldt.";
+    return "Tik aan waarop de actie geldt.";
   }
   if (!(Number(promo.buy) > 0) || !(Number(promo.free) > 0)) {
     return "Vul beide aantallen in.";
   }
   return isMixed(promo)
-    ? `Gemengd: per ${promo.buy} besteld (alle aangevinkte bieren samen) → ${promo.free} gratis, vertegenwoordiger kiest welke.`
-    : `Per artikel: per ${promo.buy} van hetzelfde bier → ${promo.free} gratis.`;
+    ? `Bieren samen geteld (bv. 5 Tripel + 5 Dubbel = ${promo.buy}).`
+    : `Per bier apart geteld.`;
 }
 
 function handlePromoInput(event) {
@@ -2724,39 +2923,26 @@ function renderFairsList() {
 
   if (!fairs.length) {
     container.innerHTML =
-      emptyState("Nog geen beurzen. Tik op \"+ Nieuwe beurs\" om te starten.");
+      emptyState("Nog geen beurzen. Tik op \"+ Nieuwe beurs\".");
     return;
   }
 
   container.innerHTML =
     fairs
       .map(fair => `
-        <div class="record-card fair-card">
-          <div class="fair-card-main">
-            <div>
-              <strong>${escapeHtml(fair.name)}</strong>
-              <small>
-                ${escapeHtml([fair.location, fairDateText(fair)].filter(Boolean).join(" · ") || "Geen datum")}
-              </small>
-            </div>
-            <span class="record-badge ${fair.active ? "" : "inactive"}">
-              ${fair.active ? "Actief" : "Niet actief"}
-            </span>
-          </div>
-
-          ${fair.promotions.length
-            ? `<div class="fair-card-promos">
-                ${fair.promotions
-                  .map(promo => `<span>${escapeHtml(promoLabel(promo))}</span>`)
-                  .join("")}
-              </div>`
-            : `<div class="fair-card-promos muted-text">Geen beursacties</div>`
-          }
-
-          <button class="small-button ghost" type="button" data-edit-fair="${escapeHtml(fair.id)}">
-            Wijzigen
-          </button>
-        </div>
+        <button type="button" class="fair-row ${fair.active ? "" : "inactive"}" data-edit-fair="${escapeHtml(fair.id)}">
+          <span class="fair-dot" aria-hidden="true"></span>
+          <span class="fair-row-main">
+            <strong>${escapeHtml(fair.name)}</strong>
+            <small>${escapeHtml([fairDateText(fair), fair.location].filter(Boolean).join(" · ") || "Geen datum")}${fair.active ? "" : " · niet actief"}</small>
+            ${fair.promotions.length
+              ? `<span class="fair-row-promos">${fair.promotions
+                  .map(promo => `<em>${escapeHtml(promo.type === "free" ? `${promo.buy}+${promo.free}${isMixed(promo) ? " gemengd" : ""}` : promo.label)}</em>`)
+                  .join("")}</span>`
+              : ""}
+          </span>
+          <i aria-hidden="true">›</i>
+        </button>
       `)
       .join("");
 }
