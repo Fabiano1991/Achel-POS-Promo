@@ -39,7 +39,7 @@
   </section>
 
   <section class="stats-grid">
-    <button class="stat-card" type="button" data-view-target="contactsView">
+    <button class="stat-card" type="button" data-view-target="contactsView" data-contact-filter="all">
       <span>Mijn contacten</span>
       <strong id="contactsCount">0</strong>
     </button>
@@ -49,7 +49,7 @@
       <strong id="ordersCount">0</strong>
     </button>
 
-    <button class="stat-card" type="button" data-view-target="followupsView">
+    <button class="stat-card" type="button" data-view-target="contactsView" data-contact-filter="open">
       <span>Open opvolging</span>
       <strong id="followupsCount">0</strong>
     </button>
@@ -324,49 +324,21 @@
 
   <!-- MIJN CONTACTEN -->
   <section id="contactsView" class="view-section hidden">
-    <button class="top-back" type="button" data-view-target="homeView">← Terug</button>
-    <div class="section-card">
-      <div class="section-heading">
-        <div>
-          <span class="eyebrow">Beurzen</span>
-          <h2>Mijn contacten</h2>
-        </div>
-        <button class="small-button" type="button" id="exportContactsButton">CSV export</button>
-      </div>
-      <div id="contactsList" class="records-list"></div>
-    </div>
-  </section>
-
-  <!-- MIJN BESTELLINGEN -->
-  <section id="ordersView" class="view-section hidden">
-    <button class="top-back" type="button" data-view-target="homeView">← Terug</button>
-    <div class="section-card">
-      <div class="section-heading">
-        <div>
-          <span class="eyebrow">Beurzen</span>
-          <h2>Mijn bestellingen</h2>
-        </div>
-        <button class="small-button" type="button" id="exportOrdersButton">Excel export</button>
-      </div>
-      <div id="ordersList" class="records-list"></div>
-    </div>
-  </section>
-
-  <!-- OPVOLGING -->
-  <section id="followupsView" class="view-section hidden">
     <div class="view-top">
       <button class="top-back" type="button" data-view-target="homeView">← Terug</button>
+      <button class="small-button ghost" type="button" id="exportContactsButton">CSV export</button>
     </div>
 
-    <h2 class="view-title">Opvolging</h2>
+    <h2 class="view-title">Mijn contacten</h2>
 
-    <div class="followup-stats">
-      <div><strong id="fuTodoCount">0</strong><span>Nog opvolgen</span></div>
-      <div><strong id="fuInterestCount">0</strong><span>Interesse / proef</span></div>
-      <div class="green"><strong id="fuCustomerCount">0</strong><span>Klant geworden</span></div>
+    <div class="contact-filters" id="contactFilters">
+      <button type="button" data-filter="open">Op te volgen <b id="cfOpen">0</b></button>
+      <button type="button" data-filter="customer">Klant <b id="cfCustomer">0</b></button>
+      <button type="button" data-filter="no_interest">Geen interesse <b id="cfNo">0</b></button>
+      <button type="button" data-filter="all">Alle <b id="cfAll">0</b></button>
     </div>
 
-    <div id="followupsList"></div>
+    <div id="contactsList" class="fu-list"></div>
   </section>
 
   <!-- BEHEER (enkel commercieel directeur / boekhoudster) -->
@@ -480,7 +452,7 @@
   </form>
 </div>
 
-<!-- ONDERBLAD: CONTACT OPVOLGEN -->
+<!-- ONDERBLAD: CONTACT + OPVOLGING -->
 <div id="followupSheet" class="sheet-overlay hidden">
   <div class="sheet">
     <div class="sheet-head">
@@ -495,35 +467,32 @@
     <div class="sheet-body">
       <div id="fuQuickActions" class="fu-quick"></div>
 
-      <div class="fu-funnel-card">
-        <div class="fu-funnel">
-          <button type="button" class="fu-step" data-fu-status="to_contact"><b>1</b><span>Te contacteren</span></button>
-          <button type="button" class="fu-step" data-fu-status="contacted"><b>2</b><span>Gecontacteerd</span></button>
-          <button type="button" class="fu-step" data-fu-status="interested"><b>3</b><span>Interesse</span></button>
-          <button type="button" class="fu-step" data-fu-status="tasting"><b>4</b><span>Proef / voorstel</span></button>
-          <button type="button" class="fu-step" data-fu-status="customer"><b>5</b><span>Klant</span></button>
+      <div>
+        <div class="fu-label">Status <small>tik = meteen bewaard</small></div>
+        <div class="fu-status-grid">
+          <button type="button" data-fu-status="to_contact">Te contacteren</button>
+          <button type="button" data-fu-status="contacted">Gecontacteerd</button>
+          <button type="button" data-fu-status="interested">Interesse</button>
+          <button type="button" data-fu-status="tasting">Proef / voorstel</button>
+          <button type="button" data-fu-status="customer" class="won">Klant geworden</button>
+          <button type="button" data-fu-status="no_interest" class="lost">Geen interesse</button>
         </div>
-        <div id="fuCurrentStatus" class="fu-current">Huidige status: Te contacteren</div>
       </div>
 
-      <button type="button" class="fu-no-interest" data-fu-status="no_interest">
-        Geen interesse
-        <span>Markeer als afgehandeld</span>
-      </button>
-
-      <div class="field">
-        <label for="fuNextAction">Volgende actie</label>
-        <input id="fuNextAction" type="text" placeholder="Bijv. proefvat voorstellen">
+      <div id="fuNextBlock">
+        <div class="fu-label">Volgende stap</div>
+        <input id="fuNextAction" type="text" placeholder="Bijv. proefvat brengen">
+        <div class="fu-date-row">
+          <input id="fuDate" type="date" aria-label="Opvolgdatum">
+          <button type="button" data-fu-days="1">Morgen</button>
+          <button type="button" data-fu-days="7">1 week</button>
+          <button type="button" data-fu-days="30">1 maand</button>
+        </div>
       </div>
 
-      <div class="field">
-        <label for="fuDate">Opvolgdatum</label>
-        <input id="fuDate" type="date">
-      </div>
-
-      <div class="field">
-        <label for="fuNote">Notitie</label>
-        <textarea id="fuNote" rows="3" placeholder="Wat werd besproken?"></textarea>
+      <div>
+        <div class="fu-label">Notitie</div>
+        <textarea id="fuNote" rows="2" placeholder="Wat werd besproken?"></textarea>
       </div>
 
       <div id="fuInfo" class="fu-info"></div>
@@ -531,7 +500,7 @@
     </div>
 
     <div class="sheet-foot">
-      <button type="button" class="submit-button" id="fuSaveButton">Opvolging opslaan</button>
+      <button type="button" class="submit-button" id="fuSaveButton">Klaar</button>
     </div>
   </div>
 </div>

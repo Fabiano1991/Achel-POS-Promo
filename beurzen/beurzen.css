@@ -2046,3 +2046,172 @@ body {
 .sheet-body textarea {
   min-height:70px;
 }
+
+/* =========================================================
+   CONTACTEN + OPVOLGING IN ÉÉN LIJST
+========================================================= */
+
+.contact-filters {
+  display:flex;
+  gap:6px;
+  margin-bottom:10px;
+  overflow-x:auto;
+  scrollbar-width:none;
+}
+
+.contact-filters::-webkit-scrollbar {
+  display:none;
+}
+
+.contact-filters button {
+  flex:none;
+  display:flex;
+  align-items:center;
+  gap:6px;
+  padding:7px 11px;
+  border:1px solid rgba(201,155,67,.25);
+  border-radius:999px;
+  background:transparent;
+  color:var(--muted);
+  font-size:12px;
+  font-weight:800;
+  cursor:pointer;
+}
+
+.contact-filters button b {
+  color:var(--text);
+  font-size:11px;
+}
+
+.contact-filters button.active {
+  border-color:var(--gold-bright);
+  background:rgba(201,155,67,.20);
+  color:var(--gold-bright);
+}
+
+.fu-card-top {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:8px;
+}
+
+.fu-card-top strong {
+  margin-top:0;
+  min-width:0;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+
+.fu-card-top .fu-pill {
+  flex:none;
+}
+
+.fu-card .fu-due {
+  font-weight:800;
+}
+
+.fu-card.status-contacted .fu-pill,
+.fu-card.status-interested .fu-pill,
+.fu-card.status-tasting .fu-pill {
+  background:rgba(224,184,95,.22);
+}
+
+/* Statuskleur ook in het beheeroverzicht */
+.record-badge.status-customer {
+  background:rgba(74,145,95,.18);
+  color:var(--success);
+}
+
+.record-badge.status-no_interest {
+  background:rgba(165,73,73,.16);
+  color:var(--danger);
+}
+
+/* Onderblad */
+
+.fu-label {
+  margin-bottom:6px;
+  color:rgba(246,240,227,.78);
+  font-size:11px;
+  font-weight:900;
+}
+
+.fu-label small {
+  margin-left:4px;
+  color:var(--muted);
+  font-weight:600;
+}
+
+.fu-status-grid {
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:6px;
+}
+
+.fu-status-grid button {
+  min-height:42px;
+  padding:6px 8px;
+  border:1px solid rgba(201,155,67,.22);
+  border-radius:11px;
+  background:rgba(255,255,255,.04);
+  color:var(--text);
+  font-size:12.5px;
+  font-weight:800;
+  cursor:pointer;
+}
+
+.fu-status-grid button.active {
+  border-color:var(--gold-bright);
+  background:linear-gradient(180deg,var(--gold-bright),var(--gold));
+  color:#1b150c;
+}
+
+.fu-status-grid button.won.active {
+  border-color:#8fc9a1;
+  background:#8fc9a1;
+  color:#13201a;
+}
+
+.fu-status-grid button.lost {
+  color:#d89a9a;
+}
+
+.fu-status-grid button.lost.active {
+  border-color:#e9a0a0;
+  background:#b35c5c;
+  color:#fff;
+}
+
+#fuNextBlock.hidden {
+  display:none;
+}
+
+.fu-date-row {
+  display:grid;
+  grid-template-columns:1.4fr repeat(3,auto);
+  gap:5px;
+  margin-top:6px;
+}
+
+.fu-date-row button {
+  padding:0 8px;
+  border:1px solid rgba(201,155,67,.25);
+  border-radius:10px;
+  background:transparent;
+  color:var(--gold-bright);
+  font-size:11px;
+  font-weight:800;
+  cursor:pointer;
+}
+
+.fu-date-row {
+  grid-template-columns:minmax(0,1fr) auto auto auto;
+}
+
+.fu-date-row button {
+  white-space:nowrap;
+  font-size:10.5px;
+  padding:0 7px;
+}
