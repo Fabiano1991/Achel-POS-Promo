@@ -186,8 +186,9 @@
             <label for="contactFollowup">Opvolgstatus</label>
             <select id="contactFollowup" name="followup_status">
               <option value="to_contact">Te contacteren</option>
-              <option value="contacted">Contact gehad</option>
-              <option value="tasting">Proefafspraak</option>
+              <option value="contacted">Gecontacteerd</option>
+              <option value="interested">Interesse</option>
+              <option value="tasting">Proef / voorstel</option>
               <option value="customer">Klant geworden</option>
               <option value="no_interest">Geen interesse</option>
             </select>
@@ -353,16 +354,19 @@
 
   <!-- OPVOLGING -->
   <section id="followupsView" class="view-section hidden">
-    <button class="top-back" type="button" data-view-target="homeView">← Terug</button>
-    <div class="section-card">
-      <div class="section-heading">
-        <div>
-          <span class="eyebrow">Commercieel</span>
-          <h2>Open opvolging</h2>
-        </div>
-      </div>
-      <div id="followupsList" class="records-list"></div>
+    <div class="view-top">
+      <button class="top-back" type="button" data-view-target="homeView">← Terug</button>
     </div>
+
+    <h2 class="view-title">Opvolging</h2>
+
+    <div class="followup-stats">
+      <div><strong id="fuTodoCount">0</strong><span>Nog opvolgen</span></div>
+      <div><strong id="fuInterestCount">0</strong><span>Interesse / proef</span></div>
+      <div class="green"><strong id="fuCustomerCount">0</strong><span>Klant geworden</span></div>
+    </div>
+
+    <div id="followupsList"></div>
   </section>
 
   <!-- BEHEER (enkel commercieel directeur / boekhoudster) -->
@@ -474,6 +478,62 @@
       <button id="saveFairButton" class="submit-button" type="submit">Opslaan</button>
     </div>
   </form>
+</div>
+
+<!-- ONDERBLAD: CONTACT OPVOLGEN -->
+<div id="followupSheet" class="sheet-overlay hidden">
+  <div class="sheet">
+    <div class="sheet-head">
+      <div>
+        <span class="eyebrow" id="fuSheetFair"></span>
+        <strong id="fuSheetName">Contact</strong>
+        <small class="fu-sheet-meta" id="fuSheetMeta"></small>
+      </div>
+      <button type="button" class="sheet-close" id="fuSheetClose" aria-label="Sluiten">×</button>
+    </div>
+
+    <div class="sheet-body">
+      <div id="fuQuickActions" class="fu-quick"></div>
+
+      <div class="fu-funnel-card">
+        <div class="fu-funnel">
+          <button type="button" class="fu-step" data-fu-status="to_contact"><b>1</b><span>Te contacteren</span></button>
+          <button type="button" class="fu-step" data-fu-status="contacted"><b>2</b><span>Gecontacteerd</span></button>
+          <button type="button" class="fu-step" data-fu-status="interested"><b>3</b><span>Interesse</span></button>
+          <button type="button" class="fu-step" data-fu-status="tasting"><b>4</b><span>Proef / voorstel</span></button>
+          <button type="button" class="fu-step" data-fu-status="customer"><b>5</b><span>Klant</span></button>
+        </div>
+        <div id="fuCurrentStatus" class="fu-current">Huidige status: Te contacteren</div>
+      </div>
+
+      <button type="button" class="fu-no-interest" data-fu-status="no_interest">
+        Geen interesse
+        <span>Markeer als afgehandeld</span>
+      </button>
+
+      <div class="field">
+        <label for="fuNextAction">Volgende actie</label>
+        <input id="fuNextAction" type="text" placeholder="Bijv. proefvat voorstellen">
+      </div>
+
+      <div class="field">
+        <label for="fuDate">Opvolgdatum</label>
+        <input id="fuDate" type="date">
+      </div>
+
+      <div class="field">
+        <label for="fuNote">Notitie</label>
+        <textarea id="fuNote" rows="3" placeholder="Wat werd besproken?"></textarea>
+      </div>
+
+      <div id="fuInfo" class="fu-info"></div>
+      <div id="fuMessage" class="form-message hidden"></div>
+    </div>
+
+    <div class="sheet-foot">
+      <button type="button" class="submit-button" id="fuSaveButton">Opvolging opslaan</button>
+    </div>
+  </div>
 </div>
 
 <!-- ONDERBLAD: KALENDER (2 keer tikken: begin en einde) -->
