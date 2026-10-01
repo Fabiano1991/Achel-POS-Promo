@@ -261,6 +261,11 @@ function openView(viewId) {
 }
 
 function handleHeaderBack() {
+  if (currentView === "contactDetailView") {
+    openView("contactsView");
+    return;
+  }
+
   if (currentView === "homeView") {
     window.location.href = "../index.html";
     return;
@@ -1549,7 +1554,7 @@ function bindFollowups() {
     .getElementById("contactsList")
     ?.addEventListener("click", event => {
       const card = event.target.closest("[data-fu-open]");
-      if (card) openFollowup(card.dataset.fuOpen);
+      if (card) openContactDetail(card.dataset.fuOpen);
     });
 
   document
@@ -1561,36 +1566,60 @@ function bindFollowups() {
       renderContacts();
     });
 
+  // Traject: tik een stap = status meteen bewaard.
   document
-    .getElementById("followupSheet")
+    .getElementById("cdSteps")
     ?.addEventListener("click", event => {
-      if (event.target.id === "followupSheet") {
-        finishFollowup();
-        return;
-      }
-
-      const status = event.target.closest("[data-fu-status]");
-      if (status) {
-        saveFollowupChanges({ followup_status: status.dataset.fuStatus });
-        syncFollowupSheet();
-        return;
-      }
-
-      const days = event.target.closest("[data-fu-days]");
-      if (days) {
-        const date = new Date();
-        date.setDate(date.getDate() + Number(days.dataset.fuDays));
-        document.getElementById("fuDate").value = dateToIso(date);
-      }
+      const step = event.target.closest("[data-cd-status]");
+      if (step) setContactStatus(step.dataset.cdStatus);
     });
 
   document
-    .getElementById("fuSheetClose")
-    ?.addEventListener("click", finishFollowup);
+    .getElementById("cdNoInterest")
+    ?.addEventListener("click", () => {
+      const contact = findContact(followupContactId);
+      // Nog eens tikken zet "Geen interesse" terug naar "Te contacteren".
+      setContactStatus(contact?.followup_status === "no_interest" ? "to_contact" : "no_interest");
+    });
+
+  // Volgende stap: tekst bewaren bij verlaten van het veld.
+  const nextInput = document.getElementById("cdNextAction");
+  nextInput?.addEventListener("change", () => {
+    saveFollowupChanges({ next_action: cleanText(nextInput.value) });
+  });
+  nextInput?.addEventListener("keydown", event => {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      nextInput.blur();
+    }
+  });
 
   document
-    .getElementById("fuSaveButton")
-    ?.addEventListener("click", finishFollowup);
+    .getElementById("cdNextCard")
+    ?.addEventListener("click", event => {
+      const chip = event.target.closest("[data-cd-days]");
+      if (!chip) return;
+      const date = new Date();
+      date.setDate(date.getDate() + Number(chip.dataset.cdDays));
+      setFollowupDate(dateToIso(date));
+    });
+
+  document
+    .getElementById("cdDate")
+    ?.addEventListener("change", event => {
+      if (event.target.value) setFollowupDate(event.target.value);
+    });
+
+  document
+    .getElementById("cdClearDate")
+    ?.addEventListener("click", () => setFollowupDate(null));
+
+  document
+    .getElementById("cdNoteForm")
+    ?.addEventListener("submit", event => {
+      event.preventDefault();
+      addContactNote();
+    });
 }
 
 function findContact(id) {
@@ -1601,86 +1630,335 @@ function findContact(id) {
   );
 }
 
-function openFollowup(contactId) {
+// ---------- Contactscherm ----------
+
+let contactEvents = [];
+let contactEventsAvailable = true;
+
+function openContactDetail(contactId) {
   const contact = findContact(contactId);
   if (!contact) return;
 
   followupContactId = contact.id;
+  contactEvents = [];
 
-  setText("fuSheetFair", contact.fair_name || "Beurscontact");
-  setText("fuSheetName", contact.business_name || "Onbekende zaak");
-  setText("fuSheetMeta",
-    [contact.contact_person, contact.city, contact.customer_type ? customerTypeLabel(contact.customer_type) : ""]
-      .filter(Boolean)
-      .join(" · "));
-
-  document.getElementById("fuNextAction").value = contact.next_action || "";
-  document.getElementById("fuDate").value = contact.followup_date || "";
-  document.getElementById("fuNote").value = contact.followup_note || "";
-  document.getElementById("fuMessage")?.classList.add("hidden");
-
-  const quick = [];
-  if (contact.phone) {
-    quick.push(`<a href="tel:${escapeHtml(String(contact.phone).replace(/\s+/g, ""))}">Bellen</a>`);
-  }
-  if (contact.email) {
-    quick.push(`<a href="mailto:${escapeHtml(contact.email)}">Mailen</a>`);
-  }
-  document.getElementById("fuQuickActions").innerHTML = quick.join("");
-
-  document.getElementById("fuInfo").innerHTML = `
-    ${infoLine("Op de beurs", contact.reason)}
-    ${contact.interests?.length ? infoLine("Interesse", interestsToText(contact.interests)) : ""}
-    ${infoLine("Telefoon", contact.phone)}
-    ${infoLine("E-mail", contact.email)}
-    ${infoLine("Adres", [contact.address, contact.city].filter(Boolean).join(", "))}
-    ${infoLine("Bierhandelaar", contact.supplier)}
-  `;
-
-  syncFollowupSheet();
-  openSheet("followupSheet");
+  renderContactDetail();
+  openView("contactDetailView");
+  loadContactEvents(contact.id);
 }
 
-function syncFollowupSheet() {
+function initialsOf(name) {
+  return String(name || "?")
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map(word => word[0].toUpperCase())
+    .join("") || "?";
+}
+
+function isIos() {
+  return /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+    (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+}
+
+function setActionLink(id, href, missingText) {
+  const link = document.getElementById(id);
+  if (!link) return;
+
+  if (href) {
+    link.href = href;
+    link.classList.remove("disabled");
+    link.removeAttribute("aria-disabled");
+    link.removeAttribute("title");
+  }
+  else {
+    link.removeAttribute("href");
+    link.classList.add("disabled");
+    link.setAttribute("aria-disabled", "true");
+    link.title = missingText;
+  }
+}
+
+function renderContactDetail() {
   const contact = findContact(followupContactId);
   if (!contact) return;
 
-  const status = contact.followup_status || "to_contact";
+  setText("cdName", contact.business_name || "Onbekende zaak");
+  setText("cdSub", [contact.contact_person, contact.city].filter(Boolean).join(" · "));
+  setText("cdInitials", initialsOf(contact.business_name));
 
-  document
-    .querySelectorAll("#followupSheet [data-fu-status]")
-    .forEach(button =>
-      button.classList.toggle("active", button.dataset.fuStatus === status)
-    );
+  document.getElementById("cdTags").innerHTML =
+    [contact.customer_type ? customerTypeLabel(contact.customer_type) : "", contact.fair_name]
+      .filter(Boolean)
+      .map(tag => `<span>${escapeHtml(tag)}</span>`)
+      .join("");
 
-  // Afgehandeld: volgende stap is niet meer nodig.
-  document
-    .getElementById("fuNextBlock")
-    ?.classList.toggle("hidden", FOLLOWUP_DONE.includes(status));
+  // Bellen / mailen / route (route opent Apple Kaarten op iPhone, anders Google Maps).
+  const phone = String(contact.phone || "").replace(/[^\d+]/g, "");
+  const address = [contact.address, contact.city].filter(Boolean).join(", ");
+  const routeQuery = encodeURIComponent(address || [contact.business_name, contact.city].filter(Boolean).join(" "));
+
+  setActionLink("cdCall", phone ? `tel:${phone}` : "", "Geen telefoonnummer");
+  setActionLink("cdMail", contact.email ? `mailto:${contact.email}` : "", "Geen e-mailadres");
+  setActionLink(
+    "cdRoute",
+    address || contact.city
+      ? (isIos()
+          ? `https://maps.apple.com/?q=${routeQuery}`
+          : `https://www.google.com/maps/search/?api=1&query=${routeQuery}`)
+      : "",
+    "Geen adres"
+  );
+
+  syncContactSteps();
+
+  document.getElementById("cdNextAction").value = contact.next_action || "";
+  document.getElementById("cdDate").value = contact.followup_date || "";
+  renderNextDate();
+
+  const interests =
+    (Array.isArray(contact.interests) ? contact.interests : [])
+      .map(item => {
+        const formats = [item.bottle ? "fles" : "", item.tap ? "tap" : ""].filter(Boolean).join(" + ");
+        return `<span>${escapeHtml(String(item.beer || "").replace(/^Achel /, ""))}${formats ? ` · ${escapeHtml(formats)}` : ""}</span>`;
+      })
+      .join("");
+
+  document.getElementById("cdFair").innerHTML = `
+    ${interests ? `<div class="cd-interest">${interests}</div>` : ""}
+    ${contact.reason ? `<p>${escapeHtml(contact.reason)}</p>` : ""}
+    <p class="cd-fair-lines">
+      ${[
+        contact.supplier ? `Bierhandelaar: ${escapeHtml(contact.supplier)}` : "",
+        escapeHtml([contact.address, contact.city].filter(Boolean).join(", ")),
+        contact.phone ? escapeHtml(contact.phone) : "",
+        contact.email ? escapeHtml(contact.email) : ""
+      ].filter(Boolean).join("<br>")}
+    </p>
+  `;
+
+  renderTimeline();
 }
 
-// Bewaart de volgende stap en notitie (alleen als er iets veranderde)
-// en sluit het paneel meteen.
-function finishFollowup() {
+const CD_STEPS = ["to_contact", "contacted", "interested", "tasting", "customer"];
+
+function syncContactSteps() {
   const contact = findContact(followupContactId);
+  const status = contact?.followup_status || "to_contact";
+  const index = CD_STEPS.indexOf(status);
+  const lost = status === "no_interest";
 
-  // Eerst sluiten, dan bewaren: het scherm wacht nooit op het netwerk.
-  closeSheet("followupSheet");
+  document
+    .querySelectorAll("#cdSteps [data-cd-status]")
+    .forEach(step => {
+      const i = CD_STEPS.indexOf(step.dataset.cdStatus);
+      step.classList.toggle("done", !lost && (i < index || (status === "customer" && i === index)));
+      step.classList.toggle("active", !lost && i === index && status !== "customer");
+      step.classList.toggle("won", status === "customer" && i === index);
+    });
 
-  if (contact) {
-    const changes = {};
-    const nextAction = cleanText(document.getElementById("fuNextAction").value);
-    const date = document.getElementById("fuDate").value || null;
-    const note = cleanText(document.getElementById("fuNote").value);
+  const fill = document.getElementById("cdStepsFill");
+  if (fill) fill.style.width = lost || index < 1 ? "0%" : `${(index / 4) * 100}%`;
 
-    if (nextAction !== (contact.next_action || null)) changes.next_action = nextAction;
-    if (date !== (contact.followup_date || null)) changes.followup_date = date;
-    if (note !== (contact.followup_note || null)) changes.followup_note = note;
+  document.getElementById("cdSteps")?.classList.toggle("lost", lost);
+  document.getElementById("cdNoInterest")?.classList.toggle("active", lost);
 
-    if (Object.keys(changes).length) {
-      saveFollowupChanges(changes);
-    }
+  setText(
+    "cdStepHint",
+    lost ? "Afgehandeld: geen interesse"
+    : status === "customer" ? "Klant geworden 🎉"
+    : "Tik een stap om de status te zetten"
+  );
+
+  // Afgehandeld: geen volgende stap meer nodig.
+  document.getElementById("cdNextCard")?.classList.toggle("hidden", FOLLOWUP_DONE.includes(status));
+}
+
+function renderNextDate() {
+  const contact = findContact(followupContactId);
+  const el = document.getElementById("cdNextDate");
+  if (!el) return;
+
+  const iso = contact?.followup_date;
+  el.classList.remove("late", "today");
+
+  if (!iso) {
+    el.textContent = "Nog geen datum";
+    return;
   }
+
+  const days = Math.round((isoToDate(iso) - isoToDate(dateToIso(new Date()))) / 86400000);
+  const label = new Intl.DateTimeFormat("nl-BE", { weekday:"long", day:"numeric", month:"short" }).format(isoToDate(iso));
+
+  const relative =
+    days === 0 ? "vandaag"
+    : days === 1 ? "morgen"
+    : days === -1 ? "gisteren"
+    : days > 1 ? `over ${days} dagen`
+    : `${-days} dagen te laat`;
+
+  el.textContent = `${label} · ${relative}`;
+  if (days < 0) el.classList.add("late");
+  if (days === 0) el.classList.add("today");
+}
+
+function setFollowupDate(iso) {
+  document.getElementById("cdDate").value = iso || "";
+  saveFollowupChanges({ followup_date: iso || null });
+  renderNextDate();
+}
+
+function setContactStatus(status) {
+  const contact = findContact(followupContactId);
+  if (!contact || (contact.followup_status || "to_contact") === status) return;
+
+  saveFollowupChanges({ followup_status: status });
+  syncContactSteps();
+  addContactEvent({ kind:"status", status });
+}
+
+// ---------- Historiek ----------
+
+async function loadContactEvents(contactId) {
+  try {
+    const { data, error } =
+      await supabaseClient
+        .from("fair_contact_events")
+        .select("*")
+        .eq("contact_id", contactId)
+        .order("created_at", { ascending:false });
+
+    if (error) throw error;
+
+    if (followupContactId !== contactId) return;
+    contactEvents = data || [];
+    contactEventsAvailable = true;
+  }
+  catch (error) {
+    console.warn("HISTORIEK LADEN MISLUKT:", error);
+    contactEventsAvailable = false;
+  }
+
+  renderTimeline();
+}
+
+function addContactNote() {
+  const input = document.getElementById("cdNoteInput");
+  const text = cleanText(input?.value);
+  if (!text) return;
+
+  input.value = "";
+  addContactEvent({ kind:"note", text });
+}
+
+function addContactEvent(event) {
+  const contactId = followupContactId;
+
+  const row = {
+    id: (crypto.randomUUID ? crypto.randomUUID() : `tmp-${Date.now()}`),
+    contact_id: contactId,
+    created_at: new Date().toISOString(),
+    created_by: currentSession.user.id,
+    kind: event.kind,
+    text: event.text || null,
+    status: event.status || null
+  };
+
+  contactEvents.unshift(row);
+  renderTimeline();
+
+  if (!contactEventsAvailable) return;
+
+  flashSaved(
+    Promise.resolve()
+      .then(() => supabaseClient.from("fair_contact_events").insert(row))
+      .then(({ error }) => { if (error) throw error; })
+      .catch(error => {
+        console.error("HISTORIEK OPSLAAN FOUT:", error);
+        contactEvents = contactEvents.filter(item => item.id !== row.id);
+        renderTimeline();
+        if (event.kind === "note") {
+          alert("De notitie kon niet worden bewaard. Probeer opnieuw.");
+        }
+        throw error;
+      })
+  );
+}
+
+function relativeDay(iso) {
+  const day = dateToIso(new Date(iso));
+  const today = dateToIso(new Date());
+  const yesterday = dateToIso(new Date(Date.now() - 86400000));
+
+  if (day === today) return "vandaag";
+  if (day === yesterday) return "gisteren";
+
+  return new Intl.DateTimeFormat("nl-BE", { day:"numeric", month:"short" }).format(new Date(iso));
+}
+
+function renderTimeline() {
+  const container = document.getElementById("cdTimeline");
+  const contact = findContact(followupContactId);
+  if (!container || !contact) return;
+
+  const rows = contactEvents.map(event => `
+    <div class="cd-event">
+      <small>${escapeHtml(relativeDay(event.created_at))}</small>
+      <div>${event.kind === "status"
+        ? `Status → <b class="st-${escapeHtml(event.status)}">${escapeHtml(followupLabel(event.status))}</b>`
+        : escapeHtml(event.text || "")}</div>
+    </div>
+  `);
+
+  // Oude notitie (van vóór de historiek) blijft zichtbaar.
+  if (contact.followup_note) {
+    rows.push(`
+      <div class="cd-event">
+        <small>notitie</small>
+        <div>${escapeHtml(contact.followup_note)}</div>
+      </div>
+    `);
+  }
+
+  rows.push(`
+    <div class="cd-event">
+      <small>${escapeHtml(relativeDay(contact.created_at))}</small>
+      <div>Contact gemaakt${contact.fair_name ? ` op ${escapeHtml(contact.fair_name)}` : ""}</div>
+    </div>
+  `);
+
+  container.innerHTML =
+    (contactEventsAvailable ? "" : `<p class="cd-warning">Historiek is nog niet actief (database-stap nodig).</p>`) +
+    rows.join("");
+
+  document.getElementById("cdNoteForm")?.classList.toggle("hidden", !contactEventsAvailable);
+}
+
+// ---------- Bewaren ----------
+
+let savingCount = 0;
+
+function flashSaved(promise) {
+  const el = document.getElementById("cdSaved");
+  savingCount += 1;
+
+  if (el) {
+    el.textContent = "Bewaren…";
+    el.classList.remove("error");
+  }
+
+  promise
+    .then(() => {
+      savingCount -= 1;
+      if (el && !savingCount) el.textContent = "✓ Automatisch bewaard";
+    })
+    .catch(() => {
+      savingCount -= 1;
+      if (el) {
+        el.textContent = "Niet bewaard";
+        el.classList.add("error");
+      }
+    });
 }
 
 // Past de wijziging meteen toe op het scherm en stuurt ze op de
@@ -1689,6 +1967,10 @@ function saveFollowupChanges(changes) {
   const id = followupContactId;
   const contact = findContact(id);
   if (!contact) return;
+
+  const unchanged =
+    Object.keys(changes).every(key => (contact[key] ?? null) === (changes[key] ?? null));
+  if (unchanged) return;
 
   const previous = {};
   Object.keys(changes).forEach(key => { previous[key] = contact[key]; });
@@ -1704,31 +1986,32 @@ function saveFollowupChanges(changes) {
   renderContacts();
   if (isAdminUser) renderAdminPanels();
 
-  Promise.resolve()
-    .then(() =>
-      supabaseClient
-        .from("fair_contacts")
-        .update(payload)
-        .eq("id", id)
-    )
-    .then(({ error }) => {
-      if (!error) return;
-      throw error;
-    })
-    .catch(error => {
-      console.error("OPVOLGING OPSLAAN FOUT:", error);
+  flashSaved(
+    Promise.resolve()
+      .then(() =>
+        supabaseClient
+          .from("fair_contacts")
+          .update(payload)
+          .eq("id", id)
+      )
+      .then(({ error }) => { if (error) throw error; })
+      .catch(error => {
+        console.error("OPVOLGING OPSLAAN FOUT:", error);
 
-      [myContacts, adminContacts].forEach(list => {
-        const item = list.find(c => c.id === id);
-        if (item) Object.assign(item, previous);
-      });
+        [myContacts, adminContacts].forEach(list => {
+          const item = list.find(c => c.id === id);
+          if (item) Object.assign(item, previous);
+        });
 
-      updateCounters();
-      renderContacts();
-      if (isAdminUser) renderAdminPanels();
+        updateCounters();
+        renderContacts();
+        if (isAdminUser) renderAdminPanels();
+        if (followupContactId === id) renderContactDetail();
 
-      alert("De opvolging kon niet worden bewaard. Probeer opnieuw.\n\n" + (error?.message || ""));
-    });
+        alert("De wijziging kon niet worden bewaard. Probeer opnieuw.\n\n" + (error?.message || ""));
+        throw error;
+      })
+  );
 }
 
 // =========================================================

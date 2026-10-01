@@ -2247,3 +2247,460 @@ body {
 .contact-filters button.active b {
   color:var(--gold-bright);
 }
+
+/* =========================================================
+   CONTACTSCHERM (detail + opvolging)
+========================================================= */
+
+.cd-topbar {
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:12px;
+}
+
+.cd-topbar .top-back {
+  margin:0;
+}
+
+.cd-saved {
+  color:var(--success);
+  font-size:11px;
+  font-weight:700;
+}
+
+.cd-saved.error {
+  color:var(--danger);
+}
+
+.cd-head {
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+
+.cd-avatar {
+  width:48px;
+  height:48px;
+  flex:none;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border-radius:50%;
+  background:#2a2516;
+  color:var(--gold-bright);
+  font-size:16px;
+  font-weight:800;
+}
+
+.cd-head-text {
+  min-width:0;
+}
+
+.cd-head-text h2 {
+  margin:0;
+  font-size:21px;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+
+.cd-head-text p {
+  margin:2px 0 0;
+  color:var(--muted);
+  font-size:12.5px;
+}
+
+.cd-tags {
+  display:flex;
+  flex-wrap:wrap;
+  gap:6px;
+  margin:10px 0 12px;
+}
+
+.cd-tags span {
+  padding:3px 10px;
+  border:1px solid rgba(201,155,67,.3);
+  border-radius:999px;
+  color:rgba(246,240,227,.75);
+  font-size:11px;
+  font-weight:700;
+}
+
+.cd-actions {
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:7px;
+  margin-bottom:12px;
+}
+
+.cd-action {
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:3px;
+  padding:9px 0;
+  border:1px solid rgba(201,155,67,.28);
+  border-radius:12px;
+  color:var(--gold-bright);
+  font-size:11.5px;
+  font-weight:800;
+  text-decoration:none;
+  cursor:pointer;
+}
+
+.cd-action.disabled {
+  opacity:.35;
+  pointer-events:none;
+}
+
+.cd-svg {
+  width:20px;
+  height:20px;
+  fill:none;
+  stroke:currentColor;
+  stroke-width:1.8;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+}
+
+.cd-card {
+  margin-bottom:10px;
+  padding:12px;
+  border:1px solid rgba(201,155,67,.22);
+  border-radius:14px;
+  background:var(--panel);
+}
+
+.cd-card.hidden {
+  display:none;
+}
+
+.cd-card-title {
+  margin-bottom:8px;
+  color:var(--gold-bright);
+  font-size:11px;
+  font-weight:900;
+}
+
+/* Traject */
+
+.cd-steps {
+  position:relative;
+  display:grid;
+  grid-template-columns:repeat(5,minmax(0,1fr));
+  text-align:center;
+}
+
+.cd-steps-line {
+  position:absolute;
+  top:14px;
+  left:10%;
+  right:10%;
+  height:3px;
+  border-radius:3px;
+  background:rgba(201,155,67,.18);
+}
+
+.cd-steps-line i {
+  display:block;
+  width:0;
+  height:100%;
+  border-radius:3px;
+  background:var(--success);
+  transition:width .2s;
+}
+
+.cd-steps button {
+  position:relative;
+  z-index:1;
+  min-width:0;
+  padding:0 2px;
+  border:0;
+  background:transparent;
+  color:rgba(246,240,227,.5);
+  cursor:pointer;
+}
+
+.cd-steps b {
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  width:30px;
+  height:30px;
+  margin:0 auto 5px;
+  border:2px solid #2c3329;
+  border-radius:50%;
+  background:#1a201b;
+  font-size:12.5px;
+}
+
+.cd-steps span {
+  display:block;
+  font-size:10.5px;
+  font-weight:700;
+  line-height:1.15;
+}
+
+.cd-steps button.done {
+  color:var(--success);
+}
+
+.cd-steps button.done b {
+  border-color:var(--success);
+  background:var(--success);
+  color:#13201a;
+  font-size:0;
+}
+
+.cd-steps button.done b::after {
+  content:"✓";
+  font-size:14px;
+}
+
+.cd-steps button.active {
+  color:var(--text);
+}
+
+.cd-steps button.active b {
+  border-color:var(--gold-bright);
+  background:var(--gold-bright);
+  color:#1b150c;
+}
+
+.cd-steps button.won {
+  color:var(--success);
+}
+
+.cd-steps button.won b {
+  border-color:var(--success);
+  background:var(--success);
+  color:#13201a;
+  font-size:0;
+}
+
+.cd-steps button.won b::after {
+  content:"★";
+  font-size:14px;
+}
+
+.cd-steps.lost button {
+  opacity:.4;
+}
+
+.cd-steps-foot {
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:8px;
+  margin-top:8px;
+  padding-top:8px;
+  border-top:1px solid rgba(201,155,67,.14);
+  color:var(--muted);
+  font-size:11px;
+}
+
+.cd-no-interest {
+  flex:none;
+  padding:4px 10px;
+  border:1px solid rgba(233,160,160,.25);
+  border-radius:999px;
+  background:transparent;
+  color:var(--danger);
+  font-size:11px;
+  font-weight:800;
+  cursor:pointer;
+}
+
+.cd-no-interest.active {
+  background:#b35c5c;
+  border-color:#b35c5c;
+  color:#fff;
+}
+
+/* Volgende stap */
+
+.cd-next {
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+
+.cd-next-icon {
+  flex:none;
+  color:var(--gold-bright);
+}
+
+.cd-next-icon .cd-svg {
+  width:24px;
+  height:24px;
+}
+
+.cd-next-text {
+  flex:1;
+  min-width:0;
+}
+
+.cd-next-text input {
+  min-height:0;
+  padding:2px 0;
+  border:0;
+  border-bottom:1px dashed rgba(201,155,67,.25);
+  border-radius:0;
+  background:transparent;
+  font-size:14.5px;
+  font-weight:800;
+}
+
+.cd-next-text input:focus {
+  box-shadow:none;
+  border-bottom-color:var(--gold-bright);
+}
+
+.cd-next-text small {
+  display:block;
+  margin-top:4px;
+  color:var(--gold-bright);
+  font-size:12px;
+  font-weight:700;
+}
+
+.cd-next-text small.today {
+  color:var(--gold-bright);
+}
+
+.cd-next-text small.late {
+  color:var(--danger);
+}
+
+.cd-chips {
+  display:flex;
+  flex-wrap:wrap;
+  gap:6px;
+  margin-top:10px;
+}
+
+.cd-chips button,
+.cd-chip-date {
+  position:relative;
+  padding:6px 11px;
+  border:1px solid rgba(201,155,67,.28);
+  border-radius:999px;
+  background:transparent;
+  color:var(--gold-bright);
+  font-size:11.5px;
+  font-weight:800;
+  cursor:pointer;
+}
+
+/* Onzichtbaar datumveld bovenop "Kies": tikken opent de kalender. */
+.cd-chip-date input {
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  min-height:0;
+  padding:0;
+  border:0;
+  opacity:0;
+  cursor:pointer;
+}
+
+.cd-chips .cd-chip-clear {
+  padding:6px 10px;
+  color:var(--muted);
+}
+
+/* Historiek */
+
+.cd-note-form {
+  display:flex;
+  gap:6px;
+  margin-bottom:12px;
+}
+
+.cd-note-form.hidden {
+  display:none;
+}
+
+.cd-note-form input {
+  min-height:38px;
+  padding:7px 11px;
+  font-size:13px;
+}
+
+.cd-note-form button {
+  width:40px;
+  flex:none;
+  border:0;
+  border-radius:11px;
+  background:var(--gold);
+  color:#1b150c;
+  font-size:20px;
+  font-weight:900;
+  cursor:pointer;
+}
+
+.cd-timeline {
+  display:grid;
+  gap:9px;
+  padding-left:11px;
+  border-left:2px solid rgba(201,155,67,.25);
+}
+
+.cd-event small {
+  display:block;
+  color:var(--muted);
+  font-size:10.5px;
+}
+
+.cd-event div {
+  font-size:12.5px;
+  line-height:1.4;
+}
+
+.cd-event b {
+  color:var(--gold-bright);
+}
+
+.cd-event b.st-customer {
+  color:var(--success);
+}
+
+.cd-event b.st-no_interest {
+  color:var(--danger);
+}
+
+.cd-warning {
+  margin:0 0 6px;
+  color:var(--danger);
+  font-size:11px;
+}
+
+/* Van de beurs */
+
+.cd-interest {
+  display:flex;
+  flex-wrap:wrap;
+  gap:5px;
+  margin-bottom:8px;
+}
+
+.cd-interest span {
+  padding:3px 9px;
+  border-radius:999px;
+  background:rgba(201,155,67,.16);
+  color:var(--gold-bright);
+  font-size:11px;
+  font-weight:800;
+}
+
+#cdFair p {
+  margin:0 0 6px;
+  font-size:12.5px;
+}
+
+#cdFair .cd-fair-lines {
+  color:rgba(246,240,227,.7);
+  line-height:1.6;
+}
