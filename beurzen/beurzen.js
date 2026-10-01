@@ -749,6 +749,8 @@ function resetOrderQuantities() {
 // =========================================================
 
 function bindForms() {
+  bindFollowups();
+
   document
     .getElementById(
       "contactForm"
@@ -934,7 +936,9 @@ async function saveContact(event) {
     fillFairSelects();
     renderInterestList();
 
-    await refreshAllData();
+    // Lijsten op de achtergrond vernieuwen: de vertegenwoordiger
+    // hoeft daar niet op te wachten.
+    refreshInBackground();
   }
   catch (error) {
     console.error(
@@ -1143,7 +1147,7 @@ async function saveOrder(event) {
     fillFairSelects();
     resetOrderQuantities();
 
-    await refreshAllData();
+    refreshInBackground();
   }
   catch (error) {
     console.error(
@@ -1170,6 +1174,12 @@ async function saveOrder(event) {
 // =========================================================
 // DATA LADEN
 // =========================================================
+
+function refreshInBackground() {
+  refreshAllData().catch(error =>
+    console.error("VERNIEUWEN FOUT:", error)
+  );
+}
 
 async function refreshAllData() {
   await Promise.all([
@@ -1339,7 +1349,12 @@ function renderContactRecords(containerId, contacts) {
             ${infoLine("Bierhandelaar", contact.supplier)}
             ${infoLine("Opvolging", followupLabel(contact.followup_status))}
             ${infoLine("Reden", contact.reason)}
+            ${infoLine("Volgende actie", contact.next_action)}
+            ${contact.followup_date ? infoLine("Opvolgdatum", formatDate(contact.followup_date)) : ""}
             ${renderInterestSummary(contact.interests)}
+            ${containerId === "contactsList"
+              ? `<button type="button" class="small-button fu-open-button" data-fu-open="${escapeHtml(contact.id)}">Opvolgen</button>`
+              : ""}
           </div>
         </details>
       `)
@@ -1438,6 +1453,13 @@ function renderOrderRecords(containerId, orders) {
 // RENDER OPVOLGING
 // =========================================================
 
+// Opvolging werkt zoals bij B2B: traject in 5 stappen,
+// volgende actie, opvolgdatum en notitie per contact.
+const FOLLOWUP_STEPS = ["to_contact", "contacted", "interested", "tasting", "customer"];
+const FOLLOWUP_DONE = ["customer", "no_interest"];
+let followupContactId = null;
+let followupStatus = "to_contact";
+
 function renderFollowups() {
   const container =
     document.getElementById(
@@ -1446,53 +1468,233 @@ function renderFollowups() {
 
   if (!container) return;
 
-  const open =
-    myContacts.filter(
-      contact =>
-        ![
-          "customer",
-          "no_interest"
-        ].includes(
-          contact.followup_status
-        )
-    );
+  const statusOf = contact => contact.followup_status || "to_contact";
 
-  if (!open.length) {
+  setText("fuTodoCount",
+    myContacts.filter(c => ["to_contact", "contacted"].includes(statusOf(c))).length);
+  setText("fuInterestCount",
+    myContacts.filter(c => ["interested", "tasting"].includes(statusOf(c))).length);
+  setText("fuCustomerCount",
+    myContacts.filter(c => statusOf(c) === "customer").length);
+
+  if (!myContacts.length) {
     container.innerHTML =
-      emptyState(
-        "Geen open commerciële opvolging."
-      );
+      emptyState("Nog geen beurscontacten om op te volgen.");
     return;
   }
 
-  container.innerHTML =
-    open
-      .map(contact => `
-        <details class="record-card">
-          <summary>
-            <div>
-              <strong>
-                ${escapeHtml(contact.business_name || "Onbekende zaak")}
-              </strong>
-              <small>
-                ${escapeHtml(contact.contact_person || "Geen contactpersoon")}
-              </small>
-            </div>
+  // Eerst wat te laat is, dan op datum, contacten zonder datum achteraan.
+  const byDate = (a, b) =>
+    (a.followup_date || "9999") .localeCompare(b.followup_date || "9999") ||
+    String(b.created_at).localeCompare(String(a.created_at));
 
-            <span class="record-badge">
-              ${escapeHtml(followupLabel(contact.followup_status))}
-            </span>
-          </summary>
+  const active =
+    myContacts
+      .filter(c => !FOLLOWUP_DONE.includes(statusOf(c)))
+      .sort(byDate);
 
-          <div class="record-body">
-            ${infoLine("Beurs", contact.fair_name)}
-            ${infoLine("Telefoon", contact.phone)}
-            ${infoLine("E-mail", contact.email)}
-            ${infoLine("Reden", contact.reason)}
-          </div>
-        </details>
-      `)
-      .join("");
+  const handled =
+    myContacts
+      .filter(c => FOLLOWUP_DONE.includes(statusOf(c)));
+
+  container.innerHTML = `
+    <div class="fu-group-title">Actief <b>${active.length}</b></div>
+    <div class="fu-list">
+      ${active.length
+        ? active.map(followupCard).join("")
+        : `<div class="empty-state">Geen actieve opvolging.</div>`}
+    </div>
+
+    <details class="fu-handled">
+      <summary>Afgehandeld <b>${handled.length}</b></summary>
+      <div class="fu-list">
+        ${handled.length
+          ? handled.map(followupCard).join("")
+          : `<div class="empty-state">Nog niets afgehandeld.</div>`}
+      </div>
+    </details>
+  `;
+}
+
+function followupCard(contact) {
+  const status = contact.followup_status || "to_contact";
+  const today = dateToIso(new Date());
+  const due = contact.followup_date || "";
+
+  let dueText = "";
+  let dueClass = "";
+
+  if (due && !FOLLOWUP_DONE.includes(status)) {
+    if (due < today) { dueText = `Te laat · ${formatDate(due)}`; dueClass = "late"; }
+    else if (due === today) { dueText = "Vandaag opvolgen"; dueClass = "today"; }
+    else { dueText = `Opvolgen ${formatDate(due)}`; }
+  }
+
+  const meta =
+    [contact.contact_person, contact.city, contact.fair_name]
+      .filter(Boolean)
+      .join(" · ");
+
+  return `
+    <button type="button" class="fu-card status-${escapeHtml(status)}" data-fu-open="${escapeHtml(contact.id)}">
+      <span class="fu-card-main">
+        <span class="fu-pill">${escapeHtml(followupLabel(status))}</span>
+        <strong>${escapeHtml(contact.business_name || "Onbekende zaak")}</strong>
+        ${meta ? `<small>${escapeHtml(meta)}</small>` : ""}
+        ${contact.next_action ? `<small class="fu-next">→ ${escapeHtml(contact.next_action)}</small>` : ""}
+        ${dueText ? `<small class="fu-due ${dueClass}">${escapeHtml(dueText)}</small>` : ""}
+      </span>
+      <i aria-hidden="true">›</i>
+    </button>
+  `;
+}
+
+function bindFollowups() {
+  document
+    .getElementById("followupsList")
+    ?.addEventListener("click", event => {
+      const card = event.target.closest("[data-fu-open]");
+      if (card) openFollowup(card.dataset.fuOpen);
+    });
+
+  // Ook vanuit "Mijn contacten" kan je meteen opvolgen.
+  document
+    .getElementById("contactsList")
+    ?.addEventListener("click", event => {
+      const button = event.target.closest("[data-fu-open]");
+      if (button) openFollowup(button.dataset.fuOpen);
+    });
+
+  document
+    .getElementById("followupSheet")
+    ?.addEventListener("click", event => {
+      if (event.target.id === "followupSheet") closeSheet("followupSheet");
+
+      const step = event.target.closest("[data-fu-status]");
+      if (step) {
+        followupStatus = step.dataset.fuStatus;
+        syncFollowupSteps();
+      }
+    });
+
+  document
+    .getElementById("fuSheetClose")
+    ?.addEventListener("click", () => closeSheet("followupSheet"));
+
+  document
+    .getElementById("fuSaveButton")
+    ?.addEventListener("click", saveFollowup);
+}
+
+function openFollowup(contactId) {
+  const contact =
+    myContacts.find(c => c.id === contactId) ||
+    adminContacts.find(c => c.id === contactId);
+
+  if (!contact) return;
+
+  followupContactId = contact.id;
+  followupStatus = contact.followup_status || "to_contact";
+
+  setText("fuSheetFair", contact.fair_name || "Beurscontact");
+  setText("fuSheetName", contact.business_name || "Onbekende zaak");
+  setText("fuSheetMeta",
+    [contact.contact_person, contact.city].filter(Boolean).join(" · "));
+
+  document.getElementById("fuNextAction").value = contact.next_action || "";
+  document.getElementById("fuDate").value = contact.followup_date || "";
+  document.getElementById("fuNote").value = contact.followup_note || "";
+  document.getElementById("fuMessage")?.classList.add("hidden");
+
+  // Snel bellen of mailen.
+  const quick = [];
+  if (contact.phone) {
+    quick.push(`<a href="tel:${escapeHtml(String(contact.phone).replace(/\s+/g, ""))}">Bellen</a>`);
+  }
+  if (contact.email) {
+    quick.push(`<a href="mailto:${escapeHtml(contact.email)}">Mailen</a>`);
+  }
+  document.getElementById("fuQuickActions").innerHTML = quick.join("");
+
+  // Wat op de beurs genoteerd werd.
+  document.getElementById("fuInfo").innerHTML = `
+    ${infoLine("Op de beurs", contact.reason)}
+    ${contact.interests?.length ? infoLine("Interesse", interestsToText(contact.interests)) : ""}
+    ${infoLine("Bierhandelaar", contact.supplier)}
+    ${contact.followup_updated_at ? `<p class="muted-text">Laatst bijgewerkt ${escapeHtml(formatDateForExport(contact.followup_updated_at))}</p>` : ""}
+  `;
+
+  syncFollowupSteps();
+  openSheet("followupSheet");
+}
+
+function syncFollowupSteps() {
+  const index = FOLLOWUP_STEPS.indexOf(followupStatus);
+
+  document
+    .querySelectorAll("#followupSheet .fu-step")
+    .forEach(step => {
+      const stepIndex = FOLLOWUP_STEPS.indexOf(step.dataset.fuStatus);
+      step.classList.toggle("active", stepIndex === index);
+      step.classList.toggle("completed", index > -1 && stepIndex < index);
+    });
+
+  document
+    .querySelector("#followupSheet .fu-no-interest")
+    ?.classList.toggle("active", followupStatus === "no_interest");
+
+  const current = document.getElementById("fuCurrentStatus");
+  if (current) {
+    current.textContent = `Huidige status: ${followupLabel(followupStatus)}`;
+    current.classList.toggle("closed", followupStatus === "no_interest");
+    current.classList.toggle("won", followupStatus === "customer");
+  }
+}
+
+async function saveFollowup() {
+  if (!followupContactId) return;
+
+  const button = document.getElementById("fuSaveButton");
+
+  const changes = {
+    followup_status: followupStatus,
+    next_action: cleanText(document.getElementById("fuNextAction").value),
+    followup_date: document.getElementById("fuDate").value || null,
+    followup_note: cleanText(document.getElementById("fuNote").value),
+    followup_updated_at: new Date().toISOString()
+  };
+
+  try {
+    setBusy(button, true, "Opslaan...");
+
+    const { error } =
+      await supabaseClient
+        .from("fair_contacts")
+        .update(changes)
+        .eq("id", followupContactId);
+
+    if (error) throw error;
+
+    // Meteen zichtbaar maken zonder alles opnieuw te laden.
+    [myContacts, adminContacts].forEach(list => {
+      const contact = list.find(c => c.id === followupContactId);
+      if (contact) Object.assign(contact, changes);
+    });
+
+    updateCounters();
+    renderContacts();
+    renderFollowups();
+    if (isAdminUser) renderAdminPanels();
+
+    closeSheet("followupSheet");
+  }
+  catch (error) {
+    console.error("OPVOLGING OPSLAAN FOUT:", error);
+    showMessage("fuMessage", error?.message || "Opvolging kon niet worden opgeslagen.", true);
+  }
+  finally {
+    setBusy(button, false, "Opvolging opslaan");
+  }
 }
 
 // =========================================================
@@ -1525,7 +1727,10 @@ function exportContactsCsv(
       "Leverancier/Bierhandelaar",
       "Interesse",
       "Reden",
-      "Opvolgstatus"
+      "Opvolgstatus",
+      "Volgende actie",
+      "Opvolgdatum",
+      "Notitie opvolging"
     ]
   ];
 
@@ -1552,7 +1757,10 @@ function exportContactsCsv(
       contact.reason || "",
       followupLabel(
         contact.followup_status
-      )
+      ),
+      contact.next_action || "",
+      contact.followup_date ? formatDate(contact.followup_date) : "",
+      contact.followup_note || ""
     ]);
   });
 
@@ -2979,8 +3187,9 @@ function customerTypeLabel(value) {
 function followupLabel(value) {
   const labels = {
     to_contact:"Te contacteren",
-    contacted:"Contact gehad",
-    tasting:"Proefafspraak",
+    contacted:"Gecontacteerd",
+    interested:"Interesse",
+    tasting:"Proef / voorstel",
     customer:"Klant geworden",
     no_interest:"Geen interesse"
   };
