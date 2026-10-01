@@ -1694,3 +1694,27 @@ body.sheet-open {
   background:rgba(201,155,67,.22);
   color:var(--gold-bright);
 }
+
+/* Verborgen vinkjes binnen hun knopje houden, anders wordt de
+   pagina breder dan het scherm en zoomt de gsm uit. */
+.interest-chip,
+.promo-chip,
+.switch-line {
+  position:relative;
+}
+
+html,
+body {
+  max-width:100%;
+  overflow-x:hidden;
+}
+
+.segmented label {
+  position:relative;
+}
+
+.segmented input {
+  width:1px;
+  height:1px;
+  min-height:0;
+}
