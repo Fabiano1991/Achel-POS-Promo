@@ -332,13 +332,24 @@
     <h2 class="view-title">Mijn contacten</h2>
 
     <div class="contact-filters" id="contactFilters">
-      <button type="button" data-filter="open">Op te volgen <b id="cfOpen">0</b></button>
-      <button type="button" data-filter="customer">Klant <b id="cfCustomer">0</b></button>
-      <button type="button" data-filter="no_interest">Geen interesse <b id="cfNo">0</b></button>
-      <button type="button" data-filter="all">Alle <b id="cfAll">0</b></button>
+      <button type="button" data-filter="open"><b id="cfOpen">0</b><span>Op te volgen</span></button>
+      <button type="button" data-filter="customer"><b id="cfCustomer">0</b><span>Klant</span></button>
+      <button type="button" data-filter="no_interest"><b id="cfNo">0</b><span>Geen interesse</span></button>
+      <button type="button" data-filter="all"><b id="cfAll">0</b><span>Alle</span></button>
     </div>
 
     <div id="contactsList" class="fu-list"></div>
+  </section>
+
+  <!-- MIJN BESTELLINGEN -->
+  <section id="ordersView" class="view-section hidden">
+    <div class="view-top">
+      <button class="top-back" type="button" data-view-target="homeView">← Terug</button>
+      <button class="small-button ghost" type="button" id="exportOrdersButton">Excel export</button>
+    </div>
+
+    <h2 class="view-title">Mijn bestellingen</h2>
+    <div id="ordersList" class="records-list"></div>
   </section>
 
   <!-- BEHEER (enkel commercieel directeur / boekhoudster) -->
