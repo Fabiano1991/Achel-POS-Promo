@@ -1619,3 +1619,78 @@ body.sheet-open {
   min-height:46px;
   margin:0;
 }
+
+/* =========================================================
+   BEURSCONTACT COMPACT
+========================================================= */
+
+/* Op gsm: korte velden twee aan twee naast elkaar. */
+@media (max-width:620px) {
+  .form-grid {
+    grid-template-columns:1fr 1fr;
+    gap:10px;
+  }
+
+  .field.full {
+    grid-column:1 / -1;
+  }
+}
+
+/* Interesse: één compacte lijst i.p.v. een groot blok per bier. */
+.interest-list {
+  display:block;
+  border:1px solid rgba(201,155,67,.16);
+  border-radius:12px;
+  overflow:hidden;
+}
+
+.interest-row {
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto auto;
+  gap:6px;
+  align-items:center;
+  padding:5px 6px 5px 11px;
+  border:0;
+  border-top:1px solid rgba(255,255,255,.05);
+  border-radius:0;
+  background:transparent;
+}
+
+.interest-row:first-child {
+  border-top:0;
+}
+
+.interest-name {
+  font-size:12.5px;
+  font-weight:800;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
+.interest-chip input {
+  position:absolute;
+  opacity:0;
+  width:1px;
+  height:1px;
+  min-height:0;
+}
+
+.interest-chip span {
+  display:inline-block;
+  min-width:46px;
+  padding:6px 0;
+  border:1px solid rgba(201,155,67,.25);
+  border-radius:999px;
+  text-align:center;
+  color:var(--muted);
+  font-size:11px;
+  font-weight:800;
+  cursor:pointer;
+}
+
+.interest-chip input:checked + span {
+  border-color:var(--gold-bright);
+  background:rgba(201,155,67,.22);
+  color:var(--gold-bright);
+}
