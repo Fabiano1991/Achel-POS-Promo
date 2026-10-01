@@ -2215,3 +2215,35 @@ body {
   font-size:10.5px;
   padding:0 7px;
 }
+
+/* Filters: 4 vakjes die altijd binnen het scherm passen */
+.contact-filters {
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:6px;
+  overflow:visible;
+}
+
+.contact-filters button {
+  flex-direction:column;
+  justify-content:center;
+  gap:1px;
+  min-width:0;
+  padding:7px 4px;
+  border-radius:12px;
+  text-align:center;
+}
+
+.contact-filters button b {
+  font-size:17px;
+  line-height:1.1;
+}
+
+.contact-filters button span {
+  font-size:10.5px;
+  line-height:1.15;
+}
+
+.contact-filters button.active b {
+  color:var(--gold-bright);
+}
