@@ -1008,3 +1008,85 @@ select option {
 .record-badge.inactive {
   opacity:.55;
 }
+
+/* Gemengde beursactie: gratis bieren kiezen */
+
+.free-picker {
+  margin-top:12px;
+}
+
+.free-block {
+  padding:10px;
+  border:1px solid rgba(143,201,161,.30);
+  border-radius:13px;
+  background:rgba(74,145,95,.08);
+}
+
+.free-block + .free-block {
+  margin-top:10px;
+}
+
+.free-block-head {
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+  align-items:flex-start;
+  margin-bottom:6px;
+}
+
+.free-block-head strong {
+  display:block;
+  color:var(--success);
+  font-size:13px;
+}
+
+.free-block-head small {
+  display:block;
+  margin-top:2px;
+  color:var(--muted);
+  font-size:10.5px;
+}
+
+.free-row {
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  gap:10px;
+  align-items:center;
+  padding:8px 2px;
+  border-top:1px solid rgba(255,255,255,.055);
+  font-size:12px;
+  font-weight:800;
+}
+
+.free-count {
+  text-align:center;
+  font-size:15px;
+}
+
+.qty-button:disabled {
+  opacity:.35;
+  cursor:not-allowed;
+}
+
+.free-status {
+  margin-top:6px;
+  font-size:12px;
+  font-weight:900;
+}
+
+.free-status.open {
+  color:var(--gold-bright);
+}
+
+.free-status.done {
+  color:var(--success);
+}
+
+.promo-mixed {
+  margin-top:10px;
+  font-size:11.5px;
+}
+
+.fair-select:disabled {
+  opacity:.7;
+}

@@ -7,7 +7,9 @@
   <title>Achel | Beurzen</title>
 
   <link rel="stylesheet" href="./beurzen.css">
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="../offline.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+  <script src="../offline.js"></script>
 </head>
 
 <body>
@@ -107,7 +109,7 @@
             <select id="contactFair" class="fair-select" data-name-input="contactFairName">
               <option value="">Beurzen laden...</option>
             </select>
-            <input id="contactFairName" class="fair-name-input hidden" name="fair_name" type="text" placeholder="Naam van de beurs">
+            <input id="contactFairName" name="fair_name" type="hidden">
           </div>
 
           <div class="field full">
@@ -219,7 +221,7 @@
             <select id="orderFair" class="fair-select" data-name-input="orderFairName">
               <option value="">Beurzen laden...</option>
             </select>
-            <input id="orderFairName" class="fair-name-input hidden" name="fair_name" type="text" placeholder="Naam van de beurs">
+            <input id="orderFairName" name="fair_name" type="hidden">
           </div>
 
           <div id="orderPromos" class="promo-banner hidden full"></div>
@@ -278,6 +280,8 @@
             <div id="products-gvp" class="product-list"></div>
           </details>
         </div>
+
+        <div id="freePicker" class="free-picker hidden"></div>
 
         <div id="orderSummary" class="order-summary hidden"></div>
 
@@ -338,7 +342,7 @@
           <span class="eyebrow">Beurzen</span>
           <h2>Mijn bestellingen</h2>
         </div>
-        <button class="small-button" type="button" id="exportOrdersButton">CSV export</button>
+        <button class="small-button" type="button" id="exportOrdersButton">Excel export</button>
       </div>
       <div id="ordersList" class="records-list"></div>
     </div>
@@ -392,7 +396,7 @@
       <div id="adminOrdersPanel" class="admin-panel hidden">
         <div class="section-heading">
           <span class="muted" id="adminOrdersCount"></span>
-          <button class="small-button" type="button" id="exportAdminOrdersButton">CSV export</button>
+          <button class="small-button" type="button" id="exportAdminOrdersButton">Excel export</button>
         </div>
         <div id="adminOrdersList" class="records-list"></div>
       </div>
@@ -447,7 +451,7 @@
         <div class="promo-editor">
           <div class="promo-editor-head">
             <strong>Beursacties</strong>
-            <small>Bv. 10+2: per 10 besteld krijgt de klant er 2 gratis bij (per artikel).</small>
+            <small>Bv. 10+2: per 10 besteld krijgt de klant er 2 gratis bij.</small>
           </div>
 
           <div id="promoRows"></div>
