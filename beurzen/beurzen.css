@@ -739,3 +739,272 @@ select option {
     height:54px;
   }
 }
+
+/* =========================================================
+   BEURZEN INSTELLEN + BEURSACTIES
+========================================================= */
+
+.fair-name-input {
+  margin-top:8px;
+}
+
+.promo-banner {
+  grid-column:1 / -1;
+  padding:10px 12px;
+  border:1px solid rgba(224,184,95,.45);
+  border-radius:12px;
+  background:rgba(201,155,67,.10);
+  font-size:12px;
+}
+
+.promo-banner strong {
+  color:var(--gold-bright);
+}
+
+.promo-banner ul {
+  margin:6px 0 0;
+  padding-left:18px;
+}
+
+.promo-banner li {
+  margin:2px 0;
+}
+
+.group-promo {
+  margin-left:6px;
+  padding:2px 6px;
+  border-radius:999px;
+  background:rgba(201,155,67,.20);
+  color:var(--gold-bright);
+  font-size:10px;
+  font-style:normal;
+  font-weight:900;
+}
+
+.promo-free,
+.free-tag {
+  display:inline-block;
+  margin-left:4px;
+  padding:1px 6px;
+  border-radius:999px;
+  background:rgba(74,145,95,.18);
+  color:var(--success);
+  font-size:10px;
+  font-weight:900;
+  white-space:nowrap;
+}
+
+.promo-free.hidden {
+  display:none;
+}
+
+.summary-free {
+  margin-top:4px;
+  color:var(--success);
+  font-size:12px;
+  font-weight:800;
+}
+
+.fair-form {
+  margin-bottom:16px;
+  padding:12px;
+  border:1px solid var(--line);
+  border-radius:14px;
+  background:rgba(255,255,255,.025);
+}
+
+.fair-form-title {
+  margin:0 0 12px;
+  font-size:15px;
+}
+
+.toggle-line {
+  display:flex !important;
+  align-items:center;
+  gap:10px;
+  font-weight:700 !important;
+  cursor:pointer;
+}
+
+.toggle-line input {
+  width:20px;
+  min-height:20px;
+  height:20px;
+  accent-color:var(--gold);
+}
+
+.promo-editor {
+  margin-top:16px;
+}
+
+.promo-editor-head strong {
+  display:block;
+  font-size:13px;
+}
+
+.promo-editor-head small,
+.promo-hint {
+  display:block;
+  margin-top:3px;
+  color:var(--muted);
+  font-size:10.5px;
+}
+
+.promo-empty {
+  margin:10px 0;
+  color:var(--muted);
+  font-size:12px;
+}
+
+.promo-row {
+  margin-top:10px;
+  padding:10px;
+  border:1px solid rgba(201,155,67,.20);
+  border-radius:12px;
+  background:var(--panel-2);
+}
+
+.promo-row-head {
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:8px;
+  color:var(--gold-bright);
+  font-size:11px;
+  font-weight:900;
+  text-transform:uppercase;
+  letter-spacing:.06em;
+}
+
+.promo-remove {
+  width:30px;
+  height:30px;
+  border:1px solid rgba(233,160,160,.25);
+  border-radius:9px;
+  background:transparent;
+  color:var(--danger);
+  cursor:pointer;
+}
+
+.promo-numbers {
+  display:flex;
+  align-items:flex-end;
+  gap:8px;
+}
+
+.promo-numbers label {
+  flex:1;
+}
+
+.promo-numbers small {
+  display:block;
+  margin-bottom:4px;
+  color:var(--muted);
+  font-size:10.5px;
+}
+
+.promo-numbers b {
+  padding-bottom:12px;
+  color:var(--gold-bright);
+  font-size:18px;
+}
+
+.promo-numbers input {
+  text-align:center;
+  font-weight:900;
+}
+
+.promo-cats {
+  display:flex;
+  flex-wrap:wrap;
+  gap:6px;
+  margin-top:10px;
+}
+
+.promo-cat input {
+  position:absolute;
+  opacity:0;
+  width:1px;
+  height:1px;
+  min-height:0;
+}
+
+.promo-cat span {
+  display:inline-block;
+  padding:7px 10px;
+  border:1px solid rgba(201,155,67,.25);
+  border-radius:999px;
+  font-size:11.5px;
+  font-weight:700;
+  cursor:pointer;
+}
+
+.promo-cat input:checked + span {
+  border-color:var(--gold-bright);
+  background:rgba(201,155,67,.22);
+  color:var(--gold-bright);
+}
+
+.promo-add-buttons,
+.fair-form-actions {
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  margin-top:10px;
+}
+
+.fair-form-actions {
+  justify-content:space-between;
+}
+
+.small-button.ghost {
+  background:transparent;
+  color:var(--gold-bright);
+}
+
+.small-button.danger {
+  background:transparent;
+  border-color:rgba(233,160,160,.35);
+  color:var(--danger);
+}
+
+.fair-card {
+  padding:12px;
+}
+
+.fair-card-main {
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+  align-items:flex-start;
+}
+
+.fair-card-main strong,
+.fair-card-main small {
+  display:block;
+}
+
+.fair-card-promos {
+  display:flex;
+  flex-wrap:wrap;
+  gap:6px;
+  margin:10px 0;
+}
+
+.fair-card-promos span {
+  padding:3px 8px;
+  border-radius:999px;
+  background:rgba(201,155,67,.16);
+  color:var(--gold-bright);
+  font-size:11px;
+  font-weight:800;
+}
+
+.muted-text {
+  color:var(--muted);
+  font-size:11px;
+}
+
+.record-badge.inactive {
+  opacity:.55;
+}

@@ -67,6 +67,12 @@
       <small>Rechtstreeks op de beurs</small>
     </button>
 
+    <button class="action-card admin-action hidden" type="button" id="fairSetupActionCard" data-view-target="fairsAdminView">
+      <span class="action-kicker">Beheer</span>
+      <strong>Beurzen instellen</strong>
+      <small>Beurs aanmaken met eigen beursacties (bv. 10+2)</small>
+    </button>
+
     <button class="action-card admin-action hidden" type="button" id="adminActionCard" data-view-target="adminView">
       <span class="action-kicker">Beheer</span>
       <strong>Alle beurzen-data</strong>
@@ -97,8 +103,11 @@
         <div class="form-grid">
 
           <div class="field full">
-            <label for="contactFairName">Beurs</label>
-            <input id="contactFairName" name="fair_name" type="text" placeholder="Bijv. Horeca Expo 2026" required>
+            <label for="contactFair">Beurs</label>
+            <select id="contactFair" class="fair-select" data-name-input="contactFairName">
+              <option value="">Beurzen laden...</option>
+            </select>
+            <input id="contactFairName" class="fair-name-input hidden" name="fair_name" type="text" placeholder="Naam van de beurs">
           </div>
 
           <div class="field full">
@@ -206,6 +215,16 @@
 
         <div class="form-grid">
           <div class="field full">
+            <label for="orderFair">Beurs</label>
+            <select id="orderFair" class="fair-select" data-name-input="orderFairName">
+              <option value="">Beurzen laden...</option>
+            </select>
+            <input id="orderFairName" class="fair-name-input hidden" name="fair_name" type="text" placeholder="Naam van de beurs">
+          </div>
+
+          <div id="orderPromos" class="promo-banner hidden full"></div>
+
+          <div class="field full">
             <label for="orderRepresentative">Vertegenwoordiger</label>
             <select id="orderRepresentative" name="representative_id" required>
               <option value="">Vertegenwoordigers laden...</option>
@@ -215,11 +234,6 @@
           <div class="field full">
             <label for="orderBusiness">Horecazaak / klant</label>
             <input id="orderBusiness" name="business_name" type="text" required>
-          </div>
-
-          <div class="field full">
-            <label for="orderFairName">Beurs</label>
-            <input id="orderFairName" name="fair_name" type="text" placeholder="Bijv. Horeca Expo 2026" required>
           </div>
         </div>
 
@@ -382,6 +396,79 @@
         </div>
         <div id="adminOrdersList" class="records-list"></div>
       </div>
+    </div>
+  </section>
+
+  <!-- BEURZEN INSTELLEN (enkel admin / commercieel directeur) -->
+  <section id="fairsAdminView" class="view-section hidden">
+    <button class="top-back" type="button" data-view-target="homeView">← Terug</button>
+
+    <div class="section-card">
+      <div class="section-heading">
+        <div>
+          <span class="eyebrow">Beheer</span>
+          <h2>Beurzen instellen</h2>
+        </div>
+        <button class="small-button" type="button" id="newFairButton">+ Nieuwe beurs</button>
+      </div>
+
+      <form id="fairForm" class="fair-form hidden" novalidate>
+        <h3 id="fairFormTitle" class="fair-form-title">Nieuwe beurs</h3>
+
+        <div class="form-grid">
+          <div class="field full">
+            <label for="fairName">Naam van de beurs</label>
+            <input id="fairName" name="name" type="text" placeholder="Bijv. Horeca Expo 2026" required>
+          </div>
+
+          <div class="field full">
+            <label for="fairLocation">Plaats (optioneel)</label>
+            <input id="fairLocation" name="location" type="text" placeholder="Bijv. Flanders Expo Gent">
+          </div>
+
+          <div class="field">
+            <label for="fairStart">Van</label>
+            <input id="fairStart" name="start_date" type="date">
+          </div>
+
+          <div class="field">
+            <label for="fairEnd">Tot</label>
+            <input id="fairEnd" name="end_date" type="date">
+          </div>
+
+          <div class="field full">
+            <label class="toggle-line">
+              <input id="fairActive" name="active" type="checkbox" checked>
+              <span>Actief — vertegenwoordigers kunnen deze beurs kiezen</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="promo-editor">
+          <div class="promo-editor-head">
+            <strong>Beursacties</strong>
+            <small>Bv. 10+2: per 10 besteld krijgt de klant er 2 gratis bij (per artikel).</small>
+          </div>
+
+          <div id="promoRows"></div>
+
+          <div class="promo-add-buttons">
+            <button class="small-button ghost" type="button" id="addFreePromoButton">+ Gratis-actie (bv. 10+2)</button>
+            <button class="small-button ghost" type="button" id="addTextPromoButton">+ Andere actie (tekst)</button>
+          </div>
+        </div>
+
+        <button id="saveFairButton" class="submit-button" type="submit">Beurs opslaan</button>
+
+        <div class="fair-form-actions">
+          <button class="small-button ghost" type="button" id="cancelFairButton">Annuleren</button>
+          <button class="small-button danger hidden" type="button" id="deleteFairButton">Beurs verwijderen</button>
+        </div>
+
+        <div id="fairMessage" class="form-message hidden"></div>
+      </form>
+
+      <div id="fairsList" class="records-list"></div>
     </div>
   </section>
 

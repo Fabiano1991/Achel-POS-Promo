@@ -28,6 +28,25 @@ let adminContacts = [];
 let adminOrders = [];
 let adminRepFilterValue = "all";
 
+// Beurzen die beheer instelt (tabel "fairs").
+// Enkel admin en commercieel directeur mogen ze aanmaken/wijzigen.
+const FAIR_MANAGER_ROLES = ["admin", "commercieel_directeur"];
+const OTHER_FAIR_VALUE = "__other";
+const LAST_FAIR_KEY = "achel_beurzen_laatste_beurs";
+let fairs = [];
+let fairsAvailable = true;
+let isFairManager = false;
+let editingFairId = null;
+let editingPromos = [];
+
+const PROMO_CATEGORIES = [
+  { value:"vat20", label:"Vaten 20L" },
+  { value:"krat24", label:"Kratten 24 × 33cl" },
+  { value:"doos75", label:"Dozen 6 × 75cl" },
+  { value:"clip4", label:"Clips 4 × 33cl" },
+  { value:"gvp", label:"GVP" }
+];
+
 // =========================================================
 // OFFICIËLE ARTIKELLIJST
 // ID en artikelnummer blijven altijd gekoppeld aan elk artikel.
@@ -132,7 +151,21 @@ async function initBeurzen() {
     setWelcome();
     fillRepresentativeSelects();
 
+    await loadFairs();
+    bindFairSelects();
+    fillFairSelects();
+
     isAdminUser = ADMIN_ROLES.includes(currentProfile?.rol);
+    isFairManager = FAIR_MANAGER_ROLES.includes(currentProfile?.rol);
+
+    if (isFairManager && fairsAvailable) {
+      document
+        .getElementById("fairSetupActionCard")
+        ?.classList.remove("hidden");
+
+      bindFairAdmin();
+      renderFairsList();
+    }
 
     if (isAdminUser) {
       document
@@ -435,6 +468,7 @@ function renderProducts() {
             >
               <div class="product-name">
                 ${escapeHtml(product.display_name)}
+                <span class="promo-free hidden" data-promo-free="${product.id}"></span>
               </div>
 
               <div class="quantity-control">
@@ -562,6 +596,12 @@ function getSelectedOrderItems() {
         return null;
       }
 
+      const promo =
+        promoForCategory(product.category);
+
+      const freeQuantity =
+        freeUnitsFor(quantity, promo);
+
       return {
         product_id:
           product.id,
@@ -575,7 +615,13 @@ function getSelectedOrderItems() {
           product.display_name,
         category:
           product.category,
-        quantity
+        quantity,
+        free_quantity:
+          freeQuantity,
+        promo_label:
+          freeQuantity && promo
+            ? promoLabel(promo)
+            : null
       };
     })
     .filter(Boolean);
@@ -623,6 +669,8 @@ function updateOrderSummary() {
     counts.gvp
   );
 
+  updatePromoBadges(items);
+
   const summary =
     document.getElementById(
       "orderSummary"
@@ -634,6 +682,13 @@ function updateOrderSummary() {
     items.reduce(
       (sum, item) =>
         sum + item.quantity,
+      0
+    );
+
+  const totalFree =
+    items.reduce(
+      (sum, item) =>
+        sum + (item.free_quantity || 0),
       0
     );
 
@@ -653,6 +708,10 @@ function updateOrderSummary() {
     <strong>
       ${total} eenheden geselecteerd
     </strong>
+    ${totalFree
+      ? `<div class="summary-free">+ ${totalFree} gratis via beursactie</div>`
+      : ""
+    }
     <div style="margin-top:5px;color:var(--muted);font-size:11px;">
       ${items.length} verschillende artikelen
     </div>
@@ -723,6 +782,10 @@ async function saveContact(event) {
   const form = event.currentTarget;
 
   if (!form.reportValidity()) {
+    return;
+  }
+
+  if (!ensureFairChosen("contactFair", "contactMessage")) {
     return;
   }
 
@@ -850,6 +913,7 @@ async function saveContact(event) {
 
     form.reset();
     fillRepresentativeSelects();
+    fillFairSelects();
     renderInterestList();
 
     await refreshAllData();
@@ -887,6 +951,10 @@ async function saveOrder(event) {
     event.currentTarget;
 
   if (!form.reportValidity()) {
+    return;
+  }
+
+  if (!ensureFairChosen("orderFair", "orderMessage")) {
     return;
   }
 
@@ -947,6 +1015,9 @@ async function saveOrder(event) {
             representative?.naam ||
             representative?.email ||
             null,
+
+          fair_id:
+            selectedFairId("orderFair"),
 
           fair_name:
             cleanText(
@@ -1011,7 +1082,13 @@ async function saveOrder(event) {
           item.category,
 
         quantity:
-          item.quantity
+          item.quantity,
+
+        free_quantity:
+          item.free_quantity || 0,
+
+        promo_label:
+          item.promo_label
       }));
 
     const {
@@ -1033,6 +1110,7 @@ async function saveOrder(event) {
 
     form.reset();
     fillRepresentativeSelects();
+    fillFairSelects();
     resetOrderQuantities();
 
     await refreshAllData();
@@ -1119,7 +1197,9 @@ async function loadMyOrders() {
           product_name,
           display_name,
           category,
-          quantity
+          quantity,
+          free_quantity,
+          promo_label
         )
       `)
       .eq(
@@ -1308,7 +1388,9 @@ function renderOrderRecords(containerId, orders) {
                         ${escapeHtml(item.display_name || item.product_name)}
                       </span>
                       <strong>
-                        ${Number(item.quantity || 0)}
+                        ${Number(item.quantity || 0)}${Number(item.free_quantity || 0)
+                          ? ` <span class="free-tag">+${Number(item.free_quantity)} gratis</span>`
+                          : ""}
                       </strong>
                     </div>
                   `)
@@ -1480,6 +1562,8 @@ function exportOrdersCsv(
       "Artikel",
       "Categorie",
       "Aantal",
+      "Gratis (beursactie)",
+      "Beursactie",
       "Opmerking"
     ]
   ];
@@ -1504,6 +1588,8 @@ function exportOrdersCsv(
             item.category
           ),
           item.quantity || 0,
+          item.free_quantity || 0,
+          item.promo_label || "",
           order.note || ""
         ]);
       });
@@ -1542,7 +1628,9 @@ async function loadAdminData() {
             product_name,
             display_name,
             category,
-            quantity
+            quantity,
+            free_quantity,
+            promo_label
           )
         `)
         .order("created_at", { ascending:false })
@@ -1659,6 +1747,685 @@ function renderAdminPanels() {
     "adminOrdersCount",
     `${orders.length} bestelling${orders.length === 1 ? "" : "en"}`
   );
+}
+
+// =========================================================
+// BEURZEN (ingesteld door beheer)
+// Beheer maakt een beurs aan met eigen beursacties.
+// Vertegenwoordigers kiezen de beurs in een keuzelijst; de
+// acties worden dan automatisch toegepast op de bestelling.
+// =========================================================
+
+async function loadFairs() {
+  try {
+    const {
+      data,
+      error
+    } =
+      await supabaseClient
+        .from("fairs")
+        .select("*")
+        .order("start_date", { ascending:false, nullsFirst:false })
+        .order("created_at", { ascending:false });
+
+    if (error) throw error;
+
+    fairs = (data || []).map(fair => ({
+      ...fair,
+      promotions: Array.isArray(fair.promotions) ? fair.promotions : []
+    }));
+    fairsAvailable = true;
+  }
+  catch (error) {
+    // Tabel bestaat nog niet (SQL nog niet uitgevoerd) of geen
+    // verbinding: dan werkt de app zoals vroeger met vrije tekst.
+    console.warn("BEURZEN LADEN MISLUKT:", error);
+    fairs = [];
+    fairsAvailable = false;
+  }
+}
+
+function activeFairs() {
+  return fairs.filter(fair => fair.active);
+}
+
+function findFair(id) {
+  return fairs.find(fair => fair.id === id) || null;
+}
+
+function fairOptionLabel(fair) {
+  const dates = fairDateText(fair);
+  return dates ? `${fair.name} (${dates})` : fair.name;
+}
+
+function fairDateText(fair) {
+  if (!fair) return "";
+  const start = fair.start_date ? formatDate(fair.start_date) : "";
+  const end = fair.end_date ? formatDate(fair.end_date) : "";
+  if (start && end && start !== end) return `${start} – ${end}`;
+  return start || end || "";
+}
+
+function fillFairSelects() {
+  const list = activeFairs();
+  const remembered = readLastFair();
+
+  document
+    .querySelectorAll(".fair-select")
+    .forEach(select => {
+      const options =
+        list.map(fair => `
+          <option value="${escapeHtml(fair.id)}">
+            ${escapeHtml(fairOptionLabel(fair))}
+          </option>
+        `);
+
+      select.innerHTML =
+        (list.length
+          ? `<option value="">Kies een beurs...</option>`
+          : `<option value="">Nog geen beurs ingesteld</option>`) +
+        options.join("") +
+        `<option value="${OTHER_FAIR_VALUE}">Andere beurs (zelf invullen)</option>`;
+
+      // Standaard: laatst gekozen beurs, of de enige actieve beurs.
+      if (remembered && list.some(fair => fair.id === remembered)) {
+        select.value = remembered;
+      }
+      else if (list.length === 1) {
+        select.value = list[0].id;
+      }
+      else if (!list.length) {
+        select.value = OTHER_FAIR_VALUE;
+      }
+
+      syncFairSelect(select, false);
+    });
+
+  updateOrderPromos();
+  updateOrderSummary();
+}
+
+function bindFairSelects() {
+  document
+    .querySelectorAll(".fair-select")
+    .forEach(select => {
+      select.addEventListener("change", () => {
+        syncFairSelect(select, true);
+
+        if (select.value && select.value !== OTHER_FAIR_VALUE) {
+          saveLastFair(select.value);
+        }
+
+        if (select.id === "orderFair") {
+          updateOrderPromos();
+          updateOrderSummary();
+        }
+      });
+    });
+}
+
+// Zet de beursnaam in het (verborgen) tekstveld zodat het
+// formulier de naam meestuurt. Bij "Andere beurs" wordt het
+// tekstveld zichtbaar om zelf in te vullen.
+function syncFairSelect(select, focusInput) {
+  const input =
+    document.getElementById(select.dataset.nameInput);
+
+  if (!input) return;
+
+  if (select.value === OTHER_FAIR_VALUE) {
+    input.classList.remove("hidden");
+    input.value = "";
+    if (focusInput) input.focus();
+    return;
+  }
+
+  input.classList.add("hidden");
+  input.value = findFair(select.value)?.name || "";
+}
+
+function selectedFairId(selectId) {
+  const value =
+    document.getElementById(selectId)?.value || "";
+
+  return value && value !== OTHER_FAIR_VALUE
+    ? value
+    : null;
+}
+
+function ensureFairChosen(selectId, messageId) {
+  const select = document.getElementById(selectId);
+  const input = document.getElementById(select?.dataset.nameInput);
+
+  if (cleanText(input?.value)) {
+    return true;
+  }
+
+  showMessage(
+    messageId,
+    select?.value === OTHER_FAIR_VALUE
+      ? "Vul de naam van de beurs in."
+      : "Kies eerst een beurs.",
+    true
+  );
+
+  (select?.value === OTHER_FAIR_VALUE ? input : select)?.focus();
+  return false;
+}
+
+function readLastFair() {
+  try {
+    return localStorage.getItem(LAST_FAIR_KEY) || "";
+  }
+  catch {
+    return "";
+  }
+}
+
+function saveLastFair(id) {
+  try {
+    localStorage.setItem(LAST_FAIR_KEY, id);
+  }
+  catch {
+    // Niet erg: dan wordt de keuze gewoon niet onthouden.
+  }
+}
+
+// ---------- Beursacties berekenen ----------
+
+function currentOrderFair() {
+  return findFair(selectedFairId("orderFair"));
+}
+
+function promoForCategory(category) {
+  const fair = currentOrderFair();
+  if (!fair) return null;
+
+  return fair.promotions.find(promo =>
+    promo.type === "free" &&
+    Number(promo.buy) > 0 &&
+    Number(promo.free) > 0 &&
+    Array.isArray(promo.categories) &&
+    promo.categories.includes(category)
+  ) || null;
+}
+
+// Per artikel: elke "buy" besteld geeft "free" gratis.
+// Bv. 10+2 en 25 besteld → 2 × 2 = 4 gratis.
+function freeUnitsFor(quantity, promo) {
+  if (!promo) return 0;
+  return Math.floor(quantity / Number(promo.buy)) * Number(promo.free);
+}
+
+function promoLabel(promo) {
+  if (!promo) return "";
+
+  if (promo.type === "text") {
+    return promo.label || "";
+  }
+
+  const cats =
+    (promo.categories || [])
+      .map(value =>
+        PROMO_CATEGORIES.find(cat => cat.value === value)?.label || value
+      )
+      .join(", ");
+
+  return `${promo.buy}+${promo.free}${cats ? ` op ${cats}` : ""}`;
+}
+
+function updateOrderPromos() {
+  const box = document.getElementById("orderPromos");
+  if (!box) return;
+
+  const fair = currentOrderFair();
+  const promos = fair?.promotions || [];
+
+  // Kleine actie-labels bij de productgroepen.
+  PROMO_CATEGORIES.forEach(cat => {
+    const summary =
+      document.getElementById(`count-${cat.value}`)?.parentElement;
+    if (!summary) return;
+
+    summary.querySelector(".group-promo")?.remove();
+
+    const promo = promoForCategory(cat.value);
+    if (promo) {
+      summary
+        .querySelector("span")
+        ?.insertAdjacentHTML(
+          "beforeend",
+          ` <em class="group-promo">${escapeHtml(`${promo.buy}+${promo.free}`)}</em>`
+        );
+    }
+  });
+
+  if (!fair || !promos.length) {
+    box.classList.add("hidden");
+    box.innerHTML = "";
+    return;
+  }
+
+  box.classList.remove("hidden");
+  box.innerHTML = `
+    <strong>Beursacties ${escapeHtml(fair.name)}</strong>
+    <ul>
+      ${promos
+        .map(promo => `<li>${escapeHtml(promoLabel(promo))}</li>`)
+        .join("")}
+    </ul>
+  `;
+}
+
+function updatePromoBadges(items) {
+  document
+    .querySelectorAll("[data-promo-free]")
+    .forEach(el => {
+      const item =
+        items.find(entry =>
+          String(entry.product_id) === el.dataset.promoFree
+        );
+
+      const free = item?.free_quantity || 0;
+
+      el.classList.toggle("hidden", !free);
+      el.textContent = free ? `+${free} gratis` : "";
+    });
+}
+
+// ---------- Beheerscherm: beurzen instellen ----------
+
+function bindFairAdmin() {
+  document
+    .getElementById("newFairButton")
+    ?.addEventListener("click", () => openFairForm(null));
+
+  document
+    .getElementById("cancelFairButton")
+    ?.addEventListener("click", closeFairForm);
+
+  document
+    .getElementById("deleteFairButton")
+    ?.addEventListener("click", deleteFair);
+
+  document
+    .getElementById("addFreePromoButton")
+    ?.addEventListener("click", () => {
+      editingPromos.push({
+        id: makePromoId(),
+        type: "free",
+        buy: 10,
+        free: 2,
+        categories: []
+      });
+      renderPromoRows();
+    });
+
+  document
+    .getElementById("addTextPromoButton")
+    ?.addEventListener("click", () => {
+      editingPromos.push({
+        id: makePromoId(),
+        type: "text",
+        label: ""
+      });
+      renderPromoRows();
+    });
+
+  document
+    .getElementById("fairForm")
+    ?.addEventListener("submit", saveFair);
+
+  document
+    .getElementById("fairsList")
+    ?.addEventListener("click", event => {
+      const button = event.target.closest("[data-edit-fair]");
+      if (button) {
+        openFairForm(button.dataset.editFair);
+      }
+    });
+
+  // Wijzigingen in de actie-rijen bijhouden.
+  const rows = document.getElementById("promoRows");
+
+  rows?.addEventListener("input", handlePromoInput);
+  rows?.addEventListener("change", handlePromoInput);
+  rows?.addEventListener("click", event => {
+    const remove = event.target.closest("[data-remove-promo]");
+    if (!remove) return;
+
+    editingPromos =
+      editingPromos.filter(promo => promo.id !== remove.dataset.removePromo);
+    renderPromoRows();
+  });
+}
+
+function makePromoId() {
+  return `a${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
+}
+
+function openFairForm(fairId) {
+  const form = document.getElementById("fairForm");
+  if (!form) return;
+
+  const fair = fairId ? findFair(fairId) : null;
+  editingFairId = fair?.id || null;
+
+  form.reset();
+  document.getElementById("fairMessage")?.classList.add("hidden");
+
+  setText("fairFormTitle", fair ? "Beurs wijzigen" : "Nieuwe beurs");
+
+  document.getElementById("fairName").value = fair?.name || "";
+  document.getElementById("fairLocation").value = fair?.location || "";
+  document.getElementById("fairStart").value = fair?.start_date || "";
+  document.getElementById("fairEnd").value = fair?.end_date || "";
+  document.getElementById("fairActive").checked = fair ? fair.active : true;
+
+  editingPromos =
+    (fair?.promotions || []).map(promo => ({
+      ...promo,
+      id: promo.id || makePromoId(),
+      categories: Array.isArray(promo.categories) ? [...promo.categories] : []
+    }));
+
+  renderPromoRows();
+
+  document
+    .getElementById("deleteFairButton")
+    ?.classList.toggle("hidden", !fair);
+
+  form.classList.remove("hidden");
+  document.getElementById("fairName")?.focus();
+  form.scrollIntoView({ behavior:"smooth", block:"start" });
+}
+
+function closeFairForm() {
+  editingFairId = null;
+  editingPromos = [];
+  document.getElementById("fairForm")?.classList.add("hidden");
+}
+
+function renderPromoRows() {
+  const container = document.getElementById("promoRows");
+  if (!container) return;
+
+  if (!editingPromos.length) {
+    container.innerHTML =
+      `<div class="promo-empty">Nog geen beursacties. Voeg er hieronder één toe.</div>`;
+    return;
+  }
+
+  container.innerHTML =
+    editingPromos
+      .map(promo => {
+        if (promo.type === "text") {
+          return `
+            <div class="promo-row" data-promo-id="${escapeHtml(promo.id)}">
+              <div class="promo-row-head">
+                <span>Andere actie</span>
+                <button type="button" class="promo-remove" data-remove-promo="${escapeHtml(promo.id)}" aria-label="Actie verwijderen">✕</button>
+              </div>
+              <input type="text" data-promo-field="label" value="${escapeHtml(promo.label || "")}" placeholder="Bijv. gratis tapinstallatie vanaf 5 vaten">
+              <small class="promo-hint">Wordt getoond bij het bestellen, maar niet automatisch berekend.</small>
+            </div>
+          `;
+        }
+
+        return `
+          <div class="promo-row" data-promo-id="${escapeHtml(promo.id)}">
+            <div class="promo-row-head">
+              <span>Gratis-actie</span>
+              <button type="button" class="promo-remove" data-remove-promo="${escapeHtml(promo.id)}" aria-label="Actie verwijderen">✕</button>
+            </div>
+
+            <div class="promo-numbers">
+              <label>
+                <small>Besteld</small>
+                <input type="number" inputmode="numeric" min="1" step="1" data-promo-field="buy" value="${Number(promo.buy) || ""}">
+              </label>
+              <b>+</b>
+              <label>
+                <small>Gratis</small>
+                <input type="number" inputmode="numeric" min="1" step="1" data-promo-field="free" value="${Number(promo.free) || ""}">
+              </label>
+            </div>
+
+            <div class="promo-cats">
+              ${PROMO_CATEGORIES
+                .map(cat => `
+                  <label class="promo-cat">
+                    <input type="checkbox" data-promo-cat="${cat.value}" ${(promo.categories || []).includes(cat.value) ? "checked" : ""}>
+                    <span>${escapeHtml(cat.label)}</span>
+                  </label>
+                `)
+                .join("")}
+            </div>
+
+            <small class="promo-hint" data-promo-preview>${escapeHtml(promoPreview(promo))}</small>
+          </div>
+        `;
+      })
+      .join("");
+}
+
+function promoPreview(promo) {
+  if (!promo.categories?.length) {
+    return "Vink aan op welke producten deze actie geldt.";
+  }
+  if (!(Number(promo.buy) > 0) || !(Number(promo.free) > 0)) {
+    return "Vul beide aantallen in.";
+  }
+  return `Per artikel: per ${promo.buy} besteld → ${promo.free} gratis.`;
+}
+
+function handlePromoInput(event) {
+  const row = event.target.closest("[data-promo-id]");
+  if (!row) return;
+
+  const promo =
+    editingPromos.find(item => item.id === row.dataset.promoId);
+  if (!promo) return;
+
+  const field = event.target.dataset.promoField;
+  const cat = event.target.dataset.promoCat;
+
+  if (field === "label") {
+    promo.label = event.target.value;
+  }
+  else if (field === "buy" || field === "free") {
+    promo[field] = Math.max(0, Math.floor(Number(event.target.value || 0)));
+  }
+  else if (cat) {
+    const set = new Set(promo.categories || []);
+    if (event.target.checked) set.add(cat);
+    else set.delete(cat);
+    promo.categories = PROMO_CATEGORIES
+      .map(item => item.value)
+      .filter(value => set.has(value));
+  }
+
+  const preview = row.querySelector("[data-promo-preview]");
+  if (preview) preview.textContent = promoPreview(promo);
+}
+
+function collectPromotions() {
+  const result = [];
+
+  for (const promo of editingPromos) {
+    if (promo.type === "text") {
+      const label = cleanText(promo.label);
+      if (label) {
+        result.push({ id: promo.id, type: "text", label });
+      }
+      continue;
+    }
+
+    const buy = Number(promo.buy);
+    const free = Number(promo.free);
+
+    if (!(buy > 0) || !(free > 0)) {
+      throw new Error("Vul bij elke gratis-actie beide aantallen in (bv. 10 + 2).");
+    }
+
+    if (!promo.categories?.length) {
+      throw new Error(`Kies bij de actie ${buy}+${free} op welke producten ze geldt.`);
+    }
+
+    const clean = { id: promo.id, type: "free", buy, free, categories: [...promo.categories] };
+    clean.label = promoLabel(clean);
+    result.push(clean);
+  }
+
+  return result;
+}
+
+async function saveFair(event) {
+  event.preventDefault();
+
+  const form = event.currentTarget;
+  if (!form.reportValidity()) return;
+
+  const button = document.getElementById("saveFairButton");
+
+  let payload;
+
+  try {
+    const start = document.getElementById("fairStart").value || null;
+    const end = document.getElementById("fairEnd").value || null;
+
+    if (start && end && end < start) {
+      throw new Error("De einddatum ligt vóór de startdatum.");
+    }
+
+    payload = {
+      name: cleanText(document.getElementById("fairName").value),
+      location: cleanText(document.getElementById("fairLocation").value),
+      start_date: start,
+      end_date: end,
+      active: document.getElementById("fairActive").checked,
+      promotions: collectPromotions()
+    };
+
+    if (!payload.name) {
+      throw new Error("Geef de beurs een naam.");
+    }
+  }
+  catch (error) {
+    showMessage("fairMessage", error.message, true);
+    return;
+  }
+
+  try {
+    setBusy(button, true, "Beurs opslaan...");
+
+    const query =
+      editingFairId
+        ? supabaseClient.from("fairs").update(payload).eq("id", editingFairId)
+        : supabaseClient.from("fairs").insert({ ...payload, created_by: currentSession.user.id });
+
+    const { error } = await query;
+    if (error) throw error;
+
+    await loadFairs();
+    fillFairSelects();
+    renderFairsList();
+    closeFairForm();
+
+    showFairsListMessage("✓ Beurs opgeslagen.");
+  }
+  catch (error) {
+    console.error("BEURS OPSLAAN FOUT:", error);
+    showMessage("fairMessage", error?.message || "Beurs kon niet worden opgeslagen.", true);
+  }
+  finally {
+    setBusy(button, false, "Beurs opslaan");
+  }
+}
+
+async function deleteFair() {
+  if (!editingFairId) return;
+
+  const fair = findFair(editingFairId);
+
+  const ok = confirm(
+    `Beurs "${fair?.name || ""}" verwijderen?\n\n` +
+    "Bestellingen die al geplaatst zijn blijven bewaard (met de beursnaam). " +
+    "Wil je de beurs enkel verbergen voor vertegenwoordigers, zet ze dan op niet-actief."
+  );
+
+  if (!ok) return;
+
+  try {
+    const { error } =
+      await supabaseClient.from("fairs").delete().eq("id", editingFairId);
+
+    if (error) throw error;
+
+    await loadFairs();
+    fillFairSelects();
+    renderFairsList();
+    closeFairForm();
+
+    showFairsListMessage("Beurs verwijderd.");
+  }
+  catch (error) {
+    console.error("BEURS VERWIJDEREN FOUT:", error);
+    showMessage("fairMessage", error?.message || "Beurs kon niet worden verwijderd.", true);
+  }
+}
+
+function showFairsListMessage(text) {
+  const list = document.getElementById("fairsList");
+  if (!list) return;
+
+  list.insertAdjacentHTML(
+    "afterbegin",
+    `<div class="form-message success">${escapeHtml(text)}</div>`
+  );
+}
+
+function renderFairsList() {
+  const container = document.getElementById("fairsList");
+  if (!container) return;
+
+  if (!fairs.length) {
+    container.innerHTML =
+      emptyState("Nog geen beurzen. Tik op \"+ Nieuwe beurs\" om te starten.");
+    return;
+  }
+
+  container.innerHTML =
+    fairs
+      .map(fair => `
+        <div class="record-card fair-card">
+          <div class="fair-card-main">
+            <div>
+              <strong>${escapeHtml(fair.name)}</strong>
+              <small>
+                ${escapeHtml([fair.location, fairDateText(fair)].filter(Boolean).join(" · ") || "Geen datum")}
+              </small>
+            </div>
+            <span class="record-badge ${fair.active ? "" : "inactive"}">
+              ${fair.active ? "Actief" : "Niet actief"}
+            </span>
+          </div>
+
+          ${fair.promotions.length
+            ? `<div class="fair-card-promos">
+                ${fair.promotions
+                  .map(promo => `<span>${escapeHtml(promoLabel(promo))}</span>`)
+                  .join("")}
+              </div>`
+            : `<div class="fair-card-promos muted-text">Geen beursacties</div>`
+          }
+
+          <button class="small-button ghost" type="button" data-edit-fair="${escapeHtml(fair.id)}">
+            Wijzigen
+          </button>
+        </div>
+      `)
+      .join("");
 }
 
 // =========================================================
