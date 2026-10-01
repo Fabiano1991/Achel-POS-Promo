@@ -28,6 +28,7 @@
 
 <main class="beurs-shell">
 
+  <div id="homeHeader">
   <section class="hero-card">
     <div>
       <span class="eyebrow">Achelse Kluis</span>
@@ -69,18 +70,20 @@
       <small>Rechtstreeks op de beurs</small>
     </button>
 
-    <button class="action-card admin-action hidden" type="button" id="fairSetupActionCard" data-view-target="fairsAdminView">
-      <span class="action-kicker">Beheer</span>
-      <strong>Beurzen instellen</strong>
-      <small>Beurs aanmaken met eigen beursacties (bv. 10+2)</small>
-    </button>
-
-    <button class="action-card admin-action hidden" type="button" id="adminActionCard" data-view-target="adminView">
-      <span class="action-kicker">Beheer</span>
-      <strong>Alle beurzen-data</strong>
-      <small>Klanten en bestellingen van alle vertegenwoordigers</small>
-    </button>
   </section>
+
+  <nav id="adminLinks" class="admin-links hidden">
+    <span class="admin-links-title">Beheer</span>
+    <button class="admin-link hidden" type="button" id="fairSetupActionCard" data-view-target="fairsAdminView">
+      <span><strong>Beurzen instellen</strong><small>Beurs + beursacties (bv. 10+2)</small></span>
+      <i>›</i>
+    </button>
+    <button class="admin-link hidden" type="button" id="adminActionCard" data-view-target="adminView">
+      <span><strong>Alle beurzen-data</strong><small>Klanten en bestellingen van iedereen</small></span>
+      <i>›</i>
+    </button>
+  </nav>
+  </div>
 
   <section id="homeView" class="view-section">
     <p class="footnote">
@@ -405,78 +408,108 @@
 
   <!-- BEURZEN INSTELLEN (enkel admin / commercieel directeur) -->
   <section id="fairsAdminView" class="view-section hidden">
-    <button class="top-back" type="button" data-view-target="homeView">← Terug</button>
-
-    <div class="section-card">
-      <div class="section-heading">
-        <div>
-          <span class="eyebrow">Beheer</span>
-          <h2>Beurzen instellen</h2>
-        </div>
-        <button class="small-button" type="button" id="newFairButton">+ Nieuwe beurs</button>
-      </div>
-
-      <form id="fairForm" class="fair-form hidden" novalidate>
-        <h3 id="fairFormTitle" class="fair-form-title">Nieuwe beurs</h3>
-
-        <div class="form-grid">
-          <div class="field full">
-            <label for="fairName">Naam van de beurs</label>
-            <input id="fairName" name="name" type="text" placeholder="Bijv. Horeca Expo 2026" required>
-          </div>
-
-          <div class="field full">
-            <label for="fairLocation">Plaats (optioneel)</label>
-            <input id="fairLocation" name="location" type="text" placeholder="Bijv. Flanders Expo Gent">
-          </div>
-
-          <div class="field">
-            <label for="fairStart">Van</label>
-            <input id="fairStart" name="start_date" type="date">
-          </div>
-
-          <div class="field">
-            <label for="fairEnd">Tot</label>
-            <input id="fairEnd" name="end_date" type="date">
-          </div>
-
-          <div class="field full">
-            <label class="toggle-line">
-              <input id="fairActive" name="active" type="checkbox" checked>
-              <span>Actief — vertegenwoordigers kunnen deze beurs kiezen</span>
-            </label>
-          </div>
-        </div>
-
-        <div class="promo-editor">
-          <div class="promo-editor-head">
-            <strong>Beursacties</strong>
-            <small>Bv. 10+2: per 10 besteld krijgt de klant er 2 gratis bij.</small>
-          </div>
-
-          <div id="promoRows"></div>
-
-          <div class="promo-add-buttons">
-            <button class="small-button ghost" type="button" id="addFreePromoButton">+ Gratis-actie (bv. 10+2)</button>
-            <button class="small-button ghost" type="button" id="addTextPromoButton">+ Andere actie (tekst)</button>
-          </div>
-        </div>
-
-        <button id="saveFairButton" class="submit-button" type="submit">Beurs opslaan</button>
-
-        <div class="fair-form-actions">
-          <button class="small-button ghost" type="button" id="cancelFairButton">Annuleren</button>
-          <button class="small-button danger hidden" type="button" id="deleteFairButton">Beurs verwijderen</button>
-        </div>
-
-        <div id="fairMessage" class="form-message hidden"></div>
-      </form>
-
-      <div id="fairsList" class="records-list"></div>
+    <div class="view-top">
+      <button class="top-back" type="button" data-view-target="homeView">← Terug</button>
+      <button class="small-button" type="button" id="newFairButton">+ Nieuwe beurs</button>
     </div>
+
+    <h2 class="view-title">Beurzen</h2>
+    <div id="fairsList" class="fair-list"></div>
   </section>
 
 </main>
+
+<!-- ONDERBLAD: BEURS AANMAKEN / WIJZIGEN -->
+<div id="fairSheet" class="sheet-overlay hidden">
+  <form id="fairForm" class="sheet" novalidate>
+    <div class="sheet-head">
+      <strong id="fairFormTitle">Nieuwe beurs</strong>
+      <button type="button" class="sheet-close" id="cancelFairButton" aria-label="Sluiten">×</button>
+    </div>
+
+    <div class="sheet-body">
+      <div class="field">
+        <label for="fairName">Naam</label>
+        <input id="fairName" name="name" type="text" placeholder="Bijv. Horeca Expo 2026" required>
+      </div>
+
+      <div class="field">
+        <label for="fairLocation">Plaats</label>
+        <input id="fairLocation" name="location" type="text" placeholder="Optioneel">
+      </div>
+
+      <div class="field">
+        <label>Periode</label>
+        <button type="button" class="date-range-button" id="fairPeriodButton">
+          <span><small>VAN</small><strong id="fairStartDisplay">Kies datum</strong></span>
+          <b>→</b>
+          <span><small>TOT</small><strong id="fairEndDisplay">—</strong></span>
+        </button>
+        <input id="fairStart" type="hidden">
+        <input id="fairEnd" type="hidden">
+      </div>
+
+      <label class="switch-line">
+        <span>Actief <small>zichtbaar voor vertegenwoordigers</small></span>
+        <input id="fairActive" name="active" type="checkbox" checked>
+        <i></i>
+      </label>
+
+      <div class="promo-editor">
+        <div class="promo-editor-head">
+          <strong>Beursacties</strong>
+        </div>
+        <div id="promoRows"></div>
+        <div class="promo-add-buttons">
+          <button class="small-button ghost" type="button" id="addFreePromoButton">+ Gratis (bv. 10+2)</button>
+          <button class="small-button ghost" type="button" id="addTextPromoButton">+ Tekst</button>
+        </div>
+      </div>
+
+      <div id="fairMessage" class="form-message hidden"></div>
+    </div>
+
+    <div class="sheet-foot">
+      <button class="small-button danger hidden" type="button" id="deleteFairButton">Verwijderen</button>
+      <button id="saveFairButton" class="submit-button" type="submit">Opslaan</button>
+    </div>
+  </form>
+</div>
+
+<!-- ONDERBLAD: KALENDER (2 keer tikken: begin en einde) -->
+<div id="calendarSheet" class="sheet-overlay hidden">
+  <div class="sheet calendar-sheet">
+    <div class="sheet-head">
+      <div>
+        <span class="eyebrow">Beursperiode</span>
+        <strong id="calendarInstruction">Tik de eerste dag</strong>
+      </div>
+      <button type="button" class="sheet-close" id="calendarCloseButton" aria-label="Sluiten">×</button>
+    </div>
+
+    <div class="calendar-selection">
+      <span><small>VAN</small><strong id="calendarFrom">—</strong></span>
+      <b>→</b>
+      <span><small>TOT</small><strong id="calendarUntil">—</strong></span>
+    </div>
+
+    <div class="calendar-nav">
+      <button type="button" id="calendarPrev" aria-label="Vorige maand">‹</button>
+      <strong id="calendarMonth"></strong>
+      <button type="button" id="calendarNext" aria-label="Volgende maand">›</button>
+    </div>
+
+    <div class="calendar-weekdays">
+      <span>MA</span><span>DI</span><span>WO</span><span>DO</span><span>VR</span><span>ZA</span><span>ZO</span>
+    </div>
+    <div id="calendarDays" class="calendar-days"></div>
+
+    <div class="calendar-actions">
+      <button type="button" class="small-button ghost" id="calendarReset">Wissen</button>
+      <button type="button" class="submit-button" id="calendarConfirm" disabled>Periode gebruiken</button>
+    </div>
+  </div>
+</div>
 
 <script src="./beurzen.js"></script>
 </body>

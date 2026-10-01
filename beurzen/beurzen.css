@@ -1090,3 +1090,532 @@ select option {
 .fair-select:disabled {
   opacity:.7;
 }
+
+/* =========================================================
+   STRUCTUUR: compacte beheerlinks, onderbladen, kalender
+========================================================= */
+
+.admin-links {
+  margin-bottom:10px;
+  border:1px solid var(--line);
+  border-radius:13px;
+  overflow:hidden;
+}
+
+.admin-links-title {
+  display:block;
+  padding:8px 12px 4px;
+  color:var(--gold-bright);
+  font-size:9px;
+  font-weight:900;
+  letter-spacing:.1em;
+  text-transform:uppercase;
+}
+
+.admin-link,
+.fair-row {
+  width:100%;
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:10px 12px;
+  border:0;
+  border-top:1px solid rgba(255,255,255,.055);
+  background:transparent;
+  color:var(--text);
+  text-align:left;
+  cursor:pointer;
+}
+
+.admin-link span,
+.fair-row-main {
+  flex:1;
+  min-width:0;
+}
+
+.admin-link strong,
+.fair-row strong {
+  display:block;
+  font-size:13px;
+}
+
+.admin-link small,
+.fair-row small {
+  display:block;
+  margin-top:2px;
+  color:var(--muted);
+  font-size:10.5px;
+}
+
+.admin-link i,
+.fair-row i {
+  color:var(--gold-bright);
+  font-size:20px;
+  font-style:normal;
+}
+
+.view-top {
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:10px;
+  margin-bottom:8px;
+}
+
+.view-top .top-back {
+  margin:0;
+}
+
+.view-title {
+  margin:4px 0 10px;
+  font-size:20px;
+}
+
+.fair-list {
+  border:1px solid var(--line);
+  border-radius:13px;
+  overflow:hidden;
+  background:var(--panel);
+}
+
+.fair-list .fair-row:first-child {
+  border-top:0;
+}
+
+.fair-list .empty-state {
+  margin:0;
+  border:0;
+}
+
+.fair-dot {
+  width:8px;
+  height:8px;
+  flex:none;
+  border-radius:50%;
+  background:var(--success);
+}
+
+.fair-row.inactive .fair-dot {
+  background:rgba(246,240,227,.25);
+}
+
+.fair-row.inactive strong {
+  opacity:.6;
+}
+
+.fair-row-promos {
+  display:flex;
+  flex-wrap:wrap;
+  gap:4px;
+  margin-top:5px;
+}
+
+.fair-row-promos em {
+  padding:1px 7px;
+  border-radius:999px;
+  background:rgba(201,155,67,.16);
+  color:var(--gold-bright);
+  font-size:10px;
+  font-style:normal;
+  font-weight:800;
+}
+
+/* ---------- Onderblad (formulier / kalender) ---------- */
+
+body.sheet-open {
+  overflow:hidden;
+}
+
+.sheet-overlay {
+  position:fixed;
+  inset:0;
+  z-index:200;
+  display:flex;
+  align-items:flex-end;
+  background:rgba(0,0,0,.55);
+}
+
+.sheet-overlay.hidden {
+  display:none;
+}
+
+.sheet {
+  width:100%;
+  max-width:560px;
+  max-height:92dvh;
+  margin:0 auto;
+  display:flex;
+  flex-direction:column;
+  border-top:1px solid rgba(201,155,67,.30);
+  border-radius:18px 18px 0 0;
+  background:
+    radial-gradient(circle at 100% 0%,rgba(201,155,67,.10),transparent 34%),
+    #151a15;
+  box-shadow:0 -12px 40px rgba(0,0,0,.35);
+}
+
+.sheet-head {
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  gap:10px;
+  padding:14px 14px 8px;
+}
+
+.sheet-head strong {
+  display:block;
+  font-size:17px;
+}
+
+.sheet-close {
+  width:34px;
+  height:34px;
+  flex:none;
+  border:1px solid rgba(201,155,67,.20);
+  border-radius:10px;
+  background:rgba(255,255,255,.055);
+  color:var(--gold-bright);
+  font-size:20px;
+  cursor:pointer;
+}
+
+.sheet-body {
+  flex:1;
+  overflow-y:auto;
+  padding:4px 14px 10px;
+  display:grid;
+  gap:10px;
+}
+
+.sheet-body .field label {
+  margin-bottom:4px;
+  font-size:11px;
+}
+
+.sheet-body input:not([type=checkbox]) {
+  min-height:42px;
+  padding:9px 11px;
+}
+
+.sheet-foot {
+  display:flex;
+  align-items:center;
+  gap:8px;
+  padding:10px 14px calc(12px + env(safe-area-inset-bottom));
+  border-top:1px solid rgba(255,255,255,.06);
+}
+
+.sheet-foot .submit-button {
+  flex:1;
+  min-height:46px;
+  margin:0;
+}
+
+.sheet-foot .small-button.danger {
+  min-height:46px;
+}
+
+/* Periode-knop */
+
+.date-range-button,
+.calendar-selection {
+  width:100%;
+  display:grid;
+  grid-template-columns:1fr 24px 1fr;
+  align-items:center;
+  gap:6px;
+  padding:9px 11px;
+  border:1px solid rgba(201,155,67,.24);
+  border-radius:12px;
+  background:rgba(255,255,255,.055);
+  color:#fff;
+  text-align:left;
+  cursor:pointer;
+}
+
+.date-range-button small,
+.calendar-selection small {
+  display:block;
+  color:var(--gold-bright);
+  font-size:9px;
+  font-weight:900;
+  letter-spacing:.06em;
+}
+
+.date-range-button strong,
+.calendar-selection strong {
+  display:block;
+  margin-top:2px;
+  font-size:13px;
+}
+
+.date-range-button b,
+.calendar-selection b {
+  text-align:center;
+  color:var(--gold-bright);
+}
+
+/* Schakelaar "Actief" */
+
+.switch-line {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  padding:9px 11px;
+  border:1px solid rgba(201,155,67,.18);
+  border-radius:12px;
+  cursor:pointer;
+  font-size:13px;
+  font-weight:800;
+}
+
+.switch-line small {
+  display:block;
+  color:var(--muted);
+  font-size:10.5px;
+  font-weight:600;
+}
+
+.switch-line input {
+  position:absolute;
+  opacity:0;
+  width:1px;
+  height:1px;
+  min-height:0;
+}
+
+.switch-line i {
+  position:relative;
+  width:42px;
+  height:24px;
+  flex:none;
+  border-radius:999px;
+  background:rgba(255,255,255,.14);
+  transition:background .15s;
+}
+
+.switch-line i::after {
+  content:"";
+  position:absolute;
+  top:3px;
+  left:3px;
+  width:18px;
+  height:18px;
+  border-radius:50%;
+  background:#fff;
+  transition:transform .15s;
+}
+
+.switch-line input:checked + i {
+  background:var(--gold);
+}
+
+.switch-line input:checked + i::after {
+  transform:translateX(18px);
+}
+
+/* Compacte beursacties */
+
+.promo-editor {
+  margin-top:0;
+}
+
+.promo-editor-head strong {
+  font-size:12px;
+}
+
+.promo-row {
+  margin-top:8px;
+  padding:9px;
+}
+
+.promo-row.text {
+  display:flex;
+  gap:8px;
+  align-items:center;
+}
+
+.promo-line {
+  display:flex;
+  align-items:center;
+  gap:6px;
+}
+
+.promo-line b {
+  color:var(--gold-bright);
+}
+
+.promo-num {
+  width:52px !important;
+  min-height:38px !important;
+  padding:4px !important;
+  text-align:center;
+  font-weight:900;
+}
+
+.promo-gratis {
+  color:var(--muted);
+  font-size:11px;
+}
+
+.promo-line .promo-chip.mixed {
+  margin-left:auto;
+}
+
+.promo-remove {
+  width:32px;
+  height:32px;
+  flex:none;
+  font-size:18px;
+}
+
+.promo-cats {
+  margin-top:8px;
+  gap:5px;
+}
+
+.promo-chip input {
+  position:absolute;
+  opacity:0;
+  width:1px;
+  height:1px;
+  min-height:0;
+}
+
+.promo-chip span {
+  display:inline-block;
+  padding:6px 10px;
+  border:1px solid rgba(201,155,67,.25);
+  border-radius:999px;
+  font-size:11px;
+  font-weight:800;
+  cursor:pointer;
+  white-space:nowrap;
+}
+
+.promo-chip input:checked + span {
+  border-color:var(--gold-bright);
+  background:rgba(201,155,67,.22);
+  color:var(--gold-bright);
+}
+
+.promo-row .promo-hint {
+  margin-top:6px;
+}
+
+.promo-add-buttons {
+  margin-top:8px;
+}
+
+.promo-empty {
+  margin:6px 0 0;
+  font-size:11px;
+}
+
+/* Kalender */
+
+.calendar-sheet {
+  padding-bottom:calc(12px + env(safe-area-inset-bottom));
+}
+
+.calendar-sheet > :not(.sheet-head) {
+  margin-left:14px;
+  margin-right:14px;
+}
+
+.calendar-sheet .sheet-head .eyebrow {
+  display:block;
+}
+
+.calendar-selection {
+  width:auto;
+  cursor:default;
+}
+
+.calendar-nav {
+  display:grid;
+  grid-template-columns:38px 1fr 38px;
+  align-items:center;
+  margin-top:10px;
+}
+
+.calendar-nav strong {
+  text-align:center;
+  font-size:15px;
+  text-transform:capitalize;
+}
+
+.calendar-nav button {
+  width:36px;
+  height:36px;
+  border:1px solid rgba(201,155,67,.20);
+  border-radius:10px;
+  background:rgba(255,255,255,.055);
+  color:var(--gold-bright);
+  font-size:20px;
+  cursor:pointer;
+}
+
+.calendar-weekdays,
+.calendar-days {
+  display:grid;
+  grid-template-columns:repeat(7,1fr);
+}
+
+.calendar-weekdays {
+  margin-top:8px;
+}
+
+.calendar-weekdays span {
+  padding:4px 0;
+  text-align:center;
+  color:var(--muted);
+  font-size:9px;
+  font-weight:900;
+}
+
+.calendar-days {
+  gap:2px;
+}
+
+.calendar-day {
+  aspect-ratio:1 / 1;
+  max-height:46px;
+  border:0;
+  border-radius:9px;
+  background:transparent;
+  color:var(--text);
+  font-size:13px;
+  font-weight:750;
+  cursor:pointer;
+}
+
+.calendar-day.today {
+  box-shadow:inset 0 0 0 1px var(--gold);
+}
+
+.calendar-day.in-range {
+  border-radius:4px;
+  background:rgba(201,155,67,.18);
+  color:var(--gold-bright);
+}
+
+.calendar-day.range-end {
+  background:var(--gold);
+  color:#fff;
+  font-weight:900;
+}
+
+.calendar-actions {
+  display:grid;
+  grid-template-columns:.7fr 1.3fr;
+  gap:8px;
+  margin-top:10px;
+}
+
+.calendar-actions .small-button,
+.calendar-actions .submit-button {
+  min-height:46px;
+  margin:0;
+}
