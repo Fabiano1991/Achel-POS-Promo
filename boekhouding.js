@@ -697,9 +697,9 @@ async function openBoekhoudingTab() {
 
 function setBoekhoudingView(view) {
 
-  bkView = ["todo", "done", "archive"].includes(view) ? view : "todo";
+  bkView = view === "done" ? "done" : "todo";
 
-  ["todo", "done", "archive"].forEach(name => {
+  ["todo", "done"].forEach(name => {
 
     document.getElementById(`bkPane-${name}`)
       ?.classList.toggle("hidden", name !== bkView);
@@ -908,14 +908,6 @@ function renderBoekhoudingDone() {
                   ${item.verwerktDoor ? `door ${bkEscape(bkFirstName(item.verwerktDoor))}` : ""}
                 </small>
               </span>
-              <button
-                type="button"
-                class="bk-undo"
-                data-key="${bkEscape(item.key)}"
-                onclick="undoBoekhoudingItem(this.dataset.key)"
-              >
-                Terugzetten
-              </button>
             </div>
           `)
           .join("")}
@@ -1144,50 +1136,6 @@ async function markBoekhoudingSelected() {
       button.disabled = false;
       button.textContent = "✓ Markeer als verwerkt";
     }
-
-  }
-
-}
-
-
-async function undoBoekhoudingItem(key) {
-
-  if (bkBusy) {
-    return;
-  }
-
-  const item = bkCollectItems().find(entry => entry.key === key);
-
-  if (!item) {
-    return;
-  }
-
-  if (!confirm(`"${item.title}" terugzetten naar "Te verwerken"?`)) {
-    return;
-  }
-
-  bkBusy = true;
-
-  try {
-
-    await bkSaveVerwerkt([item], false);
-
-    renderBoekhouding();
-
-  }
-  catch (error) {
-
-    console.error("BOEKHOUDING TERUGZETTEN:", error);
-
-    alert(
-      "Terugzetten is niet gelukt.\n\n" +
-      (typeof adminReadableError === "function" ? adminReadableError(error) : error.message || "")
-    );
-
-  }
-  finally {
-
-    bkBusy = false;
 
   }
 
