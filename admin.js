@@ -853,14 +853,6 @@ function createAdminScreen() {
           Verwerkt
         </button>
 
-        <button
-          id="bkTab-archive"
-          type="button"
-          onclick="setBoekhoudingView('archive')"
-        >
-          Archief
-        </button>
-
       </div>
 
 
@@ -995,7 +987,9 @@ function createAdminScreen() {
       </div>
 
 
-      <!-- ARCHIEF (bestaande mappen) -->
+      <!-- OUDE ARCHIEFMAPPEN: niet meer getoond (vervangen door
+           Te verwerken / Verwerkt), maar blijven op de achtergrond
+           bestaan omdat andere onderdelen van beheer ze nog gebruiken. -->
 
       <div
         id="bkPane-archive"
