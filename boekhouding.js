@@ -1198,113 +1198,144 @@ async function undoBoekhoudingItem(key) {
    EXCEL (GEGROEPEERD)
 ================================ */
 
-const BK_SECTION_COLUMNS = {
+/* ===============================
+   EXCEL: ÉÉN VASTE KOLOMSTRUCTUUR
+   Alle groepen (POS/promo, gratis bier, groothandel, event-bier)
+   gebruiken dezelfde kolommen, zodat de boekhouding alles in één
+   keer kan filteren, sorteren en optellen.
+================================ */
 
-  pos: [
-    ["Aanvraagdatum", 14],
-    ["Ordernummer", 18],
-    ["Vertegenwoordiger", 20],
-    ["Referentie", 44],
-    ["Land", 12],
-    ["Douano-code", 16],
-    ["Product", 36],
-    ["Categorie", 12],
-    ["Aantal", 10]
-  ],
+const BK_COLUMNS = [
+  ["Datum", 12],
+  ["Soort", 13],
+  ["Ordernummer", 19],
+  ["Vertegenwoordiger", 20],
+  ["Klant / event", 30],
+  ["Drankenhandel", 24],
+  ["Douano-code", 16],
+  ["Product", 38],
+  ["Eenheid", 11],
+  ["Aantal", 9],
+  ["Actie", 10],
+  ["Gratis", 9],
+  ["Totaal", 9],
+  ["Info", 26]
+];
 
-  freebeer: [
-    ["Datum", 14],
-    ["Vertegenwoordiger", 20],
-    ["Horecaklant", 28],
-    ["Drankenhandel", 26],
-    ["Provincie", 16],
-    ["Douano-code", 16],
-    ["Product (SKU)", 36],
-    ["Inhoud", 12],
-    ["Aantal", 10]
-  ],
+const BK_COL = Object.fromEntries(BK_COLUMNS.map((column, index) => [column[0], index]));
 
-  wholesale: [
-    ["Aanvraagdatum", 14],
-    ["Vertegenwoordiger", 20],
-    ["Referentie", 30],
-    ["Drankenhandel", 26],
-    ["Douano-code", 16],
-    ["Product", 36],
-    ["Eenheid", 12],
-    ["Betaald aantal", 14],
-    ["Actie", 14],
-    ["Gratis aantal", 13],
-    ["Totaal aantal", 13],
-    ["Ondertekend", 12]
-  ],
 
-  eventbier: [
-    ["Aanvraagdatum", 14],
-    ["Ordernummer", 18],
-    ["Vertegenwoordiger", 20],
-    ["Event", 30],
-    ["Event van", 12],
-    ["Event tot", 12],
-    ["Douano-code", 16],
-    ["Product", 36],
-    ["Aantal", 10]
-  ]
+function bkParseBillingReference(reference) {
 
-};
+  const match =
+    String(reference || "")
+      .match(/^Facturatie\s*\|\s*Klant:\s*(.*?)\s*\|\s*Drankenhandel:\s*(.*)$/i);
+
+  return match
+    ? { klant: match[1] || "", drankenhandel: match[2] || "" }
+    : null;
+
+}
+
+
+function bkRow(values) {
+
+  const row = Array(BK_COLUMNS.length).fill("");
+
+  Object.entries(values).forEach(([name, value]) => {
+    if (name in BK_COL) {
+      row[BK_COL[name]] = value ?? "";
+    }
+  });
+
+  return row;
+
+}
 
 
 function bkRowsForItem(item) {
 
   const rep = bkProfileName(item.userId);
+  const soort = BK_TYPES[item.type].label;
 
   if (item.type === "pos") {
 
-    const lines = item.lines.length ? item.lines : [{ product_naam: "", categorie: "", aantal: 0 }];
+    const billing = bkParseBillingReference(item.order.referentie);
+    const lines = item.lines.length ? item.lines : [{ product_naam: "", aantal: 0 }];
 
-    return lines.map(line => [
-      bkFullDate(item.order.created_at),
-      bkOrderNumber(item.order),
-      rep,
-      item.order.referentie || "",
-      item.order.land || "",
-      line.product_naam ? bkCodeForProduct(line.product_naam) : "",
-      line.product_naam || "",
-      line.categorie || "",
-      Number(line.aantal || 0)
-    ]);
+    return lines.map(line => {
+
+      const amount = Number(line.aantal || 0);
+
+      return bkRow({
+        "Datum": bkFullDate(item.order.created_at),
+        "Soort": soort,
+        "Ordernummer": bkOrderNumber(item.order),
+        "Vertegenwoordiger": rep,
+        "Klant / event": billing ? billing.klant : (item.order.referentie || "POS & Promo"),
+        "Drankenhandel": billing ? billing.drankenhandel : "",
+        "Douano-code": line.product_naam ? bkCodeForProduct(line.product_naam) : "",
+        "Product": line.product_naam || "",
+        "Eenheid": "stuk",
+        "Aantal": amount,
+        "Totaal": amount,
+        "Info": [billing ? "Facturatie" : "", item.order.land || ""].filter(Boolean).join(" · ")
+      });
+
+    });
 
   }
 
   if (item.type === "eventbier") {
 
-    return item.lines.map(line => [
-      bkFullDate(item.order.created_at),
-      bkOrderNumber(item.order),
-      rep,
-      item.order.event_naam || "",
-      bkFullDate(item.order.event_vanaf),
-      bkFullDate(item.order.event_tot),
-      bkCodeForProduct(line.product_naam),
-      line.product_naam || "",
-      Number(line.aantal || 0)
-    ]);
+    const period =
+      [bkFullDate(item.order.event_vanaf), bkFullDate(item.order.event_tot)]
+        .filter(Boolean)
+        .join(" – ");
+
+    return item.lines.map(line => {
+
+      const amount = Number(line.aantal || 0);
+
+      return bkRow({
+        "Datum": bkFullDate(item.order.created_at),
+        "Soort": soort,
+        "Ordernummer": bkOrderNumber(item.order),
+        "Vertegenwoordiger": rep,
+        "Klant / event": item.order.event_naam || "",
+        "Douano-code": bkCodeForProduct(line.product_naam),
+        "Product": line.product_naam || "",
+        "Eenheid": "stuk",
+        "Aantal": amount,
+        "Totaal": amount,
+        "Info": period ? `Event ${period}` : ""
+      });
+
+    });
 
   }
 
   if (item.type === "freebeer") {
 
-    return item.lines.map(row => [
-      bkFullDate(row.datum),
-      rep,
-      row.horecaklant || "",
-      row.drankenhandel || "",
-      row.provincie || "",
-      bkCodeForProduct(row.sku),
-      row.sku || "",
-      row.inhoud || "",
-      Number(row.aantal || 0)
-    ]);
+    return item.lines.map(row => {
+
+      const amount = Number(row.aantal || 0);
+
+      return bkRow({
+        "Datum": bkFullDate(row.datum),
+        "Soort": soort,
+        "Vertegenwoordiger": rep,
+        "Klant / event": row.horecaklant || "",
+        "Drankenhandel": row.drankenhandel || "",
+        "Douano-code": bkCodeForProduct(row.sku),
+        "Product": row.sku || "",
+        "Eenheid": row.inhoud || "",
+        "Gratis": amount,
+        "Totaal": amount,
+        "Info": ["Factuur enkel leeggoed", row.provincie || ""].filter(Boolean).join(" · ")
+      });
+
+    });
 
   }
 
@@ -1316,20 +1347,27 @@ function bkRowsForItem(item) {
       ? item.lines
       : [{ product_naam: "", eenheid: "", betaald_aantal: 0, actie: "", gratis_aantal: 0, totaal_aantal: 0 }];
 
-  return lines.map(line => [
-    bkFullDate(item.order.created_at),
-    rep,
-    item.order.referentie || "",
-    item.order.drankenhandel || "",
-    line.product_naam ? bkCodeForProduct(line.product_naam) : "",
-    line.product_naam || "",
-    line.eenheid || "",
-    Number(line.betaald_aantal || 0),
-    line.actie || "",
-    Number(line.gratis_aantal || 0),
-    Number(line.totaal_aantal || line.betaald_aantal || 0),
-    signed ? "Ja" : "Nee"
-  ]);
+  return lines.map(line => {
+
+    const action = String(line.actie || "").trim();
+
+    return bkRow({
+      "Datum": bkFullDate(item.order.created_at),
+      "Soort": soort,
+      "Vertegenwoordiger": rep,
+      "Klant / event": item.order.referentie || "",
+      "Drankenhandel": item.order.drankenhandel || "",
+      "Douano-code": line.product_naam ? bkCodeForProduct(line.product_naam) : "",
+      "Product": line.product_naam || "",
+      "Eenheid": line.eenheid || "",
+      "Aantal": Number(line.betaald_aantal || 0),
+      "Actie": action && action.toLowerCase() !== "geen" ? action : "",
+      "Gratis": Number(line.gratis_aantal || 0),
+      "Totaal": Number(line.totaal_aantal || line.betaald_aantal || 0),
+      "Info": signed ? "Ondertekend" : "Niet ondertekend"
+    });
+
+  });
 
 }
 
@@ -1337,13 +1375,32 @@ function bkRowsForItem(item) {
 /*
    De Excel wordt hier zelf opgebouwd (met JSZip, dat de app al
    gebruikt), zodat we vette koppen, kleuren en zwarte lijnen kunnen
-   zetten. Stijlnummers (zie BK_XLSX_STYLES):
-   0 gewoon · 1 titel · 2 grijs/schuin · 3 groepstitel · 4 kolomkop
-   5 gegevens · 6 gegevens rood (code ontbreekt) · 7 totaal
-   8 zwarte scheidingslijn · 9 gegevens (getal)
+   zetten. Stijlnummers: zie BK_XLSX_STYLES (cellXfs, van 0 tot 12).
 */
 
 const BK_JSZIP_URL = "https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js";
+
+const BK_STYLE = {
+  plain: 0,
+  title: 1,
+  subtitle: 2,
+  group: 3,
+  header: 4,
+  text: 5,
+  missing: 6,
+  totalLabel: 7,
+  line: 8,
+  number: 9,
+  totalNumber: 10,
+  groupFill: 11,
+  muted: 12,
+  headerCenter: 13,
+  center: 14
+};
+
+const BK_CENTER_COLUMNS = new Set(["Aantal", "Actie", "Gratis", "Totaal"]);
+
+const BK_NUMBER_COLUMNS = new Set(["Aantal", "Gratis", "Totaal"]);
 
 
 async function bkLoadJsZip() {
@@ -1371,32 +1428,35 @@ async function bkLoadJsZip() {
 
 function bkBuildGroupedSheet(items, title) {
 
-  const maxColumns =
-    Math.max(...Object.values(BK_SECTION_COLUMNS).map(columns => columns.length));
-
-  const widths =
-    Array.from({ length: maxColumns }, (_, index) =>
-      Math.max(
-        ...Object.values(BK_SECTION_COLUMNS).map(columns => (columns[index] ? columns[index][1] : 10))
-      )
-    );
-
+  const width = BK_COLUMNS.length;
   const rows = [];
 
-  const add = (values = [], style = 0, extra = {}) => {
-    rows.push({
-      cells: values.map(value => ({ v: value, s: style })),
-      ...extra
-    });
+  const add = (cells, extra = {}) => {
+    rows.push({ cells, ...extra });
     return rows[rows.length - 1];
   };
 
-  const blackLine = () =>
-    add(Array(maxColumns).fill(""), 8, { height: 6 });
+  const filled = (style, firstValue = "", firstStyle = style) =>
+    Array.from({ length: width }, (_, index) => ({
+      v: index === 0 ? firstValue : "",
+      s: index === 0 ? firstStyle : style
+    }));
 
-  add([title], 1, { height: 22 });
-  add([`Aangemaakt op ${new Date().toLocaleString("nl-BE")}`], 2);
+  // Titel + kolomkoppen (één keer, bovenaan vastgezet)
+  add([{ v: title, s: BK_STYLE.title }], { height: 24 });
+  add([{ v: `Aangemaakt op ${new Date().toLocaleString("nl-BE")}`, s: BK_STYLE.subtitle }]);
+  add([]);
+  add(
+    BK_COLUMNS.map(column => ({
+      v: column[0],
+      s: BK_CENTER_COLUMNS.has(column[0]) ? BK_STYLE.headerCenter : BK_STYLE.header
+    })),
+    { height: 20 }
+  );
 
+  const headerRow = rows.length;
+
+  let grandTotal = 0;
   let firstSection = true;
 
   BK_TYPE_ORDER.forEach(type => {
@@ -1407,23 +1467,22 @@ function bkBuildGroupedSheet(items, title) {
       return;
     }
 
-    const columns = BK_SECTION_COLUMNS[type];
-    const names = columns.map(column => column[0]);
-    const codeIndex = names.indexOf("Douano-code");
-    const amountIndex =
-      names.includes("Totaal aantal") ? names.indexOf("Totaal aantal") : names.indexOf("Aantal");
-
-    add([]);
-
     // Zwarte horizontale lijn tussen de groepen
     if (!firstSection) {
-      blackLine();
+      add(filled(BK_STYLE.line), { height: 8 });
     }
 
     firstSection = false;
 
-    add([`${BK_TYPES[type].section} (${sectionItems.length})`], 3, { height: 18 });
-    add(names, 4);
+    // Groepsbalk over de volledige breedte
+    add(
+      filled(
+        BK_STYLE.groupFill,
+        `${BK_TYPES[type].section}  ·  ${sectionItems.length} ${sectionItems.length === 1 ? "aanvraag" : "aanvragen"}`,
+        BK_STYLE.group
+      ),
+      { height: 20 }
+    );
 
     let total = 0;
 
@@ -1431,45 +1490,59 @@ function bkBuildGroupedSheet(items, title) {
 
       bkRowsForItem(item).forEach(values => {
 
-        const row = add(values, 5);
+        add(values.map((value, index) => {
 
-        row.cells.forEach((cell, index) => {
+          const name = BK_COLUMNS[index][0];
 
-          if (typeof cell.v === "number") {
-            cell.s = 9;
+          if (BK_NUMBER_COLUMNS.has(name)) {
+            return { v: value === "" ? "" : Number(value), s: BK_STYLE.number };
           }
 
-          if (index === codeIndex && cell.v === "NIET GEKOPPELD") {
-            cell.s = 6;
+          if (name === "Actie") {
+            return { v: value, s: BK_STYLE.center };
           }
 
-        });
+          if (name === "Douano-code" && value === "NIET GEKOPPELD") {
+            return { v: value, s: BK_STYLE.missing };
+          }
 
-        if (amountIndex >= 0) {
-          total += Number(values[amountIndex] || 0);
-        }
+          if (name === "Info" || name === "Soort") {
+            return { v: value, s: BK_STYLE.muted };
+          }
+
+          return { v: value, s: BK_STYLE.text };
+
+        }));
+
+        total += Number(values[BK_COL["Totaal"]] || 0);
 
       });
 
     });
 
-    if (amountIndex > 0) {
+    const totalRow = filled(BK_STYLE.totalLabel);
+    totalRow[BK_COL["Totaal"] - 1] = { v: `Totaal ${BK_TYPES[type].label.toLowerCase()}`, s: BK_STYLE.totalLabel };
+    totalRow[BK_COL["Totaal"]] = { v: total, s: BK_STYLE.totalNumber };
+    add(totalRow);
 
-      const totalValues = Array(columns.length).fill("");
-      totalValues[amountIndex - 1] = "Totaal";
-      totalValues[amountIndex] = total;
-
-      add(totalValues, 7);
-
-    }
+    grandTotal += total;
 
   });
 
-  // Afsluitende zwarte lijn
-  add([]);
-  blackLine();
+  // Afsluiting: zwarte lijn + algemeen totaal
+  add(filled(BK_STYLE.line), { height: 8 });
 
-  return { rows, widths };
+  const grand = filled(BK_STYLE.plain);
+  grand[BK_COL["Totaal"] - 1] = { v: "Algemeen totaal", s: BK_STYLE.totalLabel };
+  grand[BK_COL["Totaal"]] = { v: grandTotal, s: BK_STYLE.totalNumber };
+  add(grand, { height: 20 });
+
+  return {
+    rows,
+    widths: BK_COLUMNS.map(column => column[1]),
+    freezeRow: headerRow,
+    filterRange: `A${headerRow}:${bkColumnLetter(width - 1)}${headerRow}`
+  };
 
 }
 
@@ -1505,37 +1578,45 @@ function bkColumnLetter(index) {
 
 const BK_XLSX_STYLES = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
-<fonts count="7">
-<font><sz val="11"/><name val="Calibri"/></font>
-<font><b/><sz val="14"/><name val="Calibri"/></font>
-<font><i/><sz val="10"/><color rgb="FF666666"/><name val="Calibri"/></font>
-<font><b/><sz val="12"/><name val="Calibri"/></font>
-<font><b/><sz val="11"/><color rgb="FFFFFFFF"/><name val="Calibri"/></font>
-<font><b/><sz val="11"/><color rgb="FFB00020"/><name val="Calibri"/></font>
-<font><b/><sz val="11"/><name val="Calibri"/></font>
+<fonts count="8">
+<font><sz val="10"/><name val="Calibri"/></font>
+<font><b/><sz val="15"/><color rgb="FF182019"/><name val="Calibri"/></font>
+<font><i/><sz val="9"/><color rgb="FF777777"/><name val="Calibri"/></font>
+<font><b/><sz val="11"/><color rgb="FF182019"/><name val="Calibri"/></font>
+<font><b/><sz val="10"/><color rgb="FFFFFFFF"/><name val="Calibri"/></font>
+<font><b/><sz val="10"/><color rgb="FFB00020"/><name val="Calibri"/></font>
+<font><b/><sz val="10"/><name val="Calibri"/></font>
+<font><sz val="9"/><color rgb="FF666666"/><name val="Calibri"/></font>
 </fonts>
-<fills count="3">
+<fills count="4">
 <fill><patternFill patternType="none"/></fill>
 <fill><patternFill patternType="gray125"/></fill>
 <fill><patternFill patternType="solid"><fgColor rgb="FF182019"/><bgColor indexed="64"/></patternFill></fill>
+<fill><patternFill patternType="solid"><fgColor rgb="FFF1E8D7"/><bgColor indexed="64"/></patternFill></fill>
 </fills>
-<borders count="3">
+<borders count="4">
 <border><left/><right/><top/><bottom/><diagonal/></border>
-<border><left/><right/><top/><bottom style="hair"><color rgb="FFBBBBBB"/></bottom><diagonal/></border>
+<border><left/><right/><top/><bottom style="hair"><color rgb="FFC8C8C8"/></bottom><diagonal/></border>
 <border><left/><right/><top style="thick"><color rgb="FF000000"/></top><bottom/><diagonal/></border>
+<border><left/><right/><top style="thin"><color rgb="FF182019"/></top><bottom/><diagonal/></border>
 </borders>
 <cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>
-<cellXfs count="10">
+<cellXfs count="15">
 <xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/>
 <xf numFmtId="0" fontId="1" fillId="0" borderId="0" xfId="0" applyFont="1"/>
 <xf numFmtId="0" fontId="2" fillId="0" borderId="0" xfId="0" applyFont="1"/>
-<xf numFmtId="0" fontId="3" fillId="0" borderId="0" xfId="0" applyFont="1"/>
-<xf numFmtId="0" fontId="4" fillId="2" borderId="0" xfId="0" applyFont="1" applyFill="1"/>
+<xf numFmtId="0" fontId="3" fillId="3" borderId="0" xfId="0" applyFont="1" applyFill="1" applyAlignment="1"><alignment vertical="center"/></xf>
+<xf numFmtId="0" fontId="4" fillId="2" borderId="0" xfId="0" applyFont="1" applyFill="1" applyAlignment="1"><alignment vertical="center"/></xf>
 <xf numFmtId="49" fontId="0" fillId="0" borderId="1" xfId="0" applyBorder="1" applyNumberFormat="1"/>
 <xf numFmtId="49" fontId="5" fillId="0" borderId="1" xfId="0" applyFont="1" applyBorder="1" applyNumberFormat="1"/>
-<xf numFmtId="0" fontId="6" fillId="0" borderId="0" xfId="0" applyFont="1"/>
+<xf numFmtId="0" fontId="6" fillId="0" borderId="3" xfId="0" applyFont="1" applyBorder="1" applyAlignment="1"><alignment horizontal="right"/></xf>
 <xf numFmtId="0" fontId="0" fillId="0" borderId="2" xfId="0" applyBorder="1"/>
-<xf numFmtId="0" fontId="0" fillId="0" borderId="1" xfId="0" applyBorder="1"/>
+<xf numFmtId="1" fontId="0" fillId="0" borderId="1" xfId="0" applyBorder="1" applyNumberFormat="1" applyAlignment="1"><alignment horizontal="center"/></xf>
+<xf numFmtId="1" fontId="6" fillId="0" borderId="3" xfId="0" applyFont="1" applyBorder="1" applyNumberFormat="1" applyAlignment="1"><alignment horizontal="center"/></xf>
+<xf numFmtId="0" fontId="3" fillId="3" borderId="0" xfId="0" applyFont="1" applyFill="1"/>
+<xf numFmtId="49" fontId="7" fillId="0" borderId="1" xfId="0" applyFont="1" applyBorder="1" applyNumberFormat="1"/>
+<xf numFmtId="0" fontId="4" fillId="2" borderId="0" xfId="0" applyFont="1" applyFill="1" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf>
+<xf numFmtId="49" fontId="0" fillId="0" borderId="1" xfId="0" applyBorder="1" applyNumberFormat="1" applyAlignment="1"><alignment horizontal="center"/></xf>
 </cellXfs>
 <cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles>
 </styleSheet>`;
@@ -1579,15 +1660,20 @@ function bkSheetXml(model) {
       })
       .join("");
 
+  const pane =
+    model.freezeRow
+      ? `<pane ySplit="${model.freezeRow}" topLeftCell="A${model.freezeRow + 1}" activePane="bottomLeft" state="frozen"/><selection pane="bottomLeft" activeCell="A${model.freezeRow + 1}" sqref="A${model.freezeRow + 1}"/>`
+      : "";
+
   return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
 <sheetPr><pageSetUpPr fitToPage="1"/></sheetPr>
-<sheetViews><sheetView workbookViewId="0" showGridLines="0"/></sheetViews>
+<sheetViews><sheetView workbookViewId="0" showGridLines="0">${pane}</sheetView></sheetViews>
 <sheetFormatPr defaultRowHeight="15"/>
 <cols>${cols}</cols>
 <sheetData>${rowsXml}</sheetData>
-<pageMargins left="0.5" right="0.5" top="0.6" bottom="0.6" header="0.3" footer="0.3"/>
-<pageSetup orientation="landscape" fitToWidth="1" fitToHeight="0"/>
+<pageMargins left="0.4" right="0.4" top="0.5" bottom="0.5" header="0.3" footer="0.3"/>
+<pageSetup paperSize="9" orientation="landscape" fitToWidth="1" fitToHeight="0"/>
 </worksheet>`;
 
 }
