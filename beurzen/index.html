@@ -185,11 +185,9 @@
           <div class="field full">
             <label for="contactFollowup">Opvolgstatus</label>
             <select id="contactFollowup" name="followup_status">
-              <option value="to_contact">Te contacteren</option>
-              <option value="contacted">Gecontacteerd</option>
-              <option value="interested">Interesse</option>
-              <option value="tasting">Proef / voorstel</option>
-              <option value="customer">Klant geworden</option>
+              <option value="to_contact">Nog te bezoeken</option>
+              <option value="contacted">Bezocht</option>
+              <option value="customer">Klant</option>
               <option value="no_interest">Geen interesse</option>
             </select>
           </div>
@@ -363,14 +361,17 @@
       <a id="cdRoute" class="cd-action" target="_blank" rel="noopener"><svg class="cd-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-6-5.5-6-11a6 6 0 0 1 12 0c0 5.5-6 11-6 11z"/><circle cx="12" cy="10" r="2.2"/></svg>Route</a>
     </div>
 
+    <button type="button" id="cdOrder" class="cd-order">
+      <svg class="cd-svg" viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="20" r="1.4"/><circle cx="18" cy="20" r="1.4"/><path d="M3 4h2l2.4 11.2a1.5 1.5 0 0 0 1.5 1.2h8.6a1.5 1.5 0 0 0 1.5-1.1L21 8H6.2"/></svg>
+      Bestel
+    </button>
+
     <div class="cd-card">
-      <div class="cd-steps" id="cdSteps">
+      <div class="cd-steps three" id="cdSteps">
         <div class="cd-steps-line"><i id="cdStepsFill"></i></div>
-        <button type="button" data-cd-status="to_contact"><b>1</b><span>Te contac&shy;teren</span></button>
-        <button type="button" data-cd-status="contacted"><b>2</b><span>Gecon&shy;tacteerd</span></button>
-        <button type="button" data-cd-status="interested"><b>3</b><span>Interesse</span></button>
-        <button type="button" data-cd-status="tasting"><b>4</b><span>Proef</span></button>
-        <button type="button" data-cd-status="customer"><b>5</b><span>Klant</span></button>
+        <button type="button" data-cd-status="to_contact"><b>1</b><span>Nog te bezoeken</span></button>
+        <button type="button" data-cd-status="contacted"><b>2</b><span>Bezocht</span></button>
+        <button type="button" data-cd-status="customer"><b>3</b><span>Klant</span></button>
       </div>
       <div class="cd-steps-foot">
         <span id="cdStepHint">Tik een stap om de status te zetten</span>
@@ -378,32 +379,31 @@
       </div>
     </div>
 
-    <div class="cd-card" id="cdNextCard">
-      <div class="cd-card-title">Volgende stap</div>
-      <div class="cd-next">
-        <span class="cd-next-icon"><svg class="cd-svg" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5" width="16" height="16" rx="2"/><path d="M16 3v4M8 3v4M4 11h16M10 15h4"/></svg></span>
-        <div class="cd-next-text">
-          <input id="cdNextAction" type="text" placeholder="Wat is de volgende stap?">
-          <small id="cdNextDate">Nog geen datum</small>
-        </div>
-      </div>
-      <div class="cd-chips">
-        <button type="button" data-cd-days="1">Morgen</button>
-        <button type="button" data-cd-days="7">1 week</button>
-        <button type="button" data-cd-days="30">1 maand</button>
-        <label class="cd-chip-date">Kies<input id="cdDate" type="date" aria-label="Kies een datum"></label>
-        <button type="button" id="cdClearDate" class="cd-chip-clear" aria-label="Datum wissen">×</button>
+    <div class="cd-card">
+      <div class="cd-card-title">Verslag</div>
+      <textarea id="cdReport" rows="2" placeholder="Wat werd besproken bij dit bezoek?"></textarea>
+      <div class="cd-report-foot">
+        <span id="cdReportHint"></span>
+        <button type="button" id="cdReportSave" class="small-button ghost">Verslag bewaren</button>
       </div>
     </div>
 
-    <div class="cd-card">
-      <div class="cd-card-title">Historiek</div>
-      <form id="cdNoteForm" class="cd-note-form">
-        <input id="cdNoteInput" type="text" placeholder="Notitie toevoegen…" autocomplete="off">
-        <button type="submit" aria-label="Notitie bewaren">+</button>
-      </form>
-      <div id="cdTimeline" class="cd-timeline"></div>
+    <div class="cd-card cd-visit" id="cdNextCard">
+      <label class="cd-visit-icon" aria-label="Datum volgend bezoek kiezen">
+        <svg class="cd-svg" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5" width="16" height="16" rx="2"/><path d="M16 3v4M8 3v4M4 11h16"/></svg>
+        <input id="cdDate" type="date">
+      </label>
+      <div class="cd-visit-text">
+        <div class="cd-card-title">Volgend bezoek</div>
+        <strong id="cdNextDate">Tik op de agenda</strong>
+      </div>
+      <button type="button" id="cdClearDate" class="cd-visit-clear hidden" aria-label="Datum wissen">×</button>
     </div>
+
+    <details class="cd-card cd-history">
+      <summary><span class="cd-card-title">Historiek <small id="cdHistoryCount"></small></span><i aria-hidden="true">⌄</i></summary>
+      <div id="cdTimeline" class="cd-timeline"></div>
+    </details>
 
     <div class="cd-card">
       <div class="cd-card-title">Van de beurs</div>
