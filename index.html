@@ -7982,6 +7982,41 @@ async function startApp() {
 
   goHome();
 
+
+  // Geopend via "Bestel" op een beurscontact? Dan meteen de
+  // groothandelbestelling tonen, met de klant al ingevuld.
+  // (wholesale.js laadt iets later: daar eerst op wachten.)
+  if (
+    window.location.search.includes("bestel=groothandel") &&
+    typeof openBeursBestelLink !==
+    "function" &&
+    document.readyState ===
+    "loading"
+  ) {
+    await new Promise(resolve =>
+      document.addEventListener(
+        "DOMContentLoaded",
+        resolve,
+        { once: true }
+      )
+    );
+  }
+
+  if (
+    typeof openBeursBestelLink ===
+    "function"
+  ) {
+    try {
+      await openBeursBestelLink();
+    }
+    catch (error) {
+      console.error(
+        "BESTELLEN VANUIT BEURS FOUT:",
+        error
+      );
+    }
+  }
+
   updatePushNotificationUI();
 
   updateAdminMenuBadge();

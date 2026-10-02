@@ -184,6 +184,8 @@ async function initBeurzen() {
     }
 
     await refreshAllData();
+
+    openContactFromLink();
   }
   catch (error) {
     console.error(
@@ -1540,8 +1542,8 @@ function followupCard(contact) {
           <span class="fu-pill">${escapeHtml(followupLabel(status))}</span>
         </span>
         ${meta ? `<small>${escapeHtml(meta)}</small>` : ""}
-        ${contact.next_action || dueText
-          ? `<small class="fu-next">${contact.next_action ? `→ ${escapeHtml(contact.next_action)}` : ""}${dueText ? ` <span class="fu-due ${dueClass}">${escapeHtml(dueText)}</span>` : ""}</small>`
+        ${dueText
+          ? `<small class="fu-next">Volgend bezoek: <span class="fu-due ${dueClass}">${escapeHtml(dueText)}</span></small>`
           : ""}
       </span>
       <i aria-hidden="true">›</i>
@@ -1582,32 +1584,10 @@ function bindFollowups() {
       setContactStatus(contact?.followup_status === "no_interest" ? "to_contact" : "no_interest");
     });
 
-  // Volgende stap: tekst bewaren bij verlaten van het veld.
-  const nextInput = document.getElementById("cdNextAction");
-  nextInput?.addEventListener("change", () => {
-    saveFollowupChanges({ next_action: cleanText(nextInput.value) });
-  });
-  nextInput?.addEventListener("keydown", event => {
-    if (event.key === "Enter") {
-      event.preventDefault();
-      nextInput.blur();
-    }
-  });
-
-  document
-    .getElementById("cdNextCard")
-    ?.addEventListener("click", event => {
-      const chip = event.target.closest("[data-cd-days]");
-      if (!chip) return;
-      const date = new Date();
-      date.setDate(date.getDate() + Number(chip.dataset.cdDays));
-      setFollowupDate(dateToIso(date));
-    });
-
   document
     .getElementById("cdDate")
     ?.addEventListener("change", event => {
-      if (event.target.value) setFollowupDate(event.target.value);
+      setFollowupDate(event.target.value || null);
     });
 
   document
@@ -1615,11 +1595,26 @@ function bindFollowups() {
     ?.addEventListener("click", () => setFollowupDate(null));
 
   document
-    .getElementById("cdNoteForm")
-    ?.addEventListener("submit", event => {
-      event.preventDefault();
-      addContactNote();
-    });
+    .getElementById("cdReportSave")
+    ?.addEventListener("click", saveReport);
+
+  document
+    .getElementById("cdOrder")
+    ?.addEventListener("click", orderForContact);
+}
+
+// Na een bestelling via "Bestel" komt de app hier terug met
+// ?contact=ID: dan dat contact meteen openen (met verse gegevens).
+function openContactFromLink() {
+  const params = new URLSearchParams(window.location.search);
+  const id = params.get("contact");
+  if (!id) return;
+
+  history.replaceState(null, "", window.location.pathname);
+
+  if (findContact(id)) {
+    openContactDetail(id);
+  }
 }
 
 function findContact(id) {
@@ -1712,8 +1707,9 @@ function renderContactDetail() {
 
   syncContactSteps();
 
-  document.getElementById("cdNextAction").value = contact.next_action || "";
   document.getElementById("cdDate").value = contact.followup_date || "";
+  document.getElementById("cdReport").value = "";
+  setText("cdReportHint", "");
   renderNextDate();
 
   const interests =
@@ -1737,14 +1733,22 @@ function renderContactDetail() {
     </p>
   `;
 
+  const fairBox = document.getElementById("cdFair");
+  fairBox?.closest(".cd-card")?.classList.toggle("hidden", !fairBox.textContent.trim());
+
   renderTimeline();
 }
 
-const CD_STEPS = ["to_contact", "contacted", "interested", "tasting", "customer"];
+const CD_STEPS = ["to_contact", "contacted", "customer"];
+
+// Oude statussen (interesse / proef) tellen als "Bezocht".
+function stepStatus(status) {
+  return ["interested", "tasting"].includes(status) ? "contacted" : (status || "to_contact");
+}
 
 function syncContactSteps() {
   const contact = findContact(followupContactId);
-  const status = contact?.followup_status || "to_contact";
+  const status = stepStatus(contact?.followup_status);
   const index = CD_STEPS.indexOf(status);
   const lost = status === "no_interest";
 
@@ -1752,13 +1756,13 @@ function syncContactSteps() {
     .querySelectorAll("#cdSteps [data-cd-status]")
     .forEach(step => {
       const i = CD_STEPS.indexOf(step.dataset.cdStatus);
-      step.classList.toggle("done", !lost && (i < index || (status === "customer" && i === index)));
+      step.classList.toggle("done", !lost && i < index);
       step.classList.toggle("active", !lost && i === index && status !== "customer");
-      step.classList.toggle("won", status === "customer" && i === index);
+      step.classList.toggle("won", !lost && status === "customer" && i === index);
     });
 
   const fill = document.getElementById("cdStepsFill");
-  if (fill) fill.style.width = lost || index < 1 ? "0%" : `${(index / 4) * 100}%`;
+  if (fill) fill.style.width = lost || index < 1 ? "0%" : `${(index / 2) * 100}%`;
 
   document.getElementById("cdSteps")?.classList.toggle("lost", lost);
   document.getElementById("cdNoInterest")?.classList.toggle("active", lost);
@@ -1766,11 +1770,11 @@ function syncContactSteps() {
   setText(
     "cdStepHint",
     lost ? "Afgehandeld: geen interesse"
-    : status === "customer" ? "Klant geworden 🎉"
-    : "Tik een stap om de status te zetten"
+    : status === "customer" ? "Klant 🎉"
+    : "Springt vanzelf mee, of tik zelf"
   );
 
-  // Afgehandeld: geen volgende stap meer nodig.
+  // Afgehandeld: geen volgend bezoek meer nodig.
   document.getElementById("cdNextCard")?.classList.toggle("hidden", FOLLOWUP_DONE.includes(status));
 }
 
@@ -1782,8 +1786,10 @@ function renderNextDate() {
   const iso = contact?.followup_date;
   el.classList.remove("late", "today");
 
+  document.getElementById("cdClearDate")?.classList.toggle("hidden", !iso);
+
   if (!iso) {
-    el.textContent = "Nog geen datum";
+    el.textContent = "Tik op de agenda";
     return;
   }
 
@@ -1810,7 +1816,7 @@ function setFollowupDate(iso) {
 
 function setContactStatus(status) {
   const contact = findContact(followupContactId);
-  if (!contact || (contact.followup_status || "to_contact") === status) return;
+  if (!contact || stepStatus(contact.followup_status) === status) return;
 
   saveFollowupChanges({ followup_status: status });
   syncContactSteps();
@@ -1840,15 +1846,6 @@ async function loadContactEvents(contactId) {
   }
 
   renderTimeline();
-}
-
-function addContactNote() {
-  const input = document.getElementById("cdNoteInput");
-  const text = cleanText(input?.value);
-  if (!text) return;
-
-  input.value = "";
-  addContactEvent({ kind:"note", text });
 }
 
 function addContactEvent(event) {
@@ -1885,6 +1882,47 @@ function addContactEvent(event) {
   );
 }
 
+// Verslag bewaren: komt in de historiek en zet "Nog te bezoeken"
+// automatisch op "Bezocht".
+function saveReport() {
+  const input = document.getElementById("cdReport");
+  const text = cleanText(input?.value);
+
+  if (!text) {
+    setText("cdReportHint", "Schrijf eerst een kort verslag.");
+    input?.focus();
+    return;
+  }
+
+  const contact = findContact(followupContactId);
+
+  addContactEvent({ kind:"note", text });
+
+  if (contact && stepStatus(contact.followup_status) === "to_contact") {
+    setContactStatus("contacted");
+  }
+
+  input.value = "";
+  setText("cdReportHint", "✓ Verslag bewaard");
+}
+
+// "Bestel": opent de groothandelbestelling met de zaak en de
+// bierhandelaar al ingevuld. Na het versturen komt de app terug
+// naar dit contact en springt het op "Klant".
+function orderForContact() {
+  const contact = findContact(followupContactId);
+  if (!contact) return;
+
+  const params = new URLSearchParams({
+    bestel: "groothandel",
+    contact: contact.id,
+    klant: contact.business_name || "",
+    handelaar: contact.supplier || ""
+  });
+
+  window.location.href = `../index.html?${params.toString()}`;
+}
+
 function relativeDay(iso) {
   const day = dateToIso(new Date(iso));
   const today = dateToIso(new Date());
@@ -1906,7 +1944,7 @@ function renderTimeline() {
       <small>${escapeHtml(relativeDay(event.created_at))}</small>
       <div>${event.kind === "status"
         ? `Status → <b class="st-${escapeHtml(event.status)}">${escapeHtml(followupLabel(event.status))}</b>`
-        : escapeHtml(event.text || "")}</div>
+        : `<span class="cd-event-kind">Verslag</span> ${escapeHtml(event.text || "")}`}</div>
     </div>
   `);
 
@@ -1928,10 +1966,10 @@ function renderTimeline() {
   `);
 
   container.innerHTML =
-    (contactEventsAvailable ? "" : `<p class="cd-warning">Historiek is nog niet actief (database-stap nodig).</p>`) +
+    (contactEventsAvailable ? "" : `<p class="cd-warning">Historiek kon niet geladen worden.</p>`) +
     rows.join("");
 
-  document.getElementById("cdNoteForm")?.classList.toggle("hidden", !contactEventsAvailable);
+  setText("cdHistoryCount", `· ${rows.length}`);
 }
 
 // ---------- Bewaren ----------
@@ -3503,11 +3541,11 @@ function customerTypeLabel(value) {
 
 function followupLabel(value) {
   const labels = {
-    to_contact:"Te contacteren",
-    contacted:"Gecontacteerd",
-    interested:"Interesse",
-    tasting:"Proef / voorstel",
-    customer:"Klant geworden",
+    to_contact:"Nog te bezoeken",
+    contacted:"Bezocht",
+    interested:"Bezocht",
+    tasting:"Bezocht",
+    customer:"Klant",
     no_interest:"Geen interesse"
   };
 

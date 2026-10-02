@@ -632,9 +632,183 @@ async function openWholesaleOrder() {
 
 function closeWholesaleOrder() {
 
+  if (
+    returnToBeursContact()
+  ) {
+    return;
+  }
+
   goHome();
 
 }
+
+
+/* ============================================================
+   BESTELLEN VANUIT EEN BEURSCONTACT
+   De knop "Bestel" op een beurscontact opent deze bestelling
+   met ?bestel=groothandel&contact=...&klant=...&handelaar=...
+   Na het versturen springt het contact op "Klant" en gaat de
+   app terug naar dat contact.
+============================================================ */
+
+const BEURS_BESTEL_KEY =
+  "achel_beurs_bestelling";
+
+
+function getBeursBestelContext() {
+
+  try {
+    return JSON.parse(
+      sessionStorage.getItem(BEURS_BESTEL_KEY) || "null"
+    );
+  }
+  catch {
+    return null;
+  }
+
+}
+
+
+async function openBeursBestelLink() {
+
+  const params =
+    new URLSearchParams(window.location.search);
+
+  if (params.get("bestel") !== "groothandel") {
+    return false;
+  }
+
+  const context = {
+    contact: params.get("contact") || "",
+    klant: params.get("klant") || "",
+    handelaar: params.get("handelaar") || ""
+  };
+
+  history.replaceState(null, "", window.location.pathname);
+
+  try {
+    sessionStorage.setItem(BEURS_BESTEL_KEY, JSON.stringify(context));
+  }
+  catch {
+    // Zonder opslag werkt de bestelling gewoon, enkel de
+    // automatische terugkeer naar het contact valt weg.
+  }
+
+  await openWholesaleOrder();
+
+  const reference =
+    document.getElementById("wholesaleReference");
+
+  if (reference) {
+    reference.value = context.klant;
+  }
+
+  if (context.handelaar) {
+
+    const select =
+      document.getElementById("wholesaleDealerSelect");
+
+    const wanted =
+      context.handelaar.trim().toLowerCase();
+
+    const match =
+      [...(select?.options || [])]
+        .find(option =>
+          option.value &&
+          option.value !== "other" &&
+          option.textContent.trim().toLowerCase() === wanted
+        );
+
+    if (select && match) {
+      select.value = match.value;
+    }
+    else if (select) {
+      select.value = "other";
+
+      const other =
+        document.getElementById("wholesaleDealerOther");
+
+      if (other) {
+        other.value = context.handelaar;
+      }
+    }
+
+    toggleWholesaleDealerInput();
+  }
+
+  return true;
+
+}
+
+
+function markBeursContactAsCustomer(orderReference) {
+
+  const context =
+    getBeursBestelContext();
+
+  if (!context?.contact) {
+    return;
+  }
+
+  const now =
+    new Date().toISOString();
+
+  Promise.resolve()
+    .then(() =>
+      supabaseClient
+        .from("fair_contacts")
+        .update({
+          followup_status: "customer",
+          followup_updated_at: now
+        })
+        .eq("id", context.contact)
+    )
+    .then(() =>
+      supabaseClient
+        .from("fair_contact_events")
+        .insert([
+          {
+            contact_id: context.contact,
+            created_by: currentUser?.id,
+            kind: "status",
+            status: "customer"
+          },
+          {
+            contact_id: context.contact,
+            created_by: currentUser?.id,
+            kind: "note",
+            text: `Groothandelbestelling ${orderReference} geplaatst`
+          }
+        ])
+    )
+    .catch(error =>
+      console.error("BEURSCONTACT KLANT FOUT:", error)
+    );
+
+}
+
+
+function returnToBeursContact() {
+
+  const context =
+    getBeursBestelContext();
+
+  try {
+    sessionStorage.removeItem(BEURS_BESTEL_KEY);
+  }
+  catch {}
+
+  if (!context?.contact) {
+    return false;
+  }
+
+  window.location.href =
+    `./beurzen/index.html?contact=${encodeURIComponent(context.contact)}`;
+
+  return true;
+
+}
+
 
 
 function backToWholesaleOrder() {
@@ -3097,6 +3271,11 @@ async function submitWholesaleOrder() {
     );
 
 
+  markBeursContactAsCustomer(
+    orderReference
+  );
+
+
   button.innerText =
     "✓ Bestelling ondertekend";
 
@@ -3155,7 +3334,11 @@ async function submitWholesaleOrder() {
         false;
 
 
-      goHome();
+      if (
+        !returnToBeursContact()
+      ) {
+        goHome();
+      }
 
     },
     650
