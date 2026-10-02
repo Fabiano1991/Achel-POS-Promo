@@ -39,10 +39,10 @@ let editingFairId = null;
 let editingPromos = [];
 
 const PROMO_CATEGORIES = [
-  { value:"vat20", label:"Vaten 20L", short:"Vaten" },
-  { value:"krat24", label:"Kratten 24 × 33cl", short:"Kratten" },
-  { value:"doos75", label:"Dozen 6 × 75cl", short:"Dozen" },
-  { value:"clip4", label:"Clips 4 × 33cl", short:"Clips" },
+  { value:"krat24", label:"24 x 33cl", short:"24 x 33cl" },
+  { value:"vat20", label:"20 l", short:"20 l" },
+  { value:"doos75", label:"6 x 75cl", short:"6 x 75cl" },
+  { value:"clip4", label:"Clips 4 x 33cl", short:"Clips" },
   { value:"gvp", label:"GVP", short:"GVP" }
 ];
 
@@ -52,47 +52,47 @@ const PROMO_CATEGORIES = [
 // =========================================================
 
 const BEURS_PRODUCTS = [
-  { id:12907, article_number:"000239", barcode:"", name:"Achel Bockbier 20 L", display_name:"Achel Bockbier 20L", category:"vat20" },
-  { id:44, article_number:"000031", barcode:"", name:"Achel Dubbel 20 L", display_name:"Achel Dubbel 20L", category:"vat20" },
-  { id:68, article_number:"000055", barcode:"", name:"Achel Gallant Grand Cru Special 20 L", display_name:"Achel Gallant Grand Cru Special 20L", category:"vat20" },
-  { id:8396, article_number:"000170", barcode:"", name:"Achel Quadrupel Dark 20 L", display_name:"Achel Quadrupel Dark 20L", category:"vat20" },
-  { id:8383, article_number:"000157", barcode:"", name:"Achel Quadrupel Gold 20 L", display_name:"Achel Quadrupel Gold 20L", category:"vat20" },
-  { id:45, article_number:"000032", barcode:"", name:"Achel Rouge Légère 20 L", display_name:"Achel Rouge Légère 20L", category:"vat20" },
-  { id:46, article_number:"000033", barcode:"", name:"Achel Singel Blond 20 L", display_name:"Achel Singel Blond 20L", category:"vat20" },
-  { id:23, article_number:"000011", barcode:"", name:"Achel Tripel 20 L", display_name:"Achel Tripel 20L", category:"vat20" },
-  { id:8657, article_number:"000175", barcode:"", name:"Achel Winter '26 20 L", display_name:"Achel Winter '26 20L", category:"vat20" },
-  { id:8646, article_number:"000172", barcode:"", name:"Achel Wit 20 L", display_name:"Achel Wit 20L", category:"vat20" },
+  { id:41, article_number:"000028", barcode:"5425007658811", name:"Achel Dubbel 24 x 33cl", display_name:"Achel Dubbel 24 x 33cl", category:"krat24" },
+  { id:8393, article_number:"000167", barcode:"", name:"Achel Gallant Grand Cru 24 x 33cl", display_name:"Achel Gallant Grand Cru 24 x 33cl", category:"krat24" },
+  { id:8388, article_number:"000162", barcode:"", name:"Achel Quadrupel Dark 24 x 33cl", display_name:"Achel Quadrupel Dark 24 x 33cl", category:"krat24" },
+  { id:8382, article_number:"000156", barcode:"", name:"Achel Quadrupel Gold 24 x 33cl", display_name:"Achel Quadrupel Gold 24 x 33cl", category:"krat24" },
+  { id:42, article_number:"000029", barcode:"5425007659214", name:"Achel Rouge Légère 24 x 33cl", display_name:"Achel Rouge Légère 24 x 33cl", category:"krat24" },
+  { id:2087, article_number:"000094", barcode:"", name:"Achel Singel Blond 24 x 33cl - 12°PL", display_name:"Achel Singel Blond 24 x 33cl", category:"krat24" },
+  { id:21, article_number:"000009", barcode:"5425007658835", name:"Achel Tripel 24 x 33cl", display_name:"Achel Tripel 24 x 33cl", category:"krat24" },
+  { id:8656, article_number:"000174", barcode:"", name:"Achel Winter '26 24 x 33cl", display_name:"Achel Winter '26 24 x 33cl", category:"krat24" },
+  { id:5078, article_number:"000112", barcode:"5425007659535", name:"Achel Wit 24 x 33cl", display_name:"Achel Witbier 24 x 33cl", category:"krat24" },
 
-  { id:41, article_number:"000028", barcode:"5425007658811", name:"Achel Dubbel 24 x 33cl", display_name:"Achel Dubbel 24 × 33cl", category:"krat24" },
-  { id:8393, article_number:"000167", barcode:"", name:"Achel Gallant Grand Cru 24 x 33cl", display_name:"Achel Gallant Grand Cru 24 × 33cl", category:"krat24" },
-  { id:8388, article_number:"000162", barcode:"", name:"Achel Quadrupel Dark 24 x 33cl", display_name:"Achel Quadrupel Dark 24 × 33cl", category:"krat24" },
-  { id:8382, article_number:"000156", barcode:"", name:"Achel Quadrupel Gold 24 x 33cl", display_name:"Achel Quadrupel Gold 24 × 33cl", category:"krat24" },
-  { id:42, article_number:"000029", barcode:"5425007659214", name:"Achel Rouge Légère 24 x 33cl", display_name:"Achel Rouge Légère 24 × 33cl", category:"krat24" },
-  { id:2087, article_number:"000094", barcode:"", name:"Achel Singel Blond 24 x 33cl - 12°PL", display_name:"Achel Singel Blond 24 × 33cl", category:"krat24" },
-  { id:21, article_number:"000009", barcode:"5425007658835", name:"Achel Tripel 24 x 33cl", display_name:"Achel Tripel 24 × 33cl", category:"krat24" },
-  { id:8656, article_number:"000174", barcode:"", name:"Achel Winter '26 24 x 33cl", display_name:"Achel Winter '26 24 × 33cl", category:"krat24" },
-  { id:5078, article_number:"000112", barcode:"5425007659535", name:"Achel Wit 24 x 33cl", display_name:"Achel Wit 24 × 33cl", category:"krat24" },
+  { id:12907, article_number:"000239", barcode:"", name:"Achel Bockbier 20 L", display_name:"Achel Bockbier 20 L", category:"vat20" },
+  { id:44, article_number:"000031", barcode:"", name:"Achel Dubbel 20 L", display_name:"Achel Dubbel 20 L", category:"vat20" },
+  { id:68, article_number:"000055", barcode:"", name:"Achel Gallant Grand Cru Special 20 L", display_name:"Achel Gallant Grand Cru Special 20 L", category:"vat20" },
+  { id:8396, article_number:"000170", barcode:"", name:"Achel Quadrupel Dark 20 L", display_name:"Achel Quadrupel Dark 20 L", category:"vat20" },
+  { id:8383, article_number:"000157", barcode:"", name:"Achel Quadrupel Gold 20 L", display_name:"Achel Quadrupel Gold 20 L", category:"vat20" },
+  { id:45, article_number:"000032", barcode:"", name:"Achel Rouge Légère 20 L", display_name:"Achel Rouge Légère 20 L", category:"vat20" },
+  { id:46, article_number:"000033", barcode:"", name:"Achel Singel Blond 20 L", display_name:"Achel Singel Blond 20 L", category:"vat20" },
+  { id:23, article_number:"000011", barcode:"", name:"Achel Tripel 20 L", display_name:"Achel Tripel 20 L", category:"vat20" },
+  { id:8657, article_number:"000175", barcode:"", name:"Achel Winter '26 20 L", display_name:"Achel Winter '26 20 L", category:"vat20" },
+  { id:8646, article_number:"000172", barcode:"", name:"Achel Wit 20 L", display_name:"Achel Witbier 20 L", category:"vat20" },
 
-  { id:67, article_number:"000054", barcode:"", name:"Achel Gallant Grand Cru Special 6 x 75cl carton", display_name:"Achel Gallant Grand Cru Special 6 × 75cl", category:"doos75" },
-  { id:8395, article_number:"000169", barcode:"", name:"Achel Quadrupel Dark 6 x 75cl carton", display_name:"Achel Quadrupel Dark 6 × 75cl", category:"doos75" },
-  { id:8394, article_number:"000168", barcode:"", name:"Achel Quadrupel Gold 6 x 75cl carton", display_name:"Achel Quadrupel Gold 6 × 75cl", category:"doos75" },
-  { id:65, article_number:"000052", barcode:"", name:"Achel Superior Winter 6 x 75cl carton", display_name:"Achel Superior Winter 6 × 75cl", category:"doos75" },
+  { id:67, article_number:"000054", barcode:"", name:"Achel Gallant Grand Cru Special 6 x 75cl carton", display_name:"Achel Gallant Grand Cru Special 6 x 75cl carton", category:"doos75" },
+  { id:8395, article_number:"000169", barcode:"", name:"Achel Quadrupel Dark 6 x 75cl carton", display_name:"Achel Quadrupel Dark 6 x 75cl carton", category:"doos75" },
+  { id:8394, article_number:"000168", barcode:"", name:"Achel Quadrupel Gold 6 x 75cl carton", display_name:"Achel Quadrupel Gold 6 x 75cl carton", category:"doos75" },
+  { id:65, article_number:"000052", barcode:"", name:"Achel Superior Winter 6 x 75cl carton", display_name:"Achel Superior Winter 6 x 75cl carton", category:"doos75" },
 
-  { id:14340, article_number:"000243", barcode:"5425007659368", name:"Achel Tripel Clip 4 x 33cl", display_name:"Achel Tripel Clip 4 × 33cl", category:"clip4" },
-  { id:14339, article_number:"000242", barcode:"5425007659375", name:"Achel Dubbel Clip 4 x 33cl", display_name:"Achel Dubbel Clip 4 × 33cl", category:"clip4" },
-  { id:14342, article_number:"000245", barcode:"5425007659382", name:"Achel Singel Blond Clip 4 x 33cl", display_name:"Achel Singel Blond Clip 4 × 33cl", category:"clip4" },
-  { id:14341, article_number:"000244", barcode:"5425007659399", name:"Achel Rouge Légère Clip 4 x 33cl", display_name:"Achel Rouge Légère Clip 4 × 33cl", category:"clip4" },
-  { id:14343, article_number:"000246", barcode:"5425007659764", name:"Achel Quadrupel Dark Clip 4 x 33cl", display_name:"Achel Quadrupel Dark Clip 4 × 33cl", category:"clip4" },
-  { id:14344, article_number:"000247", barcode:"5425007659771", name:"Achel Quadrupel Gold Clip 4 x 33cl", display_name:"Achel Quadrupel Gold Clip 4 × 33cl", category:"clip4" },
-  { id:14346, article_number:"000249", barcode:"5425007659788", name:"Achel Witbier Clip 4 x 33cl", display_name:"Achel Witbier Clip 4 × 33cl", category:"clip4" },
-  { id:14345, article_number:"000248", barcode:"5425007659795", name:"Achel Gallant Grand Cru Special Clip 4 x 33cl", display_name:"Achel Gallant Grand Cru Special Clip 4 × 33cl", category:"clip4" },
-  { id:14349, article_number:"000252", barcode:"5425007659801", name:"Achel Quartet Clip 4 x 33cl (Tripel, Dubbel, Singel, Rouge)", display_name:"Achel Quartet Clip 4 × 33cl", category:"clip4" },
-  { id:14353, article_number:"000254", barcode:"5425007659818", name:"Achel Mix DT Clip 4 x 33cl (2x Tripel, 2x Dubbel)", display_name:"Achel Mix DT Clip 4 × 33cl", category:"clip4" },
-  { id:14352, article_number:"000253", barcode:"5425007659825", name:"Achel OerQuartet Clip 4 x 33cl (Tripel, Dubbel, Qua Dark, Qua Gold)", display_name:"Achel OerQuartet Clip 4 × 33cl", category:"clip4" },
-  { id:14347, article_number:"000250", barcode:"5425007659832", name:"Achel Winter Clip 4 x 33cl", display_name:"Achel Winter Clip 4 × 33cl", category:"clip4" },
-  { id:14348, article_number:"000251", barcode:"5425007659849", name:"Achel Mix Q Clip 4 x 33cl (Quadrupel Gold + Quadrupel Dark)", display_name:"Achel Mix Q Clip 4 × 33cl", category:"clip4" },
+  { id:14340, article_number:"000243", barcode:"5425007659368", name:"Achel Tripel Clip 4 x 33cl", display_name:"Achel Tripel Clip 4 x 33cl", category:"clip4" },
+  { id:14339, article_number:"000242", barcode:"5425007659375", name:"Achel Dubbel Clip 4 x 33cl", display_name:"Achel Dubbel Clip 4 x 33cl", category:"clip4" },
+  { id:14342, article_number:"000245", barcode:"5425007659382", name:"Achel Singel Blond Clip 4 x 33cl", display_name:"Achel Singel Blond Clip 4 x 33cl", category:"clip4" },
+  { id:14341, article_number:"000244", barcode:"5425007659399", name:"Achel Rouge Légère Clip 4 x 33cl", display_name:"Achel Rouge Légère Clip 4 x 33cl", category:"clip4" },
+  { id:14343, article_number:"000246", barcode:"5425007659764", name:"Achel Quadrupel Dark Clip 4 x 33cl", display_name:"Achel Quadrupel Dark Clip 4 x 33cl", category:"clip4" },
+  { id:14344, article_number:"000247", barcode:"5425007659771", name:"Achel Quadrupel Gold Clip 4 x 33cl", display_name:"Achel Quadrupel Gold Clip 4 x 33cl", category:"clip4" },
+  { id:14346, article_number:"000249", barcode:"5425007659788", name:"Achel Witbier Clip 4 x 33cl", display_name:"Achel Witbier Clip 4 x 33cl", category:"clip4" },
+  { id:14345, article_number:"000248", barcode:"5425007659795", name:"Achel Gallant Grand Cru Special Clip 4 x 33cl", display_name:"Achel Gallant Grand Cru Special Clip 4 x 33cl", category:"clip4" },
+  { id:14349, article_number:"000252", barcode:"5425007659801", name:"Achel Quartet Clip 4 x 33cl (Tripel, Dubbel, Singel, Rouge)", display_name:"Achel Quartet Clip 4 x 33cl (Tripel, Dubbel, Singel, Rouge)", category:"clip4" },
+  { id:14353, article_number:"000254", barcode:"5425007659818", name:"Achel Mix DT Clip 4 x 33cl (2x Tripel, 2x Dubbel)", display_name:"Achel Mix DT Clip 4 x 33cl (2x Tripel, 2x Dubbel)", category:"clip4" },
+  { id:14352, article_number:"000253", barcode:"5425007659825", name:"Achel OerQuartet Clip 4 x 33cl (Tripel, Dubbel, Qua Dark, Qua Gold)", display_name:"Achel OerQuartet Clip 4 x 33cl (Tripel, Dubbel, Qua Dark, Qua Gold)", category:"clip4" },
+  { id:14347, article_number:"000250", barcode:"5425007659832", name:"Achel Winter Clip 4 x 33cl", display_name:"Achel Winter Clip 4 x 33cl", category:"clip4" },
+  { id:14348, article_number:"000251", barcode:"5425007659849", name:"Achel Mix Q Clip 4 x 33cl (Quadrupel Gold + Quadrupel Dark)", display_name:"Achel Mix Q Clip 4 x 33cl (Quadrupel Gold + Quadrupel Dark)", category:"clip4" },
 
-  { id:73, article_number:"000060", barcode:"", name:"Achel GVP 5 x (4 x 33cl + glas)", display_name:"Achel GVP 5 × (4 × 33cl + glas)", category:"gvp" }
+  { id:73, article_number:"000060", barcode:"", name:"Achel GVP 5 x (4 x 33cl + glas)", display_name:"Achel GVP 5 x (4 x 33cl + glas)", category:"gvp" }
 ];
 
 const INTEREST_BEERS = [
@@ -124,6 +124,7 @@ async function initBeurzen() {
   bindForms();
   renderInterestList();
   renderProducts();
+  bindPackaging();
 
   try {
     const {
@@ -601,6 +602,47 @@ function renderProducts() {
   updateOrderSummary();
 }
 
+// ---------- Verpakkingen: zelfde klik-door als POS / promo ----------
+
+function bindPackaging() {
+  document
+    .querySelectorAll("[data-pack-count]")
+    .forEach(el => {
+      el.textContent =
+        BEURS_PRODUCTS.filter(product => product.category === el.dataset.packCount).length;
+    });
+
+  document
+    .getElementById("packagingTiles")
+    ?.addEventListener("click", event => {
+      const tile = event.target.closest("[data-pack]");
+      if (tile) openPackaging(tile.dataset.pack);
+    });
+
+  document
+    .getElementById("packagingBack")
+    ?.addEventListener("click", closePackaging);
+}
+
+function openPackaging(category) {
+  document.getElementById("packagingTiles")?.classList.add("hidden");
+  document.getElementById("packagingPanel")?.classList.remove("hidden");
+
+  document
+    .querySelectorAll(".pack-list")
+    .forEach(list => list.classList.toggle("hidden", list.id !== `products-${category}`));
+
+  setText(
+    "packagingTitle",
+    PROMO_CATEGORIES.find(item => item.value === category)?.label || category
+  );
+}
+
+function closePackaging() {
+  document.getElementById("packagingPanel")?.classList.add("hidden");
+  document.getElementById("packagingTiles")?.classList.remove("hidden");
+}
+
 function getSelectedOrderItems() {
   const items =
     BEURS_PRODUCTS
@@ -744,6 +786,7 @@ function updateOrderSummary() {
 }
 
 function resetOrderQuantities() {
+  closePackaging();
   resetFreeAllocations();
 
   document
@@ -2881,24 +2924,13 @@ function updateOrderPromos() {
   const fair = currentOrderFair();
   const promos = fair?.promotions || [];
 
-  // Kleine actie-labels bij de productgroepen.
-  PROMO_CATEGORIES.forEach(cat => {
-    const summary =
-      document.getElementById(`count-${cat.value}`)?.parentElement;
-    if (!summary) return;
-
-    summary.querySelector(".group-promo")?.remove();
-
-    const promo = promoForCategory(cat.value);
-    if (promo) {
-      summary
-        .querySelector("span")
-        ?.insertAdjacentHTML(
-          "beforeend",
-          ` <em class="group-promo">${escapeHtml(`${promo.buy}+${promo.free}`)}</em>`
-        );
-    }
-  });
+  // Kleine actie-labels op de verpakkingsknoppen.
+  document
+    .querySelectorAll("[data-promo-tile]")
+    .forEach(tag => {
+      const promo = promoForCategory(tag.dataset.promoTile);
+      tag.textContent = promo ? `${promo.buy}+${promo.free}` : "";
+    });
 
   if (!fair || !promos.length) {
     box.classList.add("hidden");

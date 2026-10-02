@@ -826,6 +826,9 @@ function backToWholesaleOrder() {
 
 function resetWholesaleOrder() {
 
+  wholesalePackaging =
+    null;
+
   wholesaleSubmitting =
     false;
 
@@ -1098,7 +1101,7 @@ async function loadWholesaleProducts() {
       )
 
       .select(
-        "id, naam, categorie, eenheid, sort_order"
+        "id, naam, categorie, eenheid, sort_order, subcategorie"
       )
 
       .eq(
@@ -1195,6 +1198,28 @@ async function loadWholesaleProducts() {
    PRODUCTEN TONEN
 ============================================================ */
 
+let wholesalePackaging =
+  null;
+
+
+function openWholesalePackaging(key) {
+
+  wholesalePackaging = key;
+
+  renderWholesaleProducts();
+
+}
+
+
+function backToWholesalePackaging() {
+
+  wholesalePackaging = null;
+
+  renderWholesaleProducts();
+
+}
+
+
 function renderWholesaleProducts() {
 
   const container =
@@ -1233,9 +1258,75 @@ function renderWholesaleProducts() {
   }
 
 
+  // Zelfde werking als BIER bij POS / promo: eerst de
+  // verpakkingen (24 x 33cl, 20 l, 6 x 75cl), dan pas de bieren.
+  const packagingOrder =
+    typeof BIER_SUBCATEGORY_ORDER !== "undefined"
+      ? BIER_SUBCATEGORY_ORDER
+      : ["24 x 33cl", "20 l", "6 x 75cl"];
+
+  const packagingLabels =
+    typeof BIER_SUBCATEGORY_LABELS !== "undefined"
+      ? BIER_SUBCATEGORY_LABELS
+      : {};
+
+  if (!wholesalePackaging) {
+
+    const present =
+      new Set(
+        wholesaleProducts.map(product => product.subcategorie)
+      );
+
+    container.innerHTML = `
+      <div class="pos-cat-grid">
+        ${packagingOrder
+          .filter(key => present.has(key))
+          .map(key => `
+            <button
+              type="button"
+              class="pos-cat-tile"
+              onclick="openWholesalePackaging('${key}')"
+            >
+              <span>
+                ${wholesaleEscapeHtml(packagingLabels[key] || key)}
+              </span>
+              <span class="pos-cat-tile-count">
+                ${wholesaleProducts.filter(product => product.subcategorie === key).length}
+              </span>
+            </button>
+          `)
+          .join("")}
+      </div>
+    `;
+
+    updateWholesaleReviewButton();
+
+    return;
+
+  }
+
   container.innerHTML =
 
+    `
+      <button
+        type="button"
+        class="pos-back-btn"
+        onclick="backToWholesalePackaging()"
+      >
+        &#8592; Categorieën
+      </button>
+
+      <div class="pos-level-title">
+        ${wholesaleEscapeHtml(packagingLabels[wholesalePackaging] || wholesalePackaging)}
+      </div>
+    ` +
+
     wholesaleProducts
+
+      .filter(
+        product =>
+          product.subcategorie === wholesalePackaging
+      )
 
       .map(
         product => {

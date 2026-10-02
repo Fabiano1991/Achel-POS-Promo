@@ -241,46 +241,26 @@
           </div>
         </div>
 
+        <!-- Zelfde werking als BIER bij POS / promo: eerst de
+             verpakkingen, dan pas de bieren. -->
         <div class="product-groups">
-          <details class="product-group">
-            <summary>
-              <span>Vaten 20L</span>
-              <b id="count-vat20">0</b>
-            </summary>
-            <div id="products-vat20" class="product-list"></div>
-          </details>
+          <div class="pos-cat-grid" id="packagingTiles">
+            <button type="button" class="pos-cat-tile" data-pack="krat24"><span>24 x 33cl<em class="tile-promo" data-promo-tile="krat24"></em></span><span class="pos-cat-tile-count" data-pack-count="krat24"></span></button>
+            <button type="button" class="pos-cat-tile" data-pack="vat20"><span>20 l<em class="tile-promo" data-promo-tile="vat20"></em></span><span class="pos-cat-tile-count" data-pack-count="vat20"></span></button>
+            <button type="button" class="pos-cat-tile" data-pack="doos75"><span>6 x 75cl<em class="tile-promo" data-promo-tile="doos75"></em></span><span class="pos-cat-tile-count" data-pack-count="doos75"></span></button>
+            <button type="button" class="pos-cat-tile" data-pack="clip4"><span>Clips 4 x 33cl<em class="tile-promo" data-promo-tile="clip4"></em></span><span class="pos-cat-tile-count" data-pack-count="clip4"></span></button>
+            <button type="button" class="pos-cat-tile" data-pack="gvp"><span>GVP<em class="tile-promo" data-promo-tile="gvp"></em></span><span class="pos-cat-tile-count" data-pack-count="gvp"></span></button>
+          </div>
 
-          <details class="product-group">
-            <summary>
-              <span>Kratten 24 × 33cl</span>
-              <b id="count-krat24">0</b>
-            </summary>
-            <div id="products-krat24" class="product-list"></div>
-          </details>
-
-          <details class="product-group">
-            <summary>
-              <span>Dozen 6 × 75cl</span>
-              <b id="count-doos75">0</b>
-            </summary>
-            <div id="products-doos75" class="product-list"></div>
-          </details>
-
-          <details class="product-group">
-            <summary>
-              <span>Clips 4 × 33cl</span>
-              <b id="count-clip4">0</b>
-            </summary>
-            <div id="products-clip4" class="product-list"></div>
-          </details>
-
-          <details class="product-group">
-            <summary>
-              <span>GVP</span>
-              <b id="count-gvp">0</b>
-            </summary>
-            <div id="products-gvp" class="product-list"></div>
-          </details>
+          <div id="packagingPanel" class="hidden">
+            <button type="button" class="pos-back-btn" id="packagingBack">&#8592; Categorieën</button>
+            <div class="pos-level-title" id="packagingTitle"></div>
+            <div id="products-krat24" class="product-list pack-list hidden"></div>
+            <div id="products-vat20" class="product-list pack-list hidden"></div>
+            <div id="products-doos75" class="product-list pack-list hidden"></div>
+            <div id="products-clip4" class="product-list pack-list hidden"></div>
+            <div id="products-gvp" class="product-list pack-list hidden"></div>
+          </div>
         </div>
 
         <div id="freePicker" class="free-picker hidden"></div>
