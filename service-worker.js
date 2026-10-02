@@ -1,7 +1,7 @@
 // Verhoog deze versie bij elke release waarin gecachete bestanden wijzigen
 // (bv. na het vervangen van een afbeelding), anders houden geïnstalleerde
 // PWA's de oude versie vast.
-const CACHE_VERSION = "v8-offline";
+const CACHE_VERSION = "v9-offline";
 const CACHE_NAME = `achel-pos-cache-${CACHE_VERSION}`;
 
 // Externe bibliotheken (Supabase, Excel, PDF, grafieken, zip) krijgen een
@@ -18,6 +18,7 @@ const CORE_FILES = [
   "./manifest.json",
   "./offline.js",
   "./admin.js",
+  "./boekhouding.js",
   "./wholesale.js",
   "./event-overzicht.js",
   "./achel-icon-192.png",

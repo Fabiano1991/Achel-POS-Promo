@@ -834,7 +834,40 @@ function createAdminScreen() {
       </div>
 
 
-      <div class="admin-report-central-filters">
+      <div class="bk-seg" role="tablist">
+
+        <button
+          id="bkTab-todo"
+          class="active"
+          type="button"
+          onclick="setBoekhoudingView('todo')"
+        >
+          Te verwerken <i id="bkTodoCount">0</i>
+        </button>
+
+        <button
+          id="bkTab-done"
+          type="button"
+          onclick="setBoekhoudingView('done')"
+        >
+          Verwerkt
+        </button>
+
+        <button
+          id="bkTab-archive"
+          type="button"
+          onclick="setBoekhoudingView('archive')"
+        >
+          Archief
+        </button>
+
+      </div>
+
+
+      <div
+        id="bkFilters"
+        class="admin-report-central-filters"
+      >
 
         <div class="admin-report-grid">
 
@@ -904,6 +937,70 @@ function createAdminScreen() {
 
       </div>
 
+
+      <!-- BOEKHOUDING: TE VERWERKEN -->
+
+      <div id="bkPane-todo">
+
+        <div
+          id="bkChips"
+          class="bk-chips"
+        ></div>
+
+        <div id="bkTodoList" class="bk-list">
+          <div class="empty">
+            Gegevens laden...
+          </div>
+        </div>
+
+        <button
+          class="admin-export"
+          type="button"
+          onclick="exportBoekhoudingTodoExcel()"
+        >
+          Excel van deze lijst downloaden
+        </button>
+
+        <div
+          id="bkActionBar"
+          class="bk-bar hidden"
+        >
+
+          <span id="bkSelectedText">
+            0 geselecteerd
+          </span>
+
+          <button
+            id="bkMarkButton"
+            type="button"
+            onclick="markBoekhoudingSelected()"
+          >
+            ✓ Markeer als verwerkt
+          </button>
+
+        </div>
+
+      </div>
+
+
+      <!-- BOEKHOUDING: VERWERKT -->
+
+      <div
+        id="bkPane-done"
+        class="hidden"
+      >
+
+        <div id="bkDoneContent"></div>
+
+      </div>
+
+
+      <!-- ARCHIEF (bestaande mappen) -->
+
+      <div
+        id="bkPane-archive"
+        class="hidden"
+      >
 
       <!-- GROOTHANDEL -->
 
@@ -1214,6 +1311,8 @@ function createAdminScreen() {
         </div>
 
       </details>
+
+      </div>
 
     </div>
 
@@ -1897,6 +1996,16 @@ async function switchAdminTab(
 
     renderCentralReports();
 
+
+    if (
+      typeof openBoekhoudingTab ===
+      "function"
+    ) {
+
+      openBoekhoudingTab();
+
+    }
+
   }
 
 
@@ -2104,7 +2213,9 @@ async function loadAdminDashboard() {
             completed_at,
             collected_at,
             created_at,
-            updated_at
+            updated_at,
+            verwerkt_at,
+            verwerkt_door
           `)
           .order(
             "created_at",
@@ -2444,7 +2555,7 @@ async function loadAdminReportsData(
               "wholesale_orders"
             )
             .select(
-              "id, user_id, referentie, drankenhandel, opmerking, status, created_at"
+              "id, user_id, referentie, drankenhandel, opmerking, status, created_at, verwerkt_at, verwerkt_door"
             )
             .order(
               "created_at",
@@ -12935,7 +13046,9 @@ async function loadAdminFreeBeerData(
           drankenhandel,
           horecaklant,
           provincie,
-          created_at
+          created_at,
+          verwerkt_at,
+          verwerkt_door
         `)
 
         .order(
@@ -14808,6 +14921,16 @@ function renderCentralReports() {
   ) {
 
     renderAdminFreeBeer();
+
+  }
+
+
+  if (
+    typeof renderBoekhouding ===
+    "function"
+  ) {
+
+    renderBoekhouding();
 
   }
 
