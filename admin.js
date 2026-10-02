@@ -352,6 +352,10 @@ function createAdminScreen() {
         type="button"
       >
         Aanvragen
+        <span
+          id="adminTabRequestsDot"
+          class="admin-new-dot hidden"
+        ></span>
       </button>
 
 
@@ -392,8 +396,94 @@ function createAdminScreen() {
 
       <div
         id="adminStatistics"
-        class="admin-kpis"
+        class="hidden"
       ></div>
+
+
+      <div class="admin-block">
+
+        <div class="admin-block-title">
+
+          <span>
+            AANVRAGEN
+          </span>
+
+          <strong>
+            Open direct
+          </strong>
+
+        </div>
+
+
+        <button
+          class="admin-row green"
+          onclick="openAdminRequestView('regular')"
+          type="button"
+        >
+
+          <div>
+
+            <b>
+              POS & bier
+              <span
+                id="overviewRegularDot"
+                class="admin-new-dot hidden"
+                title="Nieuwe aanvraag"
+              ></span>
+            </b>
+
+            <small id="overviewRegularSummary">
+              Alleen POS- en bieraanvragen
+            </small>
+
+          </div>
+
+          <strong id="overviewRegularCount">
+            0
+          </strong>
+
+          <i>
+            ›
+          </i>
+
+        </button>
+
+
+        <button
+          class="admin-row orange"
+          onclick="openAdminRequestView('events')"
+          type="button"
+        >
+
+          <div>
+
+            <b>
+              Evenementen
+              <span
+                id="overviewEventDot"
+                class="admin-new-dot hidden"
+                title="Nieuwe aanvraag"
+              ></span>
+            </b>
+
+            <small id="overviewEventSummary">
+              Alleen evenementaanvragen
+            </small>
+
+          </div>
+
+          <strong id="overviewEventCount">
+            0
+          </strong>
+
+          <i>
+            ›
+          </i>
+
+        </button>
+
+      </div>
+
 
 
       <div class="admin-block">
@@ -434,80 +524,6 @@ function createAdminScreen() {
       </div>
 
 
-      <div class="admin-block">
-
-        <div class="admin-block-title">
-
-          <span>
-            AANVRAGEN
-          </span>
-
-          <strong>
-            Open direct
-          </strong>
-
-        </div>
-
-
-        <button
-          class="admin-row green"
-          onclick="openAdminRequestView('regular')"
-          type="button"
-        >
-
-          <div>
-
-            <b>
-              POS & bier
-            </b>
-
-            <small>
-              Alleen POS- en bieraanvragen
-            </small>
-
-          </div>
-
-          <strong id="overviewRegularCount">
-            0
-          </strong>
-
-          <i>
-            ›
-          </i>
-
-        </button>
-
-
-        <button
-          class="admin-row orange"
-          onclick="openAdminRequestView('events')"
-          type="button"
-        >
-
-          <div>
-
-            <b>
-              Evenementen
-            </b>
-
-            <small>
-              Alleen evenementaanvragen
-            </small>
-
-          </div>
-
-          <strong id="overviewEventCount">
-            0
-          </strong>
-
-          <i>
-            ›
-          </i>
-
-        </button>
-
-      </div>
-
     </div>
 
 
@@ -540,6 +556,10 @@ function createAdminScreen() {
           onclick="setAdminRequestView('regular')"
         >
           POS & bier
+          <span
+            id="requestRegularDot"
+            class="admin-new-dot hidden"
+          ></span>
         </button>
 
         <button
@@ -548,6 +568,10 @@ function createAdminScreen() {
           onclick="setAdminRequestView('events')"
         >
           Evenementen
+          <span
+            id="requestEventDot"
+            class="admin-new-dot hidden"
+          ></span>
         </button>
       </div>
 
@@ -2023,6 +2047,22 @@ function openAdminRequestView(
   adminRequestView =
     view;
 
+
+  const statusSelect =
+    document.getElementById(
+      "adminStatusFilter"
+    );
+
+  if (
+    statusSelect
+  ) {
+
+    statusSelect.value =
+      "";
+
+  }
+
+
   switchAdminTab(
     "requests"
   );
@@ -3219,37 +3259,99 @@ function renderAdminStatistics() {
       .length;
 
 
+  // De tegels Nieuw / In behandeling / Klaar zijn vervangen door
+  // de rode bolletjes en de samenvatting bij "Open direct".
   container.innerHTML =
-
-    adminKpi(
-      "green",
-      nieuw,
-      "Nieuw",
-      "setAdminStatusAndOpen('nieuw')"
-    )
-
-    +
-
-    adminKpi(
-      "orange",
-      processing,
-      "In behandeling",
-      "setAdminStatusAndOpen('in_behandeling')"
-    )
-
-    +
-
-    adminKpi(
-      "gold",
-      ready,
-      "Klaar",
-      "setAdminStatusAndOpen('klaar')"
-    );
+    "";
 
 
   renderAdminAttentionPanel();
 
   renderAdminHectoliterWidget();
+
+}
+
+
+/* ===============================
+   RODE BOLLETJES: NIEUWE AANVRAGEN
+   Zichtbaar zolang er een aanvraag "Nieuw" of "In behandeling"
+   is; verdwijnt zodra alles op Klaar staat.
+================================ */
+
+function updateAdminNewRequestDots() {
+
+  const isOpen =
+    order =>
+      order.status === "nieuw" ||
+      order.status === "in_behandeling";
+
+  const count =
+    (list, status) =>
+      list.filter(order => order.status === status).length;
+
+  const regularAll =
+    adminOrders.filter(order => !order.event_naam);
+
+  const eventAll =
+    adminOrders.filter(order => Boolean(order.event_naam));
+
+  const regularOpen =
+    regularAll.filter(isOpen);
+
+  const eventOpen =
+    eventAll.filter(isOpen);
+
+  const toggle =
+    (id, show) =>
+      document.getElementById(id)
+        ?.classList.toggle("hidden", !show);
+
+  toggle("overviewRegularDot", regularOpen.length > 0);
+  toggle("requestRegularDot", regularOpen.length > 0);
+  toggle("overviewEventDot", eventOpen.length > 0);
+  toggle("requestEventDot", eventOpen.length > 0);
+  toggle("adminTabRequestsDot", regularOpen.length + eventOpen.length > 0);
+
+  setCount(
+    "overviewRegularCount",
+    regularOpen.length
+  );
+
+  setCount(
+    "overviewEventCount",
+    eventOpen.length
+  );
+
+  const summary =
+    (id, list, extra) => {
+
+      const element = document.getElementById(id);
+
+      if (!element) {
+        return;
+      }
+
+      element.textContent =
+        [
+          `${count(list, "nieuw")} nieuw`,
+          `${count(list, "in_behandeling")} in behandeling`,
+          extra
+        ]
+          .filter(Boolean)
+          .join(" · ");
+
+    };
+
+  summary(
+    "overviewRegularSummary",
+    regularAll
+  );
+
+  summary(
+    "overviewEventSummary",
+    eventAll,
+    `${count(eventAll, "klaar")} klaar voor afhaling`
+  );
 
 }
 
@@ -4823,16 +4925,7 @@ function renderAdminSections() {
   );
 
 
-  setCount(
-    "overviewRegularCount",
-    regular.length
-  );
-
-
-  setCount(
-    "overviewEventCount",
-    events.length
-  );
+  updateAdminNewRequestDots();
 
 
   setCount(
@@ -12613,20 +12706,33 @@ function adminStatusTimeline(
 
       ${timelineRow(
         "Klaar",
-        order.completed_at,
+        order.completed_at ||
+        (
+          order.event_naam
+            ? null
+            : order.collected_at
+        ),
         Boolean(
-          order.completed_at
+          order.completed_at ||
+          (
+            !order.event_naam &&
+            order.collected_at
+          )
         )
       )}
 
 
-      ${timelineRow(
-        "Afgehaald",
-        order.collected_at,
-        Boolean(
-          order.collected_at
-        )
-      )}
+      ${
+        order.event_naam
+          ? timelineRow(
+              "Afgehaald",
+              order.collected_at,
+              Boolean(
+                order.collected_at
+              )
+            )
+          : ""
+      }
 
 
       ${
@@ -12714,6 +12820,59 @@ function adminActionButtons(
   if (
     order.status ===
     "in_behandeling"
+    &&
+    !order.event_naam
+  ) {
+
+    return `
+
+      <button
+        class="admin-primary"
+        type="button"
+        onclick="markAdminOrderFinished()"
+      >
+        ✓ Klaar
+      </button>
+
+
+      <button
+        class="admin-secondary"
+        type="button"
+        onclick="cancelAdminOrder()"
+      >
+        Annuleren
+      </button>
+
+    `;
+
+  }
+
+
+  if (
+    order.status ===
+    "klaar"
+    &&
+    !order.event_naam
+  ) {
+
+    return `
+
+      <button
+        class="admin-primary"
+        type="button"
+        onclick="markAdminOrderFinished()"
+      >
+        ✓ Afronden
+      </button>
+
+    `;
+
+  }
+
+
+  if (
+    order.status ===
+    "in_behandeling"
   ) {
 
     return `
@@ -12723,9 +12882,7 @@ function adminActionButtons(
         type="button"
         onclick="markAdminOrderCompleted()"
       >
-
         Klaar voor afhaling
-
       </button>
 
 
@@ -12793,6 +12950,18 @@ async function markAdminOrderCompleted() {
 
   await updateSelectedAdminOrderStatus(
     "klaar"
+  );
+
+}
+
+
+/* POS & bier: geen aparte afhaal-stap meer. "Klaar" zet de aanvraag
+   meteen op afgerond (intern status "afgehaald"), zodat ze in het
+   archief en bij de boekhouding (Te verwerken) terechtkomt. */
+async function markAdminOrderFinished() {
+
+  await updateSelectedAdminOrderStatus(
+    "afgehaald"
   );
 
 }
@@ -12872,7 +13041,11 @@ async function updateSelectedAdminOrderStatus(
         ),
 
         ...(
-          status === "klaar"
+          (
+            status === "klaar"
+            ||
+            status === "afgehaald"
+          )
           &&
           !selectedAdminOrder.completed_at
             ? {
@@ -17600,6 +17773,21 @@ function injectAdminStyles() {
 
     }
 
+
+    .admin-new-dot {
+      display:inline-block;
+      width:9px;
+      height:9px;
+      margin-left:6px;
+      border-radius:50%;
+      background:#e5484d;
+      box-shadow:0 0 0 2px rgba(229,72,77,.25);
+      vertical-align:middle;
+    }
+
+    .admin-new-dot.hidden {
+      display:none;
+    }
 
     .admin-row {
 
