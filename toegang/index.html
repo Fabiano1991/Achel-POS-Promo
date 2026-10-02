@@ -2,7 +2,7 @@
 <html lang="nl">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1">
 <meta name="theme-color" content="#182019">
 <title>Toegang · Achel POS</title>
 
@@ -274,6 +274,13 @@ select option {
   color:#9bd9ae;
 }
 
+
+/* Scherm mag niet zijwaarts verschuiven op gsm. */
+html,
+body {
+  max-width:100%;
+  overflow-x:clip;
+}
 </style>
 </head>
 

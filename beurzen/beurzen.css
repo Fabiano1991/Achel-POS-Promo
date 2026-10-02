@@ -1706,7 +1706,7 @@ body.sheet-open {
 html,
 body {
   max-width:100%;
-  overflow-x:hidden;
+  overflow-x:clip;
 }
 
 .segmented label {

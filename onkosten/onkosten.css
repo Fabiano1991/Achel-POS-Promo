@@ -87,3 +87,10 @@
 .ocr-status.ocr-success {
   color:var(--success);
 }
+
+/* Scherm mag niet zijwaarts verschuiven op gsm. */
+html,
+body {
+  max-width:100%;
+  overflow-x:clip;
+}
