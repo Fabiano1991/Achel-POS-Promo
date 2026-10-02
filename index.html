@@ -14381,31 +14381,8 @@ Deze evenementaanvraag is centraal opgeslagen in Achel POS.`;
   in public.free_beer_registrations.
 */
 
+// Zelfde bieren en volgorde als BIER bij POS / promo.
 const FREE_BEER_PRODUCTS = [
-
-  {
-    inhoud:
-      "24 x 33cl",
-
-    sku:
-      "Achel Witbier 24 x 33cl"
-  },
-
-  {
-    inhoud:
-      "24 x 33cl",
-
-    sku:
-      "Achel Rouge Légère 24 x 33cl"
-  },
-
-  {
-    inhoud:
-      "24 x 33cl",
-
-    sku:
-      "Achel Singel Blond 24 x 33cl"
-  },
 
   {
     inhoud:
@@ -14420,7 +14397,7 @@ const FREE_BEER_PRODUCTS = [
       "24 x 33cl",
 
     sku:
-      "Achel Tripel 24 x 33cl"
+      "Achel Gallant Grand Cru 24 x 33cl"
   },
 
   {
@@ -14444,6 +14421,30 @@ const FREE_BEER_PRODUCTS = [
       "24 x 33cl",
 
     sku:
+      "Achel Rouge Légère 24 x 33cl"
+  },
+
+  {
+    inhoud:
+      "24 x 33cl",
+
+    sku:
+      "Achel Singel Blond 24 x 33cl"
+  },
+
+  {
+    inhoud:
+      "24 x 33cl",
+
+    sku:
+      "Achel Tripel 24 x 33cl"
+  },
+
+  {
+    inhoud:
+      "24 x 33cl",
+
+    sku:
       "Achel Winter '26 24 x 33cl"
   },
 
@@ -14452,49 +14453,7 @@ const FREE_BEER_PRODUCTS = [
       "24 x 33cl",
 
     sku:
-      "Achel Gallant Grand Cru 24 x 33cl"
-  },
-
-
-  {
-    inhoud:
-      "6 x 75cl",
-
-    sku:
-      "Achel Quadrupel Dark 6 x 75cl carton"
-  },
-
-  {
-    inhoud:
-      "6 x 75cl",
-
-    sku:
-      "Achel Quadrupel Gold 6 x 75cl carton"
-  },
-
-  {
-    inhoud:
-      "6 x 75cl",
-
-    sku:
-      "Achel Winter '26 20 L"
-  },
-
-  {
-    inhoud:
-      "6 x 75cl",
-
-    sku:
-      "Achel Gallant Grand Cru Special 6 x 75cl carton"
-  },
-
-
-  {
-    inhoud:
-      "20 l",
-
-    sku:
-      "Achel Witbier 20 L"
+      "Achel Witbier 24 x 33cl"
   },
 
   {
@@ -14502,15 +14461,7 @@ const FREE_BEER_PRODUCTS = [
       "20 l",
 
     sku:
-      "Achel Rouge Légère 20 L"
-  },
-
-  {
-    inhoud:
-      "20 l",
-
-    sku:
-      "Achel Singel Blond 20 L"
+      "Achel Bockbier 20 L"
   },
 
   {
@@ -14526,7 +14477,7 @@ const FREE_BEER_PRODUCTS = [
       "20 l",
 
     sku:
-      "Achel Tripel 20 L"
+      "Achel Gallant Grand Cru Special 20 L"
   },
 
   {
@@ -14550,6 +14501,30 @@ const FREE_BEER_PRODUCTS = [
       "20 l",
 
     sku:
+      "Achel Rouge Légère 20 L"
+  },
+
+  {
+    inhoud:
+      "20 l",
+
+    sku:
+      "Achel Singel Blond 20 L"
+  },
+
+  {
+    inhoud:
+      "20 l",
+
+    sku:
+      "Achel Tripel 20 L"
+  },
+
+  {
+    inhoud:
+      "20 l",
+
+    sku:
       "Achel Winter '26 20 L"
   },
 
@@ -14558,9 +14533,32 @@ const FREE_BEER_PRODUCTS = [
       "20 l",
 
     sku:
-      "Achel Gallant Grand Cru Special 20 L"
+      "Achel Witbier 20 L"
   },
 
+  {
+    inhoud:
+      "6 x 75cl",
+
+    sku:
+      "Achel Gallant Grand Cru Special 6 x 75cl carton"
+  },
+
+  {
+    inhoud:
+      "6 x 75cl",
+
+    sku:
+      "Achel Quadrupel Dark 6 x 75cl carton"
+  },
+
+  {
+    inhoud:
+      "6 x 75cl",
+
+    sku:
+      "Achel Quadrupel Gold 6 x 75cl carton"
+  },
 
   {
     inhoud:
@@ -14610,6 +14608,9 @@ function getFreeBeerProductKey(
 ================================ */
 
 function resetFreeBeerForm() {
+
+  freeBeerPackaging =
+    null;
 
   const dateInput =
     document.getElementById(
@@ -14737,6 +14738,30 @@ function resetFreeBeerForm() {
    GRATIS BIER PRODUCTEN
 ================================ */
 
+let freeBeerPackaging =
+  null;
+
+
+function openFreeBeerPackaging(key) {
+
+  freeBeerPackaging = key;
+
+  renderFreeBeerProducts();
+
+}
+
+
+function backToFreeBeerPackaging() {
+
+  freeBeerPackaging = null;
+
+  renderFreeBeerProducts();
+
+}
+
+
+// Zelfde werking als BIER bij POS / promo: eerst de verpakkingen
+// (24 x 33cl, 20 l, 6 x 75cl, GVP), dan pas de bieren.
 function renderFreeBeerProducts() {
 
   const container =
@@ -14744,230 +14769,114 @@ function renderFreeBeerProducts() {
       "freeBeerProductsList"
     );
 
+  if (!container) {
+    return;
+  }
 
-  if (
-    !container
-  ) {
+  const groups =
+    [
+      ...BIER_SUBCATEGORY_ORDER,
+      "GVP"
+    ];
+
+  const withIndex =
+    FREE_BEER_PRODUCTS.map(
+      (product, index) => ({ ...product, index })
+    );
+
+  if (!freeBeerPackaging) {
+
+    container.innerHTML = `
+      <div class="pos-cat-grid">
+        ${groups
+          .filter(group => withIndex.some(product => product.inhoud === group))
+          .map(group => `
+            <button
+              type="button"
+              class="pos-cat-tile"
+              onclick="openFreeBeerPackaging('${group}')"
+            >
+              <span>
+                ${escapeHtml(BIER_SUBCATEGORY_LABELS[group] || group)}
+              </span>
+              <span class="pos-cat-tile-count">
+                ${withIndex.filter(product => product.inhoud === group).length}
+              </span>
+            </button>
+          `)
+          .join("")}
+      </div>
+    `;
+
+    updateFreeBeerSummary();
 
     return;
 
   }
 
+  const products =
+    withIndex.filter(
+      product => product.inhoud === freeBeerPackaging
+    );
 
-  const openGroups =
-    [
-      ...container.querySelectorAll(
-        ".free-beer-category-folder[open]"
-      )
-    ]
-      .map(
-        folder =>
-          folder.dataset.group
-      )
-      .filter(
-        Boolean
-      );
+  container.innerHTML = `
+    <button
+      type="button"
+      class="pos-back-btn"
+      onclick="backToFreeBeerPackaging()"
+    >
+      &#8592; Categorieën
+    </button>
 
+    <div class="pos-level-title">
+      ${escapeHtml(BIER_SUBCATEGORY_LABELS[freeBeerPackaging] || freeBeerPackaging)}
+    </div>
 
-  const groups =
+    <div class="free-beer-category-body">
+      ${products
+        .map(product => {
+          const key =
+            getFreeBeerProductKey(product, product.index);
 
-    [
-      "24 x 33cl",
-      "6 x 75cl",
-      "20 l",
-      "GVP"
-    ];
-
-
-  container.innerHTML =
-
-    groups
-
-      .map(
-        group => {
-
-          const products =
-            FREE_BEER_PRODUCTS
-
-              .map(
-                (
-                  product,
-                  index
-                ) => ({
-                  ...product,
-                  index:
-                    index
-                })
-              )
-
-              .filter(
-                product =>
-                  product.inhoud ===
-                  group
-              );
-
-
-          if (
-            !products.length
-          ) {
-
-            return "";
-
-          }
-
-
-          const selectedInGroup =
-            products
-              .reduce(
-                (
-                  total,
-                  product
-                ) => {
-
-                  const key =
-                    getFreeBeerProductKey(
-                      product,
-                      product.index
-                    );
-
-
-                  return total +
-                    Number(
-                      freeBeerQuantities[
-                        key
-                      ] ||
-                      0
-                    );
-
-                },
-                0
-              );
-
+          const qty =
+            Number(freeBeerQuantities[key] || 0);
 
           return `
-
-            <details
-              class="free-beer-category-folder"
-              data-group="${escapeHtml(group)}"
-              ${openGroups.includes(group) ? "open" : ""}
-            >
-
-              <summary>
-
-                <strong>
-                  ${escapeHtml(
-                    group
-                  )}
-                </strong>
-
-                <span>
-                  ${
-                    selectedInGroup > 0
-                      ? selectedInGroup
-                      : products.length
-                  }
+            <div class="free-beer-product">
+              <div class="free-beer-product-info">
+                <div class="free-beer-product-name">
+                  ${escapeHtml(product.sku)}
+                </div>
+                <span class="free-beer-product-sku">
+                  ${escapeHtml(product.inhoud)}
                 </span>
-
-              </summary>
-
-
-              <div class="free-beer-category-body">
-
-                ${
-                  products
-
-                    .map(
-                      product => {
-
-                        const key =
-                          getFreeBeerProductKey(
-                            product,
-                            product.index
-                          );
-
-
-                        const qty =
-                          Number(
-                            freeBeerQuantities[
-                              key
-                            ] ||
-                            0
-                          );
-
-
-                        return `
-
-                          <div class="free-beer-product">
-
-                            <div class="free-beer-product-info">
-
-                              <div class="free-beer-product-name">
-
-                                ${escapeHtml(
-                                  product.sku
-                                )}
-
-                              </div>
-
-                              <span class="free-beer-product-sku">
-
-                                ${escapeHtml(
-                                  product.inhoud
-                                )}
-
-                              </span>
-
-                            </div>
-
-
-                            <div class="free-beer-qty">
-
-                              <button
-                                type="button"
-                                onclick="changeFreeBeerQty(${product.index}, -1)"
-                                ${qty <= 0 ? "disabled" : ""}
-                                aria-label="Aantal verminderen"
-                              >
-                                −
-                              </button>
-
-
-                              <span>
-                                ${qty}
-                              </span>
-
-
-                              <button
-                                type="button"
-                                onclick="changeFreeBeerQty(${product.index}, 1)"
-                                aria-label="Aantal verhogen"
-                              >
-                                +
-                              </button>
-
-                            </div>
-
-                          </div>
-
-                        `;
-
-                      }
-                    )
-
-                    .join("")
-                }
-
               </div>
-
-            </details>
-
+              <div class="free-beer-qty">
+                <button
+                  type="button"
+                  onclick="changeFreeBeerQty(${product.index}, -1)"
+                  ${qty <= 0 ? "disabled" : ""}
+                  aria-label="Aantal verminderen"
+                >
+                  −
+                </button>
+                <span>
+                  ${qty}
+                </span>
+                <button
+                  type="button"
+                  onclick="changeFreeBeerQty(${product.index}, 1)"
+                  aria-label="Aantal verhogen"
+                >
+                  +
+                </button>
+              </div>
+            </div>
           `;
-
-        }
-      )
-
-      .join("");
-
+        })
+        .join("")}
+    </div>
+  `;
 
   updateFreeBeerSummary();
 
