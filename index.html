@@ -2,7 +2,7 @@
 <html lang="nl">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1">
 <meta name="theme-color" content="#182019">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -3910,6 +3910,13 @@ input[type="date"]::-webkit-date-and-time-value {
 
 .admin-detail-top {
   align-items:flex-start;
+}
+
+/* Scherm mag niet zijwaarts verschuiven op gsm. */
+html,
+body {
+  max-width:100%;
+  overflow-x:clip;
 }
 </style>
 </head>

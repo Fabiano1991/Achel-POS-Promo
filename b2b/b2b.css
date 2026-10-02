@@ -1478,3 +1478,10 @@ button, input, textarea, select { font: inherit; }
     text-align: center;
   }
 }
+
+/* Scherm mag niet zijwaarts verschuiven op gsm. */
+html,
+body {
+  max-width:100%;
+  overflow-x:clip;
+}
