@@ -405,6 +405,44 @@ function createAdminScreen() {
         <div class="admin-block-title">
 
           <span>
+            PRIORITEIT
+          </span>
+
+          <strong>
+            Actie nodig
+          </strong>
+
+        </div>
+
+        <div id="adminAttentionPanel"></div>
+
+      </div>
+
+
+      <div class="admin-block">
+
+        <div class="admin-block-title">
+
+          <span>
+            VOLUME
+          </span>
+
+          <strong>
+            Hectoliter totaal
+          </strong>
+
+        </div>
+
+        <div id="adminHectoliterWidget"></div>
+
+      </div>
+
+
+      <div class="admin-block">
+
+        <div class="admin-block-title">
+
+          <span>
             AANVRAGEN
           </span>
 
@@ -432,7 +470,7 @@ function createAdminScreen() {
               ></span>
             </b>
 
-            <small id="overviewRegularSummary">
+            <small>
               Alleen POS- en bieraanvragen
             </small>
 
@@ -466,7 +504,7 @@ function createAdminScreen() {
               ></span>
             </b>
 
-            <small id="overviewEventSummary">
+            <small>
               Alleen evenementaanvragen
             </small>
 
@@ -483,46 +521,6 @@ function createAdminScreen() {
         </button>
 
       </div>
-
-
-
-      <div class="admin-block">
-
-        <div class="admin-block-title">
-
-          <span>
-            PRIORITEIT
-          </span>
-
-          <strong>
-            Actie nodig
-          </strong>
-
-        </div>
-
-        <div id="adminAttentionPanel"></div>
-
-      </div>
-
-
-      <div class="admin-block">
-
-        <div class="admin-block-title">
-
-          <span>
-            VOLUME
-          </span>
-
-          <strong>
-            Hectoliter totaal
-          </strong>
-
-        </div>
-
-        <div id="adminHectoliterWidget"></div>
-
-      </div>
-
 
     </div>
 
@@ -3285,10 +3283,6 @@ function updateAdminNewRequestDots() {
       order.status === "nieuw" ||
       order.status === "in_behandeling";
 
-  const count =
-    (list, status) =>
-      list.filter(order => order.status === status).length;
-
   const regularAll =
     adminOrders.filter(order => !order.event_naam);
 
@@ -3311,47 +3305,6 @@ function updateAdminNewRequestDots() {
   toggle("overviewEventDot", eventOpen.length > 0);
   toggle("requestEventDot", eventOpen.length > 0);
   toggle("adminTabRequestsDot", regularOpen.length + eventOpen.length > 0);
-
-  setCount(
-    "overviewRegularCount",
-    regularOpen.length
-  );
-
-  setCount(
-    "overviewEventCount",
-    eventOpen.length
-  );
-
-  const summary =
-    (id, list, extra) => {
-
-      const element = document.getElementById(id);
-
-      if (!element) {
-        return;
-      }
-
-      element.textContent =
-        [
-          `${count(list, "nieuw")} nieuw`,
-          `${count(list, "in_behandeling")} in behandeling`,
-          extra
-        ]
-          .filter(Boolean)
-          .join(" · ");
-
-    };
-
-  summary(
-    "overviewRegularSummary",
-    regularAll
-  );
-
-  summary(
-    "overviewEventSummary",
-    eventAll,
-    `${count(eventAll, "klaar")} klaar voor afhaling`
-  );
 
 }
 
@@ -4922,6 +4875,18 @@ function renderAdminSections() {
   setCount(
     "adminProblemsCount",
     problems.length
+  );
+
+
+  setCount(
+    "overviewRegularCount",
+    regular.length
+  );
+
+
+  setCount(
+    "overviewEventCount",
+    events.length
   );
 
 
