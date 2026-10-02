@@ -3682,10 +3682,36 @@ body {
   padding:9px 11px;
 }
 
-#orderScreen #reference,
+#orderScreen #referenceType,
+#orderScreen #billingCustomer,
+#orderScreen #billingWholesaler,
 #orderScreen #country,
 #orderScreen #pickup {
   min-height:44px;
+}
+
+.billing-fields {
+  margin-top:10px;
+  padding:10px 12px 12px;
+  border:1px solid rgba(201,155,67,.45);
+  border-radius:12px;
+  background:rgba(201,155,67,.08);
+}
+
+.billing-fields.hidden {
+  display:none;
+}
+
+.billing-fields-title {
+  color:var(--achel-gold-bright);
+  font-size:11px;
+  font-weight:850;
+  letter-spacing:.02em;
+  text-transform:uppercase;
+}
+
+.billing-fields .field-missing {
+  border-color:#d26a6a !important;
 }
 
 .pos-note-toggle-wrap {
@@ -4551,17 +4577,66 @@ Gebruiker laden...
 </div>
 
 
-<label for="reference">
+<label for="referenceType">
 Referentie
 </label>
 
 
+<select
+  id="referenceType"
+  onchange="updateReferenceType()"
+>
+
+<option value="POS & Promo">
+POS / Promo
+</option>
+
+<option value="Facturatie">
+Facturatie
+</option>
+
+</select>
+
+
 <input
   id="reference"
-  type="text"
+  type="hidden"
   value="POS & Promo"
-  placeholder="POS & Promo"
 >
+
+
+<div
+  id="billingFields"
+  class="billing-fields hidden"
+>
+
+<div class="billing-fields-title">
+Facturatie — verplicht in te vullen
+</div>
+
+<label for="billingCustomer">
+Klant *
+</label>
+
+<input
+  id="billingCustomer"
+  type="text"
+  placeholder="Naam van de klant"
+  oninput="updateReferenceType()"
+>
+
+<label for="billingWholesaler">
+Drankenhandel *
+</label>
+
+<input
+  id="billingWholesaler"
+  type="text"
+  placeholder="Naam van de drankenhandel"
+  oninput="updateReferenceType()"
+>
+
+</div>
 
 
 <label for="country">
@@ -10500,6 +10575,19 @@ async function showSummary() {
 
 
   if (
+    !validateBillingFields()
+  ) {
+
+    alert(
+      "Bij Facturatie zijn Klant en Drankenhandel verplicht."
+    );
+
+    return;
+
+  }
+
+
+  if (
     !reference
   ) {
 
@@ -11245,6 +11333,80 @@ Deze aanvraag is centraal opgeslagen in Achel POS.`;
    POS OPMERKING
 ================================ */
 
+/* ===============================
+   REFERENTIE: POS/PROMO OF FACTURATIE
+================================ */
+
+function updateReferenceType() {
+
+  const type =
+    document.getElementById("referenceType").value;
+
+  const box =
+    document.getElementById("billingFields");
+
+  const customerInput =
+    document.getElementById("billingCustomer");
+
+  const wholesalerInput =
+    document.getElementById("billingWholesaler");
+
+  const isBilling =
+    type === "Facturatie";
+
+  box.classList.toggle("hidden", !isBilling);
+
+  customerInput.required = isBilling;
+  wholesalerInput.required = isBilling;
+
+  let reference = type;
+
+  if (isBilling) {
+
+    const customer = customerInput.value.trim();
+    const wholesaler = wholesalerInput.value.trim();
+
+    reference =
+      `Facturatie | Klant: ${customer} | Drankenhandel: ${wholesaler}`;
+
+    if (customer) customerInput.classList.remove("field-missing");
+    if (wholesaler) wholesalerInput.classList.remove("field-missing");
+
+  }
+
+  document.getElementById("reference").value = reference;
+
+}
+
+
+function validateBillingFields() {
+
+  updateReferenceType();
+
+  if (
+    document.getElementById("referenceType").value !== "Facturatie"
+  ) {
+    return true;
+  }
+
+  let ok = true;
+
+  ["billingCustomer", "billingWholesaler"].forEach(id => {
+
+    const input = document.getElementById(id);
+
+    if (!input.value.trim()) {
+      input.classList.add("field-missing");
+      ok = false;
+    }
+
+  });
+
+  return ok;
+
+}
+
+
 function togglePosNote() {
 
   const box =
@@ -11319,10 +11481,27 @@ function resetForm() {
 
   document
     .getElementById(
-      "reference"
+      "referenceType"
     )
     .value =
       "POS & Promo";
+
+
+  document
+    .getElementById(
+      "billingCustomer"
+    )
+    .value = "";
+
+
+  document
+    .getElementById(
+      "billingWholesaler"
+    )
+    .value = "";
+
+
+  updateReferenceType();
 
 
   document
