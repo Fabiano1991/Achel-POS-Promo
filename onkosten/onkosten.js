@@ -365,6 +365,7 @@ async function runReceiptOcr(file) {
     const found = [];
     if (parsed.amount) found.push(`bedrag €${parsed.amount.toFixed(2)}`);
     if (parsed.date) found.push(`datum ${parsed.date}`);
+    else if (parsed.amount) found.push("datum niet herkend (vandaag ingevuld)");
     if (parsed.supplierGuess) found.push(`leverancier "${parsed.supplierGuess}"`);
 
     setOcrStatus(
@@ -491,24 +492,38 @@ function parseReceiptText(text) {
   }
 
   // ---- datum ----
+  // Een bonnetje bevat vaak meerdere getallen die op een datum lijken
+  // (tijd, ticketnummer, BTW-nummer...). We nemen daarom de eerste
+  // geldige datum die in een realistische periode valt (niet in de
+  // toekomst en niet ouder dan ~1 jaar). Lukt dat niet, dan laten we
+  // de datum van vandaag staan zodat er nooit een jaar zoals 2019 in
+  // het formulier terechtkomt.
   const datePattern =
-    /(\d{1,2})[./-](\d{1,2})[./-](\d{2,4})/;
+    /(\d{1,2})\s*[./-]\s*(\d{1,2})\s*[./-]\s*(\d{4}|\d{2})(?!\d)/g;
 
   let date = null;
-  const dateMatch = text.match(datePattern);
+  const today = new Date();
+  const maxAgeMs = 400 * 24 * 60 * 60 * 1000;
 
-  if (dateMatch) {
-    let [, day, month, year] = dateMatch;
+  for (const match of text.matchAll(datePattern)) {
+    let [, day, month, year] = match;
     if (year.length === 2) year = `20${year}`;
 
     const d = parseInt(day, 10);
     const m = parseInt(month, 10);
     const y = parseInt(year, 10);
 
-    if (d >= 1 && d <= 31 && m >= 1 && m <= 12) {
-      date =
-        `${y}-${String(m).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
-    }
+    if (d < 1 || d > 31 || m < 1 || m > 12) continue;
+
+    const candidate = new Date(y, m - 1, d);
+    if (candidate.getMonth() !== m - 1) continue;
+
+    const diff = today - candidate;
+    if (diff < -24 * 60 * 60 * 1000 || diff > maxAgeMs) continue;
+
+    date =
+      `${y}-${String(m).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+    break;
   }
 
   // ---- leverancier (ruwe gok: eerste niet-lege regel) ----
@@ -571,6 +586,16 @@ async function handleExpenseSubmit(event) {
     amount: parseFloat(formData.get("amount"))
   };
 
+  if (!isRealisticExpenseDate(payload.expense_date)) {
+    showMessage(
+      "expenseMessage",
+      "Controleer de datum: die ligt in de toekomst of meer dan een jaar terug.",
+      "error"
+    );
+    document.getElementById("expenseDate")?.focus();
+    return;
+  }
+
   if (!payload.representative_id || !payload.expense_date ||
       !payload.supplier || !payload.category ||
       isNaN(payload.amount) || payload.amount <= 0) {
@@ -627,6 +652,15 @@ async function handleExpenseSubmit(event) {
   finally {
     button.disabled = false;
   }
+}
+
+function isRealisticExpenseDate(isoDate) {
+  if (!isoDate) return true; // lege datum wordt hieronder al opgevangen
+  const date = new Date(`${isoDate}T12:00:00`);
+  if (isNaN(date)) return false;
+  const diff = new Date() - date;
+  return diff >= -24 * 60 * 60 * 1000 &&
+         diff <= 400 * 24 * 60 * 60 * 1000;
 }
 
 function showMessage(elementId, text, type) {
