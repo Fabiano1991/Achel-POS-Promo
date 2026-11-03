@@ -13,4 +13,5 @@ values
   ('Folder drieluik Duits',        'pos', 'st', true, 750, 0, 5, true, 'folders', 'Folders drieluik', 'Duits'),
   ('Folder drieluik Engels',       'pos', 'st', true, 760, 0, 5, true, 'folders', 'Folders drieluik', 'Engels'),
   -- Glaswerk
-  ('Leenglazen',                   'pos', 'doos', true, 45, 0, 5, true, 'glaswerk', null, null);
+  ('Achel glas 15cl LEEN',         'pos', 'doos', true, 42, 0, 5, true, 'glaswerk', null, null),
+  ('Achel glas 33cl LEEN',         'pos', 'doos', true, 44, 0, 5, true, 'glaswerk', null, null);
