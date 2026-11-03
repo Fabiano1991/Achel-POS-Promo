@@ -6938,6 +6938,7 @@ const POS_SUBCATEGORY_ORDER = [
   "kleding",
   "gadgets",
   "wandborden",
+  "folders",
 ];
 
 const POS_SUBCATEGORY_LABELS = {
@@ -6948,6 +6949,16 @@ const POS_SUBCATEGORY_LABELS = {
   kleding: "Kleding",
   gadgets: "Gadgets",
   wandborden: "Wandborden",
+  folders: "Folders",
+};
+
+// Groepen die niet de standaardtekst ("Tapruiters" / "9 bieren")
+// moeten krijgen, maar een eigen titel en eenheid.
+const POS_GROUP_LABELS = {
+  "Folders drieluik": {
+    title: "Folders drieluik",
+    unit: "talen",
+  },
 };
 
 // Zelfde klik-door-systeem, maar dan voor BIER: eerst de
@@ -9311,9 +9322,15 @@ function renderPosItemsLevel(
 
           <span>
 
-            ${escapeHtml(groepNaam)}s
+            ${escapeHtml(
+              POS_GROUP_LABELS[groepNaam]?.title ||
+              `${groepNaam}s`
+            )}
 
-            <small>${count} bieren</small>
+            <small>${count} ${escapeHtml(
+              POS_GROUP_LABELS[groepNaam]?.unit ||
+              "bieren"
+            )}</small>
 
           </span>
 
@@ -9380,7 +9397,10 @@ function renderPosGroupLevel(
     </button>
 
     <div class="pos-level-title">
-      ${escapeHtml(selectedPosGroup)}s
+      ${escapeHtml(
+        POS_GROUP_LABELS[selectedPosGroup]?.title ||
+        `${selectedPosGroup}s`
+      )}
     </div>
 
   `;
