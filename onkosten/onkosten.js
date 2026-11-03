@@ -79,16 +79,14 @@ async function initOnkosten() {
 
   if (dateField) {
     dateField.value =
-      new Date().toISOString().slice(0, 10);
+      toLocalIsoDate(new Date());
   }
 
   const today = new Date();
   const monthStart =
-    new Date(today.getFullYear(), today.getMonth(), 1)
-      .toISOString().slice(0, 10);
+    toLocalIsoDate(new Date(today.getFullYear(), today.getMonth(), 1));
   const monthEnd =
-    new Date(today.getFullYear(), today.getMonth() + 1, 0)
-      .toISOString().slice(0, 10);
+    toLocalIsoDate(new Date(today.getFullYear(), today.getMonth() + 1, 0));
 
   ["exportFrom", "adminExportFrom"].forEach(id => {
     const field = document.getElementById(id);
@@ -365,6 +363,7 @@ async function runReceiptOcr(file) {
     const found = [];
     if (parsed.amount) found.push(`bedrag €${parsed.amount.toFixed(2)}`);
     if (parsed.date) found.push(`datum ${parsed.date}`);
+    else if (parsed.amount) found.push("datum niet herkend (vandaag ingevuld)");
     if (parsed.supplierGuess) found.push(`leverancier "${parsed.supplierGuess}"`);
 
     setOcrStatus(
@@ -491,24 +490,35 @@ function parseReceiptText(text) {
   }
 
   // ---- datum ----
+  // Een bonnetje bevat vaak meerdere getallen die op een datum lijken
+  // (tijd, ticketnummer, BTW-nummer...). We nemen daarom de eerste
+  // geldige datum die in een realistische periode valt (niet in de
+  // toekomst en niet ouder dan 12 maanden). Lukt dat niet, dan laten we
+  // de datum van vandaag staan zodat er nooit een jaar zoals 2019 in
+  // het formulier terechtkomt.
   const datePattern =
-    /(\d{1,2})[./-](\d{1,2})[./-](\d{2,4})/;
+    /(\d{1,2})\s*[./-]\s*(\d{1,2})\s*[./-]\s*(\d{4}|\d{2})(?!\d)/g;
 
   let date = null;
-  const dateMatch = text.match(datePattern);
 
-  if (dateMatch) {
-    let [, day, month, year] = dateMatch;
+  for (const match of text.matchAll(datePattern)) {
+    let [, day, month, year] = match;
     if (year.length === 2) year = `20${year}`;
 
     const d = parseInt(day, 10);
     const m = parseInt(month, 10);
     const y = parseInt(year, 10);
 
-    if (d >= 1 && d <= 31 && m >= 1 && m <= 12) {
-      date =
-        `${y}-${String(m).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
-    }
+    if (d < 1 || d > 31 || m < 1 || m > 12) continue;
+
+    const candidate = new Date(y, m - 1, d);
+    if (candidate.getMonth() !== m - 1) continue;
+
+    if (!isWithinExpenseMargin(candidate)) continue;
+
+    date =
+      `${y}-${String(m).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+    break;
   }
 
   // ---- leverancier (ruwe gok: eerste niet-lege regel) ----
@@ -571,6 +581,16 @@ async function handleExpenseSubmit(event) {
     amount: parseFloat(formData.get("amount"))
   };
 
+  if (!isRealisticExpenseDate(payload.expense_date)) {
+    showMessage(
+      "expenseMessage",
+      "Controleer de datum: een onkost mag niet in de toekomst liggen en maximaal 12 maanden oud zijn.",
+      "error"
+    );
+    document.getElementById("expenseDate")?.focus();
+    return;
+  }
+
   if (!payload.representative_id || !payload.expense_date ||
       !payload.supplier || !payload.category ||
       isNaN(payload.amount) || payload.amount <= 0) {
@@ -600,7 +620,7 @@ async function handleExpenseSubmit(event) {
 
     form.reset();
     document.getElementById("expenseDate").value =
-      new Date().toISOString().slice(0, 10);
+      toLocalIsoDate(new Date());
     fillRepresentativeSelect();
 
     const preview = document.getElementById("receiptPreview");
@@ -627,6 +647,43 @@ async function handleExpenseSubmit(event) {
   finally {
     button.disabled = false;
   }
+}
+
+// Datum (JJJJ-MM-DD) volgens de Belgische klok, niet volgens UTC.
+function toLocalIsoDate(date) {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+}
+
+// Invoerdatum van een onkost (wanneer ze in de app ingegeven werd).
+// Valt terug op de bonnetjesdatum als die er om een of andere reden niet is.
+function getBookingDate(expense) {
+  if (expense?.created_at) {
+    const created = new Date(expense.created_at);
+    if (!isNaN(created)) return toLocalIsoDate(created);
+  }
+  return expense?.expense_date || "";
+}
+
+// Marge: een onkost mag maximaal 12 maanden oud zijn (bv. een
+// teruggevonden bonnetje) en niet in de toekomst liggen.
+const EXPENSE_MAX_AGE_MONTHS = 12;
+
+function isWithinExpenseMargin(date) {
+  const today = new Date();
+  today.setHours(23, 59, 59, 999);
+
+  const oldest = new Date();
+  oldest.setHours(0, 0, 0, 0);
+  oldest.setMonth(oldest.getMonth() - EXPENSE_MAX_AGE_MONTHS);
+
+  return date >= oldest && date <= today;
+}
+
+function isRealisticExpenseDate(isoDate) {
+  if (!isoDate) return true; // lege datum wordt hieronder al opgevangen
+  const date = new Date(`${isoDate}T12:00:00`);
+  if (isNaN(date)) return false;
+  return isWithinExpenseMargin(date);
 }
 
 function showMessage(elementId, text, type) {
@@ -682,11 +739,13 @@ async function refreshAdminExpenses() {
 
 function updateStats() {
   const currentMonth =
-    new Date().toISOString().slice(0, 7);
+    toLocalIsoDate(new Date()).slice(0, 7);
 
+  // Een onkost telt mee in de maand waarin ze ingevoerd werd, ook als
+  // het bonnetje zelf van een vorige maand is (bv. teruggevonden bonnetje).
   const monthExpenses =
     myExpenses.filter(expense =>
-      (expense.expense_date || "").startsWith(currentMonth)
+      getBookingDate(expense).startsWith(currentMonth)
     );
 
   const total =
@@ -807,10 +866,13 @@ async function exportExpensesToExcel({
   }
 
   const filtered =
-    expenses.filter(expense =>
-      expense.expense_date >= fromValue &&
-      expense.expense_date <= toValue
-    );
+    // Selectie op invoerdatum: een laat ingediend bonnetje komt mee in de
+    // export van de maand waarin het ingevoerd werd. In de Excel zelf blijft
+    // de oorspronkelijke datum van het bonnetje staan.
+    expenses.filter(expense => {
+      const bookingDate = getBookingDate(expense);
+      return bookingDate >= fromValue && bookingDate <= toValue;
+    });
 
   if (!filtered.length) {
     alert("Geen onkosten gevonden in deze periode.");
