@@ -79,16 +79,14 @@ async function initOnkosten() {
 
   if (dateField) {
     dateField.value =
-      new Date().toISOString().slice(0, 10);
+      toLocalIsoDate(new Date());
   }
 
   const today = new Date();
   const monthStart =
-    new Date(today.getFullYear(), today.getMonth(), 1)
-      .toISOString().slice(0, 10);
+    toLocalIsoDate(new Date(today.getFullYear(), today.getMonth(), 1));
   const monthEnd =
-    new Date(today.getFullYear(), today.getMonth() + 1, 0)
-      .toISOString().slice(0, 10);
+    toLocalIsoDate(new Date(today.getFullYear(), today.getMonth() + 1, 0));
 
   ["exportFrom", "adminExportFrom"].forEach(id => {
     const field = document.getElementById(id);
@@ -622,7 +620,7 @@ async function handleExpenseSubmit(event) {
 
     form.reset();
     document.getElementById("expenseDate").value =
-      new Date().toISOString().slice(0, 10);
+      toLocalIsoDate(new Date());
     fillRepresentativeSelect();
 
     const preview = document.getElementById("receiptPreview");
@@ -649,6 +647,21 @@ async function handleExpenseSubmit(event) {
   finally {
     button.disabled = false;
   }
+}
+
+// Datum (JJJJ-MM-DD) volgens de Belgische klok, niet volgens UTC.
+function toLocalIsoDate(date) {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+}
+
+// Invoerdatum van een onkost (wanneer ze in de app ingegeven werd).
+// Valt terug op de bonnetjesdatum als die er om een of andere reden niet is.
+function getBookingDate(expense) {
+  if (expense?.created_at) {
+    const created = new Date(expense.created_at);
+    if (!isNaN(created)) return toLocalIsoDate(created);
+  }
+  return expense?.expense_date || "";
 }
 
 // Marge: een onkost mag maximaal 12 maanden oud zijn (bv. een
@@ -726,11 +739,13 @@ async function refreshAdminExpenses() {
 
 function updateStats() {
   const currentMonth =
-    new Date().toISOString().slice(0, 7);
+    toLocalIsoDate(new Date()).slice(0, 7);
 
+  // Een onkost telt mee in de maand waarin ze ingevoerd werd, ook als
+  // het bonnetje zelf van een vorige maand is (bv. teruggevonden bonnetje).
   const monthExpenses =
     myExpenses.filter(expense =>
-      (expense.expense_date || "").startsWith(currentMonth)
+      getBookingDate(expense).startsWith(currentMonth)
     );
 
   const total =
@@ -851,10 +866,13 @@ async function exportExpensesToExcel({
   }
 
   const filtered =
-    expenses.filter(expense =>
-      expense.expense_date >= fromValue &&
-      expense.expense_date <= toValue
-    );
+    // Selectie op invoerdatum: een laat ingediend bonnetje komt mee in de
+    // export van de maand waarin het ingevoerd werd. In de Excel zelf blijft
+    // de oorspronkelijke datum van het bonnetje staan.
+    expenses.filter(expense => {
+      const bookingDate = getBookingDate(expense);
+      return bookingDate >= fromValue && bookingDate <= toValue;
+    });
 
   if (!filtered.length) {
     alert("Geen onkosten gevonden in deze periode.");
