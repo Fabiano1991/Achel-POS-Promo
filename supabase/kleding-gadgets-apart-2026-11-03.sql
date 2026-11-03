@@ -14,9 +14,9 @@ where id in (75, 76);
 update products set subcategorie = 'kleding', sort_order = 640
 where id = 77;
 
--- 4. Oude T-shirt en Polo (zonder maat) verbergen; vervangen door versies per maat.
---    Niet gewist, zodat oude aanvragen hun artikelnaam behouden.
-update products set actief = false, subcategorie = 'kleding'
+-- 4. Oude T-shirt en Polo (zonder maat) wissen; vervangen door versies per maat.
+--    (Testfase: er zijn geen aanvragen met deze artikelen.)
+delete from products
 where id in (52, 53);
 
 -- 5. Nieuwe kledingartikelen
