@@ -495,15 +495,13 @@ function parseReceiptText(text) {
   // Een bonnetje bevat vaak meerdere getallen die op een datum lijken
   // (tijd, ticketnummer, BTW-nummer...). We nemen daarom de eerste
   // geldige datum die in een realistische periode valt (niet in de
-  // toekomst en niet ouder dan ~1 jaar). Lukt dat niet, dan laten we
+  // toekomst en niet ouder dan 12 maanden). Lukt dat niet, dan laten we
   // de datum van vandaag staan zodat er nooit een jaar zoals 2019 in
   // het formulier terechtkomt.
   const datePattern =
     /(\d{1,2})\s*[./-]\s*(\d{1,2})\s*[./-]\s*(\d{4}|\d{2})(?!\d)/g;
 
   let date = null;
-  const today = new Date();
-  const maxAgeMs = 400 * 24 * 60 * 60 * 1000;
 
   for (const match of text.matchAll(datePattern)) {
     let [, day, month, year] = match;
@@ -518,8 +516,7 @@ function parseReceiptText(text) {
     const candidate = new Date(y, m - 1, d);
     if (candidate.getMonth() !== m - 1) continue;
 
-    const diff = today - candidate;
-    if (diff < -24 * 60 * 60 * 1000 || diff > maxAgeMs) continue;
+    if (!isWithinExpenseMargin(candidate)) continue;
 
     date =
       `${y}-${String(m).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
@@ -589,7 +586,7 @@ async function handleExpenseSubmit(event) {
   if (!isRealisticExpenseDate(payload.expense_date)) {
     showMessage(
       "expenseMessage",
-      "Controleer de datum: die ligt in de toekomst of meer dan een jaar terug.",
+      "Controleer de datum: een onkost mag niet in de toekomst liggen en maximaal 12 maanden oud zijn.",
       "error"
     );
     document.getElementById("expenseDate")?.focus();
@@ -654,13 +651,26 @@ async function handleExpenseSubmit(event) {
   }
 }
 
+// Marge: een onkost mag maximaal 12 maanden oud zijn (bv. een
+// teruggevonden bonnetje) en niet in de toekomst liggen.
+const EXPENSE_MAX_AGE_MONTHS = 12;
+
+function isWithinExpenseMargin(date) {
+  const today = new Date();
+  today.setHours(23, 59, 59, 999);
+
+  const oldest = new Date();
+  oldest.setHours(0, 0, 0, 0);
+  oldest.setMonth(oldest.getMonth() - EXPENSE_MAX_AGE_MONTHS);
+
+  return date >= oldest && date <= today;
+}
+
 function isRealisticExpenseDate(isoDate) {
   if (!isoDate) return true; // lege datum wordt hieronder al opgevangen
   const date = new Date(`${isoDate}T12:00:00`);
   if (isNaN(date)) return false;
-  const diff = new Date() - date;
-  return diff >= -24 * 60 * 60 * 1000 &&
-         diff <= 400 * 24 * 60 * 60 * 1000;
+  return isWithinExpenseMargin(date);
 }
 
 function showMessage(elementId, text, type) {
