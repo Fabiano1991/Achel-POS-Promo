@@ -6292,17 +6292,50 @@ function renderAdminProductManagement() {
     getAdminCatalogProducts();
 
 
-  // POS: exact dezelfde artikelen en groeperingen als bij
-  // "POS/promo bestellen".
+  // POS en Bieren: exact dezelfde artikelen en groeperingen als
+  // bij "POS/promo bestellen" (POS) en het bierbestelscherm (Bieren).
   if (
     adminCatalogView ===
-    "pos"
+    "pos" ||
+    adminCatalogView ===
+    "beer"
   ) {
 
     renderAdminPosStockNavigation(
       container,
       products
     );
+
+    return;
+
+  }
+
+
+  // Evenement: zelfde lijst als bij "Event aanvragen"
+  // (enkel actief materiaal, zelfde volgorde).
+  if (
+    adminCatalogView ===
+    "event"
+  ) {
+
+    const activeEventProducts =
+      products.filter(
+        product =>
+          product.actief !== false
+      );
+
+    container.innerHTML =
+      activeEventProducts.length
+        ? activeEventProducts
+            .map(
+              buildAdminProductManagementRow
+            )
+            .join("")
+        : `
+            <div class="admin-clear">
+              <b>Geen producten in deze categorie</b>
+            </div>
+          `;
 
     return;
 
@@ -6355,7 +6388,25 @@ const ADMIN_POS_SUBCATEGORY_ORDER_FALLBACK = [
 ];
 
 
+const ADMIN_BIER_SUBCATEGORY_ORDER_FALLBACK = [
+  "24 x 33cl",
+  "20 l",
+  "6 x 75cl",
+];
+
+
 function getAdminPosSubcategoryOrder() {
+
+  if (
+    adminCatalogView ===
+    "beer"
+  ) {
+
+    return typeof BIER_SUBCATEGORY_ORDER !== "undefined"
+      ? BIER_SUBCATEGORY_ORDER
+      : ADMIN_BIER_SUBCATEGORY_ORDER_FALLBACK;
+
+  }
 
   return typeof POS_SUBCATEGORY_ORDER !== "undefined"
     ? POS_SUBCATEGORY_ORDER
@@ -6368,12 +6419,37 @@ function getAdminPosSubcategoryLabel(
   key
 ) {
 
+  const labels =
+    adminCatalogView ===
+    "beer"
+      ? (
+          typeof BIER_SUBCATEGORY_LABELS !== "undefined"
+            ? BIER_SUBCATEGORY_LABELS
+            : {}
+        )
+      : (
+          typeof POS_SUBCATEGORY_LABELS !== "undefined"
+            ? POS_SUBCATEGORY_LABELS
+            : {}
+        );
+
   if (
-    typeof POS_SUBCATEGORY_LABELS !== "undefined" &&
-    POS_SUBCATEGORY_LABELS[key]
+    labels[key]
   ) {
 
-    return POS_SUBCATEGORY_LABELS[key];
+    return labels[key];
+
+  }
+
+  if (
+    adminCatalogView ===
+    "beer"
+  ) {
+
+    return String(
+      key ||
+      ""
+    );
 
   }
 
