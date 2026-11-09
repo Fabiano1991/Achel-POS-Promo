@@ -43,6 +43,17 @@ let adminEventWarehouseStock = {};
 let adminCatalogView =
   "pos";
 
+// Voorraadbeheer POS: zelfde klik-door-navigatie als bij
+// "POS/promo bestellen" (categorie → artikelen → groep).
+let adminPosNavLevel =
+  "categories";
+
+let adminPosSubcategory =
+  null;
+
+let adminPosGroup =
+  null;
+
 let selectedAdminOrder =
   null;
 
@@ -2299,7 +2310,9 @@ async function loadAdminDashboard() {
             voorraad_beheren,
             tijdelijk_onbeschikbaar,
             inhoud_per_eenheid,
-            douane_code
+            douane_code,
+            subcategorie,
+            groep_naam
           `)
           .order(
             "categorie",
@@ -6219,6 +6232,17 @@ function setAdminCatalogView(
       : "pos";
 
 
+  // Bij het (opnieuw) openen van een tab: terug naar de categorieën.
+  adminPosNavLevel =
+    "categories";
+
+  adminPosSubcategory =
+    null;
+
+  adminPosGroup =
+    null;
+
+
   [
     "pos",
     "beer",
@@ -6268,6 +6292,23 @@ function renderAdminProductManagement() {
     getAdminCatalogProducts();
 
 
+  // POS: exact dezelfde artikelen en groeperingen als bij
+  // "POS/promo bestellen".
+  if (
+    adminCatalogView ===
+    "pos"
+  ) {
+
+    renderAdminPosStockNavigation(
+      container,
+      products
+    );
+
+    return;
+
+  }
+
+
   if (
     !products.length
   ) {
@@ -6291,6 +6332,382 @@ function renderAdminProductManagement() {
         buildAdminProductManagementRow
       )
       .join("");
+
+}
+
+
+/* ------------------------------------------------------------
+   VOORRAADBEHEER POS — zelfde indeling als "POS/promo bestellen"
+   Stap 1: categorieën · Stap 2: losse artikelen + groepen ·
+   Stap 3: alle artikelen van één groep.
+   Enkel actieve artikelen (= wat je ook kan bestellen).
+------------------------------------------------------------ */
+
+const ADMIN_POS_SUBCATEGORY_ORDER_FALLBACK = [
+  "tapmateriaal",
+  "tafelmateriaal",
+  "posters",
+  "glaswerk",
+  "kleding",
+  "gadgets",
+  "wandborden",
+  "folders",
+];
+
+
+function getAdminPosSubcategoryOrder() {
+
+  return typeof POS_SUBCATEGORY_ORDER !== "undefined"
+    ? POS_SUBCATEGORY_ORDER
+    : ADMIN_POS_SUBCATEGORY_ORDER_FALLBACK;
+
+}
+
+
+function getAdminPosSubcategoryLabel(
+  key
+) {
+
+  if (
+    typeof POS_SUBCATEGORY_LABELS !== "undefined" &&
+    POS_SUBCATEGORY_LABELS[key]
+  ) {
+
+    return POS_SUBCATEGORY_LABELS[key];
+
+  }
+
+  const text =
+    String(
+      key ||
+      ""
+    );
+
+  return text.charAt(0).toUpperCase() +
+    text.slice(1);
+
+}
+
+
+function getAdminPosGroupLabel(
+  groepNaam
+) {
+
+  const labels =
+    typeof POS_GROUP_LABELS !== "undefined"
+      ? POS_GROUP_LABELS
+      : {};
+
+  return {
+    title:
+      labels[groepNaam]?.title ||
+      `${groepNaam}s`,
+    unit:
+      labels[groepNaam]?.unit ||
+      "bieren"
+  };
+
+}
+
+
+function openAdminPosSubcategory(
+  key
+) {
+
+  adminPosSubcategory =
+    decodeURIComponent(
+      key
+    );
+
+  adminPosGroup =
+    null;
+
+  adminPosNavLevel =
+    "items";
+
+  renderAdminProductManagement();
+
+}
+
+
+function openAdminPosGroup(
+  groepNaam
+) {
+
+  adminPosGroup =
+    decodeURIComponent(
+      groepNaam
+    );
+
+  adminPosNavLevel =
+    "group";
+
+  renderAdminProductManagement();
+
+}
+
+
+function backToAdminPosCategories() {
+
+  adminPosSubcategory =
+    null;
+
+  adminPosGroup =
+    null;
+
+  adminPosNavLevel =
+    "categories";
+
+  renderAdminProductManagement();
+
+}
+
+
+function backToAdminPosItems() {
+
+  adminPosGroup =
+    null;
+
+  adminPosNavLevel =
+    "items";
+
+  renderAdminProductManagement();
+
+}
+
+
+function renderAdminPosStockNavigation(
+  container,
+  allPosProducts
+) {
+
+  // Zelfde selectie als het bestelscherm: actief + met categorie.
+  const products =
+    allPosProducts.filter(
+      product =>
+        product.actief !== false &&
+        product.subcategorie
+    );
+
+
+  const emptyHtml = text => `
+
+    <div class="admin-clear">
+      <b>${adminEscapeHtml(text)}</b>
+    </div>
+
+  `;
+
+
+  // STAP 3: alle artikelen van één groep
+  if (
+    adminPosNavLevel ===
+    "group"
+  ) {
+
+    const variants =
+      products.filter(
+        product =>
+          product.subcategorie === adminPosSubcategory &&
+          product.groep_naam === adminPosGroup
+      );
+
+    container.innerHTML = `
+
+      <button
+        type="button"
+        class="pos-back-btn"
+        onclick="backToAdminPosItems()"
+      >
+        &#8592; ${adminEscapeHtml(getAdminPosSubcategoryLabel(adminPosSubcategory))}
+      </button>
+
+      <div class="pos-level-title">
+        ${adminEscapeHtml(getAdminPosGroupLabel(adminPosGroup).title)}
+      </div>
+
+      ${
+        variants.length
+          ? variants.map(buildAdminProductManagementRow).join("")
+          : emptyHtml("Geen artikelen gevonden")
+      }
+
+    `;
+
+    return;
+
+  }
+
+
+  // STAP 2: losse artikelen + groepknoppen binnen één categorie
+  if (
+    adminPosNavLevel ===
+    "items"
+  ) {
+
+    const inCategory =
+      products.filter(
+        product =>
+          product.subcategorie === adminPosSubcategory
+      );
+
+    const directProducts =
+      inCategory.filter(
+        product => !product.groep_naam
+      );
+
+    const groupNames =
+      [
+        ...new Set(
+          inCategory
+            .filter(
+              product => product.groep_naam
+            )
+            .map(
+              product => product.groep_naam
+            )
+        )
+      ];
+
+    let html = `
+
+      <button
+        type="button"
+        class="pos-back-btn"
+        onclick="backToAdminPosCategories()"
+      >
+        &#8592; Categorieën
+      </button>
+
+      <div class="pos-level-title">
+        ${adminEscapeHtml(getAdminPosSubcategoryLabel(adminPosSubcategory))}
+      </div>
+
+    `;
+
+    html +=
+      directProducts
+        .map(
+          buildAdminProductManagementRow
+        )
+        .join("");
+
+    groupNames.forEach(
+      groepNaam => {
+
+        const count =
+          inCategory.filter(
+            product =>
+              product.groep_naam === groepNaam
+          ).length;
+
+        const label =
+          getAdminPosGroupLabel(
+            groepNaam
+          );
+
+        html += `
+
+          <button
+            type="button"
+            class="pos-group-row"
+            onclick="openAdminPosGroup('${encodeURIComponent(groepNaam)}')"
+          >
+
+            <span>
+
+              ${adminEscapeHtml(label.title)}
+
+              <small>${count} ${adminEscapeHtml(label.unit)}</small>
+
+            </span>
+
+            <span class="pos-group-arrow">&#8250;</span>
+
+          </button>
+
+        `;
+
+      }
+    );
+
+    if (
+      !directProducts.length &&
+      !groupNames.length
+    ) {
+
+      html +=
+        emptyHtml(
+          "Nog geen artikelen in deze categorie"
+        );
+
+    }
+
+    container.innerHTML =
+      html;
+
+    return;
+
+  }
+
+
+  // STAP 1: categorietegels in vaste volgorde
+  const present =
+    new Set(
+      products.map(
+        product => product.subcategorie
+      )
+    );
+
+  const orderedPresent =
+    getAdminPosSubcategoryOrder().filter(
+      key => present.has(key)
+    );
+
+  if (
+    !orderedPresent.length
+  ) {
+
+    container.innerHTML =
+      emptyHtml(
+        "Geen producten in deze categorie"
+      );
+
+    return;
+
+  }
+
+  container.innerHTML = `
+
+    <div class="pos-cat-grid">
+
+      ${
+        orderedPresent
+          .map(
+            key => `
+
+              <button
+                type="button"
+                class="pos-cat-tile"
+                onclick="openAdminPosSubcategory('${encodeURIComponent(key)}')"
+              >
+                <span>
+                  ${adminEscapeHtml(getAdminPosSubcategoryLabel(key))}
+                </span>
+
+                <span class="pos-cat-tile-count">
+                  ${products.filter(product => product.subcategorie === key).length}
+                </span>
+              </button>
+
+            `
+          )
+          .join("")
+      }
+
+    </div>
+
+  `;
 
 }
 
