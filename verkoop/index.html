@@ -2,7 +2,7 @@
 <html lang="nl">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
 <meta name="theme-color" content="#1e2c27">
 <title>Achel | Verkoop</title>
 <link rel="manifest" href="../manifest.json">
@@ -39,7 +39,7 @@
   color-scheme:dark;
 }
 *{box-sizing:border-box}
-html,body{margin:0}
+html,body{margin:0;overflow-x:hidden;overflow-x:clip;max-width:100%}
 body{background:var(--bg);color:var(--ink);font:15px/1.45 var(--body);-webkit-font-smoothing:antialiased}
 h1,h2,h3{font-family:var(--display);margin:0;text-wrap:balance;letter-spacing:.005em}
 button,input,select,textarea{font:inherit;color:inherit}
@@ -88,7 +88,7 @@ main{max-width:1240px;margin:0 auto;padding:18px 20px 60px;display:flex;flex-dir
 .active-filter{outline:2px solid var(--accent);outline-offset:-1px}
 
 /* Tegels */
-.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(230px,100%),1fr));gap:12px}
 .tile{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px;display:flex;flex-direction:column;gap:6px}
 .tile h3{font-family:var(--body);font-size:13px;font-weight:500;color:var(--muted)}
 .big{font-family:var(--display);font-size:34px;font-weight:600;line-height:1.05;font-variant-numeric:tabular-nums}
@@ -103,7 +103,7 @@ main{max-width:1240px;margin:0 auto;padding:18px 20px 60px;display:flex;flex-dir
 .minirow div{display:flex;flex-direction:column}
 .minirow .big{font-size:28px}
 
-.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(380px,1fr));gap:12px}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(380px,100%),1fr));gap:12px}
 .panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px;display:flex;flex-direction:column;gap:10px;min-width:0}
 .panel-h{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
 .panel-h h3{font-size:17px}
@@ -175,7 +175,7 @@ tfoot td{font-weight:600;background:var(--sunk)}
 .fitem .who{font-size:13px;color:var(--muted)}
 .fgroup h3{font-size:16px;margin:4px 0 8px}
 
-.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:12px}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(320px,100%),1fr));gap:12px}
 .acard{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px;display:flex;flex-direction:column;gap:8px}
 .acard header{display:flex;gap:8px;align-items:flex-start}
 .acard header h3{font-size:17px;flex:1}
@@ -187,7 +187,7 @@ tfoot td{font-weight:600;background:var(--sunk)}
 .inline input[type=number]{width:80px}
 
 /* Rekenmodule */
-.calc{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:12px}
+.calc{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(320px,100%),1fr));gap:12px}
 .calc .row{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end}
 .calc label{display:flex;flex-direction:column;font-size:12.5px;color:var(--muted);gap:3px}
 .calc input,.calc select{border:1px solid var(--line);background:var(--bg);border-radius:6px;padding:7px 9px;font-size:15px;min-width:0}
@@ -235,6 +235,10 @@ tfoot td{font-weight:600;background:var(--sunk)}
   .line input{grid-column:1}
   .big{font-size:30px}
   .hide-sm{display:none}
+  /* iPhone zoomt niet in bij invulvakken van minstens 16px */
+  input,select,textarea{font-size:16px!important}
+  .filters select,.filters input,.calc input[type=number]{min-width:0;width:100%}
+  .filters label{flex:1 1 140px}
 }
 @media (prefers-reduced-motion:no-preference){.bar span{transition:width .4s ease}}
 /* Achel POS: terugknop, keuze vertegenwoordiger, alleen-lezen */
