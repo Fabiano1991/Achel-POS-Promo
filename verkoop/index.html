@@ -86,6 +86,30 @@ main{max-width:1240px;margin:0 auto;padding:18px 20px 60px;display:flex;flex-dir
 .filters input[type=search]{min-width:180px}
 .filters .btn{align-self:flex-end}
 .seg{display:flex;gap:6px;flex-wrap:wrap}
+.fbar{display:flex;gap:8px;flex-wrap:wrap}
+.fsearch{flex:1 1 220px;min-width:0;border:1px solid var(--line);background:var(--surface);border-radius:var(--r);padding:9px 12px;font-size:15px}
+.fsel{border:1px solid var(--line);background:var(--surface);border-radius:var(--r);padding:8px 10px;font-size:14px}
+.chiprow{display:flex;gap:6px;overflow-x:auto;white-space:nowrap;padding:2px 0 4px;margin-top:-8px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.chiprow::-webkit-scrollbar{display:none}
+.fchip{flex:none;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:16px;padding:6px 12px;font-size:13px;cursor:pointer}
+.fchip.on{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+.fchip.wis{border-style:dashed;color:var(--muted)}
+.fsep{flex:none;width:1px;background:var(--line);margin:4px 2px}
+.acc{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.acc-h{display:flex;width:100%;align-items:center;gap:10px;border:0;background:none;padding:11px 14px;font-size:14.5px;cursor:pointer;text-align:left;color:var(--ink)}
+.acc-h+.acc-h,.acc-b+.acc-h{border-top:1px solid var(--line)}
+.acc-h .pijl{width:12px;color:var(--muted);flex:none}
+.acc-h b{font-weight:600;flex:1;min-width:0}
+.acc-h .tel{color:var(--muted);font-size:13px;white-space:nowrap;font-variant-numeric:tabular-nums}
+.acc-b{border-top:1px solid var(--line)}
+.acc-r{display:flex;width:100%;gap:10px;align-items:center;border:0;background:none;padding:9px 14px 9px 36px;font-size:14px;text-align:left;cursor:pointer;color:var(--ink)}
+.acc-r+.acc-r{border-top:1px solid var(--line)}
+.acc-r:hover,.acc-h:hover{background:var(--sunk)}
+.acc-r .nm{flex:1;min-width:0}
+.acc-r .nm strong{font-weight:500}
+.acc-g .pijl{width:12px;color:var(--muted);flex:none}
+.acc-r2{padding-left:52px}
+.acc-r .tel{color:var(--muted);font-size:13px;white-space:nowrap;text-align:right;font-variant-numeric:tabular-nums}
 .active-filter{outline:2px solid var(--accent);outline-offset:-1px}
 
 /* Tegels */
@@ -229,6 +253,8 @@ tfoot td{font-weight:600;background:var(--sunk)}
 .banner{background:var(--warn-soft);border-radius:var(--r);padding:10px 14px;font-size:14px}
 
 @media (max-width:640px){
+  .acc-r{padding-left:24px}
+  .acc-r2{padding-left:36px}
   main{padding:14px 14px 50px}
   .top-in{padding:12px 14px 0}
   .grid2{grid-template-columns:1fr}
@@ -544,22 +570,26 @@ function klantOptions(val,filterFn){
 function filterBar(o){
   o=o||{};
   const f=UI.f;
-  let h='';
-  if(S.klanten.some(k=>k._gedeeld))h+=`<div class="seg" role="group" aria-label="Welke klanten">${[['','Alles'],['eigen','Mijn klanten'],['gedeeld','Gedeelde drankenhandels']].map(([v,l])=>`<button class="btn small${f.bron===v?' primary':''}" data-act="bron" data-v="${v}" aria-pressed="${f.bron===v}">${l}</button>`).join('')}</div>`;
-  h+='<div class="filters">';
-  h+=`<label>Regio<select id="f_regio" data-filter="regio" class="${f.regio?'active-filter':''}">${opts(alleRegios(),f.regio,'Alle regio’s')}</select></label>`;
-  h+=`<label>Gemeente<select id="f_gemeente" data-filter="gemeente" class="${f.gemeente?'active-filter':''}">${opts(alleGemeenten(f.regio),f.gemeente,'Alle gemeenten')}</select></label>`;
-  h+=`<label>Status<select id="f_status" data-filter="status" class="${f.status?'active-filter':''}">${opts(STATUSSEN,f.status,'Alle statussen')}</select></label>`;
-  h+=`<label>Soort zaak<select id="f_type" data-filter="type" class="${f.type?'active-filter':''}">${opts(TYPES,f.type,'Alle soorten')}</select></label>`;
-  h+=`<label>Zoek klant<input type="search" id="f_q" data-filter="q" value="${esc(f.q)}" placeholder="Naam, contact, merk…"></label>`;
+  let h='<div class="fbar">';
+  h+=`<input type="search" id="f_q" class="fsearch" data-filter="q" value="${esc(f.q)}" placeholder="Zoek klant, contact, merk…" aria-label="Zoek klant">`;
   if(o.periode){
     const jaren=new Set([String(now.getFullYear()),UI.jaar]);
     S.bestellingen.concat(S.bezoeken).forEach(r=>{if(r.datum)jaren.add(String(r.datum).slice(0,4))});
-    h+=`<label>Jaar<select id="f_jaar" data-period="jaar">${opts([...jaren].sort().reverse(),UI.jaar)}</select></label>`;
-    h+=`<label>Maand<select id="f_maand" data-period="maand">${opts(MAANDEN_L.map((m,i)=>[String(i+1),m]),UI.maand,'Heel het jaar')}</select></label>`;
+    h+=`<select id="f_jaar" class="fsel" data-period="jaar" aria-label="Jaar">${opts([...jaren].sort().reverse(),UI.jaar)}</select>`;
+    h+=`<select id="f_maand" class="fsel" data-period="maand" aria-label="Maand">${opts(MAANDEN_L.map((m,i)=>[String(i+1),m]),UI.maand,'Heel het jaar')}</select>`;
   }
-  if(anyFilter()||(o.periode&&UI.maand))h+='<button class="btn ghost" data-act="clearFilters">Filters wissen</button>';
-  return h+'</div>';
+  h+='</div>';
+  const chipB=(k,v,l)=>`<button class="fchip${f[k]===v?' on':''}" data-act="fchip" data-k="${k}" data-v="${esc(v)}" aria-pressed="${f[k]===v}">${esc(l)}${f[k]===v?' <span aria-hidden="true">×</span>':''}</button>`;
+  const groepen=[];
+  if(S.klanten.some(k=>k._gedeeld))groepen.push([['bron','eigen','Mijn klanten'],['bron','gedeeld','Gedeelde drankenhandels']]);
+  groepen.push(alleRegios().map(r=>['regio',r,r]));
+  groepen.push(STATUSSEN.map(x=>['status',x,x]));
+  groepen.push(TYPES.map(x=>['type',x,x]));
+  const aan=[],uit=[];
+  if(f.gemeente)aan.push(chipB('gemeente',f.gemeente,f.gemeente));
+  groepen.forEach((g,gi)=>{const u=[];g.forEach(([k,v,l])=>{(f[k]===v?aan:u).push(chipB(k,v,l))});if(u.length)uit.push((uit.length?'<span class="fsep" aria-hidden="true"></span>':'')+u.join(''))});
+  h+=`<div class="chiprow" role="toolbar" aria-label="Filters">${(anyFilter()||(o.periode&&UI.maand))?'<button class="fchip wis" data-act="clearFilters">Alles wissen</button>':''}${aan.join('')}${aan.length?'<span class="fsep" aria-hidden="true"></span>':''}${uit.join('')}</div>`;
+  return h;
 }
 
 /* ---------- Grafieken ---------- */
@@ -648,24 +678,44 @@ V.dashboard=function(){
     <section class="panel"><div class="panel-h"><h3>Opgeteld richting jaardoel</h3><p>volle lijn = jouw HL, streepjes = schema</p></div>${cumChart(perMaand,i.doelJaar,i.doelMaand,lastIdx)}</section>
   </div>`;
 
-  const g=groepen();
-  const gLabels={gemeente:'Gemeente',regio:'Regio',klant:'Klant',type:'Soort zaak'};if(VIEW==='alle')gLabels.verteg='Vertegenwoordiger';else if(UI.groep==='verteg')UI.groep='gemeente';
-  h+=`<section class="panel"><div class="panel-h"><h3>Overzicht per ${gLabels[UI.groep].toLowerCase()}</h3><p>bezoeken, bestellingen en HL in ${esc(periodeLabel())}</p><span class="sp"></span>
-    <label class="inline" style="font-size:13px;color:var(--muted)">Groeperen per <select id="g_groep" data-groep="1">${opts(Object.entries(gLabels),UI.groep)}</select></label></div>`;
-  if(!g.length)h+='<div class="empty">Geen gegevens voor deze filters.</div>';
-  else{
-    const tot=g.reduce((a,r)=>{a.k+=r.klanten;a.p+=r.prospecten;a.b+=r.bezoeken;a.o+=r.bestellingen;a.h+=r.hl;a.v+=r.verwacht;return a},{k:0,p:0,b:0,o:0,h:0,v:0});
-    h+=`<div class="tw"><table><thead><tr><th>${gLabels[UI.groep]}</th>${UI.groep==='gemeente'?'<th class="hide-sm">Regio</th>':''}<th class="n">Klanten</th><th class="n">Prospecten</th><th class="n">Bezoeken</th><th class="n">Bestellingen</th><th class="n">HL</th><th class="n">Verwacht HL/jaar</th></tr></thead><tbody>`;
-    g.forEach(r=>{h+=`<tr class="click" data-act="drill" data-key="${esc(r.key)}"><td><button class="link" data-act="drill" data-key="${esc(r.key)}">${esc(r.label)}</button></td>${UI.groep==='gemeente'?`<td class="hide-sm">${esc(regioVan(r.key)||'–')}</td>`:''}<td class="n">${r.klanten}</td><td class="n">${r.prospecten}</td><td class="n">${r.bezoeken}</td><td class="n">${r.bestellingen}</td><td class="n"><strong>${fmt(r.hl)}</strong></td><td class="n">${fmt0(r.verwacht)}</td></tr>`});
-    h+=`</tbody><tfoot><tr><td>Totaal</td>${UI.groep==='gemeente'?'<td class="hide-sm"></td>':''}<td class="n">${tot.k}</td><td class="n">${tot.p}</td><td class="n">${tot.b}</td><td class="n">${tot.o}</td><td class="n">${fmt(tot.h)}</td><td class="n">${fmt0(tot.v)}</td></tr></tfoot></table></div>`;
-  }
-  h+='</section>';
+  h+=regioAccordeon();
 
   const up=kl.filter(k=>k.status!=='Verloren'&&(k.volgendeActie||k.volgendeActieDatum)).sort((a,b)=>(a.volgendeActieDatum||'9999').localeCompare(b.volgendeActieDatum||'9999')).slice(0,6);
   h+=`<section class="panel"><div class="panel-h"><h3>Eerstvolgende acties</h3><span class="sp"></span><button class="link" data-tab="opvolging">Alle opvolging</button></div>`;
   h+=up.length?`<div class="tw"><table><tbody>${up.map(k=>`<tr class="click" data-act="editKlant" data-id="${k.id}"><td style="width:90px" class="${datumKlasse(k.volgendeActieDatum)}">${k.volgendeActieDatum?fdate(k.volgendeActieDatum):'geen datum'}</td><td>${esc(k.volgendeActie||'–')}</td><td><strong>${esc(k.zaak)}</strong><span class="sub">${esc(k.gemeente||'')}</span></td></tr>`).join('')}</tbody></table></div>`:'<p class="note">Geen geplande acties.</p>';
   return h+'</section>';
 };
+
+function regioAccordeon(){
+  const km=klantMap(),perVerteg=VIEW==='alle'&&UI.groep==='verteg';
+  if(UI.groep!=='verteg')UI.groep='regio';
+  const top={};
+  const get=k=>{
+    const tk=perVerteg?(k._gedeeld?'gedeeld':(k._owner||'?')):klantRegio(k),gk=k.gemeente||'Onbekend';
+    const t=top[tk]||(top[tk]={key:tk,label:perVerteg?(tk==='gedeeld'?'Gedeelde drankenhandels':naamVan(tk)):tk,zaken:0,bezoeken:0,hl:0,sub:{}});
+    const g=t.sub[gk]||(t.sub[gk]={key:gk,zaken:0,bezoeken:0,hl:0});
+    return [t,g];
+  };
+  S.klanten.filter(klantOk).forEach(k=>{if(!telKlant(k)||k.status==='Verloren')return;get(k).forEach(x=>x.zaken++)});
+  S.bezoeken.forEach(b=>{const k=km[b.klantId];if(k&&klantOk(k)&&inPeriod(b.datum))get(k).forEach(x=>x.bezoeken++)});
+  S.bestellingen.forEach(o=>{const k=km[o.klantId];if(k&&klantOk(k)&&inPeriod(o.datum))get(k).forEach(x=>x.hl+=num(o.hl))});
+  const lijst=Object.values(top).filter(t=>t.zaken||t.hl).sort((a,b)=>(a.key==='Onbekend')-(b.key==='Onbekend')||b.hl-a.hl||b.zaken-a.zaken);
+  const tel=x=>`${x.zaken} zaken${x.bezoeken?' · '+x.bezoeken+' bez.':''} · ${fmt(x.hl)} HL`;
+  let h=`<section class="panel"><div class="panel-h"><h3>Overzicht per ${perVerteg?'vertegenwoordiger':'regio'}</h3><p>zaken, bezoeken en HL in ${esc(periodeLabel())} · tik om te openen</p><span class="sp"></span>
+    ${VIEW==='alle'?`<label class="inline" style="font-size:13px;color:var(--muted)">Per <select id="g_groep" data-groep="1">${opts([['regio','Regio'],['verteg','Vertegenwoordiger']],perVerteg?'verteg':'regio')}</select></label>`:''}</div>`;
+  if(!lijst.length)return h+'<div class="empty">Geen gegevens voor deze filters.</div></section>';
+  const open=UI.openD||(UI.openD={});
+  h+='<div class="acc">';
+  lijst.forEach(t=>{
+    const isOpen=lijst.length===1||open[t.key];
+    h+=`<button class="acc-h" data-act="acc" data-set="openD" data-key="${esc(t.key)}" aria-expanded="${!!isOpen}"><span class="pijl">${isOpen?'▾':'▸'}</span><b>${esc(t.label)}</b><span class="tel">${tel(t)}</span></button>`;
+    if(isOpen){
+      h+='<div class="acc-b">'+Object.values(t.sub).filter(g=>g.zaken||g.hl).sort((a,b)=>b.hl-a.hl||b.zaken-a.zaken||String(a.key).localeCompare(String(b.key),'nl'))
+        .map(g=>`<button class="acc-r" data-act="drillGem" data-key="${esc(g.key)}"><span class="nm">${esc(g.key)}</span><span class="tel">${tel(g)}</span></button>`).join('')+'</div>';
+    }
+  });
+  return h+'</div></section>';
+}
 
 function groepen(){
   const km=klantMap(),by=UI.groep;
@@ -691,27 +741,37 @@ V.klanten=function(){
     if(s==='bezoek')return String(laatsteBezoek(a)).localeCompare(String(laatsteBezoek(b)));
     return byName(a,b);
   });
-  let h=`<div class="head"><div><h2>Klanten</h2><p>${list.length} van ${S.klanten.length} zaken. Klik op een rij om de klantfiche te openen.</p></div><div class="actions">
+  let h=`<div class="head"><div><h2>Klanten</h2><p>${list.length} van ${S.klanten.length} zaken, per regio en gemeente. Tik om te openen.</p></div><div class="actions">
     <label class="inline" style="font-size:13px;color:var(--muted)">Sorteer<select id="s_sort" data-sort="1">${opts([['zaak','Naam'],['gemeente','Gemeente'],['actie','Volgende actie'],['bezoek','Langst niet bezocht'],['verwacht','Verwachte HL'],['hl','HL dit jaar']],s)}</select></label>
     <button class="btn primary" data-act="newKlant">+ Klant of prospect</button></div></div>`;
   h+=filterBar();
   if(!list.length)return h+`<div class="tw"><div class="empty">${S.klanten.length?'Geen klanten voor deze filters.':'Nog geen klanten.'}<br><button class="btn primary" data-act="newKlant">+ Klant of prospect</button></div></div>`;
-  h+=`<div class="tw"><table><thead><tr><th>Zaak</th><th>Contact</th><th>Plaats</th><th>Pot.</th><th>Status</th><th class="hide-sm">Huidige merken</th><th class="hide-sm">Contract / verdeler</th><th>Laatste bezoek</th><th>Volgende actie</th><th class="n">Verwacht HL</th><th class="n">HL ${jaar}</th></tr></thead><tbody>`;
-  list.forEach(k=>{
-    const lb=laatsteBezoek(k);
-    h+=`<tr class="click" data-act="editKlant" data-id="${k.id}">
-      <td><strong>${esc(k.zaak||'(naamloos)')}</strong>${ex(k)}${k._gedeeld?' <span class="chip st-prospect">Gedeeld</span>':''}<span class="sub">${esc(k.type||'')}${VIEW==='alle'?' · '+esc(naamVan(k._owner)):''}</span></td>
-      <td>${esc(k.contact||'–')}${k.telefoon?`<span class="sub">${esc(k.telefoon)}</span>`:''}</td>
-      <td>${esc(k.gemeente||'–')}<span class="sub">${esc(klantRegio(k))}</span></td>
-      <td>${pot(k.potentieel)}</td><td>${chip(k.status)}</td>
-      <td class="hide-sm wrap">${esc(k.merken||'–')}</td>
-      <td class="hide-sm">${esc(k.contract||'–')}${k.verdeler?`<span class="sub">${esc(k.verdeler)}</span>`:''}</td>
-      <td>${lb?fdate(lb):'<span class="sub">nooit</span>'}</td>
-      <td class="wrap">${esc(k.volgendeActie||'–')}${k.volgendeActieDatum?`<span class="sub ${datumKlasse(k.volgendeActieDatum)}">${fdate(k.volgendeActieDatum)}</span>`:''}</td>
-      <td class="n">${k.verwachtHL!==''&&k.verwachtHL!=null?fmt(num(k.verwachtHL)):'–'}</td>
-      <td class="n">${fmt(hlKlantJaar(k,jaar))}</td></tr>`;
+  const open=UI.openK||(UI.openK={});
+  const zoekt=!!(UI.f.q||UI.f.gemeente)&&list.length<=60;
+  const rij=k=>{
+    const lb=laatsteBezoek(k),hl=hlKlantJaar(k,jaar);
+    const info=[k.type,VIEW==='alle'&&!k._gedeeld?naamVan(k._owner):'',k.volgendeActie?(k.volgendeActieDatum?fdate(k.volgendeActieDatum)+': ':'')+k.volgendeActie:(lb?'laatst bezocht '+fdate(lb):'')].filter(Boolean).join(' · ');
+    return `<button class="acc-r acc-r2" data-act="editKlant" data-id="${k.id}"><span class="nm"><strong>${esc(k.zaak||'(naamloos)')}</strong>${ex(k)}${k._gedeeld?' <span class="chip st-prospect">Gedeeld</span>':''}<span class="sub${k.volgendeActieDatum?' '+datumKlasse(k.volgendeActieDatum):''}">${esc(info)}</span></span><span class="tel">${chip(k.status)}${hl?'<span class="sub">'+fmt(hl)+' HL</span>':''}</span></button>`;
+  };
+  const tel=ks=>{const nK=ks.filter(k=>k.status==='Klant').length;return ks.length+(nK&&nK<ks.length?' · '+nK+' klant'+(nK>1?'en':''):'')};
+  const per={};
+  list.forEach(k=>{const r=klantRegio(k),g=k.gemeente||'Onbekend';((per[r]=per[r]||{})[g]=per[r][g]||[]).push(k)});
+  const regios=Object.keys(per).sort((a,b)=>(a==='Onbekend')-(b==='Onbekend')||a.localeCompare(b,'nl'));
+  h+='<div class="acc">';
+  regios.forEach(r=>{
+    const gem=per[r],alle=[].concat(...Object.values(gem));
+    const rOpen=zoekt||regios.length===1||open['r:'+r];
+    h+=`<button class="acc-h" data-act="acc" data-set="openK" data-key="r:${esc(r)}" aria-expanded="${!!rOpen}"><span class="pijl">${rOpen?'▾':'▸'}</span><b>${esc(r)}</b><span class="tel">${tel(alle)}</span></button>`;
+    if(!rOpen)return;
+    h+='<div class="acc-b">';
+    Object.keys(gem).sort((a,b)=>(a==='Onbekend')-(b==='Onbekend')||a.localeCompare(b,'nl')).forEach(g=>{
+      const ks=gem[g],key='g:'+r+'|'+g,gOpen=zoekt||open[key];
+      h+=`<button class="acc-r acc-g" data-act="acc" data-set="openK" data-key="${esc(key)}" aria-expanded="${!!gOpen}"><span class="pijl">${gOpen?'▾':'▸'}</span><span class="nm"><strong>${esc(g)}</strong></span><span class="tel">${tel(ks)}</span></button>`;
+      if(gOpen)h+=ks.map(rij).join('');
+    });
+    h+='</div>';
   });
-  return h+'</tbody></table></div>';
+  return h+'</div>';
 };
 
 V.prospectie=function(){
@@ -1254,6 +1314,9 @@ const ACT={
   addEenheid:()=>{UI.extraEenheden++;render()},
   impGo:()=>impGo(),
   bron:d=>{UI.f.bron=d.v||'';render()},
+  fchip:d=>{const k=d.k,v=d.v||'';UI.f[k]=UI.f[k]===v?'':v;if(k==='regio'&&UI.f.gemeente&&regioVan(UI.f.gemeente)&&regioVan(UI.f.gemeente)!==UI.f.regio)UI.f.gemeente='';render()},
+  acc:d=>{const st=UI[d.set]||(UI[d.set]={});st[d.key]=!st[d.key];render()},
+  drillGem:d=>{UI.f.gemeente=d.key==='Onbekend'?'':d.key;render()},
   impReset:()=>{UI.imp=null;render()},
   copyExport:async()=>{UI.showExport=true;const txt=JSON.stringify(exportData(),null,1);try{await navigator.clipboard.writeText(txt);toast('Gekopieerd naar je klembord')}catch(e){toast('Kopiëren lukte niet. Selecteer de tekst hieronder en kopieer handmatig.')}render()},
   delVoorbeelden:async(d,el)=>{
@@ -1270,11 +1333,15 @@ function renderTabs(){
   $('#tabs').innerHTML=TABS.map(([id,l])=>`<button class="tab" data-tab="${id}"${UI.tab===id?' aria-current="page"':''}>${l}${id==='opvolging'&&late?`<b>${late}</b>`:''}</button>`).join('');
 }
 function render(){
-  const a=document.activeElement;const aid=a&&a.id&&$('#view').contains(a)?a.id:null;
+  const a=document.activeElement;
+  const typvak=a&&a.tagName==='INPUT'&&/^(search|text|number|tel|email)$/.test(a.type);
+  const aid=typvak&&a.id&&$('#view').contains(a)?a.id:null;
+  const rij=document.querySelector('#view .chiprow');const rijX=rij?rij.scrollLeft:0;
   let sel=null;try{if(aid&&a.selectionStart!=null)sel=[a.selectionStart,a.selectionEnd]}catch(e){}
   renderTabs();
   $('#view').innerHTML=(VIEW&&!isOwnView()?'<div class="banner">Je bekijkt '+(VIEW==='alle'?'de gegevens van <strong>alle vertegenwoordigers</strong>':'het overzicht van <strong>'+esc(naamVan(VIEW))+'</strong>')+'. Alleen bekijken: wijzigen kan alleen in je eigen overzicht.</div>':'')+(MODE==='fout'?'<div class="banner">De gegevens konden niet geladen worden. Controleer je verbinding en open de module opnieuw.</div>':'')+(V[UI.tab]||V.dashboard)();
   if(aid){const el=document.getElementById(aid);if(el){el.focus();try{if(sel)el.setSelectionRange(sel[0],sel[1])}catch(e){}}}
+  const rij2=document.querySelector('#view .chiprow');if(rij2&&rijX)rij2.scrollLeft=rijX;
 }
 function setTab(t){UI.tab=TABS.some(x=>x[0]===t)?t:'dashboard';if(location.hash.slice(1)!==UI.tab){try{history.replaceState(null,'','#'+UI.tab)}catch(e){location.hash=UI.tab}}render();window.scrollTo(0,0)}
 let toastT=null;
