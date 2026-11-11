@@ -87,6 +87,13 @@
 
   const originalFetch = window.fetch.bind(window);
   let lastSupabase = null; // laatst gebruikte Supabase-adres en sleutel (voor de verbindingstest)
+  /* Een app op het beginscherm van een iPhone krijgt soms ten onrechte te
+     horen dat er geen internet is (navigator.onLine = false). Zodra een
+     echte verbindingstest lukt, wordt dat signaal voor de rest van de
+     sessie genegeerd. */
+  let onLineUnreliable = false;
+  let lastProbeFail = 0;
+  const netOff = () => navigator.onLine === false && !onLineUnreliable;
   const supabaseClients = [];
   const FAKE_AUTH_FLAG = "achel-offline-session-extended";
   let fakeAuthUsed = false;
@@ -439,7 +446,10 @@
       return null;
     };
 
-    if (navigator.onLine === false) {
+    if (netOff() && Date.now() - lastProbeFail > 20000) {
+      await probeConnection(true);
+    }
+    if (netOff()) {
       const fallback = offlineFallback();
       if (fallback) {
         return fallback;
@@ -568,7 +578,7 @@
     if (refreshingSession) {
       return refreshingSession;
     }
-    if (navigator.onLine === false || (!force && !fakeAuthUsed)) {
+    if (netOff() || (!force && !fakeAuthUsed)) {
       return Promise.resolve();
     }
     const client = supabaseClients[0];
@@ -685,7 +695,10 @@
     // artikelen, dan de mail) altijd juist.
     const waiting = await pendingCount().catch(() => 0);
 
-    if (navigator.onLine === false || waiting > 0) {
+    if (netOff() && Date.now() - lastProbeFail > 20000) {
+      await probeConnection(true);
+    }
+    if (netOff() || waiting > 0) {
       return enqueue(entry, bodyObject, headers);
     }
 
@@ -910,7 +923,7 @@
   }
 
   async function syncNow() {
-    if (syncing || navigator.onLine === false) {
+    if (syncing || netOff()) {
       return;
     }
 
@@ -1042,7 +1055,7 @@
   let refreshingKnown = false;
 
   async function refreshKnown() {
-    if (refreshingKnown || navigator.onLine === false) {
+    if (refreshingKnown || netOff()) {
       return;
     }
     refreshingKnown = true;
@@ -1069,7 +1082,7 @@
       );
 
       for (const entry of entries) {
-        if (navigator.onLine === false) {
+        if (netOff()) {
           break;
         }
         const req = entry.value.req;
@@ -1192,31 +1205,42 @@
      is. Lukt een klein testverzoek, dan is de app weer online en verdwijnt
      de melding. Zonder dit bleef "Offline" staan tot er toevallig opnieuw
      gegevens werden opgevraagd. */
-  async function probeConnection() {
-    if (isOnline || probing || navigator.onLine === false || !lastSupabase) {
-      return;
+  let probePromise = null;
+  async function probeConnection(force) {
+    if ((!force && isOnline && !netOff()) || !lastSupabase) {
+      return !netOff();
     }
-    probing = true;
-    try {
-      await timeoutRace(
-        originalFetch(`${lastSupabase.origin}/auth/v1/settings`, {
-          method: "GET",
-          cache: "no-store",
-          headers: { apikey: lastSupabase.apikey }
-        }),
-        6000
-      );
-      setConnectionState(true);
-    } catch (error) {
-      /* echt offline of nog te traag: later opnieuw */
-    } finally {
-      probing = false;
+    if (probePromise) {
+      return probePromise;
     }
+    probePromise = (async () => {
+      try {
+        await timeoutRace(
+          originalFetch(`${lastSupabase.origin}/auth/v1/settings`, {
+            method: "GET",
+            cache: "no-store",
+            headers: { apikey: lastSupabase.apikey }
+          }),
+          force ? 4000 : 6000
+        );
+        if (navigator.onLine === false) {
+          onLineUnreliable = true;
+        }
+        setConnectionState(true);
+        return true;
+      } catch (error) {
+        lastProbeFail = Date.now();
+        return false;
+      } finally {
+        probePromise = null;
+      }
+    })();
+    return probePromise;
   }
 
   function scheduleProbe(delay) {
     clearTimeout(probeTimer);
-    if (isOnline) {
+    if (isOnline && !netOff()) {
       return;
     }
     probeTimer = setTimeout(async () => {
@@ -1313,7 +1337,7 @@
       }
       const waiting = items.filter((item) => item.status !== "failed").length;
       const failed = items.filter((item) => item.status === "failed").length;
-      const offline = !isOnline || navigator.onLine === false;
+      const offline = !isOnline || netOff();
 
       let text = "";
       pill.className = "achel-offline-pill";
@@ -1379,7 +1403,7 @@
 
   async function openSheet() {
     const items = await queueStore.all().catch(() => []);
-    const offline = !isOnline || navigator.onLine === false;
+    const offline = !isOnline || netOff();
 
     const background = document.createElement("div");
     background.className = "achel-offline-sheet-bg";
@@ -1450,10 +1474,13 @@
   ============================================================ */
 
   window.addEventListener("online", () => setConnectionState(true));
-  window.addEventListener("offline", () => setConnectionState(false));
+  window.addEventListener("offline", () => {
+    onLineUnreliable = false;
+    setConnectionState(false);
+  });
   document.addEventListener("visibilitychange", () => {
     if (document.visibilityState === "visible") {
-      if (!isOnline) scheduleProbe(500);
+      if (!isOnline || netOff()) scheduleProbe(500);
       syncNow();
     }
   });
@@ -1502,6 +1529,6 @@
     refreshKnown,
     openSheet,
     pendingCount,
-    isOnline: () => isOnline && navigator.onLine !== false
+    isOnline: () => isOnline && !netOff()
   };
 })();
