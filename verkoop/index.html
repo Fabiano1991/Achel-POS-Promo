@@ -2,7 +2,7 @@
 <html lang="nl">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
 <meta name="theme-color" content="#1e2c27">
 <title>Achel | Verkoop</title>
 <link rel="manifest" href="../manifest.json">
@@ -39,7 +39,7 @@
   color-scheme:dark;
 }
 *{box-sizing:border-box}
-html,body{margin:0}
+html,body{margin:0;overflow-x:hidden;overflow-x:clip;max-width:100%}
 body{background:var(--bg);color:var(--ink);font:15px/1.45 var(--body);-webkit-font-smoothing:antialiased}
 h1,h2,h3{font-family:var(--display);margin:0;text-wrap:balance;letter-spacing:.005em}
 button,input,select,textarea{font:inherit;color:inherit}
@@ -88,7 +88,7 @@ main{max-width:1240px;margin:0 auto;padding:18px 20px 60px;display:flex;flex-dir
 .active-filter{outline:2px solid var(--accent);outline-offset:-1px}
 
 /* Tegels */
-.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(230px,100%),1fr));gap:12px}
 .tile{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px;display:flex;flex-direction:column;gap:6px}
 .tile h3{font-family:var(--body);font-size:13px;font-weight:500;color:var(--muted)}
 .big{font-family:var(--display);font-size:34px;font-weight:600;line-height:1.05;font-variant-numeric:tabular-nums}
@@ -103,7 +103,7 @@ main{max-width:1240px;margin:0 auto;padding:18px 20px 60px;display:flex;flex-dir
 .minirow div{display:flex;flex-direction:column}
 .minirow .big{font-size:28px}
 
-.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(380px,1fr));gap:12px}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(380px,100%),1fr));gap:12px}
 .panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px;display:flex;flex-direction:column;gap:10px;min-width:0}
 .panel-h{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
 .panel-h h3{font-size:17px}
@@ -175,7 +175,7 @@ tfoot td{font-weight:600;background:var(--sunk)}
 .fitem .who{font-size:13px;color:var(--muted)}
 .fgroup h3{font-size:16px;margin:4px 0 8px}
 
-.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:12px}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(320px,100%),1fr));gap:12px}
 .acard{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px;display:flex;flex-direction:column;gap:8px}
 .acard header{display:flex;gap:8px;align-items:flex-start}
 .acard header h3{font-size:17px;flex:1}
@@ -187,7 +187,7 @@ tfoot td{font-weight:600;background:var(--sunk)}
 .inline input[type=number]{width:80px}
 
 /* Rekenmodule */
-.calc{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:12px}
+.calc{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(320px,100%),1fr));gap:12px}
 .calc .row{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end}
 .calc label{display:flex;flex-direction:column;font-size:12.5px;color:var(--muted);gap:3px}
 .calc input,.calc select{border:1px solid var(--line);background:var(--bg);border-radius:6px;padding:7px 9px;font-size:15px;min-width:0}
@@ -235,6 +235,10 @@ tfoot td{font-weight:600;background:var(--sunk)}
   .line input{grid-column:1}
   .big{font-size:30px}
   .hide-sm{display:none}
+  /* iPhone zoomt niet in bij invulvakken van minstens 16px */
+  input,select,textarea{font-size:16px!important}
+  .filters select,.filters input,.calc input[type=number]{min-width:0;width:100%}
+  .filters label{flex:1 1 140px}
 }
 @media (prefers-reduced-motion:no-preference){.bar span{transition:width .4s ease}}
 /* Achel POS: terugknop, keuze vertegenwoordiger, alleen-lezen */
@@ -242,7 +246,14 @@ tfoot td{font-weight:600;background:var(--sunk)}
 .home:hover{color:var(--deep-ink)}
 .viewsel{background:transparent;color:var(--deep-ink);border:1px solid var(--deep-muted);border-radius:6px;padding:5px 8px;font-size:13px;max-width:220px}
 .viewsel option{color:#1a211f;background:#fff}
-body.readonly [data-act^="new"],body.readonly [data-act="move"],body.readonly [data-act="followDone"],body.readonly [data-act="followLater"],body.readonly [data-act="szAdd"],body.readonly [data-act="szDel"],body.readonly [data-act="delVoorbeelden"],body.readonly [data-act="deleteRec"],body.readonly [data-act="addEenheid"],body.readonly #instForm button[type=submit],body.readonly #dlgForm button[type=submit]{display:none}
+body.readonly [data-act^="new"],body.readonly [data-act="move"],body.readonly [data-act="followDone"],body.readonly [data-act="followLater"],body.readonly [data-act^="szBier"],body.readonly [data-act^="szKlant"],body.readonly [data-act="szAlleKlanten"],body.readonly #szb_new,body.readonly #szk_new,body.readonly [data-act="delVoorbeelden"],body.readonly [data-act="deleteRec"],body.readonly [data-act="addEenheid"],body.readonly #instForm button[type=submit],body.readonly #dlgForm button[type=submit]{display:none}
+.szchip{display:inline-flex;align-items:center;gap:2px;background:var(--accent-soft);color:var(--accent-strong);border-radius:10px;padding:2px 9px;font-size:12.5px;font-weight:500;margin:2px 4px 2px 0}
+.szx{border:0;background:none;color:inherit;cursor:pointer;font-size:15px;line-height:1;padding:0 0 0 4px}
+.szcard{cursor:pointer}.szcard:hover{border-color:var(--muted)}
+.szcard.szprep{border-color:var(--accent)}.szcard.szsel{outline:2px solid var(--accent);outline-offset:-1px}
+.szrows{display:flex;flex-direction:column}
+.szrow{display:flex;justify-content:space-between;gap:8px;font-size:13px;padding:5px 0;border-top:1px solid var(--line);flex-wrap:wrap}
+.szsel-st{border:1px solid var(--line);border-radius:6px;padding:3px 5px;background:var(--bg)}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="../offline.js"></script>
@@ -728,27 +739,81 @@ V.acties=function(){
   return h+'</div>';
 };
 
-V.seizoen=function(){
-  const km=klantMap();
-  const list=S.seizoensbieren.slice().sort((a,b)=>String(a.van||'').localeCompare(String(b.van||'')));
-  let h=`<div class="head"><div><h2>Seizoensbieren</h2><p>Per seizoensbier: beschikbaarheid, bij wie je het aanbiedt en wat het oplevert.</p></div><div class="actions"><button class="btn primary" data-act="newSeizoen">+ Seizoensbier</button></div></div>`;
-  if(!list.length)return h+'<div class="tw"><div class="empty">Nog geen seizoensbieren ingevuld. Voeg ze toe met naam en verkoopperiode.<br><button class="btn primary" data-act="newSeizoen">+ Seizoensbier</button></div></div>';
-  const SST=['Aanbieden','Aangeboden','Besteld','Geen interesse'];
-  h+='<div class="cards">';
-  list.forEach(s=>{
-    const rows=Object.entries(s.klanten||{}).map(([id,v])=>({id:id,k:km[id],v:v||{}})).filter(r=>r.k);
-    const best=rows.filter(r=>r.v.status==='Besteld');
-    const hl=rows.reduce((a,r)=>a+num(r.v.hl),0);
-    const t=today();const actief=(!s.van||t>=s.van)&&(!s.tot||t<=s.tot);
-    h+=`<article class="acard"><header><h3>${esc(s.naam||'Seizoensbier')}${ex(s)}</h3><span class="chip ${actief?'st-klant':'st-pauze'}">${actief?'Nu in verkoop':(s.van&&t<s.van?'Komt eraan':'Voorbij')}</span></header>
-      <dl class="kv"><dt>Verkoop</dt><dd>${s.van?fdate(s.van):'?'} – ${s.tot?fdate(s.tot):'?'}</dd><dt>Verpakking</dt><dd>${esc(s.verpakking||'–')}</dd><dt>Stand</dt><dd>${rows.length} zaken · ${best.length} besteld · ${fmt(hl)} HL verwacht</dd></dl>
-      ${s.notities?`<p class="note">${esc(s.notities)}</p>`:''}
-      ${rows.length?`<div class="tw"><table><thead><tr><th>Zaak</th><th>Status</th><th class="n">HL</th><th></th></tr></thead><tbody>${rows.sort((a,b)=>byName(a.k,b.k)).map(r=>`<tr><td>${esc(r.k.zaak)}<span class="sub">${esc(r.k.gemeente||'')}</span></td><td><select id="sz_${s.id}_${r.id}" data-szstatus="${s.id}" data-klant="${r.id}" style="border:1px solid var(--line);border-radius:6px;padding:3px 5px;background:var(--bg)">${opts(SST,r.v.status)}</select></td><td class="n">${fmt(num(r.v.hl))}</td><td><button class="icon" style="font-size:16px" data-act="szDel" data-id="${s.id}" data-klant="${r.id}" aria-label="Verwijder ${esc(r.k.zaak)}">×</button></td></tr>`).join('')}</tbody></table></div>`:''}
-      <div class="inline"><select id="szk_${s.id}" aria-label="Klant">${klantOptions('',k=>!(s.klanten||{})[k.id]&&k.status!=='Verloren')}</select><input id="szh_${s.id}" type="number" min="0" step="0.1" placeholder="HL" aria-label="Verwachte HL"><button class="btn small" data-act="szAdd" data-id="${s.id}">Toevoegen</button></div>
-      <div><button class="btn small" data-act="editSeizoen" data-id="${s.id}">Bewerken</button></div></article>`;
+/* ---------- Seizoensbieren: focusbieren per seizoen ---------- */
+const SEIZOENEN=[['lente','Lente',3,'mrt–mei'],['zomer','Zomer',6,'jun–aug'],['herfst','Herfst',9,'sep–nov'],['winter','Winter',12,'dec–feb']];
+const SST=['Aanbieden','Aangeboden','Besteld','Geen interesse'];
+function seizoenVan(d){const y=+d.slice(0,4),m=+d.slice(5,7);if(m<=2)return {jaar:y-1,s:3};return {jaar:y,s:m<=5?0:m<=8?1:m<=11?2:3}}
+function szShift(z,n){let i=z.jaar*4+z.s+n;return {jaar:Math.floor(i/4),s:((i%4)+4)%4}}
+const szKey=z=>z.jaar+'-'+SEIZOENEN[z.s][0];
+const szNaam=z=>SEIZOENEN[z.s][1]+' '+(z.s===3?z.jaar+'–'+String(z.jaar+1).slice(2):z.jaar);
+const szStart=z=>z.jaar+'-'+String(SEIZOENEN[z.s][2]).padStart(2,'0')+'-01';
+const szEinde=z=>addDays(szStart(szShift(z,1)),-1);
+function szFromKey(k){const p=String(k||'').split('-');const i=SEIZOENEN.findIndex(x=>x[0]===p[1]);return i<0?null:{jaar:+p[0],s:i}}
+function szDoc(z){
+  const key=szKey(z);const docs=S.seizoensbieren.filter(d=>d.id===key);
+  if(docs.length<=1)return docs[0]||{id:key,jaar:z.jaar,seizoen:SEIZOENEN[z.s][0],bieren:[],aanbod:{}};
+  const m={id:key,jaar:z.jaar,seizoen:SEIZOENEN[z.s][0],bieren:[],aanbod:{}};
+  docs.forEach(d=>{(d.bieren||[]).forEach(b=>{if(!m.bieren.includes(b))m.bieren.push(b)});Object.assign(m.aanbod,d.aanbod||{})});
+  return m;
+}
+function szStats(z,doc){
+  const km=klantMap(),van=szStart(z),tot=szEinde(z);
+  return (doc.bieren||[]).map(b=>{
+    let totaal=0,zaken=0,besteld=0,hl=0;
+    Object.entries(doc.aanbod||{}).forEach(([kid,per])=>{const k=km[kid];if(!k||!klantOk(k))return;totaal++;const st=((per||{})[b]||{}).status;if(st==='Aangeboden'||st==='Besteld')zaken++;if(st==='Besteld')besteld++});
+    S.bestellingen.forEach(o=>{if(!o.datum||o.datum<van||o.datum>tot||!relOk(o,km))return;(o.regels||[]).forEach(r=>{if(r.product===b)hl+=num(r.aantal)*num(r.liter)/100})});
+    return {bier:b,totaal:totaal,zaken:zaken,besteld:besteld,hl:hl};
   });
-  return h+'</div>';
+}
+const szChips=doc=>(doc.bieren||[]).length?doc.bieren.map(b=>`<span class="szchip">${esc(b)}</span>`).join(''):'<span class="note">Nog geen focusbieren gekozen</span>';
+function szCard(z,label,cls){
+  const doc=szDoc(z),st=szStats(z,doc);
+  return `<article class="acard szcard ${cls||''}${UI.szKey===szKey(z)?' szsel':''}" data-act="szOpen" data-key="${szKey(z)}">
+    <header><h3>${esc(szNaam(z))}</h3>${label}</header>
+    <div>${szChips(doc)}</div>
+    ${st.length?`<div class="szrows">${st.map(r=>`<div class="szrow"><span>${esc(r.bier)}</span><span class="sub" style="display:inline">${r.totaal?r.zaken+' van '+r.totaal+' zaken aangeboden':'nog geen klanten'} · ${r.besteld} besteld · ${fmt(r.hl)} HL</span></div>`).join('')}</div>`:''}
+  </article>`;
+}
+V.seizoen=function(){
+  const t=today(),nu=seizoenVan(t),volgend=szShift(nu,1);
+  if(!UI.szKey)UI.szKey=szKey(volgend);
+  const dagen=Math.round((new Date(szStart(volgend)+'T12:00:00')-new Date(t+'T12:00:00'))/864e5);
+  const over=dagen>13?'start over '+Math.round(dagen/7)+' weken':'start over '+dagen+' dagen';
+  const km=klantMap();
+  const docV=szDoc(volgend);
+  const nogTeDoen=S.klanten.filter(k=>klantOk(k)&&k.status==='Klant'&&!(docV.aanbod||{})[k.id]).length;
+  let h=`<div class="head"><div><h2>Seizoensbieren</h2><p>Kies per seizoen je focusbieren en bereid het volgende seizoen op tijd voor. Tik op een seizoen om bieren en klanten te kiezen.</p></div></div>`;
+  h+=filterBar();
+  h+='<div class="cards">';
+  h+=szCard(nu,`<span class="chip st-klant">Nu bezig · ${SEIZOENEN[nu.s][3]}</span>`);
+  h+=szCard(volgend,`<span class="chip st-proef">Voorbereiden · ${over}</span>`,'szprep').replace('</article>',`<p class="note">${nogTeDoen?'Nog '+nogTeDoen+' klanten aan te spreken voor dit seizoen':'Alle klanten zijn aangesproken'}</p></article>`);
+  h+='</div>';
+  h+=`<h3 style="font-size:16px;margin-top:4px">Jaarplanning</h3><div class="cards">`;
+  [2,3,4].forEach(n=>{const z=szShift(nu,n);h+=szCard(z,`<span class="chip">${SEIZOENEN[z.s][3]}</span>`)});
+  h+='</div>';
+  const vorig=szShift(nu,-1);
+  h+=`<p class="note">Eerder seizoen bekijken: <button class="link" data-act="szOpen" data-key="${szKey(vorig)}">${esc(szNaam(vorig))}</button></p>`;
+
+  const z=szFromKey(UI.szKey)||volgend,doc=szDoc(z);
+  const prods=inst().producten.filter(b=>!(doc.bieren||[]).includes(b));
+  const rows=Object.keys(doc.aanbod||{}).map(id=>km[id]).filter(k=>k&&klantOk(k)).sort(byName);
+  h+=`<section class="panel" id="szDetail"><div class="panel-h"><h3>${esc(szNaam(z))}: bieren en klanten</h3><p>${fdate(szStart(z))} – ${fdate(szEinde(z))}</p></div>
+    <div class="inline">${(doc.bieren||[]).map(b=>`<span class="szchip">${esc(b)}<button class="szx" data-act="szBierDel" data-key="${szKey(z)}" data-bier="${esc(b)}" aria-label="${esc(b)} weghalen">×</button></span>`).join('')}
+    <select id="szb_new" aria-label="Bier toevoegen">${opts(prods,'','+ Bier kiezen…')}</select><button class="btn small" data-act="szBierAdd" data-key="${szKey(z)}">Toevoegen</button></div>
+    <p class="note">Kies er bijvoorbeeld 4. Staat een bier er niet tussen, voeg het dan toe bij <button class="link" data-tab="instellingen">Instellingen</button>.</p>`;
+  if((doc.bieren||[]).length){
+    h+=`<div class="inline"><select id="szk_new" aria-label="Klant toevoegen">${klantOptions('',k=>!(doc.aanbod||{})[k.id]&&k.status!=='Verloren')}</select><button class="btn small" data-act="szKlantAdd" data-key="${szKey(z)}">Klant toevoegen</button>${nogTeDoenVoor(doc)?`<button class="btn small" data-act="szAlleKlanten" data-key="${szKey(z)}">Al mijn klanten toevoegen (${nogTeDoenVoor(doc)})</button>`:''}</div>`;
+    h+=rows.length?`<div class="tw"><table><thead><tr><th>Zaak</th>${doc.bieren.map(b=>`<th>${esc(b)}</th>`).join('')}<th></th></tr></thead><tbody>${rows.map(k=>`<tr><td><button class="link" data-act="editKlant" data-id="${k.id}">${esc(k.zaak)}</button><span class="sub">${esc(k.gemeente||'')}</span></td>${doc.bieren.map(b=>{const v=((doc.aanbod[k.id]||{})[b])||{};return `<td><select id="szs_${k.id}_${esc(b).replace(/[^a-zA-Z0-9]/g,'')}" data-szkey="${szKey(z)}" data-klant="${k.id}" data-bier="${esc(b)}" class="szsel-st">${opts(SST,v.status||'Aanbieden')}</select></td>`}).join('')}<td><button class="icon" style="font-size:16px" data-act="szKlantDel" data-key="${szKey(z)}" data-klant="${k.id}" aria-label="${esc(k.zaak)} weghalen">×</button></td></tr>`).join('')}</tbody></table></div>`:'<p class="note">Nog geen klanten gekozen voor dit seizoen.</p>';
+  }
+  return h+'</section>';
 };
+function nogTeDoenVoor(doc){return S.klanten.filter(k=>klantOk(k)&&k.status==='Klant'&&!(doc.aanbod||{})[k.id]).length}
+async function szSave(key,fn){
+  const z=szFromKey(key);if(!z)return;
+  const cur=S.seizoensbieren.find(d=>d.id===key&&(!d._owner||d._owner===ME))||{id:key,jaar:z.jaar,seizoen:SEIZOENEN[z.s][0],bieren:[],aanbod:{}};
+  const doc=JSON.parse(JSON.stringify(Object.assign({bieren:[],aanbod:{}},cur)));
+  fn(doc);await put('seizoensbieren',doc);
+}
 
 V.opvolging=function(){
   const t=today(),w=addDays(t,7);
@@ -972,21 +1037,6 @@ function actieForm(a){
   },{extra:delBtn('acties',a.id)});
 }
 
-function seizoenForm(s){
-  s=s||{};
-  const body=`<div class="form-grid">
-    ${fld('Naam seizoensbier *','naam',s.naam)}
-    ${fld('Verpakking','verpakking',s.verpakking,'text','placeholder="bv. bak 24 × 33 cl en vat 20 L"')}
-    ${fld('Verkoop vanaf','van',s.van,'date')}
-    ${fld('Verkoop tot','tot',s.tot,'date')}
-    ${area('Notities (verhaal, argumenten, prijs)','notities',s.notities)}
-  </div>`;
-  openModal(s.id?'Seizoensbier bewerken':'Nieuw seizoensbier',body,async f=>{
-    if(!f.naam){toast('Vul een naam in.');throw new Error('leeg')}
-    await put('seizoensbieren',Object.assign({klanten:{}},s,f));toast('Seizoensbier opgeslagen');
-  },{extra:delBtn('seizoensbieren',s.id)});
-}
-
 /* ---------- Acties ---------- */
 const find=(col,id)=>S[col].find(x=>x.id===id);
 const ACT={
@@ -999,8 +1049,6 @@ const ACT={
   editBestelling:d=>bestellingForm(find('bestellingen',d.id)),
   newActie:()=>actieForm(),
   editActie:d=>actieForm(find('acties',d.id)),
-  newSeizoen:()=>seizoenForm(),
-  editSeizoen:d=>seizoenForm(find('seizoensbieren',d.id)),
   addLine:()=>{const w=$('#lines');w.insertAdjacentHTML('beforeend',lineRow({eenheid:'bak'},lineCount++));const l=w.lastElementChild.querySelector('.la');if(l)l.focus()},
   delLine:(d,el)=>{const l=el.closest('.line');if(l)l.remove();updateHL()},
   clearFilters:()=>{UI.f={regio:'',gemeente:'',status:'',type:'',q:''};UI.maand='';render()},
@@ -1019,9 +1067,12 @@ const ACT={
     if(el.dataset.armed!=='1'){el.dataset.armed='1';el.textContent='Klik nogmaals om te verwijderen';return}
     await del(d.col,d.id);closeModal();toast('Verwijderd');
   },
-  szAdd:async d=>{const s=find('seizoensbieren',d.id);const kid=$('#szk_'+d.id).value;if(!s||!kid){toast('Kies eerst een klant.');return}
-    const kl=Object.assign({},s.klanten||{});kl[kid]={status:'Aanbieden',hl:num($('#szh_'+d.id).value)};await put('seizoensbieren',Object.assign({},s,{klanten:kl}))},
-  szDel:async d=>{const s=find('seizoensbieren',d.id);if(!s)return;const kl=Object.assign({},s.klanten||{});delete kl[d.klant];await put('seizoensbieren',Object.assign({},s,{klanten:kl}))},
+  szOpen:d=>{UI.szKey=d.key;render();const el=document.getElementById('szDetail');if(el)el.scrollIntoView({behavior:'smooth',block:'start'})},
+  szBierAdd:async d=>{const b=$('#szb_new').value;if(!b){toast('Kies eerst een bier.');return}await szSave(d.key,doc=>{if(!doc.bieren.includes(b))doc.bieren.push(b)})},
+  szBierDel:async d=>{await szSave(d.key,doc=>{doc.bieren=doc.bieren.filter(x=>x!==d.bier)})},
+  szKlantAdd:async d=>{const kid=$('#szk_new').value;if(!kid){toast('Kies eerst een klant.');return}await szSave(d.key,doc=>{doc.aanbod[kid]=doc.aanbod[kid]||{}})},
+  szKlantDel:async d=>{await szSave(d.key,doc=>{delete doc.aanbod[d.klant]})},
+  szAlleKlanten:async d=>{await szSave(d.key,doc=>{S.klanten.forEach(k=>{if(klantOk(k)&&k.status==='Klant'&&!doc.aanbod[k.id])doc.aanbod[k.id]={}})});toast('Klanten toegevoegd')},
   addEenheid:()=>{UI.extraEenheden++;render()},
   copyExport:async()=>{UI.showExport=true;const txt=JSON.stringify(exportData(),null,1);try{await navigator.clipboard.writeText(txt);toast('Gekopieerd naar je klembord')}catch(e){toast('Kopiëren lukte niet. Selecteer de tekst hieronder en kopieer handmatig.')}render()},
   delVoorbeelden:async(d,el)=>{
@@ -1078,7 +1129,7 @@ document.addEventListener('change',async e=>{
   if(t.dataset.calc){UI.calc[t.dataset.calc]=t.value;render();return}
   if(t.closest('#lines'))updateHL();
   if(t.dataset.pal){const i=inst();const eh=i.eenheden.map(x=>x.id===t.dataset.pal?Object.assign({},x,{perPallet:t.value===''?null:num(t.value)}):x);try{await putInst(Object.assign({},S.inst||{},{eenheden:eh}));toast('Pallet-aantal bewaard')}catch(err){}return}
-  if(t.dataset.szstatus){const s=find('seizoensbieren',t.dataset.szstatus);if(!s)return;const kl=Object.assign({},s.klanten||{});kl[t.dataset.klant]=Object.assign({},kl[t.dataset.klant]||{},{status:t.value});try{await put('seizoensbieren',Object.assign({},s,{klanten:kl}))}catch(err){}}
+  if(t.dataset.szkey){const kid=t.dataset.klant,bier=t.dataset.bier,val=t.value;try{await szSave(t.dataset.szkey,doc=>{doc.aanbod[kid]=doc.aanbod[kid]||{};doc.aanbod[kid][bier]={status:val}})}catch(err){}}
 });
 document.addEventListener('submit',async e=>{
   const f=e.target;
