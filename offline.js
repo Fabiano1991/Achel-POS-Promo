@@ -86,6 +86,7 @@
   const MAX_CACHE_ENTRIES = 400;
 
   const originalFetch = window.fetch.bind(window);
+  let lastSupabase = null; // laatst gebruikte Supabase-adres en sleutel (voor de verbindingstest)
   const supabaseClients = [];
   const FAKE_AUTH_FLAG = "achel-offline-session-extended";
   let fakeAuthUsed = false;
@@ -1133,6 +1134,10 @@
     if (!info) {
       return originalFetch(input, init);
     }
+    const apikey = request.headers.get("apikey");
+    if (apikey) {
+      lastSupabase = { origin: url.origin, apikey };
+    }
 
     try {
       if (info.kind === "read") return await handleRead(request, info);
@@ -1179,6 +1184,48 @@
 
   let isOnline = navigator.onLine !== false;
   let usedOfflineData = false;
+  let probeTimer = null;
+  let probing = false;
+
+  /* Na een mislukt verzoek (bv. net na het openen van de app op een iPhone,
+     als het netwerk nog niet wakker is) zelf nagaan of er echt geen internet
+     is. Lukt een klein testverzoek, dan is de app weer online en verdwijnt
+     de melding. Zonder dit bleef "Offline" staan tot er toevallig opnieuw
+     gegevens werden opgevraagd. */
+  async function probeConnection() {
+    if (isOnline || probing || navigator.onLine === false || !lastSupabase) {
+      return;
+    }
+    probing = true;
+    try {
+      await timeoutRace(
+        originalFetch(`${lastSupabase.origin}/auth/v1/settings`, {
+          method: "GET",
+          cache: "no-store",
+          headers: { apikey: lastSupabase.apikey }
+        }),
+        6000
+      );
+      setConnectionState(true);
+    } catch (error) {
+      /* echt offline of nog te traag: later opnieuw */
+    } finally {
+      probing = false;
+    }
+  }
+
+  function scheduleProbe(delay) {
+    clearTimeout(probeTimer);
+    if (isOnline) {
+      return;
+    }
+    probeTimer = setTimeout(async () => {
+      await probeConnection();
+      if (!isOnline) {
+        scheduleProbe(10000);
+      }
+    }, delay);
+  }
 
   function setConnectionState(online) {
     if (online === isOnline) {
@@ -1187,7 +1234,10 @@
     isOnline = online;
     if (online) {
       usedOfflineData = false;
+      clearTimeout(probeTimer);
       setTimeout(syncNow, 300);
+    } else {
+      scheduleProbe(1500);
     }
     refreshStatus();
   }
@@ -1402,7 +1452,10 @@
   window.addEventListener("online", () => setConnectionState(true));
   window.addEventListener("offline", () => setConnectionState(false));
   document.addEventListener("visibilitychange", () => {
-    if (document.visibilityState === "visible") syncNow();
+    if (document.visibilityState === "visible") {
+      if (!isOnline) scheduleProbe(500);
+      syncNow();
+    }
   });
   setInterval(syncNow, SYNC_INTERVAL_MS);
 
