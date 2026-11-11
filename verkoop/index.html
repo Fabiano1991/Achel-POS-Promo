@@ -246,7 +246,7 @@ tfoot td{font-weight:600;background:var(--sunk)}
 .home:hover{color:var(--deep-ink)}
 .viewsel{background:transparent;color:var(--deep-ink);border:1px solid var(--deep-muted);border-radius:6px;padding:5px 8px;font-size:13px;max-width:220px}
 .viewsel option{color:#1a211f;background:#fff}
-body.readonly [data-act^="new"],body.readonly [data-act="move"],body.readonly [data-act="followDone"],body.readonly [data-act="followLater"],body.readonly [data-act^="szBier"],body.readonly [data-act^="szKlant"],body.readonly [data-act="szAlleKlanten"],body.readonly #szb_new,body.readonly #szk_new,body.readonly [data-act="delVoorbeelden"],body.readonly [data-act="deleteRec"],body.readonly [data-act="addEenheid"],body.readonly #instForm button[type=submit],body.readonly #dlgForm button[type=submit]{display:none}
+body.readonly [data-act^="new"],body.readonly [data-act="move"],body.readonly [data-act="followDone"],body.readonly [data-act="followLater"],body.readonly [data-act^="szBier"],body.readonly [data-act^="szKlant"],body.readonly [data-act="szAlleKlanten"],body.readonly #szb_new,body.readonly #szk_new,body.readonly [data-act="delVoorbeelden"],body.readonly [data-act="deleteRec"],body.readonly [data-act="addEenheid"],body.readonly #instForm button[type=submit],body.readonly #impPanel,body.readonly #dlgForm button[type=submit]{display:none}
 .szchip{display:inline-flex;align-items:center;gap:2px;background:var(--accent-soft);color:var(--accent-strong);border-radius:10px;padding:2px 9px;font-size:12.5px;font-weight:500;margin:2px 4px 2px 0}
 .szx{border:0;background:none;color:inherit;cursor:pointer;font-size:15px;line-height:1;padding:0 0 0 4px}
 .szcard{cursor:pointer}.szcard:hover{border-color:var(--muted)}
@@ -892,8 +892,107 @@ V.instellingen=function(){
     <div class="inline"><button class="btn" data-act="copyExport">Kopieer alle gegevens</button>${nEx?`<button class="btn danger" data-act="delVoorbeelden">Verwijder ${nEx} voorbeeldgegevens</button>`:''}</div>
     <p class="note">Met "Kopieer alle gegevens" zet je alles als tekst op je klembord, als reservekopie of om in Excel te verwerken. Je gegevens worden bewaard in Achel POS en zijn enkel zichtbaar voor jou, de commercieel directeur en admin.</p>
     ${UI.showExport?`<label class="fld full"><span>Alle gegevens</span><textarea id="exportBox" readonly style="min-height:160px;font-size:12px">${esc(JSON.stringify(exportData(),null,1))}</textarea></label>`:''}</section>`;
+  h+=importPanel();
   return h;
 };
+
+/* ---------- Klanten inladen uit Salesforce ---------- */
+const SF_FUSIES={'overpelt':'Pelt','neerpelt':'Pelt','meeuwen-gruitrode':'Oudsbergen','opglabbeek':'Oudsbergen','tessenderlo':'Tessenderlo-Ham','ham':'Tessenderlo-Ham','kortessem':'Hasselt'};
+const isAdmin=()=>!!(PROFIEL&&PROFIEL.rol==='admin');
+const sfTxt=v=>v==null?'':String(v).replace(/\s+/g,' ').trim();
+const sfCompact=v=>sfTxt(v).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z]/g,'');
+function sfTitel(v){
+  const t=sfTxt(v);if(!t)return '';
+  const bekend=alleGemeenten('').find(g=>g.toLowerCase()===t.toLowerCase());if(bekend)return bekend;
+  return t.toLowerCase().replace(/(^|[\s\-'(])([a-zà-ÿ])/g,(m,a,b)=>a+b.toUpperCase());
+}
+function sfDatum(v){const m=sfTxt(v).match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);return m?m[3]+'-'+m[2].padStart(2,'0')+'-'+m[1].padStart(2,'0'):''}
+function sfMatch(naam,profielen){
+  if(/inactive|shared|administrator/i.test(naam))return '';
+  const c=sfCompact(naam);if(!c)return '';
+  let best='',score=0;
+  profielen.forEach(p=>{
+    const toks=String(p.naam||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').split(/[^a-z]+/).filter(x=>x.length>=2);
+    if(toks.length&&toks.every(t=>c.includes(t))&&toks.length>score){best=p.id;score=toks.length}
+  });
+  return best;
+}
+function sfKlant(r){
+  const naam=sfTxt(r['Naam']);if(!naam||/^0+$/.test(naam))return null;
+  const delen=sfTxt(r['Stadsnaam']).split(/\s+-\s+/);
+  let gem=sfTitel(delen[0]);gem=SF_FUSIES[gem.toLowerCase()]||gem;
+  const deel=delen[1]?sfTitel(delen[1]):'';
+  const rel1=sfTxt(r['Type relatie 1']),rel2=sfTxt(r['Type relatie 2']).toLowerCase();
+  const type=/drankenhandel|slijterij/i.test(rel1)?'Drankenhandel':/^retail/i.test(rel1)?'Retail / supermarkt':/event/i.test(rel1)?'Evenement / vereniging':/horeca/i.test(rel1)?'Horeca':'Andere';
+  const status=/^klant|vatenklant/.test(rel2)?'Klant':/potenti[eë]le klant/.test(rel2)?'In gesprek':/geen potentieel/.test(rel2)?'Gepauzeerd':'Prospect';
+  const lev=sfTxt(r['Leverancier']),pils=sfTxt(r['Pils brouwer']);
+  const nr=sfTxt(r['Klantnr.']);
+  const info=[['Soort zaak',r['Type Horeca']],['Relatie in Salesforce',r['Type relatie 2']],['Bezoekfrequentie',r['Bezoek frequentie']],['Seizoensklant',r['Seizoensklant']],['Kranen',r['#Kranen']],['Wisselkranen',r['#Wisselkranen']],['Eigenaar gebouw',r['Eigenaar gebouw']],['Retailer',r['Retailer']],['Taal',r['Taal']],['Bezoeken dit jaar',r['Bezoeken huidig jaar']],['Salesforce klantnr.',nr]]
+    .filter(([k,v])=>{const t=sfTxt(v);return t&&!/^onbekend/i.test(t)}).map(([k,v])=>k+': '+sfTxt(v));
+  const id='sf-'+((nr||sfCompact(naam+delen[0])).replace(/[^A-Za-z0-9_.~:@+-]/g,'').slice(0,70)||newId());
+  const k={zaak:naam,type:type,status:status,potentieel:/geen potentieel/.test(rel2)?'C':'?',contact:'',telefoon:sfTxt(r['Telefoon']),email:sfTxt(r['Email address']),
+    gemeente:gem,plaats:[sfTxt(r['Straat']),[sfTxt(r['Postcode']),deel].filter(Boolean).join(' ')].filter(Boolean).join(', '),
+    merken:pils&&!/onbekend/i.test(pils)?'Pils: '+pils:'',contract:lev?'Via verdeler':'Onbekend',verdeler:lev,
+    laatsteBezoek:sfDatum(r['Vorig bez']),notities:info.join('\n'),bron:'Salesforce',salesforceNr:nr,provincie:sfTxt(r['Regio']),gewijzigd:new Date().toISOString()};
+  Object.keys(k).forEach(x=>{if(k[x]==='')delete k[x]});
+  return {id:id,data:k};
+}
+function laadScript(src){return new Promise((ok,nok)=>{if(window.XLSX)return ok();const sc=document.createElement('script');sc.src=src;sc.onload=ok;sc.onerror=()=>nok(new Error('script'));document.head.appendChild(sc)})}
+async function impLees(file){
+  if(!file)return;
+  UI.imp={msg:'Bestand lezen…',groups:[]};render();
+  try{
+    await laadScript('https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js');
+    const wb=XLSX.read(await file.arrayBuffer(),{type:'array'});
+    const rows=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{defval:null,raw:false});
+    if(!rows.length||!('Naam' in rows[0])){UI.imp={msg:'Dit bestand heeft geen kolom "Naam". Kies de klantenexport uit Salesforce.',groups:[]};render();return}
+    const profielen=isAdmin()?PROFIELEN.concat(PROFIEL&&!PROFIELEN.some(p=>p.id===PROFIEL.id)?[PROFIEL]:[]):(PROFIEL?[PROFIEL]:[]);
+    const per={};
+    rows.forEach(r=>{const v=sfTxt(r['Vertegenwoordiger'])||'(geen vertegenwoordiger)';(per[v]=per[v]||[]).push(r)});
+    let groups=Object.entries(per).map(([sf,rs])=>({sf:sf,rows:rs,target:sfMatch(sf,profielen)}));
+    if(!isAdmin())groups=groups.filter(g=>g.target===ME);
+    groups.sort((a,b)=>(b.target?1:0)-(a.target?1:0)||b.rows.length-a.rows.length);
+    UI.imp={msg:groups.length?'':'Er staan geen klanten op jouw naam in dit bestand.',groups:groups,file:file.name};
+  }catch(e){console.error(e);UI.imp={msg:'Het bestand kon niet gelezen worden. Controleer je verbinding en probeer opnieuw.',groups:[]}}
+  render();
+}
+async function impGo(){
+  const im=UI.imp;if(!im||im.busy)return;
+  const todo=im.groups.filter(g=>g.target);if(!todo.length){toast('Kies bij minstens één regel voor wie de klanten zijn.');return}
+  im.busy=true;let nieuw=0,totaal=0;
+  try{
+    for(const g of todo){
+      const list=[];const regios={};
+      g.rows.forEach(r=>{const k=sfKlant(r);if(!k)return;list.push({collectie:'klanten',id:k.id,data:k.data});
+        const prov=k.data.provincie||'Andere';if(k.data.gemeente){(regios[prov]=regios[prov]||new Set()).add(k.data.gemeente)}});
+      if(g.target!==ME&&Object.keys(regios).length)list.push({collectie:'instellingen',id:'algemeen',data:{regios:Object.entries(regios).map(([n,set])=>({naam:n,gemeenten:[...set].sort((a,b)=>a.localeCompare(b,'nl'))}))}});
+      totaal+=list.length;
+      for(let i=0;i<list.length;i+=400){
+        im.msg='Bezig met '+(naamVan(g.target))+'… '+Math.min(i+400,list.length)+' / '+list.length;render();
+        const {data,error}=await sb.rpc('verkoop_import',{p_owner:g.target,p_rows:list.slice(i,i+400)});
+        if(error)throw error;nieuw+=num(data);
+      }
+    }
+    im.busy=false;im.done=true;
+    im.msg='Klaar: '+nieuw+' nieuwe klanten ingeladen'+(totaal>nieuw?' ('+(totaal-nieuw)+' stonden er al in en zijn niet aangepast)':'')+'.';
+    toast('Klanten ingeladen');
+    await loadData();
+  }catch(e){console.error('IMPORT:',e);im.busy=false;im.msg='Inladen gestopt: '+(/admin/.test(String(e.message))?'alleen een admin kan voor collega\'s inladen.':'controleer je verbinding en probeer opnieuw. Wat al ingeladen was, blijft staan.');render()}
+}
+function importPanel(){
+  const im=UI.imp;
+  let h=`<section class="panel" id="impPanel"><div class="panel-h"><h3>Klanten inladen uit Salesforce</h3></div>
+    <p class="note">Kies de klantenexport uit Salesforce (.xlsx of .csv). ${isAdmin()?'Als admin verdeel je de klanten over de vertegenwoordigers.':'Alleen de klanten op jouw naam worden ingeladen.'} Klanten die al in de module staan, worden overgeslagen. Je eigen aanpassingen blijven dus behouden.</p>
+    <label class="fld" style="max-width:420px"><span>Salesforce-bestand</span><input type="file" id="impFile" accept=".xlsx,.xls,.csv"></label>`;
+  if(im&&im.groups&&im.groups.length){
+    const doelen=(isAdmin()?PROFIELEN.concat(PROFIEL&&!PROFIELEN.some(p=>p.id===PROFIEL.id)?[PROFIEL]:[]):[PROFIEL]).filter(Boolean);
+    h+=`<div class="tw"><table><thead><tr><th>Vertegenwoordiger in Salesforce</th><th class="n">Klanten</th><th>Inladen bij</th></tr></thead><tbody>${im.groups.map((g,i)=>`<tr><td>${esc(g.sf)}</td><td class="n">${g.rows.length}</td><td>${isAdmin()?`<select id="imp_${i}" data-impdoel="${i}" style="border:1px solid var(--line);border-radius:6px;padding:4px 6px;background:var(--bg)">${opts(doelen.map(p=>[p.id,(p.naam||p.email)+(p.id===ME?' (jij)':'')]),g.target,'Niet inladen')}</select>`:'Jouw overzicht'}</td></tr>`).join('')}</tbody></table></div>`;
+    const n=im.groups.filter(g=>g.target).reduce((a,g)=>a+g.rows.length,0);
+    if(!im.done)h+=`<div class="inline"><button class="btn primary" data-act="impGo"${im.busy?' disabled':''}>${im.busy?'Bezig…':'Inladen ('+n+' klanten)'}</button><button class="btn ghost" data-act="impReset">Annuleren</button></div>`;
+  }
+  if(im&&im.msg)h+=`<p class="note${im.done?'':' warn'}">${esc(im.msg)}</p>`;
+  return h+'</section>';
+}
 function exportData(){const o={instellingen:inst()};COLS.forEach(c=>o[c]=S[c]);return o}
 
 /* ---------- Formulieren ---------- */
@@ -1074,6 +1173,8 @@ const ACT={
   szKlantDel:async d=>{await szSave(d.key,doc=>{delete doc.aanbod[d.klant]})},
   szAlleKlanten:async d=>{await szSave(d.key,doc=>{S.klanten.forEach(k=>{if(klantOk(k)&&k.status==='Klant'&&!doc.aanbod[k.id])doc.aanbod[k.id]={}})});toast('Klanten toegevoegd')},
   addEenheid:()=>{UI.extraEenheden++;render()},
+  impGo:()=>impGo(),
+  impReset:()=>{UI.imp=null;render()},
   copyExport:async()=>{UI.showExport=true;const txt=JSON.stringify(exportData(),null,1);try{await navigator.clipboard.writeText(txt);toast('Gekopieerd naar je klembord')}catch(e){toast('Kopiëren lukte niet. Selecteer de tekst hieronder en kopieer handmatig.')}render()},
   delVoorbeelden:async(d,el)=>{
     if(el.dataset.armed!=='1'){el.dataset.armed='1';el.textContent='Klik nogmaals: voorbeelden verwijderen';return}
@@ -1128,6 +1229,8 @@ document.addEventListener('change',async e=>{
   if(t.dataset.sort){UI.sort=t.value;render();return}
   if(t.dataset.calc){UI.calc[t.dataset.calc]=t.value;render();return}
   if(t.closest('#lines'))updateHL();
+  if(t.id==='impFile'){impLees(t.files&&t.files[0]);return}
+  if(t.dataset.impdoel!=null&&UI.imp){UI.imp.groups[+t.dataset.impdoel].target=t.value;render();return}
   if(t.dataset.pal){const i=inst();const eh=i.eenheden.map(x=>x.id===t.dataset.pal?Object.assign({},x,{perPallet:t.value===''?null:num(t.value)}):x);try{await putInst(Object.assign({},S.inst||{},{eenheden:eh}));toast('Pallet-aantal bewaard')}catch(err){}return}
   if(t.dataset.szkey){const kid=t.dataset.klant,bier=t.dataset.bier,val=t.value;try{await szSave(t.dataset.szkey,doc=>{doc.aanbod[kid]=doc.aanbod[kid]||{};doc.aanbod[kid][bier]={status:val}})}catch(err){}}
 });
