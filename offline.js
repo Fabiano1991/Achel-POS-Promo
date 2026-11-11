@@ -60,6 +60,7 @@
     fair_order_items: "Artikelen van beursbestelling",
     fair_contacts: "Beurscontact",
     expenses: "Onkost",
+    verkoop_records: "Verkoop (klanten, bezoeken, bestellingen)",
     free_beer_registrations: "Registratie gratis bier",
     b2b_registrations: "B2B-inschrijving",
     b2b_followups: "Commerciële opvolging",
