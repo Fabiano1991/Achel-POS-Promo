@@ -243,6 +243,34 @@ tfoot td{font-weight:600;background:var(--sunk)}
 .dlg-body{padding:16px 18px;display:flex;flex-direction:column;gap:14px}
 .dlg footer{display:flex;gap:8px;padding:12px 18px;border-top:1px solid var(--line);flex-wrap:wrap;align-items:center}
 .dlg footer .sp{flex:1}
+.ag-dagen{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}
+.ag-dag{border:1px solid var(--line);background:var(--surface);border-radius:var(--r);padding:7px 4px;display:flex;flex-direction:column;align-items:center;gap:1px;cursor:pointer;font-size:13.5px;font-weight:500;color:var(--ink)}
+.ag-dag small{font-size:11.5px;color:var(--muted);font-weight:400}
+.ag-dag.vandaag{border-color:var(--accent)}
+.ag-dag.on{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+.ag-dag.on small{color:var(--on-accent);opacity:.85}
+.ag-wrap{max-height:62vh;overflow-y:auto;border:1px solid var(--line);border-radius:var(--r);background:var(--surface);-webkit-overflow-scrolling:touch}
+.ag-grid{display:grid;position:relative}
+.ag-uren{position:relative;border-right:1px solid var(--line)}
+.ag-uren span{position:absolute;right:6px;transform:translateY(-50%);font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums}
+.ag-uren span:first-child{transform:none}
+.ag-col{position:relative;border-right:1px solid var(--line);background-image:repeating-linear-gradient(to bottom,var(--line) 0,var(--line) 1px,transparent 1px,transparent 60px),repeating-linear-gradient(to bottom,transparent 0,transparent 30px,var(--sunk) 30px,var(--sunk) 31px,transparent 31px,transparent 60px)}
+.ag-col:last-child{border-right:0}
+.ag-col.gekozen{background-color:color-mix(in srgb,var(--accent-soft) 35%,transparent)}
+.ag-blk{position:absolute;background:var(--accent-soft);border-left:4px solid var(--accent);border-radius:0 6px 6px 0;padding:3px 7px 8px;font-size:12.5px;line-height:1.3;color:var(--ink);overflow:hidden;cursor:grab;touch-action:pan-y;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;box-sizing:border-box}
+.ag-blk b{display:block;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ag-blk .ag-tijd,.ag-blk .ag-not{display:block;color:var(--muted);font-size:11.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ag-blk.gedaan{background:var(--good-soft);border-left-color:var(--good)}
+.ag-blk.drag{box-shadow:0 0 0 2px var(--accent),0 8px 20px rgba(0,0,0,.18);z-index:5;cursor:grabbing;opacity:.95}
+.ag-grip{position:absolute;left:0;right:0;bottom:0;height:12px;cursor:ns-resize;touch-action:none}
+.ag-grip::after{content:"";position:absolute;left:50%;bottom:3px;width:22px;height:3px;margin-left:-11px;border-radius:2px;background:var(--accent);opacity:.6}
+.ag-plan .fsearch{width:100%}
+.ag-lijst{display:flex;flex-direction:column;max-height:320px;overflow-y:auto;border:1px solid var(--line);border-radius:var(--r)}
+.ag-k{display:flex;gap:10px;align-items:flex-start;padding:9px 12px;font-size:14px;cursor:pointer}
+.ag-k+.ag-k{border-top:1px solid var(--line)}
+.ag-k input{width:18px;height:18px;margin-top:2px;accent-color:var(--accent);flex:none}
+.ag-knop{display:flex;gap:8px;flex-wrap:wrap;position:sticky;bottom:0;background:var(--surface);padding-top:6px}
+.btn[disabled]{opacity:.5;cursor:default}
 .fiche-kop{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:-4px}
 .fiche-blok h4{margin:0 0 6px;font-size:12.5px;font-weight:500;color:var(--muted);text-transform:none}
 .fiche-blok .kv{grid-template-columns:minmax(110px,auto) 1fr;font-size:14.5px;gap:5px 14px}
@@ -281,7 +309,7 @@ tfoot td{font-weight:600;background:var(--sunk)}
 .home:hover{color:var(--deep-ink)}
 .viewsel{background:transparent;color:var(--deep-ink);border:1px solid var(--deep-muted);border-radius:6px;padding:5px 8px;font-size:13px;max-width:220px}
 .viewsel option{color:#1a211f;background:#fff}
-body.readonly [data-act^="new"],body.readonly [data-act="move"],body.readonly [data-act="followDone"],body.readonly [data-act="followLater"],body.readonly [data-act="bewerkKlant"],body.readonly [data-act^="szBier"],body.readonly [data-act^="szKlant"],body.readonly [data-act="szAlleKlanten"],body.readonly #szb_new,body.readonly #szk_new,body.readonly [data-act="delVoorbeelden"],body.readonly [data-act="deleteRec"],body.readonly [data-act="addEenheid"],body.readonly #instForm button[type=submit],body.readonly #impPanel,body.readonly #dlgForm button[type=submit]{display:none}
+body.readonly [data-act^="new"],body.readonly [data-act="move"],body.readonly [data-act="followDone"],body.readonly [data-act="followLater"],body.readonly [data-act="bewerkKlant"],body.readonly .ag-plan,body.readonly .ag-grip,body.readonly [data-act^="szBier"],body.readonly [data-act^="szKlant"],body.readonly [data-act="szAlleKlanten"],body.readonly #szb_new,body.readonly #szk_new,body.readonly [data-act="delVoorbeelden"],body.readonly [data-act="deleteRec"],body.readonly [data-act="addEenheid"],body.readonly #instForm button[type=submit],body.readonly #impPanel,body.readonly #dlgForm button[type=submit]{display:none}
 .szchip{display:inline-flex;align-items:center;gap:2px;background:var(--accent-soft);color:var(--accent-strong);border-radius:10px;padding:2px 9px;font-size:12.5px;font-weight:500;margin:2px 4px 2px 0}
 .szx{border:0;background:none;color:inherit;cursor:pointer;font-size:15px;line-height:1;padding:0 0 0 4px}
 .szcard{cursor:pointer}.szcard:hover{border-color:var(--muted)}
@@ -330,7 +358,7 @@ const TYPES=['Horeca','Drankenhandel','Retail / supermarkt','Groothandel / verde
 const POT=[['A','A – groot potentieel'],['B','B – middel'],['C','C – klein'],['?','Nog onbekend']];
 const CONTRACT=['Onbekend','Vrij (geen contract)','Brouwerijcontract','Via verdeler','Eigen invoer / groothandel'];
 const SOORT_BEZOEK=['Bezoek','Telefoon','Proeverij','Mail / bericht','Event'];
-const COLS=['klanten','bezoeken','bestellingen','acties','seizoensbieren'];
+const COLS=['klanten','bezoeken','bestellingen','acties','seizoensbieren','afspraken'];
 const DEFAULTS={
   doelMaand:70, doelJaar:1500,
   regios:[
@@ -346,9 +374,9 @@ const DEFAULTS={
 };
 
 /* ---------- Toestand ---------- */
-const S={klanten:[],bezoeken:[],bestellingen:[],acties:[],seizoensbieren:[],inst:null};
+const S={klanten:[],bezoeken:[],bestellingen:[],acties:[],seizoensbieren:[],afspraken:[],inst:null};
 let MODE='laden', db=null;
-const TABS=[['dashboard','Dashboard'],['klanten','Klanten'],['prospectie','Prospectie'],['bezoeken','Bezoeken'],['bestellingen','Bestellingen'],['acties','Drankenhandelacties'],['seizoen','Seizoensbieren'],['opvolging','Opvolging'],['rekenen','Rekenmodule'],['instellingen','Instellingen']];
+const TABS=[['dashboard','Dashboard'],['klanten','Klanten'],['prospectie','Prospectie'],['bezoeken','Bezoeken'],['bestellingen','Bestellingen'],['acties','Drankenhandelacties'],['seizoen','Seizoensbieren'],['opvolging','Opvolging'],['agenda','Agenda'],['rekenen','Rekenmodule'],['instellingen','Instellingen']];
 const now=new Date();
 const UI={
   tab:'dashboard',
@@ -937,6 +965,170 @@ async function szSave(key,fn){
   fn(doc);await put('seizoensbieren',doc);
 }
 
+/* ---------- Agenda: weekplanning ---------- */
+const AG_VAN=360,AG_TOT=1320,AG_PX=1; // 6:00 tot 22:00, 1 pixel per minuut
+const DAGEN=['Ma','Di','Wo','Do','Vr'],DAGEN_L=['maandag','dinsdag','woensdag','donderdag','vrijdag'];
+const hm=m=>String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0');
+const r15=m=>Math.round(m/15)*15;
+function maandagVan(d){const x=new Date(d+'T12:00:00');return addDays(d,-((x.getDay()+6)%7))}
+function weekNr(d){const x=new Date(d+'T12:00:00');const t=new Date(Date.UTC(x.getFullYear(),x.getMonth(),x.getDate()));const dn=(t.getUTCDay()+6)%7;t.setUTCDate(t.getUTCDate()-dn+3);const f=new Date(Date.UTC(t.getUTCFullYear(),0,4));return 1+Math.round(((t-f)/864e5-3+((f.getUTCDay()+6)%7))/7)}
+const agBreed=()=>window.matchMedia('(min-width:900px)').matches;
+function agDagen(){return [0,1,2,3,4].map(i=>addDays(UI.agWeek,i))}
+const afsOp=d=>S.afspraken.filter(a=>a.datum===d).sort((a,b)=>num(a.start)-num(b.start));
+function vrijSlot(d,duur){
+  const bezet=afsOp(d).map(a=>[num(a.start),num(a.start)+num(a.duur||60)]);
+  const vrij=t=>!bezet.some(([s,e])=>t<e&&t+duur>s);
+  for(let t=480;t+duur<=AG_TOT;t+=15)if(vrij(t))return t;
+  for(let t=AG_VAN;t<480;t+=15)if(vrij(t))return t;
+  return AG_TOT-duur;
+}
+function banen(lijst){
+  const uit=[];let groep=[],eindGroep=-1;
+  const sluit=()=>{const n=Math.max(1,...groep.map(x=>x.baan+1));groep.forEach(x=>x.n=n);groep=[]};
+  lijst.forEach(a=>{
+    const s=num(a.start),e=s+num(a.duur||60);
+    if(s>=eindGroep&&groep.length)sluit();
+    const bezet=groep.filter(x=>x.e>s).map(x=>x.baan);let b=0;while(bezet.includes(b))b++;
+    const x={a:a,s:s,e:e,baan:b};groep.push(x);uit.push(x);eindGroep=Math.max(eindGroep,e);
+  });
+  if(groep.length)sluit();
+  return uit;
+}
+function agBlok(x){
+  const a=x.a,k=find('klanten',a.klantId);
+  const w=100/x.n;
+  return `<div class="ag-blk${a.status==='gedaan'?' gedaan':''}" data-afs="${a.id}" style="top:${(x.s-AG_VAN)*AG_PX}px;height:${Math.max(15,x.e-x.s)*AG_PX-2}px;left:calc(${x.baan*w}% + 2px);width:calc(${w}% - 4px)">
+    <b>${esc(k?k.zaak:a.klantNaam||'Afspraak')}</b><span class="ag-tijd">${hm(x.s)}–${hm(x.e)}${k&&k.gemeente?' · '+esc(k.gemeente):''}</span>${a.notitie?`<span class="ag-not">${esc(a.notitie)}</span>`:''}
+    <div class="ag-grip" aria-label="Langer of korter"></div></div>`;
+}
+V.agenda=function(){
+  const t=today();
+  if(!UI.agWeek)UI.agWeek=maandagVan(t);
+  const dagen=agDagen();
+  if(!UI.agDag||!dagen.includes(UI.agDag))UI.agDag=dagen.includes(t)?t:dagen[0];
+  if(!UI.agSel)UI.agSel=new Set();
+  const breed=agBreed(),toon=breed?dagen:[UI.agDag];
+  const d0=new Date(dagen[0]+'T12:00:00'),d4=new Date(dagen[4]+'T12:00:00');
+  const titel=`Week ${weekNr(dagen[0])} · ${d0.getDate()}${d0.getMonth()!==d4.getMonth()?' '+MAANDEN_L[d0.getMonth()]:''}–${d4.getDate()} ${MAANDEN_L[d4.getMonth()]}`;
+  let h=`<div class="head"><div><h2>Agenda</h2><p>${esc(titel)}. Houd een afspraak vast om te verslepen, sleep de onderrand voor langer of korter.</p></div>
+    <div class="actions"><button class="btn" data-act="agWeek" data-n="-7" aria-label="Vorige week">‹</button><button class="btn" data-act="agWeek" data-n="0">Deze week</button><button class="btn" data-act="agWeek" data-n="7" aria-label="Volgende week">›</button></div></div>`;
+  h+=`<div class="ag-dagen">${dagen.map((d,i)=>{const n=afsOp(d).length,dt=new Date(d+'T12:00:00');return `<button class="ag-dag${d===UI.agDag?' on':''}${d===t?' vandaag':''}" data-act="agDag" data-d="${d}"><span>${DAGEN[i]} ${dt.getDate()}/${dt.getMonth()+1}</span><small>${n?n+' afspr.':'–'}</small></button>`}).join('')}</div>`;
+  const uren=[];for(let m=AG_VAN;m<=AG_TOT;m+=60)uren.push(m);
+  h+=`<div class="ag-wrap" id="agWrap"><div class="ag-grid" style="grid-template-columns:48px repeat(${toon.length},minmax(0,1fr))">
+    <div class="ag-uren" style="height:${(AG_TOT-AG_VAN)*AG_PX}px">${uren.map(m=>`<span style="top:${(m-AG_VAN)*AG_PX}px">${hm(m)}</span>`).join('')}</div>
+    ${toon.map(d=>`<div class="ag-col${d===t?' vandaag':''}${breed&&d===UI.agDag?' gekozen':''}" data-d="${d}" style="height:${(AG_TOT-AG_VAN)*AG_PX}px">${banen(afsOp(d)).map(agBlok).join('')}</div>`).join('')}
+  </div></div>`;
+  // klanten inplannen
+  const dagNaam=DAGEN_L[dagen.indexOf(UI.agDag)]+' '+fdate(UI.agDag);
+  const weekEind=dagen[4],gepland=new Set(S.afspraken.filter(a=>dagen.includes(a.datum)).map(a=>a.klantId));
+  const q=(UI.agZoek||'').toLowerCase();
+  let lijst;
+  if(q)lijst=S.klanten.filter(k=>[k.zaak,k.gemeente,k.contact].join(' ').toLowerCase().includes(q)).sort(byName).slice(0,40);
+  else lijst=S.klanten.filter(k=>k.status!=='Verloren'&&k.volgendeActieDatum&&k.volgendeActieDatum<=weekEind).sort((a,b)=>String(a.volgendeActieDatum).localeCompare(String(b.volgendeActieDatum))).slice(0,40);
+  const gekozen=[...UI.agSel].map(id=>find('klanten',id)).filter(Boolean);
+  lijst=gekozen.filter(k=>!lijst.includes(k)).concat(lijst);
+  h+=`<section class="panel ag-plan"><div class="panel-h"><h3>Klanten inplannen</h3><p>Vink klanten aan en zet ze op ${esc(dagNaam)}${breed?' (tik bovenaan op een dag om te wisselen)':''}.</p></div>
+    <input type="search" id="ag_zoek" class="fsearch" data-agzoek="1" value="${esc(UI.agZoek||'')}" placeholder="Zoek klant of gemeente…" aria-label="Zoek klant om in te plannen">
+    ${!q?'<p class="note">Zonder zoekterm zie je je opvolging tot en met deze week.</p>':''}
+    <div class="ag-lijst">${lijst.length?lijst.map(k=>`<label class="ag-k"><input type="checkbox" id="agk_${k.id}" data-agk="${k.id}"${UI.agSel.has(k.id)?' checked':''}><span><strong>${esc(k.zaak)}</strong><span class="sub">${esc([k.gemeente,k.volgendeActie?(k.volgendeActieDatum?fdate(k.volgendeActieDatum)+': ':'')+k.volgendeActie:'',gepland.has(k.id)?'al ingepland deze week':''].filter(Boolean).join(' · '))}</span></span></label>`).join(''):'<p class="note">Geen klanten gevonden.</p>'}</div>
+    <div class="ag-knop"><button class="btn primary" data-act="agPlan"${UI.agSel.size?'':' disabled'}>${UI.agSel.size?'Zet '+UI.agSel.size+' klant'+(UI.agSel.size>1?'en':'')+' op '+esc(DAGEN_L[dagen.indexOf(UI.agDag)]):'Vink eerst klanten aan'}</button>${UI.agSel.size?'<button class="btn ghost" data-act="agWis">Selectie wissen</button>':''}</div>
+  </section>`;
+  return h;
+};
+async function agPlan(){
+  const ids=[...UI.agSel];if(!ids.length)return;
+  for(const id of ids){
+    const k=find('klanten',id);if(!k)continue;
+    const start=vrijSlot(UI.agDag,60);
+    await put('afspraken',{klantId:id,klantNaam:k.zaak,datum:UI.agDag,start:start,duur:60,status:'gepland'});
+  }
+  toast(ids.length+' afspra'+(ids.length>1?'ken':'ak')+' op '+DAGEN_L[agDagen().indexOf(UI.agDag)]);
+  UI.agSel=new Set();render();
+}
+function afspraakForm(a){
+  const k=find('klanten',a.klantId);
+  const tijden=[];for(let m=AG_VAN;m<AG_TOT;m+=15)tijden.push([String(m),hm(m)]);
+  const duren=[15,30,45,60,75,90,120,150,180,240,300].map(m=>[String(m),m<60?m+' min':(m%60?Math.floor(m/60)+' u '+m%60:m/60+' uur')]);
+  const body=`<div class="fiche-kop">${a.status==='gedaan'?'<span class="chip st-klant">Afgewerkt</span>':'<span class="chip st-prospect">Gepland</span>'}<span class="sub" style="display:inline">${esc(k?[k.gemeente,k.volgendeActie].filter(Boolean).join(' · '):'')}</span></div>
+    <div class="inline"><button type="button" class="btn small" data-act="editKlant" data-id="${a.klantId}">Klantfiche</button><button type="button" class="btn small primary" data-act="agBezoek" data-id="${a.id}">Bezoek loggen</button></div>
+    <div class="form-grid">
+      ${fld('Datum','datum',a.datum,'date')}
+      ${sel('Begin','start',String(a.start),tijden)}
+      ${sel('Duur','duur',String(a.duur||60),duren)}
+      ${sel('Status','status',a.status||'gepland',[['gepland','Gepland'],['gedaan','Afgewerkt']])}
+      ${area('Notitie','notitie',a.notitie)}
+    </div>`;
+  openModal((k?k.zaak:a.klantNaam||'Afspraak')+' · '+hm(num(a.start)),body,async f=>{
+    const start=num(f.start),duur=Math.min(num(f.duur)||60,AG_TOT-start);
+    await put('afspraken',Object.assign({},a,{datum:f.datum||a.datum,start:start,duur:Math.max(15,duur),status:f.status,notitie:f.notitie}));
+    if(f.datum&&f.datum!==a.datum){UI.agWeek=maandagVan(f.datum);UI.agDag=f.datum}
+    toast('Afspraak opgeslagen');
+  },{extra:delBtn('afspraken',a.id),noFocus:true});
+}
+/* slepen en langer/korter maken */
+let AGD=null;
+function agTekst(blk,s,e){const t=blk.querySelector('.ag-tijd');if(t)t.textContent=hm(s)+'–'+hm(e)+(t.textContent.includes(' · ')?' · '+t.textContent.split(' · ').slice(1).join(' · '):'')}
+document.addEventListener('pointerdown',e=>{
+  const blk=e.target.closest&&e.target.closest('.ag-blk');if(!blk)return;
+  const a=find('afspraken',blk.dataset.afs);if(!a)return;
+  const resize=!!e.target.closest('.ag-grip');
+  AGD={a:a,blk:blk,resize:resize,x0:e.clientX,y0:e.clientY,start:num(a.start),duur:num(a.duur||60),datum:a.datum,actief:false,bewogen:false,muis:e.pointerType==='mouse',t0:Date.now()};
+  AGD.nStart=AGD.start;AGD.nDuur=AGD.duur;AGD.nDatum=AGD.datum;
+  if(!isOwnView())return;
+  if(resize||AGD.muis){AGD.actief=true;if(resize)e.preventDefault()}
+  else AGD.timer=setTimeout(()=>{if(AGD&&!AGD.bewogen){AGD.actief=true;blk.classList.add('drag');try{navigator.vibrate&&navigator.vibrate(15)}catch(x){}}},350);
+});
+document.addEventListener('pointermove',e=>{
+  if(!AGD)return;
+  const dx=e.clientX-AGD.x0,dy=e.clientY-AGD.y0;
+  if(!AGD.actief){if(Math.abs(dx)>8||Math.abs(dy)>8){clearTimeout(AGD.timer);AGD.gescrold=true}return}
+  if(Math.abs(dx)<3&&Math.abs(dy)<3&&!AGD.bewogen)return;
+  AGD.bewogen=true;AGD.blk.classList.add('drag');
+  const min=dy/AG_PX;
+  if(AGD.resize){
+    AGD.nDuur=Math.max(15,Math.min(r15(AGD.duur+min),AG_TOT-AGD.start));
+    AGD.blk.style.height=(AGD.nDuur*AG_PX-2)+'px';
+    agTekst(AGD.blk,AGD.start,AGD.start+AGD.nDuur);
+  }else{
+    AGD.nStart=Math.max(AG_VAN,Math.min(r15(AGD.start+min),AG_TOT-AGD.duur));
+    AGD.blk.style.top=((AGD.nStart-AG_VAN)*AG_PX)+'px';
+    agTekst(AGD.blk,AGD.nStart,AGD.nStart+AGD.duur);
+    if(agBreed()){
+      AGD.blk.style.pointerEvents='none';
+      const el=document.elementFromPoint(e.clientX,e.clientY);
+      AGD.blk.style.pointerEvents='';
+      const col=el&&el.closest&&el.closest('.ag-col');
+      if(col&&col.dataset.d!==AGD.nDatum){AGD.nDatum=col.dataset.d;col.appendChild(AGD.blk);AGD.blk.style.left='2px';AGD.blk.style.width='calc(100% - 4px)'}
+    }
+  }
+});
+document.addEventListener('touchmove',e=>{if(AGD&&AGD.actief)e.preventDefault()},{passive:false});
+document.addEventListener('contextmenu',e=>{if(e.target.closest&&e.target.closest('.ag-blk'))e.preventDefault()});
+async function agLos(e,geannuleerd){
+  if(!AGD)return;const d=AGD;AGD=null;clearTimeout(d.timer);
+  d.blk.classList.remove('drag');
+  if(geannuleerd){render();return}
+  if(d.bewogen&&d.actief){
+    if(d.nStart!==d.start||d.nDuur!==d.duur||d.nDatum!==d.datum){
+      try{await put('afspraken',Object.assign({},d.a,{start:d.nStart,duur:d.nDuur,datum:d.nDatum}))}catch(err){render()}
+    }else render();
+    return;
+  }
+  if(!d.gescrold&&!d.bewogen&&(d.muis||Date.now()-d.t0<350)){
+    // openen bij de 'click' die volgt, zodat die klik het venster niet meteen weer sluit
+    AG_TAP=d.a.id;setTimeout(()=>{if(AG_TAP===d.a.id){AG_TAP=null;afspraakForm(d.a)}},450);
+  }else if(d.actief)render();
+}
+let AG_TAP=null;
+document.addEventListener('click',e=>{
+  const b=e.target.closest&&e.target.closest('.ag-blk');
+  if(b&&AG_TAP===b.dataset.afs){AG_TAP=null;const a=find('afspraken',b.dataset.afs);if(a)afspraakForm(a)}
+});
+document.addEventListener('pointerup',e=>agLos(e,false));
+document.addEventListener('pointercancel',e=>{if(AGD&&AGD.actief)agLos(e,true);else{if(AGD)clearTimeout(AGD.timer);AGD=null}});
+let agBreedNu=null;
+window.addEventListener('resize',()=>{const b=agBreed();if(agBreedNu!==null&&b!==agBreedNu&&UI.tab==='agenda')render();agBreedNu=b});
+
 V.opvolging=function(){
   const t=today(),w=addDays(t,7);
   const list=S.klanten.filter(k=>klantOk(k)&&k.status!=='Verloren'&&(k.volgendeActie||k.volgendeActieDatum));
@@ -1229,7 +1421,7 @@ function bezoekForm(b,o){
   const k=S.klanten.find(x=>x.id===(b.klantId||o.klant));
   const body=`<div class="form-grid">
     <label class="fld"><span>Klant *</span><select id="m_klantId" name="klantId" required>${klantOptions(b.klantId||o.klant||'')}</select></label>
-    ${fld('Datum','datum',b.datum||today(),'date')}
+    ${fld('Datum','datum',b.datum||(o&&o.datum)||today(),'date')}
     ${sel('Soort contact','soort',b.soort||'Bezoek',SOORT_BEZOEK)}
     ${area('Verslag','verslag',b.verslag||o.verslag||'')}
     <div class="sect">Wat is de volgende stap?</div>
@@ -1250,6 +1442,7 @@ function bezoekForm(b,o){
       if(f.statusNa)upd.status=f.statusNa;
       await put('klanten',upd);
     }
+    if(o.afspraak){const af=find('afspraken',o.afspraak);if(af)await put('afspraken',Object.assign({},af,{status:'gedaan'}))}
     toast('Contact opgeslagen');
   },{extra:delBtn('bezoeken',b.id)});
 }
@@ -1319,6 +1512,11 @@ const ACT={
   newKlant:d=>klantForm({status:d.status||'Prospect',type:d.type||'Horeca',gemeente:UI.f.gemeente||'',regio:''}),
   editKlant:d=>klantForm(find('klanten',d.id)),
   bewerkKlant:d=>klantBewerk(find('klanten',d.id)),
+  agWeek:d=>{const n=num(d.n);UI.agWeek=n?addDays(UI.agWeek,n):maandagVan(today());UI.agDag=null;UI.agScroll=null;render()},
+  agDag:d=>{UI.agDag=d.d;render()},
+  agPlan:()=>agPlan(),
+  agWis:()=>{UI.agSel=new Set();render()},
+  agBezoek:d=>{const a=find('afspraken',d.id);if(!a)return;closeModal();bezoekForm(null,{klant:a.klantId,datum:a.datum,afspraak:a.id})},
   newBezoek:d=>bezoekForm(null,{klant:d.klant}),
   editBezoek:d=>bezoekForm(find('bezoeken',d.id)),
   newBestelling:d=>bestellingForm(null,{klant:d.klant}),
@@ -1388,6 +1586,8 @@ function render(){
   $('#view').innerHTML=(VIEW&&!isOwnView()?'<div class="banner">Je bekijkt '+(VIEW==='alle'?'de gegevens van <strong>alle vertegenwoordigers</strong>':'het overzicht van <strong>'+esc(naamVan(VIEW))+'</strong>')+'. Alleen bekijken: wijzigen kan alleen in je eigen overzicht.</div>':'')+(MODE==='fout'?'<div class="banner">De gegevens konden niet geladen worden. Controleer je verbinding en open de module opnieuw.</div>':'')+(V[UI.tab]||V.dashboard)();
   if(aid){const el=document.getElementById(aid);if(el){el.focus();try{if(sel)el.setSelectionRange(sel[0],sel[1])}catch(e){}}}
   const rij2=document.querySelector('#view .chiprow');if(rij2&&rijX)rij2.scrollLeft=rijX;
+  const ag=document.getElementById('agWrap');
+  if(ag){ag.scrollTop=UI.agScroll!=null?UI.agScroll:(480-AG_VAN)*AG_PX-8;ag.addEventListener('scroll',()=>{UI.agScroll=ag.scrollTop},{passive:true})}
 }
 function setTab(t){UI.tab=TABS.some(x=>x[0]===t)?t:'dashboard';if(location.hash.slice(1)!==UI.tab){try{history.replaceState(null,'','#'+UI.tab)}catch(e){location.hash=UI.tab}}render();window.scrollTo(0,0)}
 let toastT=null;
@@ -1409,6 +1609,7 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('#modal').hidden
 document.addEventListener('input',e=>{
   const t=e.target;
   if(t.dataset.filter==='q'){UI.f.q=t.value;render();return}
+  if(t.dataset.agzoek){UI.agZoek=t.value;render();return}
   if(t.dataset.calc){UI.calc[t.dataset.calc]=t.value;render();return}
   if(t.dataset.mix){UI.calc.mix[t.dataset.mix]=t.value;render();return}
   if(t.closest('#lines'))updateHL();
@@ -1416,6 +1617,7 @@ document.addEventListener('input',e=>{
 });
 document.addEventListener('change',async e=>{
   const t=e.target;
+  if(t.dataset.agk){if(!UI.agSel)UI.agSel=new Set();if(t.checked)UI.agSel.add(t.dataset.agk);else UI.agSel.delete(t.dataset.agk);render();return}
   if(t.dataset.filter&&t.dataset.filter!=='q'){UI.f[t.dataset.filter]=t.value;if(t.dataset.filter==='regio'&&UI.f.gemeente&&regioVan(UI.f.gemeente)&&regioVan(UI.f.gemeente)!==t.value)UI.f.gemeente='';render();return}
   if(t.dataset.period){UI[t.dataset.period]=t.value;render();return}
   if(t.dataset.groep){UI.groep=t.value;render();return}
