@@ -262,12 +262,15 @@ tfoot td{font-weight:600;background:var(--sunk)}
 .ag-blk .ag-tijd,.ag-blk .ag-not{display:block;color:var(--muted);font-size:11.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .ag-blk.gedaan{background:var(--good-soft);border-left-color:var(--good)}
 .ag-blk.drag{box-shadow:0 0 0 2px var(--accent),0 8px 20px rgba(0,0,0,.18);z-index:5;cursor:grabbing;opacity:.95}
-.ag-grip{position:absolute;left:0;right:0;bottom:0;height:12px;cursor:ns-resize;touch-action:none}
+.ag-grip{position:absolute;left:0;right:0;bottom:0;height:14px;cursor:ns-resize;touch-action:pan-y}
 .ag-grip::after{content:"";position:absolute;left:50%;bottom:3px;width:22px;height:3px;margin-left:-11px;border-radius:2px;background:var(--accent);opacity:.6}
-.ag-plan .fsearch{width:100%}
+.ag-plan .fsearch{width:100%;flex:none}
 .ag-lijst{display:flex;flex-direction:column;max-height:320px;overflow-y:auto;border:1px solid var(--line);border-radius:var(--r)}
 .ag-k{display:flex;gap:10px;align-items:flex-start;padding:9px 12px;font-size:14px;cursor:pointer}
 .ag-k+.ag-k{border-top:1px solid var(--line)}
+.ag-kinfo{display:flex;flex-direction:column;gap:2px;min-width:0}
+.ag-krij{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.ag-krij .pot{width:20px;height:20px;font-size:11px}
 .ag-k input{width:18px;height:18px;margin-top:2px;accent-color:var(--accent);flex:none}
 .ag-knop{display:flex;gap:8px;flex-wrap:wrap;position:sticky;bottom:0;background:var(--surface);padding-top:6px}
 .btn[disabled]{opacity:.5;cursor:default}
@@ -1030,7 +1033,7 @@ V.agenda=function(){
   h+=`<section class="panel ag-plan"><div class="panel-h"><h3>Klanten inplannen</h3><p>Vink klanten aan en zet ze op ${esc(dagNaam)}${breed?' (tik bovenaan op een dag om te wisselen)':''}.</p></div>
     <input type="search" id="ag_zoek" class="fsearch" data-agzoek="1" value="${esc(UI.agZoek||'')}" placeholder="Zoek klant of gemeente…" aria-label="Zoek klant om in te plannen">
     ${!q?'<p class="note">Zonder zoekterm zie je je opvolging tot en met deze week.</p>':''}
-    <div class="ag-lijst">${lijst.length?lijst.map(k=>`<label class="ag-k"><input type="checkbox" id="agk_${k.id}" data-agk="${k.id}"${UI.agSel.has(k.id)?' checked':''}><span><strong>${esc(k.zaak)}</strong><span class="sub">${esc([k.gemeente,k.volgendeActie?(k.volgendeActieDatum?fdate(k.volgendeActieDatum)+': ':'')+k.volgendeActie:'',gepland.has(k.id)?'al ingepland deze week':''].filter(Boolean).join(' · '))}</span></span></label>`).join(''):'<p class="note">Geen klanten gevonden.</p>'}</div>
+    <div class="ag-lijst">${lijst.length?lijst.map(k=>`<label class="ag-k"><input type="checkbox" id="agk_${k.id}" data-agk="${k.id}"${UI.agSel.has(k.id)?' checked':''}><span class="ag-kinfo"><span class="ag-krij"><strong>${esc(k.zaak)}</strong>${chip(k.status)}${k.potentieel&&k.potentieel!=='?'?pot(k.potentieel):''}${k._gedeeld?'<span class="chip st-prospect">Gedeeld</span>':''}${gepland.has(k.id)?'<span class="chip st-proef">Al ingepland</span>':''}</span><span class="sub">${esc([k.type,k.gemeente].filter(Boolean).join(' · '))}</span><span class="sub">${(()=>{const lb=laatsteBezoek(k);return esc(lb?'Laatste bezoek '+fdate(lb):'Nog niet bezocht')})()}${k.volgendeActie||k.volgendeActieDatum?` · <span class="${datumKlasse(k.volgendeActieDatum)}">${esc((k.volgendeActieDatum?fdate(k.volgendeActieDatum)+': ':'')+(k.volgendeActie||''))}</span>`:''}</span></span></label>`).join(''):'<p class="note">Geen klanten gevonden.</p>'}</div>
     <div class="ag-knop"><button class="btn primary" data-act="agPlan"${UI.agSel.size?'':' disabled'}>${UI.agSel.size?'Zet '+UI.agSel.size+' klant'+(UI.agSel.size>1?'en':'')+' op '+esc(DAGEN_L[dagen.indexOf(UI.agDag)]):'Vink eerst klanten aan'}</button>${UI.agSel.size?'<button class="btn ghost" data-act="agWis">Selectie wissen</button>':''}</div>
   </section>`;
   return h;
@@ -1075,7 +1078,7 @@ document.addEventListener('pointerdown',e=>{
   AGD={a:a,blk:blk,resize:resize,x0:e.clientX,y0:e.clientY,start:num(a.start),duur:num(a.duur||60),datum:a.datum,actief:false,bewogen:false,muis:e.pointerType==='mouse',t0:Date.now()};
   AGD.nStart=AGD.start;AGD.nDuur=AGD.duur;AGD.nDatum=AGD.datum;
   if(!isOwnView())return;
-  if(resize||AGD.muis){AGD.actief=true;if(resize)e.preventDefault()}
+  if(AGD.muis){AGD.actief=true;if(resize)e.preventDefault()}
   else AGD.timer=setTimeout(()=>{if(AGD&&!AGD.bewogen){AGD.actief=true;blk.classList.add('drag');try{navigator.vibrate&&navigator.vibrate(15)}catch(x){}}},350);
 });
 document.addEventListener('pointermove',e=>{
@@ -1420,7 +1423,7 @@ function bezoekForm(b,o){
   b=b||{};o=o||{};
   const k=S.klanten.find(x=>x.id===(b.klantId||o.klant));
   const body=`<div class="form-grid">
-    <label class="fld"><span>Klant *</span><select id="m_klantId" name="klantId" required>${klantOptions(b.klantId||o.klant||'')}</select></label>
+    ${o.afspraak&&k?`<div class="fld"><span>Klant</span><strong style="font-size:15px;color:var(--ink);padding:7px 0">${esc(k.zaak)}${k.gemeente?' · '+esc(k.gemeente):''}</strong><input type="hidden" name="klantId" value="${esc(k.id)}"></div>`:`<label class="fld"><span>Klant *</span><select id="m_klantId" name="klantId" required>${klantOptions(b.klantId||o.klant||'')}</select></label>`}
     ${fld('Datum','datum',b.datum||(o&&o.datum)||today(),'date')}
     ${sel('Soort contact','soort',b.soort||'Bezoek',SOORT_BEZOEK)}
     ${area('Verslag','verslag',b.verslag||o.verslag||'')}
