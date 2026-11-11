@@ -94,6 +94,22 @@
   let onLineUnreliable = false;
   let lastProbeFail = 0;
   const netOff = () => navigator.onLine === false && !onLineUnreliable;
+
+  /* Diagnose: de laatste gebeurtenissen rond de verbinding, zichtbaar
+     als je op het offline-balkje tikt. */
+  const OFFLINE_VERSIE = "diagnose-1";
+  const diag = [];
+  let supabaseVerzoeken = 0;
+  function logDiag(wat, detail) {
+    const d = new Date();
+    diag.push({
+      t: String(d.getHours()).padStart(2, "0") + ":" + String(d.getMinutes()).padStart(2, "0") + ":" + String(d.getSeconds()).padStart(2, "0"),
+      wat,
+      detail: String(detail == null ? "" : detail).slice(0, 180)
+    });
+    if (diag.length > 25) diag.shift();
+  }
+  logDiag("start", "navigator.onLine=" + navigator.onLine);
   const supabaseClients = [];
   const FAKE_AUTH_FLAG = "achel-offline-session-extended";
   let fakeAuthUsed = false;
@@ -377,6 +393,10 @@
      1. LEZEN - netwerk eerst, anders de bewaarde versie
   ============================================================ */
 
+  function url0(u) {
+    try { return new URL(u).pathname; } catch (e) { return String(u).slice(0, 60); }
+  }
+
   function cacheKeyFor(userId, method, url, body) {
     return `${userId}|${method}|${url}|${body || ""}`;
   }
@@ -450,6 +470,7 @@
       await probeConnection(true);
     }
     if (netOff()) {
+      logDiag("bewaarde gegevens", "iPhone meldt geen internet · " + url0(request.url));
       const fallback = offlineFallback();
       if (fallback) {
         return fallback;
@@ -517,6 +538,7 @@
       if (!isNetworkError(error)) {
         throw error;
       }
+      logDiag("leesfout", url0(request.url) + " · " + (error && (error.name + ": " + error.message)));
       if (error.message !== "achel-timeout") {
         setConnectionState(false);
       }
@@ -551,6 +573,7 @@
       } catch (parseError) {
         refreshToken = null;
       }
+      logDiag("login vernieuwen mislukt", error && (error.name + ": " + error.message));
       const session = storedSession();
       if (!session || !session.user || !session.access_token || !refreshToken) {
         throw error;
@@ -1147,6 +1170,8 @@
     if (!info) {
       return originalFetch(input, init);
     }
+    supabaseVerzoeken++;
+    if (supabaseVerzoeken <= 3) logDiag("verzoek", request.method + " " + url.pathname);
     const apikey = request.headers.get("apikey");
     if (apikey) {
       lastSupabase = { origin: url.origin, apikey };
@@ -1207,8 +1232,12 @@
      gegevens werden opgevraagd. */
   let probePromise = null;
   async function probeConnection(force) {
-    if ((!force && isOnline && !netOff()) || !lastSupabase) {
+    if (!lastSupabase) {
+      logDiag("verbindingstest", "niet mogelijk: nog geen enkel verzoek naar de server gezien");
       return !netOff();
+    }
+    if (!force && isOnline && !netOff()) {
+      return true;
     }
     if (probePromise) {
       return probePromise;
@@ -1226,9 +1255,11 @@
         if (navigator.onLine === false) {
           onLineUnreliable = true;
         }
+        logDiag("verbindingstest", "gelukt");
         setConnectionState(true);
         return true;
       } catch (error) {
+        logDiag("verbindingstest", "mislukt · " + (error && (error.name + ": " + error.message)));
         lastProbeFail = Date.now();
         return false;
       } finally {
@@ -1255,6 +1286,7 @@
     if (online === isOnline) {
       return;
     }
+    logDiag(online ? "online" : "offline", "");
     isOnline = online;
     if (online) {
       usedOfflineData = false;
@@ -1401,6 +1433,26 @@
     }
   }
 
+  function diagTekst() {
+    let sessie = "geen";
+    try {
+      const s = storedSession();
+      if (s && s.expires_at) sessie = "geldig tot " + new Date(s.expires_at * 1000).toLocaleTimeString("nl-BE");
+    } catch (e) { /* niets */ }
+    return [
+      "Diagnose (" + OFFLINE_VERSIE + ")",
+      "iPhone meldt internet: " + (navigator.onLine ? "ja" : "NEE") + (onLineUnreliable ? " (genegeerd)" : ""),
+      "App denkt online: " + (isOnline ? "ja" : "nee"),
+      "Supabase-bibliotheek: " + (window.supabase ? "geladen" : "NIET geladen"),
+      "Verbindingen met Supabase: " + supabaseClients.length,
+      "Verzoeken naar server gezien: " + supabaseVerzoeken,
+      "Noodlogin actief: " + (fakeAuthUsed ? "ja" : "nee"),
+      "Login: " + sessie,
+      "",
+      "Laatste gebeurtenissen:"
+    ].concat(diag.slice().reverse().map((d) => d.t + "  " + d.wat + (d.detail ? " · " + d.detail : ""))).join("\n");
+  }
+
   async function openSheet() {
     const items = await queueStore.all().catch(() => []);
     const offline = !isOnline || netOff();
@@ -1437,8 +1489,10 @@
         ${list}
         <div class="actions">
           ${items.length && !offline ? '<button class="primary" data-sync="1">Nu synchroniseren</button>' : ""}
+          <button data-test="1">Verbinding testen</button>
           <button data-close="1">Sluiten</button>
         </div>
+        <div class="achel-diag" style="margin-top:16px;padding-top:12px;border-top:1px solid rgba(201,155,67,.25);font:12px/1.45 ui-monospace,Menlo,monospace;color:rgba(246,240,227,.75);white-space:pre-wrap;word-break:break-word">${escapeHtml(diagTekst())}</div>
       </div>`;
 
     background.addEventListener("click", async (event) => {
@@ -1446,6 +1500,12 @@
       if (!target) return;
       if (target.dataset.close) {
         background.remove();
+      } else if (target.dataset.test) {
+        target.textContent = "Bezig…";
+        await probeConnection(true);
+        const box = background.querySelector(".achel-diag");
+        if (box) box.textContent = diagTekst();
+        target.textContent = "Verbinding testen";
       } else if (target.dataset.sync) {
         background.remove();
         syncNow();
