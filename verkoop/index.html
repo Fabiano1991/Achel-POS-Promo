@@ -243,6 +243,11 @@ tfoot td{font-weight:600;background:var(--sunk)}
 .dlg-body{padding:16px 18px;display:flex;flex-direction:column;gap:14px}
 .dlg footer{display:flex;gap:8px;padding:12px 18px;border-top:1px solid var(--line);flex-wrap:wrap;align-items:center}
 .dlg footer .sp{flex:1}
+.fiche-kop{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:-4px}
+.fiche-blok h4{margin:0 0 6px;font-size:12.5px;font-weight:500;color:var(--muted);text-transform:none}
+.fiche-blok .kv{grid-template-columns:minmax(110px,auto) 1fr;font-size:14.5px;gap:5px 14px}
+.fiche-blok a{color:var(--accent-strong)}
+.fiche-notitie{margin:0;white-space:pre-wrap;font-size:14px}
 .hist{background:var(--sunk);border-radius:8px;padding:10px 12px;font-size:13.5px;display:flex;flex-direction:column;gap:6px}
 .hist h4{margin:0;font-size:13px;color:var(--muted);font-weight:500}
 .hist ul{margin:0;padding-left:18px}
@@ -276,7 +281,7 @@ tfoot td{font-weight:600;background:var(--sunk)}
 .home:hover{color:var(--deep-ink)}
 .viewsel{background:transparent;color:var(--deep-ink);border:1px solid var(--deep-muted);border-radius:6px;padding:5px 8px;font-size:13px;max-width:220px}
 .viewsel option{color:#1a211f;background:#fff}
-body.readonly [data-act^="new"],body.readonly [data-act="move"],body.readonly [data-act="followDone"],body.readonly [data-act="followLater"],body.readonly [data-act^="szBier"],body.readonly [data-act^="szKlant"],body.readonly [data-act="szAlleKlanten"],body.readonly #szb_new,body.readonly #szk_new,body.readonly [data-act="delVoorbeelden"],body.readonly [data-act="deleteRec"],body.readonly [data-act="addEenheid"],body.readonly #instForm button[type=submit],body.readonly #impPanel,body.readonly #dlgForm button[type=submit]{display:none}
+body.readonly [data-act^="new"],body.readonly [data-act="move"],body.readonly [data-act="followDone"],body.readonly [data-act="followLater"],body.readonly [data-act="bewerkKlant"],body.readonly [data-act^="szBier"],body.readonly [data-act^="szKlant"],body.readonly [data-act="szAlleKlanten"],body.readonly #szb_new,body.readonly #szk_new,body.readonly [data-act="delVoorbeelden"],body.readonly [data-act="deleteRec"],body.readonly [data-act="addEenheid"],body.readonly #instForm button[type=submit],body.readonly #impPanel,body.readonly #dlgForm button[type=submit]{display:none}
 .szchip{display:inline-flex;align-items:center;gap:2px;background:var(--accent-soft);color:var(--accent-strong);border-radius:10px;padding:2px 9px;font-size:12.5px;font-weight:500;margin:2px 4px 2px 0}
 .szx{border:0;background:none;color:inherit;cursor:pointer;font-size:15px;line-height:1;padding:0 0 0 4px}
 .szcard{cursor:pointer}.szcard:hover{border-color:var(--muted)}
@@ -1128,30 +1133,52 @@ function exportData(){const o={instellingen:inst()};COLS.forEach(c=>o[c]=S[c]);r
 function openModal(title,html,onSubmit,o){
   o=o||{};
   const m=$('#modal');
-  m.innerHTML=`<div class="dlg" role="dialog" aria-modal="true" aria-labelledby="dlgT"><form id="dlgForm" novalidate><header><h2 id="dlgT">${esc(title)}</h2><button type="button" class="icon" data-act="closeModal" aria-label="Sluiten">×</button></header><div class="dlg-body">${html}</div><footer>${o.extra||''}<span class="sp"></span><button type="button" class="btn ghost" data-act="closeModal">Annuleren</button><button class="btn primary" type="submit">${o.submit||'Opslaan'}</button></footer></form></div>`;
+  m.innerHTML=`<div class="dlg" role="dialog" aria-modal="true" aria-labelledby="dlgT"><form id="dlgForm" novalidate><header><h2 id="dlgT">${esc(title)}</h2><button type="button" class="icon" data-act="closeModal" aria-label="Sluiten">×</button></header><div class="dlg-body">${html}</div><footer>${o.extra||''}<span class="sp"></span>${o.alleenLezen?'<button type="button" class="btn ghost" data-act="closeModal">Sluiten</button>':`<button type="button" class="btn ghost" ${o.terug||'data-act="closeModal"'}>Annuleren</button><button class="btn primary" type="submit">${o.submit||'Opslaan'}</button>`}</footer></form></div>`;
   m.hidden=false;MODAL.onSubmit=onSubmit;
+  if(o.alleenLezen){const d=m.querySelector('.dlg');if(d){d.setAttribute('tabindex','-1');d.focus()}return}
   const f=m.querySelector('input:not([type=hidden]),select,textarea');if(f&&!o.noFocus)f.focus();
 }
 function closeModal(){const m=$('#modal');m.hidden=true;m.innerHTML='';MODAL.onSubmit=null}
 const formObj=form=>{const o={};new FormData(form).forEach((v,k)=>o[k]=typeof v==='string'?v.trim():v);return o};
 const delBtn=(col,id)=>id?`<button type="button" class="btn danger" data-act="deleteRec" data-col="${col}" data-id="${id}">Verwijderen</button>`:'';
 
-function klantForm(k){
-  k=k||{};
-  const lb=k.id?laatsteBezoek(k):'';
-  let hist='';
-  if(k.id){
-    const bz=S.bezoeken.filter(b=>b.klantId===k.id).sort((a,b)=>String(b.datum).localeCompare(String(a.datum))).slice(0,5);
-    const bs=S.bestellingen.filter(o=>o.klantId===k.id).sort((a,b)=>String(b.datum).localeCompare(String(a.datum)));
-    const jaar=String(now.getFullYear());
-    hist=`<div class="hist"><div class="inline"><strong>${fmt(hlKlantJaar(k,jaar))} HL in ${jaar}</strong><span class="sub" style="display:inline">· ${bs.length} bestellingen · ${S.bezoeken.filter(b=>b.klantId===k.id).length} contactmomenten</span><span style="flex:1"></span><button type="button" class="btn small" data-act="newBezoek" data-klant="${k.id}">+ Bezoek</button><button type="button" class="btn small" data-act="newBestelling" data-klant="${k.id}">+ Bestelling</button></div>
+function klantHist(k,knoppen){
+  const bz=S.bezoeken.filter(b=>b.klantId===k.id).sort((a,b)=>String(b.datum).localeCompare(String(a.datum))).slice(0,5);
+  const bs=S.bestellingen.filter(o=>o.klantId===k.id).sort((a,b)=>String(b.datum).localeCompare(String(a.datum)));
+  const jaar=String(now.getFullYear());
+  let h=`<div class="hist"><div class="inline"><strong>${fmt(hlKlantJaar(k,jaar))} HL in ${jaar}</strong><span class="sub" style="display:inline">· ${bs.length} bestellingen · ${S.bezoeken.filter(b=>b.klantId===k.id).length} contactmomenten</span>${knoppen?`<span style="flex:1"></span><button type="button" class="btn small" data-act="newBezoek" data-klant="${k.id}">+ Bezoek</button><button type="button" class="btn small" data-act="newBestelling" data-klant="${k.id}">+ Bestelling</button>`:''}</div>
       ${bz.length?`<h4>Laatste contacten</h4><ul>${bz.map(b=>`<li>${fdate(b.datum)} · ${esc(b.soort||'')}: ${esc(b.verslag||'')}</li>`).join('')}</ul>`:''}
       ${bs.length?`<h4>Laatste bestellingen</h4><ul>${bs.slice(0,4).map(o=>`<li>${fdate(o.datum)} · ${fmt(num(o.hl),2)} HL</li>`).join('')}</ul>`:''}</div>`;
-  }
   if(k._gedeeld){
-    hist=`<div class="hist" style="border:1px solid var(--info)"><div><span class="chip st-prospect">Gedeeld met het team</span></div><p class="note">Contact, adres, merken, status en notities zijn voor alle vertegenwoordigers hetzelfde.${k.gewijzigdDoor?' Laatst aangepast door '+esc(k.gewijzigdDoor)+(k.gewijzigd?' op '+fdate(String(k.gewijzigd).slice(0,10)):'')+'.':''} Laatste bezoek, volgende actie en verwachte HL zijn van jou alleen.</p></div>`+hist;
-    if(PROFIEL&&KIJK_ROLLEN.includes(PROFIEL.rol))hist+=`<div class="hist" id="teamBox"><h4>Team (alleen zichtbaar voor directeur en admin)</h4><span class="note">Laden…</span></div>`;
+    h=`<div class="hist" style="border:1px solid var(--info)"><div><span class="chip st-prospect">Gedeeld met het team</span></div><p class="note">Contact, adres, merken, status en notities zijn voor alle vertegenwoordigers hetzelfde.${k.gewijzigdDoor?' Laatst aangepast door '+esc(k.gewijzigdDoor)+(k.gewijzigd?' op '+fdate(String(k.gewijzigd).slice(0,10)):'')+'.':''} Laatste bezoek, volgende actie en verwachte HL zijn van jou alleen.</p></div>`+h;
+    if(PROFIEL&&KIJK_ROLLEN.includes(PROFIEL.rol))h+=`<div class="hist" id="teamBox"><h4>Team (alleen zichtbaar voor directeur en admin)</h4><span class="note">Laden…</span></div>`;
   }
+  return h;
+}
+/* Klant openen: eerst alleen lezen, aanpassen via 'Bewerken'. */
+function klantForm(k){
+  k=k||{};
+  if(!k.id)return klantBewerk(k);
+  const kv=rijen=>{const r=rijen.filter(x=>x[1]!==''&&x[1]!=null);return r.length?'<dl class="kv">'+r.map(([l,v,isHtml])=>`<dt>${l}</dt><dd>${isHtml?v:esc(v)}</dd>`).join('')+'</dl>':''};
+  const potL=(POT.find(p=>p[0]===k.potentieel)||[])[1]||'';
+  const lb=laatsteBezoek(k);
+  const tel=k.telefoon?`<a href="tel:${esc(String(k.telefoon).replace(/[^\d+]/g,''))}">${esc(k.telefoon)}</a>`:'';
+  const mail=k.email?`<a href="mailto:${esc(k.email)}">${esc(k.email)}</a>`:'';
+  const blok=(t,inhoud)=>inhoud?`<section class="fiche-blok"><h4>${t}</h4>${inhoud}</section>`:'';
+  const body=`<div class="fiche-kop">${chip(k.status)}<span class="sub" style="display:inline">${esc([k.type,k.gemeente,klantRegio(k)].filter(Boolean).join(' · '))}</span></div>
+    <div class="inline"><button type="button" class="btn small" data-act="newBezoek" data-klant="${k.id}">+ Bezoek</button><button type="button" class="btn small" data-act="newBestelling" data-klant="${k.id}">+ Bestelling</button><span style="flex:1"></span><button type="button" class="btn small primary" data-act="bewerkKlant" data-id="${k.id}">Bewerken</button></div>
+    ${blok('Contact',kv([['Contactpersoon',k.contact||''],['Telefoon',tel,1],['E-mail',mail,1],['Adres',k.plaats||'']]))}
+    ${blok('Verkoop',kv([['Potentieel',k.potentieel&&k.potentieel!=='?'?potL:''],['Huidige merken',k.merken||''],['Contract',[k.contract&&k.contract!=='Onbekend'?k.contract:'',k.verdeler||''].filter(Boolean).join(' · ')],['Verwacht HL',k.verwachtHL!==''&&k.verwachtHL!=null?fmt(num(k.verwachtHL))+' per jaar':'']]))}
+    ${blok('Opvolging',kv([['Laatste bezoek',lb?fdate(lb):''],['Volgende actie',k.volgendeActie||k.volgendeActieDatum?`<span class="${datumKlasse(k.volgendeActieDatum)}">${k.volgendeActieDatum?fdate(k.volgendeActieDatum)+': ':''}</span>${esc(k.volgendeActie||'')}`:'',1]]))}
+    ${k.notities?blok('Notities',`<p class="fiche-notitie">${esc(k.notities)}</p>`):''}
+    ${klantHist(k,false)}`;
+  openModal(k.zaak||'Klant',body,null,{alleenLezen:true});
+  if(k._gedeeld&&$('#teamBox'))teamVoor(k);
+}
+function klantBewerk(k){
+  k=k||{};
+  const hist='';
+  const lb=k.id?laatsteBezoek(k):'';
   const allG=alleGemeenten('');
   const body=`${hist}<div class="form-grid">
     ${fld('Zaak / naam *','zaak',k.zaak,'text','required')}
@@ -1177,9 +1204,9 @@ function klantForm(k){
     if(!o.zaak){toast('Vul minstens de naam van de zaak in.');throw new Error('leeg')}
     const rec=Object.assign({},k,o);
     if(!o.regio)delete rec.regio;
-    await put('klanten',rec);toast('Klant opgeslagen');
-  },{extra:(!k._gedeeld||isAdmin())?delBtn('klanten',k.id):''});
-  if(k._gedeeld&&$('#teamBox'))teamVoor(k);
+    const id=await put('klanten',rec);toast('Klant opgeslagen');
+    return ()=>{const nk=find('klanten',id);if(nk)klantForm(nk)};
+  },{extra:k.id&&(!k._gedeeld||isAdmin())?delBtn('klanten',k.id):'',terug:k.id?`data-act="editKlant" data-id="${k.id}"`:''});
 }
 async function teamVoor(k){
   try{
@@ -1291,6 +1318,7 @@ const ACT={
   closeModal:closeModal,
   newKlant:d=>klantForm({status:d.status||'Prospect',type:d.type||'Horeca',gemeente:UI.f.gemeente||'',regio:''}),
   editKlant:d=>klantForm(find('klanten',d.id)),
+  bewerkKlant:d=>klantBewerk(find('klanten',d.id)),
   newBezoek:d=>bezoekForm(null,{klant:d.klant}),
   editBezoek:d=>bezoekForm(find('bezoeken',d.id)),
   newBestelling:d=>bestellingForm(null,{klant:d.klant}),
@@ -1404,7 +1432,7 @@ document.addEventListener('submit',async e=>{
   if(f.id==='dlgForm'){
     e.preventDefault();if(!MODAL.onSubmit)return;
     const btn=f.querySelector('button[type=submit]');btn.disabled=true;
-    try{await MODAL.onSubmit(formObj(f),f);closeModal()}catch(err){btn.disabled=false}
+    try{const na=await MODAL.onSubmit(formObj(f),f);closeModal();if(typeof na==='function')na()}catch(err){btn.disabled=false}
     return;
   }
   if(f.id==='instForm'){
