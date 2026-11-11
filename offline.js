@@ -279,9 +279,24 @@
     put: (key, value) => idb("meta", "readwrite", (s) => s.put(value, key))
   };
 
+  /* Grote overzichten van de Verkoop-module (alle vertegenwoordigers samen,
+     teamcijfers) worden niet offline bewaard: ze zijn groot, alleen voor
+     admin/directeur, en maakten het opstarten van de app traag. */
+  function nietBewaren(url) {
+    const u = String(url || "");
+    return /\/rest\/v1\/verkoop_records\b/.test(u) && !/[?&]owner=eq\./.test(u);
+  }
+
   async function pruneCache() {
     try {
-      const entries = await cacheStore.all();
+      let entries = await cacheStore.all();
+      const groot = entries.filter((e) => e.value && e.value.req && nietBewaren(e.value.req.url));
+      for (const entry of groot) {
+        await cacheStore.remove(entry.key);
+      }
+      if (groot.length) {
+        entries = entries.filter((e) => !groot.includes(e));
+      }
       if (entries.length <= MAX_CACHE_ENTRIES) {
         return;
       }
@@ -443,7 +458,7 @@
           response = retried;
         }
       }
-      if (response.ok) {
+      if (response.ok && !nietBewaren(request.url)) {
         try {
           const text = request.method === "HEAD" ? null : await response.clone().text();
           const keep = {};
@@ -1047,6 +1062,7 @@
         (e) =>
           String(e.key).startsWith(`${userId}|`) &&
           e.value.req &&
+          !nietBewaren(e.value.req.url) &&
           (e.value.savedAt || 0) > monthAgo &&
           Date.now() - (e.value.savedAt || 0) > 2 * 60 * 1000
       );
