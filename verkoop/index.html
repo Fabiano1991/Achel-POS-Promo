@@ -95,8 +95,11 @@ main{max-width:1240px;margin:0 auto;padding:18px 20px 60px;display:flex;flex-dir
 .fchip.on{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
 .fchip.wis{border-style:dashed;color:var(--muted)}
 .fsep{flex:none;width:1px;background:var(--line);margin:4px 2px}
-.acc{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
-.acc-h{display:flex;width:100%;align-items:center;gap:10px;border:0;background:none;padding:11px 14px;font-size:14.5px;cursor:pointer;text-align:left;color:var(--ink)}
+.acc{background:var(--surface);border:1px solid var(--line);border-radius:var(--r)}
+.acc>.acc-h:first-child{border-radius:var(--r) var(--r) 0 0}
+.acc-h[aria-expanded="true"]{position:sticky;top:0;z-index:3;background:var(--surface);box-shadow:0 1px 0 var(--line)}
+.acc-g[aria-expanded="true"]{position:sticky;top:44px;z-index:2;background:var(--sunk)}
+.acc-h{display:flex;width:100%;min-height:44px;align-items:center;gap:10px;border:0;background:none;padding:11px 14px;font-size:14.5px;cursor:pointer;text-align:left;color:var(--ink)}
 .acc-h+.acc-h,.acc-b+.acc-h{border-top:1px solid var(--line)}
 .acc-h .pijl{width:12px;color:var(--muted);flex:none}
 .acc-h b{font-weight:600;flex:1;min-width:0}
@@ -686,6 +689,12 @@ V.dashboard=function(){
   return h+'</section>';
 };
 
+function klantRij(k,hlTekst){
+  const jaar=String(now.getFullYear());
+  const lb=laatsteBezoek(k),hl=hlTekst!=null?hlTekst:(hlKlantJaar(k,jaar)?fmt(hlKlantJaar(k,jaar))+' HL':'');
+  const info=[k.type,VIEW==='alle'&&!k._gedeeld?naamVan(k._owner):'',k.volgendeActie?(k.volgendeActieDatum?fdate(k.volgendeActieDatum)+': ':'')+k.volgendeActie:(lb?'laatst bezocht '+fdate(lb):'')].filter(Boolean).join(' · ');
+  return `<button class="acc-r acc-r2" data-act="editKlant" data-id="${k.id}"><span class="nm"><strong>${esc(k.zaak||'(naamloos)')}</strong>${ex(k)}${k._gedeeld?' <span class="chip st-prospect">Gedeeld</span>':''}<span class="sub${k.volgendeActieDatum?' '+datumKlasse(k.volgendeActieDatum):''}">${esc(info)}</span></span><span class="tel">${chip(k.status)}${hl?'<span class="sub">'+hl+'</span>':''}</span></button>`;
+}
 function regioAccordeon(){
   const km=klantMap(),perVerteg=VIEW==='alle'&&UI.groep==='verteg';
   if(UI.groep!=='verteg')UI.groep='regio';
@@ -693,12 +702,13 @@ function regioAccordeon(){
   const get=k=>{
     const tk=perVerteg?(k._gedeeld?'gedeeld':(k._owner||'?')):klantRegio(k),gk=k.gemeente||'Onbekend';
     const t=top[tk]||(top[tk]={key:tk,label:perVerteg?(tk==='gedeeld'?'Gedeelde drankenhandels':naamVan(tk)):tk,zaken:0,bezoeken:0,hl:0,sub:{}});
-    const g=t.sub[gk]||(t.sub[gk]={key:gk,zaken:0,bezoeken:0,hl:0});
+    const g=t.sub[gk]||(t.sub[gk]={key:gk,zaken:0,bezoeken:0,hl:0,ks:{}});
+    if(!g.ks[k.id])g.ks[k.id]={k:k,hl:0};
     return [t,g];
   };
   S.klanten.filter(klantOk).forEach(k=>{if(!telKlant(k)||k.status==='Verloren')return;get(k).forEach(x=>x.zaken++)});
   S.bezoeken.forEach(b=>{const k=km[b.klantId];if(k&&klantOk(k)&&inPeriod(b.datum))get(k).forEach(x=>x.bezoeken++)});
-  S.bestellingen.forEach(o=>{const k=km[o.klantId];if(k&&klantOk(k)&&inPeriod(o.datum))get(k).forEach(x=>x.hl+=num(o.hl))});
+  S.bestellingen.forEach(o=>{const k=km[o.klantId];if(k&&klantOk(k)&&inPeriod(o.datum)){const [t,g]=get(k);t.hl+=num(o.hl);g.hl+=num(o.hl);g.ks[k.id].hl+=num(o.hl)}});
   const lijst=Object.values(top).filter(t=>t.zaken||t.hl).sort((a,b)=>(a.key==='Onbekend')-(b.key==='Onbekend')||b.hl-a.hl||b.zaken-a.zaken);
   const tel=x=>`${x.zaken} zaken${x.bezoeken?' · '+x.bezoeken+' bez.':''} · ${fmt(x.hl)} HL`;
   let h=`<section class="panel"><div class="panel-h"><h3>Overzicht per ${perVerteg?'vertegenwoordiger':'regio'}</h3><p>zaken, bezoeken en HL in ${esc(periodeLabel())} · tik om te openen</p><span class="sp"></span>
@@ -711,7 +721,12 @@ function regioAccordeon(){
     h+=`<button class="acc-h" data-act="acc" data-set="openD" data-key="${esc(t.key)}" aria-expanded="${!!isOpen}"><span class="pijl">${isOpen?'▾':'▸'}</span><b>${esc(t.label)}</b><span class="tel">${tel(t)}</span></button>`;
     if(isOpen){
       h+='<div class="acc-b">'+Object.values(t.sub).filter(g=>g.zaken||g.hl).sort((a,b)=>b.hl-a.hl||b.zaken-a.zaken||String(a.key).localeCompare(String(b.key),'nl'))
-        .map(g=>`<button class="acc-r" data-act="drillGem" data-key="${esc(g.key)}"><span class="nm">${esc(g.key)}</span><span class="tel">${tel(g)}</span></button>`).join('')+'</div>';
+        .map(g=>{
+          const key='g:'+t.key+'|'+g.key,gOpen=open[key];
+          let r=`<button class="acc-r acc-g" data-act="acc" data-set="openD" data-key="${esc(key)}" aria-expanded="${!!gOpen}"><span class="pijl">${gOpen?'▾':'▸'}</span><span class="nm"><strong>${esc(g.key)}</strong></span><span class="tel">${tel(g)}</span></button>`;
+          if(gOpen)r+=Object.values(g.ks).filter(x=>(telKlant(x.k)&&x.k.status!=='Verloren')||x.hl).sort((a,b)=>b.hl-a.hl||byName(a.k,b.k)).map(x=>klantRij(x.k,x.hl?fmt(x.hl)+' HL':'')).join('');
+          return r;
+        }).join('')+'</div>';
     }
   });
   return h+'</div></section>';
@@ -748,11 +763,6 @@ V.klanten=function(){
   if(!list.length)return h+`<div class="tw"><div class="empty">${S.klanten.length?'Geen klanten voor deze filters.':'Nog geen klanten.'}<br><button class="btn primary" data-act="newKlant">+ Klant of prospect</button></div></div>`;
   const open=UI.openK||(UI.openK={});
   const zoekt=!!(UI.f.q||UI.f.gemeente)&&list.length<=60;
-  const rij=k=>{
-    const lb=laatsteBezoek(k),hl=hlKlantJaar(k,jaar);
-    const info=[k.type,VIEW==='alle'&&!k._gedeeld?naamVan(k._owner):'',k.volgendeActie?(k.volgendeActieDatum?fdate(k.volgendeActieDatum)+': ':'')+k.volgendeActie:(lb?'laatst bezocht '+fdate(lb):'')].filter(Boolean).join(' · ');
-    return `<button class="acc-r acc-r2" data-act="editKlant" data-id="${k.id}"><span class="nm"><strong>${esc(k.zaak||'(naamloos)')}</strong>${ex(k)}${k._gedeeld?' <span class="chip st-prospect">Gedeeld</span>':''}<span class="sub${k.volgendeActieDatum?' '+datumKlasse(k.volgendeActieDatum):''}">${esc(info)}</span></span><span class="tel">${chip(k.status)}${hl?'<span class="sub">'+fmt(hl)+' HL</span>':''}</span></button>`;
-  };
   const tel=ks=>{const nK=ks.filter(k=>k.status==='Klant').length;return ks.length+(nK&&nK<ks.length?' · '+nK+' klant'+(nK>1?'en':''):'')};
   const per={};
   list.forEach(k=>{const r=klantRegio(k),g=k.gemeente||'Onbekend';((per[r]=per[r]||{})[g]=per[r][g]||[]).push(k)});
@@ -767,7 +777,7 @@ V.klanten=function(){
     Object.keys(gem).sort((a,b)=>(a==='Onbekend')-(b==='Onbekend')||a.localeCompare(b,'nl')).forEach(g=>{
       const ks=gem[g],key='g:'+r+'|'+g,gOpen=zoekt||open[key];
       h+=`<button class="acc-r acc-g" data-act="acc" data-set="openK" data-key="${esc(key)}" aria-expanded="${!!gOpen}"><span class="pijl">${gOpen?'▾':'▸'}</span><span class="nm"><strong>${esc(g)}</strong></span><span class="tel">${tel(ks)}</span></button>`;
-      if(gOpen)h+=ks.map(rij).join('');
+      if(gOpen)h+=ks.map(k=>klantRij(k)).join('');
     });
     h+='</div>';
   });
@@ -1315,8 +1325,16 @@ const ACT={
   impGo:()=>impGo(),
   bron:d=>{UI.f.bron=d.v||'';render()},
   fchip:d=>{const k=d.k,v=d.v||'';UI.f[k]=UI.f[k]===v?'':v;if(k==='regio'&&UI.f.gemeente&&regioVan(UI.f.gemeente)&&regioVan(UI.f.gemeente)!==UI.f.regio)UI.f.gemeente='';render()},
-  acc:d=>{const st=UI[d.set]||(UI[d.set]={});st[d.key]=!st[d.key];render()},
-  drillGem:d=>{UI.f.gemeente=d.key==='Onbekend'?'':d.key;render()},
+  acc:(d,el)=>{
+    const st=UI[d.set]||(UI[d.set]={});const wasOpen=!!st[d.key];st[d.key]=!wasOpen;
+    const top=el.getBoundingClientRect().top;
+    render();
+    const nieuw=[...document.querySelectorAll('#view [data-act="acc"]')].find(x=>x.dataset.set===d.set&&x.dataset.key===d.key);
+    if(!nieuw)return;
+    const r=nieuw.getBoundingClientRect().top;
+    if(wasOpen){if(r<0||top<=1)window.scrollBy(0,r-Math.max(0,Math.min(top,80)))}
+    else if(Math.abs(r-top)>1)window.scrollBy(0,r-top);
+  },
   impReset:()=>{UI.imp=null;render()},
   copyExport:async()=>{UI.showExport=true;const txt=JSON.stringify(exportData(),null,1);try{await navigator.clipboard.writeText(txt);toast('Gekopieerd naar je klembord')}catch(e){toast('Kopiëren lukte niet. Selecteer de tekst hieronder en kopieer handmatig.')}render()},
   delVoorbeelden:async(d,el)=>{
