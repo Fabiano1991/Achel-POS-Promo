@@ -1,0 +1,1118 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#1e2c27">
+<title>Achel | Verkoop</title>
+<link rel="manifest" href="../manifest.json">
+<link rel="icon" href="../achel-icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  /* Plan: donkere kopbalk + tabbalk, daaronder één werkkolom (max 1240px); amber = bier/accent, groen-grijze neutralen */
+  --bg:#eef0ed; --surface:#ffffff; --sunk:#e5e8e4; --ink:#1a211f; --muted:#5a6561; --line:#d5dbd7;
+  --accent:#a8650f; --accent-strong:#8a520a; --accent-soft:#f5e6cc; --on-accent:#ffffff;
+  --deep:#1e2c27; --deep-ink:#f1ede4; --deep-muted:#a9b6b0;
+  --good:#2b7448; --good-soft:#d8eedf; --warn:#8f5400; --warn-soft:#fbe7c4; --bad:#b42318; --bad-soft:#fadcd8; --info:#2d4b80; --info-soft:#e0e7f3;
+  --display:"IBM Plex Sans Condensed","Arial Narrow",sans-serif;
+  --body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --r:8px;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#111614; --surface:#19201d; --sunk:#141a17; --ink:#e6ebe8; --muted:#97a39e; --line:#2b3531;
+    --accent:#e09a3c; --accent-strong:#f0b25c; --accent-soft:#3a2c17; --on-accent:#1a1206;
+    --deep:#0c110f; --deep-ink:#efe9de; --deep-muted:#8f9c96;
+    --good:#6cc18c; --good-soft:#1c3326; --warn:#e9b05a; --warn-soft:#3a2b12; --bad:#f08a7e; --bad-soft:#3d1f1b; --info:#9db7e6; --info-soft:#1d2738;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#111614; --surface:#19201d; --sunk:#141a17; --ink:#e6ebe8; --muted:#97a39e; --line:#2b3531;
+  --accent:#e09a3c; --accent-strong:#f0b25c; --accent-soft:#3a2c17; --on-accent:#1a1206;
+  --deep:#0c110f; --deep-ink:#efe9de; --deep-muted:#8f9c96;
+  --good:#6cc18c; --good-soft:#1c3326; --warn:#e9b05a; --warn-soft:#3a2b12; --bad:#f08a7e; --bad-soft:#3d1f1b; --info:#9db7e6; --info-soft:#1d2738;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font:15px/1.45 var(--body);-webkit-font-smoothing:antialiased}
+h1,h2,h3{font-family:var(--display);margin:0;text-wrap:balance;letter-spacing:.005em}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.num,td.n,th.n{font-variant-numeric:tabular-nums}
+
+/* Kop */
+.top{background:var(--deep);color:var(--deep-ink)}
+.top-in{max-width:1240px;margin:0 auto;padding:14px 20px 0;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.brand{display:flex;flex-direction:column;gap:0}
+.brand h1{font-size:22px;font-weight:700}
+.brand span{font-size:13px;color:var(--deep-muted)}
+.sync{margin-left:auto;font-size:12.5px;display:flex;align-items:center;gap:6px;color:var(--deep-muted)}
+.sync i{width:8px;height:8px;border-radius:50%;background:var(--deep-muted);display:inline-block}
+.sync.online i{background:#6cc18c}.sync.local i{background:#e9b05a}
+.tabs{max-width:1240px;margin:0 auto;padding:10px 12px 0;display:flex;gap:2px;overflow-x:auto;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab{background:none;border:0;color:var(--deep-muted);padding:9px 12px 11px;border-radius:8px 8px 0 0;cursor:pointer;white-space:nowrap;font-weight:500;font-size:14px;position:relative}
+.tab:hover{color:var(--deep-ink)}
+.tab[aria-current="page"]{background:var(--bg);color:var(--ink)}
+.tab b{display:inline-block;min-width:18px;padding:0 5px;margin-left:5px;border-radius:9px;background:var(--bad);color:#fff;font-size:11.5px;line-height:18px;text-align:center}
+
+main{max-width:1240px;margin:0 auto;padding:18px 20px 60px;display:flex;flex-direction:column;gap:18px}
+.head{display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap}
+.head h2{font-size:24px}
+.head p{margin:2px 0 0;color:var(--muted);font-size:14px;max-width:70ch}
+.head .actions{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap}
+
+.btn{border:1px solid var(--line);background:var(--surface);padding:8px 14px;border-radius:var(--r);cursor:pointer;font-weight:500;font-size:14px;white-space:nowrap}
+.btn:hover{border-color:var(--muted)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+.btn.primary:hover{background:var(--accent-strong)}
+.btn.ghost{background:transparent}
+.btn.small{padding:4px 9px;font-size:13px}
+.btn.danger{color:var(--bad);border-color:var(--bad)}
+.btn.danger[data-armed="1"]{background:var(--bad);color:#fff}
+.icon{border:0;background:none;font-size:22px;line-height:1;cursor:pointer;color:var(--muted);padding:4px 8px}
+.link{border:0;background:none;color:var(--accent-strong);cursor:pointer;padding:0;text-decoration:underline;text-underline-offset:2px;font-weight:500;text-align:left}
+
+/* Filters */
+.filters{display:flex;flex-wrap:wrap;gap:8px;align-items:flex-end;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:10px 12px}
+.filters label{display:flex;flex-direction:column;font-size:12px;color:var(--muted);gap:3px}
+.filters select,.filters input{border:1px solid var(--line);background:var(--bg);border-radius:6px;padding:6px 8px;min-width:130px;font-size:14px}
+.filters input[type=search]{min-width:180px}
+.filters .btn{align-self:flex-end}
+.active-filter{outline:2px solid var(--accent);outline-offset:-1px}
+
+/* Tegels */
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px}
+.tile{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px;display:flex;flex-direction:column;gap:6px}
+.tile h3{font-family:var(--body);font-size:13px;font-weight:500;color:var(--muted)}
+.big{font-family:var(--display);font-size:34px;font-weight:600;line-height:1.05;font-variant-numeric:tabular-nums}
+.big small{font-size:16px;color:var(--muted);font-weight:500}
+.tile p{margin:0;font-size:13px;color:var(--muted)}
+.tile p strong{color:var(--ink)}
+.bar{height:9px;background:var(--sunk);border-radius:5px;overflow:hidden;position:relative}
+.bar span{display:block;height:100%;background:var(--accent);border-radius:5px}
+.bar.done span{background:var(--good)}
+.bar .mark{position:absolute;top:-2px;bottom:-2px;width:2px;background:var(--ink);opacity:.55}
+.minirow{display:flex;gap:18px;flex-wrap:wrap}
+.minirow div{display:flex;flex-direction:column}
+.minirow .big{font-size:28px}
+
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(380px,1fr));gap:12px}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.panel-h{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.panel-h h3{font-size:17px}
+.panel-h p{margin:0;color:var(--muted);font-size:13px}
+.panel-h .sp{flex:1}
+.note{font-size:13px;color:var(--muted);margin:0}
+.note.warn{background:var(--warn-soft);color:var(--ink);border-radius:6px;padding:8px 10px}
+svg.chart{width:100%;height:auto;display:block}
+svg.chart text{fill:var(--muted);font:11px var(--body)}
+svg.chart .grid{stroke:var(--line);stroke-width:1}
+svg.chart .barv{fill:var(--accent);opacity:.55}
+svg.chart .barv.cur{opacity:1}
+svg.chart .barv.ok{fill:var(--good);opacity:.8}
+svg.chart .goal{stroke:var(--ink);stroke-dasharray:5 4;stroke-width:1.5;fill:none;opacity:.7}
+svg.chart .goal2{stroke:var(--muted);stroke-dasharray:2 4;stroke-width:1.5;fill:none}
+svg.chart .act{stroke:var(--accent);stroke-width:2.5;fill:none}
+svg.chart .area{fill:var(--accent);opacity:.12}
+svg.chart .dot{fill:var(--accent);stroke:var(--surface);stroke-width:2}
+svg.chart .val{fill:var(--ink);font-weight:600}
+svg.chart .lbl{fill:var(--ink)}
+
+/* Tabellen */
+.tw{overflow-x:auto;border:1px solid var(--line);border-radius:var(--r);background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th{font-weight:500;color:var(--muted);font-size:12.5px;text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);background:var(--sunk);white-space:nowrap}
+td{padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+tr:last-child td{border-bottom:0}
+tbody tr.click{cursor:pointer}
+tbody tr.click:hover{background:var(--sunk)}
+td.n,th.n{text-align:right}
+td.wrap{max-width:320px}
+tfoot td{font-weight:600;background:var(--sunk)}
+.sub{color:var(--muted);font-size:12.5px;display:block}
+.empty{padding:28px 16px;text-align:center;color:var(--muted)}
+.empty .btn{margin-top:10px}
+
+.chip{display:inline-block;padding:1px 8px;border-radius:10px;font-size:12px;font-weight:500;white-space:nowrap;background:var(--sunk);color:var(--ink)}
+.st-prospect{background:var(--info-soft);color:var(--info)}
+.st-gesprek{background:var(--accent-soft);color:var(--accent-strong)}
+.st-proef{background:var(--warn-soft);color:var(--warn)}
+.st-klant{background:var(--good-soft);color:var(--good)}
+.st-pauze{background:var(--sunk);color:var(--muted)}
+.st-verloren{background:var(--bad-soft);color:var(--bad)}
+.pot{display:inline-grid;place-items:center;width:22px;height:22px;border-radius:5px;font-weight:700;font-size:12px;font-family:var(--display);border:1.5px solid var(--line);color:var(--muted)}
+.pot.A{border-color:var(--accent);background:var(--accent);color:var(--on-accent)}
+.pot.B{border-color:var(--accent);color:var(--accent-strong)}
+.late{color:var(--bad);font-weight:600}
+.soon{color:var(--warn);font-weight:600}
+.ex{font-size:11px;font-weight:600;color:var(--warn);background:var(--warn-soft);border-radius:4px;padding:0 5px;margin-left:6px;vertical-align:1px}
+
+/* Pipeline */
+.board{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(230px,1fr);gap:10px;overflow-x:auto;padding-bottom:6px}
+.col{background:var(--sunk);border-radius:var(--r);padding:10px;display:flex;flex-direction:column;gap:8px;min-height:120px}
+.col h3{font-size:15px;display:flex;justify-content:space-between;align-items:center}
+.col h3 small{font-family:var(--body);font-weight:500;font-size:12px;color:var(--muted)}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:7px;padding:9px 10px;display:flex;flex-direction:column;gap:4px;font-size:13.5px}
+.card .t{display:flex;gap:8px;align-items:flex-start}
+.card .t button{flex:1}
+.card .meta{color:var(--muted);font-size:12.5px}
+.card .mv{display:flex;gap:6px;justify-content:space-between;margin-top:2px}
+
+/* Lijst opvolging */
+.flist{display:flex;flex-direction:column;gap:8px}
+.fitem{background:var(--surface);border:1px solid var(--line);border-left:4px solid var(--line);border-radius:var(--r);padding:10px 12px;display:grid;grid-template-columns:1fr auto;gap:4px 12px;align-items:center}
+.fitem.late{border-left-color:var(--bad)}
+.fitem.today{border-left-color:var(--accent)}
+.fitem .acts{display:flex;gap:6px;grid-row:span 2}
+.fitem .what{font-weight:500;color:var(--ink)}
+.fitem .who{font-size:13px;color:var(--muted)}
+.fgroup h3{font-size:16px;margin:4px 0 8px}
+
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:12px}
+.acard{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px;display:flex;flex-direction:column;gap:8px}
+.acard header{display:flex;gap:8px;align-items:flex-start}
+.acard header h3{font-size:17px;flex:1}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:3px 12px;font-size:13.5px}
+.kv dt{color:var(--muted)}
+.kv dd{margin:0}
+.inline{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.inline select,.inline input{border:1px solid var(--line);background:var(--bg);border-radius:6px;padding:5px 7px;font-size:13.5px}
+.inline input[type=number]{width:80px}
+
+/* Rekenmodule */
+.calc{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:12px}
+.calc .row{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end}
+.calc label{display:flex;flex-direction:column;font-size:12.5px;color:var(--muted);gap:3px}
+.calc input,.calc select{border:1px solid var(--line);background:var(--bg);border-radius:6px;padding:7px 9px;font-size:15px;min-width:0}
+.calc input[type=number]{width:120px}
+.res{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px}
+.res div{background:var(--sunk);border-radius:6px;padding:8px 10px}
+.res b{display:block;font-family:var(--display);font-size:22px;font-variant-numeric:tabular-nums}
+.res span{font-size:12px;color:var(--muted)}
+
+/* Instellingen */
+.form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px 14px}
+.fld{display:flex;flex-direction:column;gap:3px;font-size:12.5px;color:var(--muted);min-width:0}
+.fld input,.fld select,.fld textarea{border:1px solid var(--line);background:var(--bg);border-radius:6px;padding:7px 9px;font-size:15px;color:var(--ink);width:100%}
+.fld textarea{min-height:76px;resize:vertical}
+.fld.full{grid-column:1/-1}
+.fld small{color:var(--muted);font-size:12px}
+.sect{grid-column:1/-1;font-family:var(--display);font-size:15px;color:var(--ink);font-weight:600;margin-top:6px;padding-top:8px;border-top:1px solid var(--line)}
+
+/* Venster */
+.modal{position:fixed;inset:0;background:rgba(10,14,12,.55);display:flex;align-items:flex-start;justify-content:center;padding:4vh 12px;z-index:20;overflow-y:auto}
+.modal[hidden]{display:none}
+.dlg{background:var(--surface);border-radius:12px;width:min(820px,100%);box-shadow:0 18px 50px rgba(0,0,0,.3);border:1px solid var(--line)}
+.dlg header{display:flex;align-items:center;gap:10px;padding:14px 18px;border-bottom:1px solid var(--line)}
+.dlg header h2{font-size:20px;flex:1}
+.dlg-body{padding:16px 18px;display:flex;flex-direction:column;gap:14px}
+.dlg footer{display:flex;gap:8px;padding:12px 18px;border-top:1px solid var(--line);flex-wrap:wrap;align-items:center}
+.dlg footer .sp{flex:1}
+.hist{background:var(--sunk);border-radius:8px;padding:10px 12px;font-size:13.5px;display:flex;flex-direction:column;gap:6px}
+.hist h4{margin:0;font-size:13px;color:var(--muted);font-weight:500}
+.hist ul{margin:0;padding-left:18px}
+.lines{display:flex;flex-direction:column;gap:6px}
+.line{display:grid;grid-template-columns:1.4fr 1.2fr 90px auto;gap:6px;align-items:center}
+.line select,.line input{border:1px solid var(--line);background:var(--bg);border-radius:6px;padding:6px 8px;font-size:14px;min-width:0}
+.hlprev{font-family:var(--display);font-size:20px;font-weight:600}
+
+#toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:var(--deep);color:var(--deep-ink);padding:10px 16px;border-radius:8px;font-size:14px;z-index:30;max-width:90vw;box-shadow:0 8px 24px rgba(0,0,0,.25)}
+#toast[hidden]{display:none}
+.banner{background:var(--warn-soft);border-radius:var(--r);padding:10px 14px;font-size:14px}
+
+@media (max-width:640px){
+  main{padding:14px 14px 50px}
+  .top-in{padding:12px 14px 0}
+  .grid2{grid-template-columns:1fr}
+  .line{grid-template-columns:1fr 1fr;}
+  .line input{grid-column:1}
+  .big{font-size:30px}
+  .hide-sm{display:none}
+}
+@media (prefers-reduced-motion:no-preference){.bar span{transition:width .4s ease}}
+/* Achel POS: terugknop, keuze vertegenwoordiger, alleen-lezen */
+.home{color:var(--deep-muted);text-decoration:none;font-size:13px;font-weight:500;align-self:flex-start;margin-top:4px}
+.home:hover{color:var(--deep-ink)}
+.viewsel{background:transparent;color:var(--deep-ink);border:1px solid var(--deep-muted);border-radius:6px;padding:5px 8px;font-size:13px;max-width:220px}
+.viewsel option{color:#1a211f;background:#fff}
+body.readonly [data-act^="new"],body.readonly [data-act="move"],body.readonly [data-act="followDone"],body.readonly [data-act="followLater"],body.readonly [data-act="szAdd"],body.readonly [data-act="szDel"],body.readonly [data-act="delVoorbeelden"],body.readonly [data-act="deleteRec"],body.readonly [data-act="addEenheid"],body.readonly #instForm button[type=submit],body.readonly #dlgForm button[type=submit]{display:none}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../offline.js"></script>
+</head>
+<body>
+<header class="top">
+  <div class="top-in">
+    <a class="home" href="../index.html" aria-label="Terug naar Achel POS">←</a>
+    <div class="brand"><h1>Achel Verkoop</h1><span id="brandSub">Je eigen verkoopoverzicht</span></div>
+    <div class="sync" id="sync"><select id="viewSel" class="viewsel" hidden aria-label="Gegevens bekijken van"></select><i></i><span>Gegevens laden…</span></div>
+  </div>
+  <nav class="tabs" id="tabs" aria-label="Modules"></nav>
+</header>
+<main id="view"></main>
+<div class="modal" id="modal" hidden></div>
+<div id="toast" hidden role="status"></div>
+
+<script>
+(function(){
+'use strict';
+
+/* ---------- Hulpfuncties ---------- */
+const $=s=>document.querySelector(s);
+const esc=v=>String(v==null?'':v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const num=v=>{const n=parseFloat(String(v==null?'':v).replace(',','.'));return isFinite(n)?n:0};
+const fmt=(n,d)=>Number(n||0).toLocaleString('nl-BE',{minimumFractionDigits:d==null?1:d,maximumFractionDigits:d==null?1:d});
+const fmt0=n=>Number(n||0).toLocaleString('nl-BE',{maximumFractionDigits:0});
+const iso=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+const today=()=>iso(new Date());
+const fdate=s=>{if(!s)return '';const p=String(s).split('-');return p.length===3?p[2]+'/'+p[1]+'/'+p[0].slice(2):esc(s)};
+const addDays=(s,n)=>{const d=new Date((s||today())+'T12:00:00');d.setDate(d.getDate()+n);return iso(d)};
+const newId=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+const byName=(a,b)=>String(a.zaak||'').localeCompare(String(b.zaak||''),'nl');
+const MAANDEN=['jan','feb','mrt','apr','mei','jun','jul','aug','sep','okt','nov','dec'];
+const MAANDEN_L=['januari','februari','maart','april','mei','juni','juli','augustus','september','oktober','november','december'];
+const STATUSSEN=['Prospect','In gesprek','Proef / offerte','Klant','Gepauzeerd','Verloren'];
+const STATUS_CLS={'Prospect':'st-prospect','In gesprek':'st-gesprek','Proef / offerte':'st-proef','Klant':'st-klant','Gepauzeerd':'st-pauze','Verloren':'st-verloren'};
+const TYPES=['Horeca','Drankenhandel','Retail / supermarkt','Groothandel / verdeler','Evenement / vereniging','Andere'];
+const POT=[['A','A – groot potentieel'],['B','B – middel'],['C','C – klein'],['?','Nog onbekend']];
+const CONTRACT=['Onbekend','Vrij (geen contract)','Brouwerijcontract','Via verdeler','Eigen invoer / groothandel'];
+const SOORT_BEZOEK=['Bezoek','Telefoon','Proeverij','Mail / bericht','Event'];
+const COLS=['klanten','bezoeken','bestellingen','acties','seizoensbieren'];
+const DEFAULTS={
+  doelMaand:70, doelJaar:1500,
+  regios:[
+    {naam:'Noord-Limburg',gemeenten:['Hamont-Achel','Pelt','Lommel','Peer','Hechtel-Eksel','Leopoldsburg','Bocholt','Bree','Kinrooi','Maaseik','Dilsen-Stokkem','Oudsbergen']},
+    {naam:'Midden-Limburg',gemeenten:['Hasselt','Genk','Beringen','Heusden-Zolder','Houthalen-Helchteren','Zonhoven','Diepenbeek','Lummen','Halen','Herk-de-Stad','Tessenderlo-Ham','As','Zutendaal']}
+  ],
+  eenheden:[
+    {id:'bak',naam:'Bak 24 × 33 cl',liter:7.92,perPallet:null},
+    {id:'vat',naam:'Vat 20 L',liter:20,perPallet:null},
+    {id:'fles',naam:'Losse fles 33 cl',liter:0.33,perPallet:null}
+  ],
+  producten:['Tripel','Dubbel','Singel Blond','Gallant Grand Cru Special']
+};
+
+/* ---------- Toestand ---------- */
+const S={klanten:[],bezoeken:[],bestellingen:[],acties:[],seizoensbieren:[],inst:null};
+let MODE='laden', db=null;
+const TABS=[['dashboard','Dashboard'],['klanten','Klanten'],['prospectie','Prospectie'],['bezoeken','Bezoeken'],['bestellingen','Bestellingen'],['acties','Drankenhandelacties'],['seizoen','Seizoensbieren'],['opvolging','Opvolging'],['rekenen','Rekenmodule'],['instellingen','Instellingen']];
+const now=new Date();
+const UI={
+  tab:'dashboard',
+  f:{regio:'',gemeente:'',status:'',type:'',q:''},
+  jaar:String(now.getFullYear()), maand:'', groep:'gemeente', sort:'zaak',
+  calc:{eenheid:'bak',aantal:'10',hl:'5',pallets:'1',mix:{}},
+  extraEenheden:0, showExport:false
+};
+const MODAL={onSubmit:null};
+
+function inst(){
+  const i=Object.assign({},DEFAULTS,S.inst||{});
+  if(!Array.isArray(i.regios)||!i.regios.length)i.regios=DEFAULTS.regios;
+  if(!Array.isArray(i.eenheden)||!i.eenheden.length)i.eenheden=DEFAULTS.eenheden;
+  if(!Array.isArray(i.producten)||!i.producten.length)i.producten=DEFAULTS.producten;
+  return i;
+}
+const eenheid=id=>inst().eenheden.find(e=>e.id===id)||null;
+function regioVan(g){
+  if(!g)return '';
+  const l=g.trim().toLowerCase();
+  const r=inst().regios.find(r=>(r.gemeenten||[]).some(x=>x.toLowerCase()===l));
+  return r?r.naam:'';
+}
+const klantRegio=k=>k.regio||regioVan(k.gemeente)||'Onbekend';
+const klantMap=()=>{const m={};S.klanten.forEach(k=>m[k.id]=k);return m};
+function laatsteBezoek(k){
+  let d=k.laatsteBezoek||'';
+  S.bezoeken.forEach(b=>{if(b.klantId===k.id&&b.datum&&b.datum>d)d=b.datum});
+  return d;
+}
+function hlKlantJaar(k,jaar){
+  let t=0;S.bestellingen.forEach(o=>{if(o.klantId===k.id&&String(o.datum||'').slice(0,4)===String(jaar))t+=num(o.hl)});return t;
+}
+function alleGemeenten(regio){
+  const set=new Set();
+  inst().regios.forEach(r=>{if(!regio||r.naam===regio)(r.gemeenten||[]).forEach(g=>set.add(g))});
+  S.klanten.forEach(k=>{if(k.gemeente&&(!regio||klantRegio(k)===regio))set.add(k.gemeente)});
+  return [...set].sort((a,b)=>a.localeCompare(b,'nl'));
+}
+function alleRegios(){
+  const set=new Set(inst().regios.map(r=>r.naam));
+  S.klanten.forEach(k=>set.add(klantRegio(k)));
+  return [...set];
+}
+
+/* ---------- Filters ---------- */
+const anyFilter=()=>Object.values(UI.f).some(Boolean);
+function klantOk(k){
+  const f=UI.f;
+  if(f.regio&&klantRegio(k)!==f.regio)return false;
+  if(f.gemeente&&(k.gemeente||'')!==f.gemeente)return false;
+  if(f.status&&k.status!==f.status)return false;
+  if(f.type&&k.type!==f.type)return false;
+  if(f.q){const q=f.q.toLowerCase();if(![k.zaak,k.contact,k.gemeente,k.plaats,k.merken,k.verdeler,k.notities].join(' ').toLowerCase().includes(q))return false}
+  return true;
+}
+function relOk(r,km){const k=km[r.klantId];if(!k)return !anyFilter();return klantOk(k)}
+function inPeriod(d){
+  if(!d)return false;
+  if(String(d).slice(0,4)!==UI.jaar)return false;
+  if(UI.maand&&+String(d).slice(5,7)!==+UI.maand)return false;
+  return true;
+}
+function periodeLabel(){return UI.maand?MAANDEN_L[+UI.maand-1]+' '+UI.jaar:UI.jaar}
+
+/* ---------- Opslag (Supabase, tabel verkoop_records) ---------- */
+const SUPABASE_URL="https://qosjfznmdnswwfnglxqt.supabase.co";
+const SUPABASE_ANON_KEY="sb_publishable_pyiiMmH2tpl-lL3e_edcow_4ztJX-Ul";
+const sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
+const TABEL='verkoop_records';
+const KIJK_ROLLEN=['admin','commercieel_directeur'];
+let ME=null,PROFIEL=null,PROFIELEN=[],VIEW=null,ALL_INST={};
+const isOwnView=()=>VIEW===ME;
+const naamVan=id=>{const p=PROFIELEN.find(x=>x.id===id)||(PROFIEL&&PROFIEL.id===id?PROFIEL:null);return p?(p.naam||p.email||'Onbekend'):'Onbekend'};
+function saveLocal(){}
+function setMode(m){
+  MODE=m;
+  const el=$('#sync');el.className='sync '+(m==='online'?'online':m==='fout'?'local':'');
+  el.querySelector('span').textContent=m==='online'?(isOwnView()?'Bewaard in Achel POS':'Alleen bekijken'):m==='fout'?'Kon gegevens niet laden':'Gegevens laden…';
+  document.body.classList.toggle('readonly',!!VIEW&&!isOwnView());
+  const i=inst();
+  const wie=VIEW==='alle'?'Alle vertegenwoordigers':naamVan(VIEW||ME);
+  $('#brandSub').textContent=wie+' · '+i.regios.map(r=>r.naam).join(', ');
+  render();
+}
+function errMsg(e){
+  const t=String((e&&(e.message||e.code))||'');
+  if(/row-level|permission|42501/i.test(t))return 'Opslaan lukt niet: je kunt alleen je eigen gegevens wijzigen.';
+  return 'Opslaan mislukt. Controleer je verbinding en probeer opnieuw.';
+}
+function clean(o){const r={};Object.keys(o).forEach(k=>{if(o[k]!==undefined&&k!=='id'&&k.charAt(0)!=='_')r[k]=o[k]});return r}
+function alleenLezen(){toast('Je bekijkt de gegevens van iemand anders. Wijzigen kan alleen in je eigen overzicht.');throw new Error('alleen lezen')}
+async function put(col,obj){
+  if(!isOwnView())alleenLezen();
+  const id=obj.id||newId();
+  const body=clean(obj);body.gewijzigd=new Date().toISOString();
+  const {error}=await sb.from(TABEL).upsert({owner:ME,collectie:col,id:id,data:body,updated_at:body.gewijzigd},{onConflict:'owner,collectie,id'});
+  if(error){toast(errMsg(error));throw error}
+  const rec=Object.assign({},body,{id:id,_owner:ME});
+  const arr=S[col];const i=arr.findIndex(x=>x.id===id);if(i>=0)arr[i]=rec;else arr.push(rec);
+  render();
+  return id;
+}
+async function del(col,id){
+  if(!isOwnView())alleenLezen();
+  const {error}=await sb.from(TABEL).delete().eq('owner',ME).eq('collectie',col).eq('id',id);
+  if(error){toast(errMsg(error));throw error}
+  S[col]=S[col].filter(x=>x.id!==id);render();
+}
+async function putInst(o){
+  if(!isOwnView())alleenLezen();
+  const body=clean(o);
+  const {error}=await sb.from(TABEL).upsert({owner:ME,collectie:'instellingen',id:'algemeen',data:body,updated_at:new Date().toISOString()},{onConflict:'owner,collectie,id'});
+  if(error){toast(errMsg(error));throw error}
+  S.inst=body;ALL_INST[ME]=body;setMode('online');
+}
+async function loadData(){
+  MODE='laden';render();
+  try{
+    let rows=[],from=0;
+    for(;;){
+      let q=sb.from(TABEL).select('owner,collectie,id,data').order('owner').order('collectie').order('id').range(from,from+999);
+      if(VIEW!=='alle')q=q.eq('owner',VIEW);
+      const {data,error}=await q;if(error)throw error;
+      rows=rows.concat(data||[]);if(!data||data.length<1000)break;from+=1000;
+    }
+    COLS.forEach(c=>S[c]=[]);ALL_INST={};
+    rows.forEach(r=>{
+      if(r.collectie==='instellingen'){ALL_INST[r.owner]=r.data||{};return}
+      if(S[r.collectie])S[r.collectie].push(Object.assign({},r.data||{},{id:r.id,_owner:r.owner}));
+    });
+    if(VIEW==='alle'){
+      const owners=new Set(rows.map(r=>r.owner));let dm=0,dj=0;
+      owners.forEach(o=>{const i=Object.assign({},DEFAULTS,ALL_INST[o]||{});dm+=num(i.doelMaand);dj+=num(i.doelJaar)});
+      S.inst=Object.assign({},ALL_INST[ME]||{},{doelMaand:dm||DEFAULTS.doelMaand,doelJaar:dj||DEFAULTS.doelJaar});
+    }else S.inst=ALL_INST[VIEW]||null;
+    setMode('online');
+  }catch(e){console.error('VERKOOP LADEN:',e);setMode('fout');toast('De gegevens konden niet geladen worden.')}
+}
+function renderViewSelect(){
+  const s=$('#viewSel');if(!s)return;
+  const others=PROFIELEN.filter(p=>p.id!==ME);
+  s.innerHTML=`<option value="${esc(ME)}">Mijn overzicht</option>`+others.map(p=>`<option value="${esc(p.id)}">${esc(p.naam||p.email)}</option>`).join('')+'<option value="alle">Alle vertegenwoordigers</option>';
+  s.value=VIEW;s.hidden=false;
+}
+async function initDb(){
+  try{
+    const {data:{session},error}=await sb.auth.getSession();
+    if(error)throw error;
+    if(!session||!session.user){window.location.href='../index.html';return}
+    ME=session.user.id;VIEW=ME;
+    const {data:p}=await sb.from('profiles').select('id,naam,email,rol,actief').eq('id',ME).single();
+    PROFIEL=p||null;
+    if(PROFIEL&&KIJK_ROLLEN.includes(PROFIEL.rol)){
+      const {data:all}=await sb.from('profiles').select('id,naam,email,rol,actief').eq('actief',true).order('naam',{ascending:true});
+      PROFIELEN=(all||[]).filter(x=>['vertegenwoordiger','admin','commercieel_directeur'].includes(x.rol));
+      renderViewSelect();
+    }
+    await loadData();
+  }catch(e){console.error('VERKOOP INIT:',e);setMode('fout')}
+}
+$('#viewSel').addEventListener('change',e=>{VIEW=e.target.value;if(VIEW!=='alle'&&UI.groep==='verteg')UI.groep='gemeente';UI.f={regio:'',gemeente:'',status:'',type:'',q:''};loadData()});
+
+/* ---------- Kleine bouwstenen ---------- */
+const chip=s=>s?`<span class="chip ${STATUS_CLS[s]||''}">${esc(s)}</span>`:'';
+const pot=p=>`<span class="pot ${esc(p||'')}" title="Potentieel">${esc(p||'?')}</span>`;
+const ex=r=>r&&r.voorbeeld?'<span class="ex">voorbeeld</span>':'';
+function opts(list,val,empty){
+  let h=empty!=null?`<option value="">${esc(empty)}</option>`:'';
+  list.forEach(o=>{const v=Array.isArray(o)?o[0]:o,l=Array.isArray(o)?o[1]:o;h+=`<option value="${esc(v)}"${String(v)===String(val==null?'':val)?' selected':''}>${esc(l)}</option>`});
+  return h;
+}
+function fld(label,name,val,type,attrs,cls){return `<label class="fld ${cls||''}"><span>${label}</span><input id="m_${name}" name="${name}" type="${type||'text'}" value="${esc(val==null?'':val)}" ${attrs||''}></label>`}
+function sel(label,name,val,list,empty,cls){return `<label class="fld ${cls||''}"><span>${label}</span><select id="m_${name}" name="${name}">${opts(list,val,empty)}</select></label>`}
+function area(label,name,val,cls){return `<label class="fld ${cls||'full'}"><span>${label}</span><textarea id="m_${name}" name="${name}">${esc(val||'')}</textarea></label>`}
+function datumKlasse(d){if(!d)return '';const t=today();if(d<t)return 'late';if(d<=addDays(t,2))return 'soon';return ''}
+function klantOptions(val,filterFn){
+  const list=S.klanten.filter(filterFn||(()=>true)).sort(byName).map(k=>[k.id,(k.zaak||'(naamloos)')+(k.gemeente?' · '+k.gemeente:'')]);
+  return opts(list,val,'Kies een klant…');
+}
+
+function filterBar(o){
+  o=o||{};
+  const f=UI.f;
+  let h='<div class="filters">';
+  h+=`<label>Regio<select id="f_regio" data-filter="regio" class="${f.regio?'active-filter':''}">${opts(alleRegios(),f.regio,'Alle regio’s')}</select></label>`;
+  h+=`<label>Gemeente<select id="f_gemeente" data-filter="gemeente" class="${f.gemeente?'active-filter':''}">${opts(alleGemeenten(f.regio),f.gemeente,'Alle gemeenten')}</select></label>`;
+  h+=`<label>Status<select id="f_status" data-filter="status" class="${f.status?'active-filter':''}">${opts(STATUSSEN,f.status,'Alle statussen')}</select></label>`;
+  h+=`<label>Soort zaak<select id="f_type" data-filter="type" class="${f.type?'active-filter':''}">${opts(TYPES,f.type,'Alle soorten')}</select></label>`;
+  h+=`<label>Zoek klant<input type="search" id="f_q" data-filter="q" value="${esc(f.q)}" placeholder="Naam, contact, merk…"></label>`;
+  if(o.periode){
+    const jaren=new Set([String(now.getFullYear()),UI.jaar]);
+    S.bestellingen.concat(S.bezoeken).forEach(r=>{if(r.datum)jaren.add(String(r.datum).slice(0,4))});
+    h+=`<label>Jaar<select id="f_jaar" data-period="jaar">${opts([...jaren].sort().reverse(),UI.jaar)}</select></label>`;
+    h+=`<label>Maand<select id="f_maand" data-period="maand">${opts(MAANDEN_L.map((m,i)=>[String(i+1),m]),UI.maand,'Heel het jaar')}</select></label>`;
+  }
+  if(anyFilter()||(o.periode&&UI.maand))h+='<button class="btn ghost" data-act="clearFilters">Filters wissen</button>';
+  return h+'</div>';
+}
+
+/* ---------- Grafieken ---------- */
+function niceScale(v){
+  const steps=[5,10,20,25,50,100,200,250,500,1000,2000,2500,5000];
+  for(const s of steps){if(Math.ceil(v/s)<=5)return {max:Math.max(s,Math.ceil(v/s)*s),step:s}}
+  const s=Math.ceil(v/5000)*1000;return {max:Math.ceil(v/s)*s,step:s};
+}
+function barChart(vals,doel,curIdx){
+  const W=640,H=230,L=40,R=86,T=14,B=26,iw=W-L-R,ih=H-T-B;
+  const sc=niceScale(Math.max(doel*1.15,...vals,1));
+  const y=v=>T+ih-(v/sc.max)*ih,bw=iw/12;
+  let s=`<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="HL per maand met maanddoel">`;
+  for(let v=0;v<=sc.max;v+=sc.step)s+=`<line class="grid" x1="${L}" x2="${L+iw}" y1="${y(v)}" y2="${y(v)}"/><text x="${L-6}" y="${y(v)+4}" text-anchor="end">${fmt0(v)}</text>`;
+  vals.forEach((v,i)=>{
+    const x=L+i*bw+bw*.18,w=bw*.64;
+    if(v>0){s+=`<rect class="barv${v>=doel?' ok':''}${i===curIdx?' cur':''}" x="${x}" y="${y(v)}" width="${w}" height="${T+ih-y(v)}" rx="2"/>`;
+      s+=`<text class="val" x="${x+w/2}" y="${y(v)-4}" text-anchor="middle">${fmt(v,v<10?1:0)}</text>`}
+    s+=`<text x="${x+w/2}" y="${H-8}" text-anchor="middle"${i===curIdx?' class="lbl"':''}>${MAANDEN[i]}</text>`;
+  });
+  s+=`<line class="goal" x1="${L}" x2="${L+iw}" y1="${y(doel)}" y2="${y(doel)}"/><text class="lbl" x="${L+iw+6}" y="${y(doel)+4}">doel ${fmt0(doel)} HL</text>`;
+  return s+'</svg>';
+}
+function cumChart(vals,doelJaar,doelMaand,lastIdx){
+  const W=640,H=230,L=46,R=96,T=14,B=26,iw=W-L-R,ih=H-T-B;
+  const cum=[];let t=0;vals.forEach(v=>{t+=v;cum.push(t)});
+  const sc=niceScale(Math.max(doelJaar,doelMaand*12,t,1));
+  const x=i=>L+(i/12)*iw,y=v=>T+ih-(v/sc.max)*ih;
+  let s=`<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Cumulatieve HL tegenover jaardoel">`;
+  for(let v=0;v<=sc.max;v+=sc.step)s+=`<line class="grid" x1="${L}" x2="${L+iw}" y1="${y(v)}" y2="${y(v)}"/><text x="${L-6}" y="${y(v)+4}" text-anchor="end">${fmt0(v)}</text>`;
+  for(let i=0;i<12;i++)s+=`<text x="${x(i+.5)}" y="${H-8}" text-anchor="middle">${MAANDEN[i]}</text>`;
+  s+=`<line class="goal" x1="${x(0)}" y1="${y(0)}" x2="${x(12)}" y2="${y(doelJaar)}"/><text class="lbl" x="${x(12)+6}" y="${y(doelJaar)+4}">${fmt0(doelJaar)} HL</text>`;
+  if(Math.abs(doelMaand*12-doelJaar)>1)s+=`<line class="goal2" x1="${x(0)}" y1="${y(0)}" x2="${x(12)}" y2="${y(doelMaand*12)}"/><text x="${x(12)+6}" y="${y(doelMaand*12)+4}">${fmt0(doelMaand)}/mnd = ${fmt0(doelMaand*12)}</text>`;
+  if(lastIdx>=0){
+    let p=`M${x(0)},${y(0)}`;for(let i=0;i<=lastIdx;i++)p+=` L${x(i+1)},${y(cum[i])}`;
+    s+=`<path class="area" d="${p} L${x(lastIdx+1)},${y(0)} Z"/><path class="act" d="${p}"/>`;
+    s+=`<circle class="dot" cx="${x(lastIdx+1)}" cy="${y(cum[lastIdx])}" r="5"/><text class="val" x="${x(lastIdx+1)}" y="${y(cum[lastIdx])-10}" text-anchor="middle">${fmt(cum[lastIdx],0)}</text>`;
+  }
+  return s+'</svg>';
+}
+
+/* ---------- Weergaven ---------- */
+const V={};
+
+V.dashboard=function(){
+  const i=inst(),km=klantMap(),t=today();
+  const curY=String(now.getFullYear()),curM=now.getMonth();
+  const orders=S.bestellingen.filter(o=>relOk(o,km));
+  const mKey=t.slice(0,7);
+  const hlMaand=orders.filter(o=>String(o.datum||'').slice(0,7)===mKey).reduce((a,o)=>a+num(o.hl),0);
+  const perMaand=new Array(12).fill(0);
+  orders.forEach(o=>{if(String(o.datum||'').slice(0,4)===UI.jaar){const m=+String(o.datum).slice(5,7)-1;if(m>=0&&m<12)perMaand[m]+=num(o.hl)}});
+  const hlJaar=perMaand.reduce((a,b)=>a+b,0);
+  const isCur=UI.jaar===curY;
+  const lastIdx=isCur?curM:(+UI.jaar<+curY?11:-1);
+  const restMaanden=isCur?12-curM:0;
+  const rest=Math.max(0,i.doelJaar-hlJaar);
+  const nodigPM=restMaanden?rest/restMaanden:0;
+  const start=new Date(now.getFullYear(),0,1),dagen=Math.max(1,Math.round((now-start)/864e5)+1);
+  const prognose=isCur?hlJaar/dagen*365:hlJaar;
+  const pctM=Math.min(100,hlMaand/i.doelMaand*100),pctJ=Math.min(100,hlJaar/i.doelJaar*100);
+  const tijdPct=isCur?Math.min(100,dagen/365*100):100;
+  const kl=S.klanten.filter(klantOk);
+  const nKlant=kl.filter(k=>k.status==='Klant').length,nProsp=kl.filter(k=>k.status&&k.status!=='Klant'&&k.status!=='Verloren').length;
+  const bezM=S.bezoeken.filter(b=>relOk(b,km)&&String(b.datum||'').slice(0,7)===mKey).length;
+  const late=kl.filter(k=>k.status!=='Verloren'&&k.volgendeActieDatum&&k.volgendeActieDatum<t).length;
+  const verwacht=kl.reduce((a,k)=>a+num(k.verwachtHL),0);
+
+  let h=`<div class="head"><div><h2>Dashboard</h2><p>${anyFilter()?'Gefilterd overzicht. Alle cijfers volgen de filters hieronder.':'Overzicht van je hele werkgebied.'}</p></div>
+  <div class="actions"><button class="btn" data-act="newBezoek">+ Bezoek</button><button class="btn" data-act="newBestelling">+ Bestelling</button><button class="btn primary" data-act="newKlant">+ Klant of prospect</button></div></div>`;
+  h+=filterBar({periode:true});
+  if(!S.klanten.length&&MODE!=='laden')h+=`<div class="banner">Nog geen klanten. Begin met <button class="link" data-act="newKlant">je eerste klant of prospect toevoegen</button>.</div>`;
+  h+='<div class="tiles">';
+  h+=`<div class="tile"><h3>HL deze maand (${MAANDEN_L[curM]})</h3><div class="big num">${fmt(hlMaand)} <small>/ ${fmt0(i.doelMaand)} HL</small></div>
+    <div class="bar${hlMaand>=i.doelMaand?' done':''}"><span style="width:${pctM}%"></span></div>
+    <p>${hlMaand>=i.doelMaand?'<strong>Maanddoel gehaald.</strong>':'Nog <strong>'+fmt(i.doelMaand-hlMaand)+' HL</strong> ≈ '+fmt0(Math.ceil((i.doelMaand-hlMaand)*100/7.92))+' bakken of '+fmt0(Math.ceil((i.doelMaand-hlMaand)*100/20))+' vaten'}</p></div>`;
+  h+=`<div class="tile"><h3>HL in ${esc(UI.jaar)}, richting ${fmt0(i.doelJaar)} HL</h3><div class="big num">${fmt(hlJaar)} <small>/ ${fmt0(i.doelJaar)} HL</small></div>
+    <div class="bar${hlJaar>=i.doelJaar?' done':''}"><span style="width:${pctJ}%"></span>${isCur?`<i class="mark" style="left:${tijdPct}%" title="Waar je nu zou moeten staan"></i>`:''}</div>
+    <p>${isCur?(rest>0?'Nodig: <strong>'+fmt(nodigPM)+' HL per maand</strong> de komende '+restMaanden+' maanden. Prognose: '+fmt0(prognose)+' HL.':'<strong>Jaardoel gehaald.</strong>'):fmt0(pctJ)+'% van het jaardoel.'}</p></div>`;
+  h+=`<div class="tile"><h3>Klanten en pijplijn</h3><div class="minirow"><div><span class="big num">${nKlant}</span><p>klanten</p></div><div><span class="big num">${nProsp}</span><p>open prospecten</p></div><div><span class="big num">${fmt0(verwacht)}</span><p>verwachte HL/jaar</p></div></div></div>`;
+  h+=`<div class="tile"><h3>Deze maand</h3><div class="minirow"><div><span class="big num">${bezM}</span><p>bezoeken</p></div><div><span class="big num" style="color:${late?'var(--bad)':'inherit'}">${late}</span><p>opvolgingen te laat</p></div></div>${late?'<p><button class="link" data-tab="opvolging">Bekijk opvolging</button></p>':''}</div>`;
+  h+='</div>';
+  if(Math.abs(i.doelMaand*12-i.doelJaar)>1)h+=`<p class="note warn">Let op: ${fmt0(i.doelMaand)} HL per maand geeft ${fmt0(i.doelMaand*12)} HL per jaar. Voor ${fmt0(i.doelJaar)} HL is gemiddeld ${fmt(i.doelJaar/12)} HL per maand nodig. Je kunt beide doelen aanpassen bij <button class="link" data-tab="instellingen">Instellingen</button>.</p>`;
+  h+=`<div class="grid2">
+    <section class="panel"><div class="panel-h"><h3>HL per maand</h3><p>${esc(UI.jaar)}, groen = maanddoel gehaald</p></div>${barChart(perMaand,i.doelMaand,isCur?curM:-1)}</section>
+    <section class="panel"><div class="panel-h"><h3>Opgeteld richting jaardoel</h3><p>volle lijn = jouw HL, streepjes = schema</p></div>${cumChart(perMaand,i.doelJaar,i.doelMaand,lastIdx)}</section>
+  </div>`;
+
+  const g=groepen();
+  const gLabels={gemeente:'Gemeente',regio:'Regio',klant:'Klant',type:'Soort zaak'};if(VIEW==='alle')gLabels.verteg='Vertegenwoordiger';else if(UI.groep==='verteg')UI.groep='gemeente';
+  h+=`<section class="panel"><div class="panel-h"><h3>Overzicht per ${gLabels[UI.groep].toLowerCase()}</h3><p>bezoeken, bestellingen en HL in ${esc(periodeLabel())}</p><span class="sp"></span>
+    <label class="inline" style="font-size:13px;color:var(--muted)">Groeperen per <select id="g_groep" data-groep="1">${opts(Object.entries(gLabels),UI.groep)}</select></label></div>`;
+  if(!g.length)h+='<div class="empty">Geen gegevens voor deze filters.</div>';
+  else{
+    const tot=g.reduce((a,r)=>{a.k+=r.klanten;a.p+=r.prospecten;a.b+=r.bezoeken;a.o+=r.bestellingen;a.h+=r.hl;a.v+=r.verwacht;return a},{k:0,p:0,b:0,o:0,h:0,v:0});
+    h+=`<div class="tw"><table><thead><tr><th>${gLabels[UI.groep]}</th>${UI.groep==='gemeente'?'<th class="hide-sm">Regio</th>':''}<th class="n">Klanten</th><th class="n">Prospecten</th><th class="n">Bezoeken</th><th class="n">Bestellingen</th><th class="n">HL</th><th class="n">Verwacht HL/jaar</th></tr></thead><tbody>`;
+    g.forEach(r=>{h+=`<tr class="click" data-act="drill" data-key="${esc(r.key)}"><td><button class="link" data-act="drill" data-key="${esc(r.key)}">${esc(r.label)}</button></td>${UI.groep==='gemeente'?`<td class="hide-sm">${esc(regioVan(r.key)||'–')}</td>`:''}<td class="n">${r.klanten}</td><td class="n">${r.prospecten}</td><td class="n">${r.bezoeken}</td><td class="n">${r.bestellingen}</td><td class="n"><strong>${fmt(r.hl)}</strong></td><td class="n">${fmt0(r.verwacht)}</td></tr>`});
+    h+=`</tbody><tfoot><tr><td>Totaal</td>${UI.groep==='gemeente'?'<td class="hide-sm"></td>':''}<td class="n">${tot.k}</td><td class="n">${tot.p}</td><td class="n">${tot.b}</td><td class="n">${tot.o}</td><td class="n">${fmt(tot.h)}</td><td class="n">${fmt0(tot.v)}</td></tr></tfoot></table></div>`;
+  }
+  h+='</section>';
+
+  const up=kl.filter(k=>k.status!=='Verloren'&&(k.volgendeActie||k.volgendeActieDatum)).sort((a,b)=>(a.volgendeActieDatum||'9999').localeCompare(b.volgendeActieDatum||'9999')).slice(0,6);
+  h+=`<section class="panel"><div class="panel-h"><h3>Eerstvolgende acties</h3><span class="sp"></span><button class="link" data-tab="opvolging">Alle opvolging</button></div>`;
+  h+=up.length?`<div class="tw"><table><tbody>${up.map(k=>`<tr class="click" data-act="editKlant" data-id="${k.id}"><td style="width:90px" class="${datumKlasse(k.volgendeActieDatum)}">${k.volgendeActieDatum?fdate(k.volgendeActieDatum):'geen datum'}</td><td>${esc(k.volgendeActie||'–')}</td><td><strong>${esc(k.zaak)}</strong><span class="sub">${esc(k.gemeente||'')}</span></td></tr>`).join('')}</tbody></table></div>`:'<p class="note">Geen geplande acties.</p>';
+  return h+'</section>';
+};
+
+function groepen(){
+  const km=klantMap(),by=UI.groep;
+  const keyOf=k=>by==='regio'?klantRegio(k):by==='gemeente'?(k.gemeente||'Onbekend'):by==='type'?(k.type||'Onbekend'):by==='verteg'?(k._owner||'?'):k.id;
+  const lab=k=>by==='klant'?(k.zaak||'(naamloos)'):by==='verteg'?naamVan(k._owner):keyOf(k);
+  const g={};
+  const get=k=>{const key=keyOf(k);return g[key]||(g[key]={key:key,label:lab(k),klanten:0,prospecten:0,bezoeken:0,bestellingen:0,hl:0,verwacht:0})};
+  S.klanten.filter(klantOk).forEach(k=>{const r=get(k);if(k.status==='Klant')r.klanten++;else if(k.status&&k.status!=='Verloren')r.prospecten++;r.verwacht+=num(k.verwachtHL)});
+  S.bezoeken.forEach(b=>{const k=km[b.klantId];if(k&&klantOk(k)&&inPeriod(b.datum))get(k).bezoeken++});
+  S.bestellingen.forEach(o=>{const k=km[o.klantId];if(k&&klantOk(k)&&inPeriod(o.datum)){const r=get(k);r.bestellingen++;r.hl+=num(o.hl)}});
+  return Object.values(g).sort((a,b)=>b.hl-a.hl||b.verwacht-a.verwacht||String(a.label).localeCompare(String(b.label),'nl'));
+}
+
+V.klanten=function(){
+  const jaar=String(now.getFullYear());
+  let list=S.klanten.filter(klantOk);
+  const s=UI.sort;
+  list.sort((a,b)=>{
+    if(s==='gemeente')return String(a.gemeente||'').localeCompare(String(b.gemeente||''),'nl')||byName(a,b);
+    if(s==='actie')return String(a.volgendeActieDatum||'9999').localeCompare(String(b.volgendeActieDatum||'9999'));
+    if(s==='verwacht')return num(b.verwachtHL)-num(a.verwachtHL);
+    if(s==='hl')return hlKlantJaar(b,jaar)-hlKlantJaar(a,jaar);
+    if(s==='bezoek')return String(laatsteBezoek(a)).localeCompare(String(laatsteBezoek(b)));
+    return byName(a,b);
+  });
+  let h=`<div class="head"><div><h2>Klanten</h2><p>${list.length} van ${S.klanten.length} zaken. Klik op een rij om de klantfiche te openen.</p></div><div class="actions">
+    <label class="inline" style="font-size:13px;color:var(--muted)">Sorteer<select id="s_sort" data-sort="1">${opts([['zaak','Naam'],['gemeente','Gemeente'],['actie','Volgende actie'],['bezoek','Langst niet bezocht'],['verwacht','Verwachte HL'],['hl','HL dit jaar']],s)}</select></label>
+    <button class="btn primary" data-act="newKlant">+ Klant of prospect</button></div></div>`;
+  h+=filterBar();
+  if(!list.length)return h+`<div class="tw"><div class="empty">${S.klanten.length?'Geen klanten voor deze filters.':'Nog geen klanten.'}<br><button class="btn primary" data-act="newKlant">+ Klant of prospect</button></div></div>`;
+  h+=`<div class="tw"><table><thead><tr><th>Zaak</th><th>Contact</th><th>Plaats</th><th>Pot.</th><th>Status</th><th class="hide-sm">Huidige merken</th><th class="hide-sm">Contract / verdeler</th><th>Laatste bezoek</th><th>Volgende actie</th><th class="n">Verwacht HL</th><th class="n">HL ${jaar}</th></tr></thead><tbody>`;
+  list.forEach(k=>{
+    const lb=laatsteBezoek(k);
+    h+=`<tr class="click" data-act="editKlant" data-id="${k.id}">
+      <td><strong>${esc(k.zaak||'(naamloos)')}</strong>${ex(k)}<span class="sub">${esc(k.type||'')}${VIEW==='alle'?' · '+esc(naamVan(k._owner)):''}</span></td>
+      <td>${esc(k.contact||'–')}${k.telefoon?`<span class="sub">${esc(k.telefoon)}</span>`:''}</td>
+      <td>${esc(k.gemeente||'–')}<span class="sub">${esc(klantRegio(k))}</span></td>
+      <td>${pot(k.potentieel)}</td><td>${chip(k.status)}</td>
+      <td class="hide-sm wrap">${esc(k.merken||'–')}</td>
+      <td class="hide-sm">${esc(k.contract||'–')}${k.verdeler?`<span class="sub">${esc(k.verdeler)}</span>`:''}</td>
+      <td>${lb?fdate(lb):'<span class="sub">nooit</span>'}</td>
+      <td class="wrap">${esc(k.volgendeActie||'–')}${k.volgendeActieDatum?`<span class="sub ${datumKlasse(k.volgendeActieDatum)}">${fdate(k.volgendeActieDatum)}</span>`:''}</td>
+      <td class="n">${k.verwachtHL!==''&&k.verwachtHL!=null?fmt(num(k.verwachtHL)):'–'}</td>
+      <td class="n">${fmt(hlKlantJaar(k,jaar))}</td></tr>`;
+  });
+  return h+'</tbody></table></div>';
+};
+
+V.prospectie=function(){
+  const list=S.klanten.filter(klantOk);
+  const potRank={A:0,B:1,C:2,'?':3};
+  let h=`<div class="head"><div><h2>Prospectie</h2><p>Je pijplijn van eerste contact tot vaste klant. Schuif een zaak door met de pijlen.</p></div><div class="actions"><button class="btn primary" data-act="newKlant" data-status="Prospect">+ Nieuwe prospect</button></div></div>`;
+  h+=filterBar();
+  h+='<div class="board">';
+  STATUSSEN.forEach((st,si)=>{
+    const items=list.filter(k=>(k.status||'Prospect')===st).sort((a,b)=>(potRank[a.potentieel]??3)-(potRank[b.potentieel]??3)||num(b.verwachtHL)-num(a.verwachtHL));
+    const hl=items.reduce((a,k)=>a+num(k.verwachtHL),0);
+    h+=`<div class="col"><h3><span>${esc(st)}</span><small>${items.length} · ${fmt0(hl)} HL</small></h3>`;
+    items.forEach(k=>{
+      h+=`<div class="card"><div class="t">${pot(k.potentieel)}<button class="link" data-act="editKlant" data-id="${k.id}">${esc(k.zaak||'(naamloos)')}</button>${ex(k)}</div>
+        <div class="meta">${esc([k.gemeente,k.type].filter(Boolean).join(' · '))}${k.verwachtHL?` · ${fmt(num(k.verwachtHL))} HL/jaar`:''}</div>
+        ${k.merken?`<div class="meta">Nu: ${esc(k.merken)}</div>`:''}
+        ${k.volgendeActie?`<div class="meta"><span class="${datumKlasse(k.volgendeActieDatum)}">${k.volgendeActieDatum?fdate(k.volgendeActieDatum)+': ':''}</span>${esc(k.volgendeActie)}</div>`:''}
+        <div class="mv">${si>0?`<button class="btn small" data-act="move" data-id="${k.id}" data-dir="-1" aria-label="Naar ${esc(STATUSSEN[si-1])}">← ${esc(STATUSSEN[si-1])}</button>`:'<span></span>'}${si<STATUSSEN.length-1?`<button class="btn small" data-act="move" data-id="${k.id}" data-dir="1" aria-label="Naar ${esc(STATUSSEN[si+1])}">${esc(STATUSSEN[si+1])} →</button>`:''}</div></div>`;
+    });
+    if(!items.length)h+='<p class="note">Leeg</p>';
+    h+='</div>';
+  });
+  return h+'</div>';
+};
+
+V.bezoeken=function(){
+  const km=klantMap();
+  const list=S.bezoeken.filter(b=>relOk(b,km)&&inPeriod(b.datum)).sort((a,b)=>String(b.datum||'').localeCompare(String(a.datum||'')));
+  let h=`<div class="head"><div><h2>Klantenbezoeken</h2><p>${list.length} contactmomenten in ${esc(periodeLabel())}.</p></div><div class="actions"><button class="btn primary" data-act="newBezoek">+ Bezoek loggen</button></div></div>`;
+  h+=filterBar({periode:true});
+  if(!list.length)return h+'<div class="tw"><div class="empty">Geen bezoeken in deze periode.<br><button class="btn primary" data-act="newBezoek">+ Bezoek loggen</button></div></div>';
+  h+='<div class="tw"><table><thead><tr><th>Datum</th><th>Klant</th><th>Soort</th><th>Verslag</th><th>Afgesproken actie</th></tr></thead><tbody>';
+  list.forEach(b=>{const k=km[b.klantId];
+    h+=`<tr class="click" data-act="editBezoek" data-id="${b.id}"><td>${fdate(b.datum)}</td><td><strong>${esc(k?k.zaak:b.klantNaam||'(verwijderde klant)')}</strong>${ex(b)}<span class="sub">${esc(k?k.gemeente||'':'')}</span></td><td>${esc(b.soort||'')}</td><td class="wrap">${esc(b.verslag||'')}</td><td class="wrap">${esc(b.volgendeActie||'')}${b.volgendeActieDatum?`<span class="sub">${fdate(b.volgendeActieDatum)}</span>`:''}</td></tr>`});
+  return h+'</tbody></table></div>';
+};
+
+function regelsTekst(o){return (o.regels||[]).filter(r=>num(r.aantal)).map(r=>`${fmt0(num(r.aantal))} × ${esc((eenheid(r.eenheid)||{naam:r.eenheidNaam||r.eenheid}).naam)} ${esc(r.product||'')}`).join('<br>')}
+V.bestellingen=function(){
+  const km=klantMap();
+  const list=S.bestellingen.filter(o=>relOk(o,km)&&inPeriod(o.datum)).sort((a,b)=>String(b.datum||'').localeCompare(String(a.datum||'')));
+  const tot=list.reduce((a,o)=>a+num(o.hl),0);
+  let h=`<div class="head"><div><h2>Bestellingen</h2><p>${list.length} bestellingen, samen ${fmt(tot)} HL in ${esc(periodeLabel())}.</p></div><div class="actions"><button class="btn primary" data-act="newBestelling">+ Bestelling</button></div></div>`;
+  h+=filterBar({periode:true});
+  if(!list.length)return h+'<div class="tw"><div class="empty">Geen bestellingen in deze periode.<br><button class="btn primary" data-act="newBestelling">+ Bestelling</button></div></div>';
+  h+='<div class="tw"><table><thead><tr><th>Datum</th><th>Klant</th><th>Inhoud</th><th class="hide-sm">Via</th><th class="n">HL</th></tr></thead><tbody>';
+  list.forEach(o=>{const k=km[o.klantId];
+    h+=`<tr class="click" data-act="editBestelling" data-id="${o.id}"><td>${fdate(o.datum)}</td><td><strong>${esc(k?k.zaak:o.klantNaam||'(verwijderde klant)')}</strong>${ex(o)}<span class="sub">${esc(k?k.gemeente||'':'')}</span></td><td>${regelsTekst(o)||'–'}</td><td class="hide-sm">${esc(o.via||'')}${o.verdeler?`<span class="sub">${esc(o.verdeler)}</span>`:''}</td><td class="n"><strong>${fmt(num(o.hl),2)}</strong></td></tr>`});
+  return h+`</tbody><tfoot><tr><td colspan="3">Totaal</td><td class="hide-sm"></td><td class="n">${fmt(tot,2)}</td></tr></tfoot></table></div>`;
+};
+
+function actieStatus(a){const t=today();if(a.status==='Geannuleerd')return 'Geannuleerd';if(a.van&&t<a.van)return 'Gepland';if(a.tot&&t>a.tot)return 'Afgelopen';if(a.van||a.tot)return 'Loopt';return a.status||'Gepland'}
+V.acties=function(){
+  const km=klantMap();
+  const order={Loopt:0,Gepland:1,Afgelopen:2,Geannuleerd:3};
+  const list=S.acties.filter(a=>relOk(a,km)).sort((a,b)=>(order[actieStatus(a)]-order[actieStatus(b)])||String(a.van||'').localeCompare(String(b.van||'')));
+  let h=`<div class="head"><div><h2>Drankenhandelacties</h2><p>Promoties, displays en folderacties bij drankenhandels, met doel en resultaat in HL.</p></div><div class="actions"><button class="btn primary" data-act="newActie">+ Actie</button></div></div>`;
+  h+=filterBar();
+  if(!list.length)return h+'<div class="tw"><div class="empty">Nog geen acties.<br><button class="btn primary" data-act="newActie">+ Actie</button></div></div>';
+  h+='<div class="cards">';
+  list.forEach(a=>{const k=km[a.klantId],st=actieStatus(a);
+    const pct=num(a.doelHL)?Math.min(100,num(a.behaaldHL)/num(a.doelHL)*100):0;
+    const cls={Loopt:'st-klant',Gepland:'st-prospect',Afgelopen:'st-pauze',Geannuleerd:'st-verloren'}[st];
+    h+=`<article class="acard"><header><h3>${esc(a.titel||'Actie')}${ex(a)}</h3><span class="chip ${cls}">${st}</span></header>
+      <dl class="kv"><dt>Zaak</dt><dd>${esc(k?k.zaak:a.klantNaam||'–')}${k&&k.gemeente?' · '+esc(k.gemeente):''}</dd>
+      <dt>Periode</dt><dd>${a.van?fdate(a.van):'?'} – ${a.tot?fdate(a.tot):'?'}</dd>
+      <dt>Mechanisme</dt><dd>${esc(a.mechanisme||'–')}</dd><dt>Bieren</dt><dd>${esc(a.producten||'–')}</dd>
+      <dt>Resultaat</dt><dd class="num">${fmt(num(a.behaaldHL))} / ${fmt(num(a.doelHL))} HL</dd></dl>
+      ${num(a.doelHL)?`<div class="bar${pct>=100?' done':''}"><span style="width:${pct}%"></span></div>`:''}
+      ${a.notities?`<p class="note">${esc(a.notities)}</p>`:''}
+      <div><button class="btn small" data-act="editActie" data-id="${a.id}">Bewerken</button></div></article>`});
+  return h+'</div>';
+};
+
+V.seizoen=function(){
+  const km=klantMap();
+  const list=S.seizoensbieren.slice().sort((a,b)=>String(a.van||'').localeCompare(String(b.van||'')));
+  let h=`<div class="head"><div><h2>Seizoensbieren</h2><p>Per seizoensbier: beschikbaarheid, bij wie je het aanbiedt en wat het oplevert.</p></div><div class="actions"><button class="btn primary" data-act="newSeizoen">+ Seizoensbier</button></div></div>`;
+  if(!list.length)return h+'<div class="tw"><div class="empty">Nog geen seizoensbieren ingevuld. Voeg ze toe met naam en verkoopperiode.<br><button class="btn primary" data-act="newSeizoen">+ Seizoensbier</button></div></div>';
+  const SST=['Aanbieden','Aangeboden','Besteld','Geen interesse'];
+  h+='<div class="cards">';
+  list.forEach(s=>{
+    const rows=Object.entries(s.klanten||{}).map(([id,v])=>({id:id,k:km[id],v:v||{}})).filter(r=>r.k);
+    const best=rows.filter(r=>r.v.status==='Besteld');
+    const hl=rows.reduce((a,r)=>a+num(r.v.hl),0);
+    const t=today();const actief=(!s.van||t>=s.van)&&(!s.tot||t<=s.tot);
+    h+=`<article class="acard"><header><h3>${esc(s.naam||'Seizoensbier')}${ex(s)}</h3><span class="chip ${actief?'st-klant':'st-pauze'}">${actief?'Nu in verkoop':(s.van&&t<s.van?'Komt eraan':'Voorbij')}</span></header>
+      <dl class="kv"><dt>Verkoop</dt><dd>${s.van?fdate(s.van):'?'} – ${s.tot?fdate(s.tot):'?'}</dd><dt>Verpakking</dt><dd>${esc(s.verpakking||'–')}</dd><dt>Stand</dt><dd>${rows.length} zaken · ${best.length} besteld · ${fmt(hl)} HL verwacht</dd></dl>
+      ${s.notities?`<p class="note">${esc(s.notities)}</p>`:''}
+      ${rows.length?`<div class="tw"><table><thead><tr><th>Zaak</th><th>Status</th><th class="n">HL</th><th></th></tr></thead><tbody>${rows.sort((a,b)=>byName(a.k,b.k)).map(r=>`<tr><td>${esc(r.k.zaak)}<span class="sub">${esc(r.k.gemeente||'')}</span></td><td><select id="sz_${s.id}_${r.id}" data-szstatus="${s.id}" data-klant="${r.id}" style="border:1px solid var(--line);border-radius:6px;padding:3px 5px;background:var(--bg)">${opts(SST,r.v.status)}</select></td><td class="n">${fmt(num(r.v.hl))}</td><td><button class="icon" style="font-size:16px" data-act="szDel" data-id="${s.id}" data-klant="${r.id}" aria-label="Verwijder ${esc(r.k.zaak)}">×</button></td></tr>`).join('')}</tbody></table></div>`:''}
+      <div class="inline"><select id="szk_${s.id}" aria-label="Klant">${klantOptions('',k=>!(s.klanten||{})[k.id]&&k.status!=='Verloren')}</select><input id="szh_${s.id}" type="number" min="0" step="0.1" placeholder="HL" aria-label="Verwachte HL"><button class="btn small" data-act="szAdd" data-id="${s.id}">Toevoegen</button></div>
+      <div><button class="btn small" data-act="editSeizoen" data-id="${s.id}">Bewerken</button></div></article>`;
+  });
+  return h+'</div>';
+};
+
+V.opvolging=function(){
+  const t=today(),w=addDays(t,7);
+  const list=S.klanten.filter(k=>klantOk(k)&&k.status!=='Verloren'&&(k.volgendeActie||k.volgendeActieDatum));
+  const groups=[['Te laat',k=>k.volgendeActieDatum&&k.volgendeActieDatum<t,'late'],['Vandaag',k=>k.volgendeActieDatum===t,'today'],['Deze week',k=>k.volgendeActieDatum>t&&k.volgendeActieDatum<=w,''],['Later',k=>k.volgendeActieDatum>w,''],['Zonder datum',k=>!k.volgendeActieDatum,'']];
+  let h=`<div class="head"><div><h2>Opvolging</h2><p>Alle volgende acties uit je klantfiches. "Afgewerkt" logt meteen een contactmoment.</p></div></div>`;
+  h+=filterBar();
+  const nobezoek=S.klanten.filter(k=>klantOk(k)&&k.status==='Klant'&&(!laatsteBezoek(k)||laatsteBezoek(k)<addDays(t,-90)));
+  if(!list.length)h+='<div class="tw"><div class="empty">Geen openstaande acties. Vul bij een klant een "volgende actie" in.</div></div>';
+  groups.forEach(([naam,fn,cls])=>{
+    const items=list.filter(fn).sort((a,b)=>String(a.volgendeActieDatum||'').localeCompare(String(b.volgendeActieDatum||''))||byName(a,b));
+    if(!items.length)return;
+    h+=`<section class="fgroup"><h3>${naam} <span class="sub" style="display:inline">(${items.length})</span></h3><div class="flist">`;
+    items.forEach(k=>{h+=`<div class="fitem ${cls}"><div class="what">${esc(k.volgendeActie||'(geen omschrijving)')}</div><div class="acts"><button class="btn small primary" data-act="followDone" data-id="${k.id}">Afgewerkt</button><button class="btn small" data-act="followLater" data-id="${k.id}">+1 week</button></div>
+      <div class="who">${k.volgendeActieDatum?`<span class="${datumKlasse(k.volgendeActieDatum)}">${fdate(k.volgendeActieDatum)}</span> · `:''}<button class="link" data-act="editKlant" data-id="${k.id}">${esc(k.zaak)}</button> · ${esc(k.gemeente||'')} ${chip(k.status)}</div></div>`});
+    h+='</div></section>';
+  });
+  if(nobezoek.length)h+=`<section class="panel"><div class="panel-h"><h3>Klanten langer dan 3 maanden niet bezocht</h3><p>${nobezoek.length} zaken</p></div><div class="tw"><table><tbody>${nobezoek.sort((a,b)=>String(laatsteBezoek(a)).localeCompare(String(laatsteBezoek(b)))).map(k=>`<tr class="click" data-act="editKlant" data-id="${k.id}"><td><strong>${esc(k.zaak)}</strong></td><td>${esc(k.gemeente||'')}</td><td>${laatsteBezoek(k)?'laatst '+fdate(laatsteBezoek(k)):'nog nooit bezocht'}</td></tr>`).join('')}</tbody></table></div></section>`;
+  return h;
+};
+
+V.rekenen=function(){
+  const i=inst(),c=UI.calc;
+  const e=eenheid(c.eenheid)||i.eenheden[0];
+  const aantal=num(c.aantal),liter=aantal*num(e.liter),hl=liter/100;
+  const pp=num(e.perPallet);
+  const doelHL=num(c.hl);
+  const pal=num(c.pallets);
+  const km=klantMap();const mKey=today().slice(0,7);
+  const hlMaand=S.bestellingen.filter(o=>String(o.datum||'').slice(0,7)===mKey).reduce((a,o)=>a+num(o.hl),0);
+  const nogNodig=Math.max(0,i.doelMaand-hlMaand);
+  let mixHL=0;i.eenheden.forEach(x=>{mixHL+=num(c.mix[x.id])*num(x.liter)/100});
+  const ppNote=x=>num(x.perPallet)?`${fmt0(num(x.perPallet))} per pallet`:'<span class="soon">aantal per pallet nog niet ingevuld</span>';
+
+  let h=`<div class="head"><div><h2>Rekenmodule</h2><p>Reken bakken, vaten en pallets om naar hectoliter en omgekeerd. 1 HL = 100 liter.</p></div></div><div class="calc">`;
+  h+=`<section class="panel"><div class="panel-h"><h3>Aantal → HL</h3></div>
+    <div class="row"><label>Verpakking<select id="c_eenheid" data-calc="eenheid">${opts(i.eenheden.map(x=>[x.id,x.naam]),c.eenheid)}</select></label><label>Aantal<input id="c_aantal" type="number" min="0" step="1" data-calc="aantal" value="${esc(c.aantal)}"></label></div>
+    <div class="res"><div><b>${fmt(liter,1)}</b><span>liter</span></div><div><b>${fmt(hl,2)}</b><span>HL</span></div><div><b>${pp?fmt(aantal/pp,2):'–'}</b><span>pallets</span></div></div>
+    <p class="note">${esc(e.naam)} = ${fmt(num(e.liter),2)} liter · ${ppNote(e)}</p></section>`;
+  h+=`<section class="panel"><div class="panel-h"><h3>HL → hoeveel verpakkingen?</h3></div>
+    <div class="row"><label>Aantal HL<input id="c_hl" type="number" min="0" step="0.1" data-calc="hl" value="${esc(c.hl)}"></label></div>
+    <div class="tw"><table><thead><tr><th>Verpakking</th><th class="n">Aantal</th><th class="n">Pallets</th></tr></thead><tbody>${i.eenheden.map(x=>{const n=num(x.liter)?Math.ceil(doelHL*100/num(x.liter)):0;return `<tr><td>${esc(x.naam)}</td><td class="n"><strong>${fmt0(n)}</strong></td><td class="n">${num(x.perPallet)?fmt(n/num(x.perPallet),2):'–'}</td></tr>`}).join('')}</tbody></table></div></section>`;
+  h+=`<section class="panel"><div class="panel-h"><h3>Pallets → HL</h3></div>
+    <div class="row"><label>Aantal pallets<input id="c_pallets" type="number" min="0" step="0.5" data-calc="pallets" value="${esc(c.pallets)}"></label></div>
+    <div class="tw"><table><thead><tr><th>Pallet met</th><th class="n">Per pallet</th><th class="n">Stuks</th><th class="n">HL</th></tr></thead><tbody>${i.eenheden.filter(x=>x.id!=='fles').map(x=>`<tr><td>${esc(x.naam)}</td><td class="n"><input id="pp_${esc(x.id)}" type="number" min="0" step="1" data-pal="${esc(x.id)}" value="${esc(x.perPallet==null?'':x.perPallet)}" placeholder="invullen" style="width:90px;text-align:right"></td><td class="n">${num(x.perPallet)?fmt0(pal*num(x.perPallet)):'–'}</td><td class="n"><strong>${num(x.perPallet)?fmt(pal*num(x.perPallet)*num(x.liter)/100,2):'–'}</strong></td></tr>`).join('')}</tbody></table></div>
+    <p class="note">Vul het aantal bakken of vaten per pallet in zoals de brouwerij levert. Het wordt bewaard.</p></section>`;
+  h+=`<section class="panel"><div class="panel-h"><h3>Bestelmix optellen</h3></div>
+    <div class="row">${i.eenheden.map(x=>`<label>${esc(x.naam)}<input id="mix_${esc(x.id)}" type="number" min="0" step="1" data-mix="${esc(x.id)}" value="${esc(c.mix[x.id]||'')}"></label>`).join('')}</div>
+    <div class="res"><div><b>${fmt(mixHL,2)}</b><span>HL samen</span></div><div><b>${fmt(mixHL/i.doelMaand*100,0)}%</b><span>van maanddoel ${fmt0(i.doelMaand)} HL</span></div></div></section>`;
+  h+=`<section class="panel"><div class="panel-h"><h3>Nog nodig deze maand</h3><p>${MAANDEN_L[now.getMonth()]}</p></div>
+    <div class="res"><div><b>${fmt(hlMaand,1)}</b><span>HL besteld</span></div><div><b>${fmt(nogNodig,1)}</b><span>HL te gaan</span></div>${i.eenheden.filter(x=>x.id!=='fles').map(x=>`<div><b>${fmt0(num(x.liter)?Math.ceil(nogNodig*100/num(x.liter)):0)}</b><span>${esc(x.naam)}</span></div>`).join('')}</div>
+    <p class="note">Of een mix: bijvoorbeeld de helft in vaten, de helft in bakken = ${fmt0(Math.ceil(nogNodig*50/20))} vaten + ${fmt0(Math.ceil(nogNodig*50/7.92))} bakken.</p></section>`;
+  return h+'</div>';
+};
+
+V.instellingen=function(){
+  const i=inst();
+  const rows=i.eenheden.concat(Array.from({length:UI.extraEenheden},()=>({id:'',naam:'',liter:'',perPallet:''})));
+  let h=`<div class="head"><div><h2>Instellingen</h2><p>Doelen, verpakkingen, bieren en je werkgebied. Alles is aanpasbaar.</p></div></div>`;
+  h+=`<form id="instForm" class="panel"><div class="form-grid">
+    <div class="sect">Doelen</div>
+    ${fld('Maanddoel (HL)','doelMaand',i.doelMaand,'number','min="0" step="1"')}
+    ${fld('Jaardoel (HL)','doelJaar',i.doelJaar,'number','min="0" step="1"')}
+    <p class="note full" style="grid-column:1/-1">${fmt0(i.doelMaand)} HL × 12 = ${fmt0(i.doelMaand*12)} HL per jaar. Voor ${fmt0(i.doelJaar)} HL per jaar is gemiddeld ${fmt(i.doelJaar/12)} HL per maand nodig.</p>
+    <div class="sect">Verpakkingen</div>
+    <div class="full" style="grid-column:1/-1"><div class="tw"><table><thead><tr><th>Naam</th><th class="n">Liter per stuk</th><th class="n">Stuks per pallet</th></tr></thead><tbody>
+    ${rows.map((x,n)=>`<tr><td><input id="e_naam_${n}" data-eid="${esc(x.id)}" value="${esc(x.naam)}" style="width:100%;border:1px solid var(--line);border-radius:6px;padding:5px 7px;background:var(--bg)" aria-label="Naam verpakking"></td><td class="n"><input id="e_liter_${n}" type="number" step="0.01" min="0" value="${esc(x.liter)}" style="width:100px;text-align:right;border:1px solid var(--line);border-radius:6px;padding:5px 7px;background:var(--bg)" aria-label="Liter"></td><td class="n"><input id="e_pal_${n}" type="number" step="1" min="0" value="${esc(x.perPallet==null?'':x.perPallet)}" placeholder="onbekend" style="width:100px;text-align:right;border:1px solid var(--line);border-radius:6px;padding:5px 7px;background:var(--bg)" aria-label="Per pallet"></td></tr>`).join('')}
+    </tbody></table></div><p class="note" style="margin-top:6px"><button type="button" class="link" data-act="addEenheid">+ Verpakking toevoegen</button> · Maak een naam leeg om die verpakking te verwijderen.</p></div>
+    <div class="sect">Bieren</div>
+    ${area('Bieren (één per regel). Deze verschijnen in bestellingen.','producten',i.producten.join('\n'))}
+    <div class="sect">Werkgebied</div>
+    <label class="fld full"><span>Regio’s en gemeenten. Per regel: <em>Regio: gemeente, gemeente, …</em></span><textarea id="m_regios" name="regios" style="min-height:120px">${esc(i.regios.map(r=>r.naam+': '+(r.gemeenten||[]).join(', ')).join('\n'))}</textarea><small>Een klant krijgt automatisch de regio van zijn gemeente. Je kunt de regio per klant ook zelf kiezen.</small></label>
+  </div><div style="display:flex;gap:8px;margin-top:6px"><button class="btn primary" type="submit">Instellingen opslaan</button></div></form>`;
+  const nEx=COLS.reduce((a,c)=>a+S[c].filter(r=>r.voorbeeld).length,0);
+  h+=`<section class="panel"><div class="panel-h"><h3>Gegevens</h3></div>
+    <div class="inline"><button class="btn" data-act="copyExport">Kopieer alle gegevens</button>${nEx?`<button class="btn danger" data-act="delVoorbeelden">Verwijder ${nEx} voorbeeldgegevens</button>`:''}</div>
+    <p class="note">Met "Kopieer alle gegevens" zet je alles als tekst op je klembord, als reservekopie of om in Excel te verwerken. Je gegevens worden bewaard in Achel POS en zijn enkel zichtbaar voor jou, de commercieel directeur en admin.</p>
+    ${UI.showExport?`<label class="fld full"><span>Alle gegevens</span><textarea id="exportBox" readonly style="min-height:160px;font-size:12px">${esc(JSON.stringify(exportData(),null,1))}</textarea></label>`:''}</section>`;
+  return h;
+};
+function exportData(){const o={instellingen:inst()};COLS.forEach(c=>o[c]=S[c]);return o}
+
+/* ---------- Formulieren ---------- */
+function openModal(title,html,onSubmit,o){
+  o=o||{};
+  const m=$('#modal');
+  m.innerHTML=`<div class="dlg" role="dialog" aria-modal="true" aria-labelledby="dlgT"><form id="dlgForm" novalidate><header><h2 id="dlgT">${esc(title)}</h2><button type="button" class="icon" data-act="closeModal" aria-label="Sluiten">×</button></header><div class="dlg-body">${html}</div><footer>${o.extra||''}<span class="sp"></span><button type="button" class="btn ghost" data-act="closeModal">Annuleren</button><button class="btn primary" type="submit">${o.submit||'Opslaan'}</button></footer></form></div>`;
+  m.hidden=false;MODAL.onSubmit=onSubmit;
+  const f=m.querySelector('input:not([type=hidden]),select,textarea');if(f&&!o.noFocus)f.focus();
+}
+function closeModal(){const m=$('#modal');m.hidden=true;m.innerHTML='';MODAL.onSubmit=null}
+const formObj=form=>{const o={};new FormData(form).forEach((v,k)=>o[k]=typeof v==='string'?v.trim():v);return o};
+const delBtn=(col,id)=>id?`<button type="button" class="btn danger" data-act="deleteRec" data-col="${col}" data-id="${id}">Verwijderen</button>`:'';
+
+function klantForm(k){
+  k=k||{};
+  const lb=k.id?laatsteBezoek(k):'';
+  let hist='';
+  if(k.id){
+    const bz=S.bezoeken.filter(b=>b.klantId===k.id).sort((a,b)=>String(b.datum).localeCompare(String(a.datum))).slice(0,5);
+    const bs=S.bestellingen.filter(o=>o.klantId===k.id).sort((a,b)=>String(b.datum).localeCompare(String(a.datum)));
+    const jaar=String(now.getFullYear());
+    hist=`<div class="hist"><div class="inline"><strong>${fmt(hlKlantJaar(k,jaar))} HL in ${jaar}</strong><span class="sub" style="display:inline">· ${bs.length} bestellingen · ${S.bezoeken.filter(b=>b.klantId===k.id).length} contactmomenten</span><span style="flex:1"></span><button type="button" class="btn small" data-act="newBezoek" data-klant="${k.id}">+ Bezoek</button><button type="button" class="btn small" data-act="newBestelling" data-klant="${k.id}">+ Bestelling</button></div>
+      ${bz.length?`<h4>Laatste contacten</h4><ul>${bz.map(b=>`<li>${fdate(b.datum)} · ${esc(b.soort||'')}: ${esc(b.verslag||'')}</li>`).join('')}</ul>`:''}
+      ${bs.length?`<h4>Laatste bestellingen</h4><ul>${bs.slice(0,4).map(o=>`<li>${fdate(o.datum)} · ${fmt(num(o.hl),2)} HL</li>`).join('')}</ul>`:''}</div>`;
+  }
+  const allG=alleGemeenten('');
+  const body=`${hist}<div class="form-grid">
+    ${fld('Zaak / naam *','zaak',k.zaak,'text','required')}
+    ${sel('Soort zaak','type',k.type||'Horeca',TYPES)}
+    ${fld('Contactpersoon','contact',k.contact)}
+    ${fld('Telefoon','telefoon',k.telefoon,'tel')}
+    ${fld('E-mail','email',k.email,'email')}
+    <label class="fld"><span>Gemeente</span><input id="m_gemeente" name="gemeente" list="dl_gem" value="${esc(k.gemeente||'')}" autocomplete="off"><datalist id="dl_gem">${allG.map(g=>`<option value="${esc(g)}">`).join('')}</datalist></label>
+    ${fld('Adres / deelgemeente','plaats',k.plaats)}
+    ${sel('Regio','regio',k.regio||regioVan(k.gemeente),alleRegios().filter(r=>r!=='Onbekend'),'Automatisch volgens gemeente')}
+    ${sel('Potentieel','potentieel',k.potentieel||'?',POT)}
+    ${sel('Status','status',k.status||'Prospect',STATUSSEN)}
+    ${fld('Verwachte HL per jaar','verwachtHL',k.verwachtHL,'number','min="0" step="0.1" inputmode="decimal"')}
+    ${fld('Laatste bezoek','laatsteBezoek',lb,'date')}
+    ${fld('Huidige biermerken','merken',k.merken,'text','placeholder="bv. Westmalle, Duvel, Jupiler van \'t vat"','full')}
+    ${sel('Contract','contract',k.contract||'Onbekend',CONTRACT)}
+    ${fld('Brouwer / verdeler','verdeler',k.verdeler,'text','placeholder="Bij wie loopt het contract of de levering?"')}
+    ${fld('Volgende actie','volgendeActie',k.volgendeActie,'text','placeholder="bv. proefvat leveren, offerte sturen"')}
+    ${fld('Datum volgende actie','volgendeActieDatum',k.volgendeActieDatum,'date')}
+    ${area('Notities','notities',k.notities)}
+  </div>`;
+  openModal(k.id?k.zaak||'Klant':'Nieuwe klant of prospect',body,async o=>{
+    if(!o.zaak){toast('Vul minstens de naam van de zaak in.');throw new Error('leeg')}
+    const rec=Object.assign({},k,o);
+    if(!o.regio)delete rec.regio;
+    await put('klanten',rec);toast('Klant opgeslagen');
+  },{extra:delBtn('klanten',k.id)});
+}
+
+function bezoekForm(b,o){
+  b=b||{};o=o||{};
+  const k=S.klanten.find(x=>x.id===(b.klantId||o.klant));
+  const body=`<div class="form-grid">
+    <label class="fld"><span>Klant *</span><select id="m_klantId" name="klantId" required>${klantOptions(b.klantId||o.klant||'')}</select></label>
+    ${fld('Datum','datum',b.datum||today(),'date')}
+    ${sel('Soort contact','soort',b.soort||'Bezoek',SOORT_BEZOEK)}
+    ${area('Verslag','verslag',b.verslag||o.verslag||'')}
+    <div class="sect">Wat is de volgende stap?</div>
+    ${fld('Volgende actie','volgendeActie',b.id?b.volgendeActie:(o.done?'':(k&&k.volgendeActie)||''),'text','placeholder="Laat leeg als er niets gepland is"')}
+    ${fld('Datum volgende actie','volgendeActieDatum',b.id?b.volgendeActieDatum:(o.done?'':(k&&k.volgendeActieDatum)||''),'date')}
+    ${sel('Status van de klant na dit contact','statusNa','',STATUSSEN,'Ongewijzigd')}
+    ${o.done?'<input type="hidden" name="done" value="1">':''}
+  </div><p class="note">De volgende actie en status worden ook in de klantfiche bijgewerkt.</p>`;
+  openModal(b.id?'Bezoek bewerken':(o.done?'Actie afgewerkt: contact loggen':'Bezoek loggen'),body,async f=>{
+    if(!f.klantId){toast('Kies een klant.');throw new Error('leeg')}
+    const kk=S.klanten.find(x=>x.id===f.klantId);
+    const rec=Object.assign({},b,{klantId:f.klantId,klantNaam:kk?kk.zaak:'',datum:f.datum,soort:f.soort,verslag:f.verslag,volgendeActie:f.volgendeActie,volgendeActieDatum:f.volgendeActieDatum});
+    await put('bezoeken',rec);
+    if(kk){
+      const upd=Object.assign({},kk);
+      if(!upd.laatsteBezoek||f.datum>upd.laatsteBezoek)upd.laatsteBezoek=f.datum;
+      if(f.volgendeActie||f.volgendeActieDatum||f.done){upd.volgendeActie=f.volgendeActie;upd.volgendeActieDatum=f.volgendeActieDatum}
+      if(f.statusNa)upd.status=f.statusNa;
+      await put('klanten',upd);
+    }
+    toast('Contact opgeslagen');
+  },{extra:delBtn('bezoeken',b.id)});
+}
+
+function lineRow(r,n){
+  const i=inst();
+  return `<div class="line" data-line="${n}"><select id="ln_p_${n}" class="lp" aria-label="Bier">${opts(i.producten.concat(r.product&&!i.producten.includes(r.product)?[r.product]:[]),r.product||i.producten[0])}</select><select id="ln_e_${n}" class="le" aria-label="Verpakking">${opts(i.eenheden.map(x=>[x.id,x.naam]),r.eenheid||'bak')}</select><input id="ln_a_${n}" class="la" type="number" min="0" step="1" value="${esc(r.aantal||'')}" placeholder="aantal" aria-label="Aantal" inputmode="numeric"><button type="button" class="icon" data-act="delLine" aria-label="Regel verwijderen">×</button></div>`;
+}
+let lineCount=0;
+function collectLines(){
+  return [...document.querySelectorAll('#lines .line')].map(el=>{const e=eenheid(el.querySelector('.le').value)||{};return {product:el.querySelector('.lp').value,eenheid:el.querySelector('.le').value,eenheidNaam:e.naam||'',liter:num(e.liter),aantal:num(el.querySelector('.la').value)}}).filter(r=>r.aantal>0);
+}
+function updateHL(){const el=$('#hlPrev');if(el){const hl=collectLines().reduce((a,r)=>a+r.aantal*r.liter/100,0);el.textContent=fmt(hl,2)+' HL'}}
+function bestellingForm(b,o){
+  b=b||{};o=o||{};
+  const k=S.klanten.find(x=>x.id===(b.klantId||o.klant));
+  const regels=(b.regels&&b.regels.length?b.regels:[{eenheid:'bak'},{eenheid:'vat'}]);
+  lineCount=regels.length;
+  const body=`<div class="form-grid">
+    <label class="fld"><span>Klant *</span><select id="m_klantId" name="klantId" required>${klantOptions(b.klantId||o.klant||'')}</select></label>
+    ${fld('Datum','datum',b.datum||today(),'date')}
+    ${sel('Geleverd via','via',b.via||(k&&k.contract==='Via verdeler'?'Verdeler':'Rechtstreeks'),['Rechtstreeks','Verdeler','Drankenhandel'])}
+    ${fld('Naam verdeler / handel','verdeler',b.verdeler||(k&&k.verdeler)||'')}
+  </div>
+  <div><div class="lines" id="lines">${regels.map((r,n)=>lineRow(r,n)).join('')}</div>
+  <p class="note" style="margin-top:6px"><button type="button" class="link" data-act="addLine">+ Regel toevoegen</button></p></div>
+  <div class="inline"><span class="note">Totaal:</span><span class="hlprev" id="hlPrev">0 HL</span></div>
+  ${area('Notitie','notitie',b.notitie)}`;
+  openModal(b.id?'Bestelling bewerken':'Nieuwe bestelling',body,async f=>{
+    if(!f.klantId){toast('Kies een klant.');throw new Error('leeg')}
+    const regels=collectLines();
+    if(!regels.length){toast('Vul minstens één aantal in.');throw new Error('leeg')}
+    const kk=S.klanten.find(x=>x.id===f.klantId);
+    const hl=Math.round(regels.reduce((a,r)=>a+r.aantal*r.liter/100,0)*10000)/10000;
+    await put('bestellingen',Object.assign({},b,{klantId:f.klantId,klantNaam:kk?kk.zaak:'',datum:f.datum,via:f.via,verdeler:f.verdeler,regels:regels,hl:hl,notitie:f.notitie}));
+    if(kk&&kk.status!=='Klant'&&(kk.status==='Prospect'||kk.status==='In gesprek'||kk.status==='Proef / offerte'))toast('Bestelling opgeslagen. Tip: zet '+kk.zaak+' op status Klant.');
+    else toast('Bestelling opgeslagen');
+  },{extra:delBtn('bestellingen',b.id)});
+  updateHL();
+}
+
+function actieForm(a){
+  a=a||{};
+  const body=`<div class="form-grid">
+    ${fld('Naam van de actie *','titel',a.titel,'text','placeholder="bv. Tripel 5+1 voorjaar"')}
+    <label class="fld"><span>Drankenhandel *</span><select id="m_klantId" name="klantId">${klantOptions(a.klantId||'',k=>k.type==='Drankenhandel'||k.id===a.klantId)}</select><small>Enkel zaken met soort "Drankenhandel". <button type="button" class="link" data-act="newKlant" data-type="Drankenhandel">Nieuwe drankenhandel</button></small></label>
+    ${fld('Van','van',a.van,'date')}
+    ${fld('Tot','tot',a.tot,'date')}
+    ${fld('Mechanisme','mechanisme',a.mechanisme,'text','placeholder="bv. korting, display, folder, proeverij"')}
+    ${fld('Bieren','producten',a.producten,'text','placeholder="bv. Tripel, Dubbel"')}
+    ${fld('Doel (HL)','doelHL',a.doelHL,'number','min="0" step="0.1"')}
+    ${fld('Behaald (HL)','behaaldHL',a.behaaldHL,'number','min="0" step="0.1"')}
+    ${sel('Status','status',a.status||'Actief',[['Actief','Actief (volgens data)'],['Geannuleerd','Geannuleerd']])}
+    ${area('Notities','notities',a.notities)}
+  </div>`;
+  openModal(a.id?'Actie bewerken':'Nieuwe drankenhandelactie',body,async f=>{
+    if(!f.titel||!f.klantId){toast('Vul een naam in en kies een drankenhandel.');throw new Error('leeg')}
+    const kk=S.klanten.find(x=>x.id===f.klantId);
+    await put('acties',Object.assign({},a,f,{klantNaam:kk?kk.zaak:''}));toast('Actie opgeslagen');
+  },{extra:delBtn('acties',a.id)});
+}
+
+function seizoenForm(s){
+  s=s||{};
+  const body=`<div class="form-grid">
+    ${fld('Naam seizoensbier *','naam',s.naam)}
+    ${fld('Verpakking','verpakking',s.verpakking,'text','placeholder="bv. bak 24 × 33 cl en vat 20 L"')}
+    ${fld('Verkoop vanaf','van',s.van,'date')}
+    ${fld('Verkoop tot','tot',s.tot,'date')}
+    ${area('Notities (verhaal, argumenten, prijs)','notities',s.notities)}
+  </div>`;
+  openModal(s.id?'Seizoensbier bewerken':'Nieuw seizoensbier',body,async f=>{
+    if(!f.naam){toast('Vul een naam in.');throw new Error('leeg')}
+    await put('seizoensbieren',Object.assign({klanten:{}},s,f));toast('Seizoensbier opgeslagen');
+  },{extra:delBtn('seizoensbieren',s.id)});
+}
+
+/* ---------- Acties ---------- */
+const find=(col,id)=>S[col].find(x=>x.id===id);
+const ACT={
+  closeModal:closeModal,
+  newKlant:d=>klantForm({status:d.status||'Prospect',type:d.type||'Horeca',gemeente:UI.f.gemeente||'',regio:''}),
+  editKlant:d=>klantForm(find('klanten',d.id)),
+  newBezoek:d=>bezoekForm(null,{klant:d.klant}),
+  editBezoek:d=>bezoekForm(find('bezoeken',d.id)),
+  newBestelling:d=>bestellingForm(null,{klant:d.klant}),
+  editBestelling:d=>bestellingForm(find('bestellingen',d.id)),
+  newActie:()=>actieForm(),
+  editActie:d=>actieForm(find('acties',d.id)),
+  newSeizoen:()=>seizoenForm(),
+  editSeizoen:d=>seizoenForm(find('seizoensbieren',d.id)),
+  addLine:()=>{const w=$('#lines');w.insertAdjacentHTML('beforeend',lineRow({eenheid:'bak'},lineCount++));const l=w.lastElementChild.querySelector('.la');if(l)l.focus()},
+  delLine:(d,el)=>{const l=el.closest('.line');if(l)l.remove();updateHL()},
+  clearFilters:()=>{UI.f={regio:'',gemeente:'',status:'',type:'',q:''};UI.maand='';render()},
+  drill:d=>{
+    if(UI.groep==='klant'){klantForm(find('klanten',d.key));return}
+    if(UI.groep==='gemeente'){UI.f.gemeente=d.key==='Onbekend'?'':d.key;UI.groep='klant'}
+    else if(UI.groep==='regio'){UI.f.regio=d.key;UI.groep='gemeente'}
+    else if(UI.groep==='type'){UI.f.type=d.key==='Onbekend'?'':d.key;UI.groep='klant'}
+    else if(UI.groep==='verteg'){VIEW=d.key;const vs=$('#viewSel');if(vs)vs.value=d.key;UI.groep='gemeente';loadData();return}
+    render();
+  },
+  move:async d=>{const k=find('klanten',d.id);if(!k)return;const i=STATUSSEN.indexOf(k.status||'Prospect')+num(d.dir);if(i<0||i>=STATUSSEN.length)return;await put('klanten',Object.assign({},k,{status:STATUSSEN[i]}))},
+  followDone:d=>{const k=find('klanten',d.id);if(k)bezoekForm(null,{klant:k.id,done:true,verslag:k.volgendeActie?'Afgewerkt: '+k.volgendeActie:''})},
+  followLater:async d=>{const k=find('klanten',d.id);if(!k)return;const t=today();const base=k.volgendeActieDatum&&k.volgendeActieDatum>t?k.volgendeActieDatum:t;await put('klanten',Object.assign({},k,{volgendeActieDatum:addDays(base,7)}));toast('Verschoven naar '+fdate(addDays(base,7)))},
+  deleteRec:async(d,el)=>{
+    if(el.dataset.armed!=='1'){el.dataset.armed='1';el.textContent='Klik nogmaals om te verwijderen';return}
+    await del(d.col,d.id);closeModal();toast('Verwijderd');
+  },
+  szAdd:async d=>{const s=find('seizoensbieren',d.id);const kid=$('#szk_'+d.id).value;if(!s||!kid){toast('Kies eerst een klant.');return}
+    const kl=Object.assign({},s.klanten||{});kl[kid]={status:'Aanbieden',hl:num($('#szh_'+d.id).value)};await put('seizoensbieren',Object.assign({},s,{klanten:kl}))},
+  szDel:async d=>{const s=find('seizoensbieren',d.id);if(!s)return;const kl=Object.assign({},s.klanten||{});delete kl[d.klant];await put('seizoensbieren',Object.assign({},s,{klanten:kl}))},
+  addEenheid:()=>{UI.extraEenheden++;render()},
+  copyExport:async()=>{UI.showExport=true;const txt=JSON.stringify(exportData(),null,1);try{await navigator.clipboard.writeText(txt);toast('Gekopieerd naar je klembord')}catch(e){toast('Kopiëren lukte niet. Selecteer de tekst hieronder en kopieer handmatig.')}render()},
+  delVoorbeelden:async(d,el)=>{
+    if(el.dataset.armed!=='1'){el.dataset.armed='1';el.textContent='Klik nogmaals: voorbeelden verwijderen';return}
+    for(const c of COLS){for(const r of S[c].filter(x=>x.voorbeeld)){try{await del(c,r.id)}catch(e){return}}}
+    toast('Voorbeeldgegevens verwijderd');
+  }
+};
+
+/* ---------- Render ---------- */
+function renderTabs(){
+  const t=today();
+  const late=S.klanten.filter(k=>k.status!=='Verloren'&&k.volgendeActieDatum&&k.volgendeActieDatum<t).length;
+  $('#tabs').innerHTML=TABS.map(([id,l])=>`<button class="tab" data-tab="${id}"${UI.tab===id?' aria-current="page"':''}>${l}${id==='opvolging'&&late?`<b>${late}</b>`:''}</button>`).join('');
+}
+function render(){
+  const a=document.activeElement;const aid=a&&a.id&&$('#view').contains(a)?a.id:null;
+  let sel=null;try{if(aid&&a.selectionStart!=null)sel=[a.selectionStart,a.selectionEnd]}catch(e){}
+  renderTabs();
+  $('#view').innerHTML=(VIEW&&!isOwnView()?'<div class="banner">Je bekijkt '+(VIEW==='alle'?'de gegevens van <strong>alle vertegenwoordigers</strong>':'het overzicht van <strong>'+esc(naamVan(VIEW))+'</strong>')+'. Alleen bekijken: wijzigen kan alleen in je eigen overzicht.</div>':'')+(MODE==='fout'?'<div class="banner">De gegevens konden niet geladen worden. Controleer je verbinding en open de module opnieuw.</div>':'')+(V[UI.tab]||V.dashboard)();
+  if(aid){const el=document.getElementById(aid);if(el){el.focus();try{if(sel)el.setSelectionRange(sel[0],sel[1])}catch(e){}}}
+}
+function setTab(t){UI.tab=TABS.some(x=>x[0]===t)?t:'dashboard';if(location.hash.slice(1)!==UI.tab){try{history.replaceState(null,'','#'+UI.tab)}catch(e){location.hash=UI.tab}}render();window.scrollTo(0,0)}
+let toastT=null;
+function toast(msg){const t=$('#toast');t.textContent=msg;t.hidden=false;clearTimeout(toastT);toastT=setTimeout(()=>t.hidden=true,3200)}
+
+/* ---------- Gebeurtenissen ---------- */
+document.addEventListener('click',async e=>{
+  const tab=e.target.closest('[data-tab]');
+  if(tab){e.preventDefault();if(!$('#modal').hidden)closeModal();setTab(tab.dataset.tab);return}
+  const el=e.target.closest('[data-act]');
+  if(!el)return;
+  if(el.tagName==='TR'&&e.target.closest('button,select,input,a'))return;
+  const fn=ACT[el.dataset.act];if(!fn)return;
+  e.preventDefault();
+  try{await fn(el.dataset,el)}catch(err){}
+});
+$('#modal').addEventListener('click',e=>{if(e.target.id==='modal')closeModal()});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('#modal').hidden)closeModal()});
+document.addEventListener('input',e=>{
+  const t=e.target;
+  if(t.dataset.filter==='q'){UI.f.q=t.value;render();return}
+  if(t.dataset.calc){UI.calc[t.dataset.calc]=t.value;render();return}
+  if(t.dataset.mix){UI.calc.mix[t.dataset.mix]=t.value;render();return}
+  if(t.closest('#lines'))updateHL();
+  if(t.id==='m_gemeente'){const r=regioVan(t.value);const s=$('#m_regio');if(s&&r)s.value=r}
+});
+document.addEventListener('change',async e=>{
+  const t=e.target;
+  if(t.dataset.filter&&t.dataset.filter!=='q'){UI.f[t.dataset.filter]=t.value;if(t.dataset.filter==='regio'&&UI.f.gemeente&&regioVan(UI.f.gemeente)&&regioVan(UI.f.gemeente)!==t.value)UI.f.gemeente='';render();return}
+  if(t.dataset.period){UI[t.dataset.period]=t.value;render();return}
+  if(t.dataset.groep){UI.groep=t.value;render();return}
+  if(t.dataset.sort){UI.sort=t.value;render();return}
+  if(t.dataset.calc){UI.calc[t.dataset.calc]=t.value;render();return}
+  if(t.closest('#lines'))updateHL();
+  if(t.dataset.pal){const i=inst();const eh=i.eenheden.map(x=>x.id===t.dataset.pal?Object.assign({},x,{perPallet:t.value===''?null:num(t.value)}):x);try{await putInst(Object.assign({},S.inst||{},{eenheden:eh}));toast('Pallet-aantal bewaard')}catch(err){}return}
+  if(t.dataset.szstatus){const s=find('seizoensbieren',t.dataset.szstatus);if(!s)return;const kl=Object.assign({},s.klanten||{});kl[t.dataset.klant]=Object.assign({},kl[t.dataset.klant]||{},{status:t.value});try{await put('seizoensbieren',Object.assign({},s,{klanten:kl}))}catch(err){}}
+});
+document.addEventListener('submit',async e=>{
+  const f=e.target;
+  if(f.id==='dlgForm'){
+    e.preventDefault();if(!MODAL.onSubmit)return;
+    const btn=f.querySelector('button[type=submit]');btn.disabled=true;
+    try{await MODAL.onSubmit(formObj(f),f);closeModal()}catch(err){btn.disabled=false}
+    return;
+  }
+  if(f.id==='instForm'){
+    e.preventDefault();
+    const o=formObj(f);
+    const eh=[];
+    f.querySelectorAll('input[id^="e_naam_"]').forEach(inp=>{
+      const n=inp.id.slice(7),naam=inp.value.trim();if(!naam)return;
+      const id=inp.dataset.eid||naam.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')||newId();
+      const p=$('#e_pal_'+n).value;
+      eh.push({id:id,naam:naam,liter:num($('#e_liter_'+n).value),perPallet:p===''?null:num(p)});
+    });
+    const regios=String(o.regios||'').split('\n').map(l=>l.trim()).filter(Boolean).map(l=>{const ix=l.indexOf(':');return ix<0?{naam:l,gemeenten:[]}:{naam:l.slice(0,ix).trim(),gemeenten:l.slice(ix+1).split(',').map(g=>g.trim()).filter(Boolean)}});
+    const producten=String(o.producten||'').split('\n').map(x=>x.trim()).filter(Boolean);
+    try{
+      await putInst({doelMaand:num(o.doelMaand)||DEFAULTS.doelMaand,doelJaar:num(o.doelJaar)||DEFAULTS.doelJaar,eenheden:eh.length?eh:DEFAULTS.eenheden,producten:producten.length?producten:DEFAULTS.producten,regios:regios.length?regios:DEFAULTS.regios});
+      UI.extraEenheden=0;toast('Instellingen opgeslagen');
+    }catch(err){}
+  }
+});
+window.addEventListener('hashchange',()=>{const h=location.hash.slice(1);if(h&&h!==UI.tab)setTab(h)});
+
+/* ---------- Start ---------- */
+UI.tab=TABS.some(x=>x[0]===location.hash.slice(1))?location.hash.slice(1):'dashboard';
+render();
+initDb();
+})();
+</script>
+</body>
+</html>
